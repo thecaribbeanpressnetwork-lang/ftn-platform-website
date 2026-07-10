@@ -1,0 +1,90 @@
+/*
+  FTN Platform Website — Design Tokens
+  Source: FTN_Master_Asset_Library_v1.0 (AEB-01 Brand Foundation, AEB-06 Design System).
+  FTN Red and the primary typeface were founder decisions made specifically to unblock this
+  website build (2026-07-10) — see CLAUDE.md §5 for the full record and the still-open conflicts
+  (success green, file/board mismatch). Do not add or change a brand token here without the same
+  founder sign-off.
+*/
+
+:root {
+  /* Color — primary (AEB-01 §1.5) */
+  --color-black: #0B0B0B;
+  --color-white: #FFFFFF;
+  --color-red: #E10613; /* founder-resolved, see CLAUDE.md §5 */
+
+  /* Color — secondary neutrals (AEB-01 §1.5) */
+  --color-charcoal: #1A1A1A;
+  --color-graphite: #4D4D4D;
+  --color-silver: #A1A1A1;
+
+  /* Color — accent (AEB-01 §1.5; consistent across boards, no conflict) */
+  --color-info: #2563EB;
+  --color-warning: #F59E0B;
+  /* Success green is NOT defined here — AEB-01 (#22C55E) and AEB-06/13 (#16A34A) conflict.
+     Do not use a success color until the founder resolves this (CLAUDE.md §5). */
+
+  /* Typography (founder-resolved: Montserrat + Inter, see CLAUDE.md §5) */
+  --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Type scale (AEB-06 §3) — size/line-height */
+  --text-display-size: 3rem;      /* 48px */
+  --text-display-line: 3.5rem;    /* 56px */
+  --text-h1-size: 2rem;           /* 32px */
+  --text-h1-line: 2.5rem;         /* 40px */
+  --text-h2-size: 1.5rem;         /* 24px */
+  --text-h2-line: 2rem;           /* 32px */
+  --text-h3-size: 1.25rem;        /* 20px */
+  --text-h3-line: 1.75rem;        /* 28px */
+  --text-body-size: 1rem;         /* 16px */
+  --text-body-line: 1.5rem;       /* 24px */
+  --text-small-size: 0.875rem;    /* 14px */
+  --text-small-line: 1.25rem;     /* 20px */
+  --text-caption-size: 0.75rem;   /* 12px */
+  --text-caption-line: 1rem;      /* 16px */
+
+  /* Spacing — 8pt grid (AEB-06 §4) */
+  --space-4: 0.25rem;
+  --space-8: 0.5rem;
+  --space-12: 0.75rem;
+  --space-16: 1rem;
+  --space-24: 1.5rem;
+  --space-32: 2rem;
+  --space-48: 3rem;
+  --space-64: 4rem;
+  --space-96: 6rem;
+  --space-128: 8rem;
+
+  /* Radius (AEB-06 §5) */
+  --radius-0: 0;
+  --radius-4: 4px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-24: 24px;
+  --radius-32: 32px;
+  --radius-48: 48px;
+  --radius-full: 999px;
+
+  /* Shadow (AEB-06 §6) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.16);
+
+  /* Grid (AEB-06 §3) */
+  --grid-columns: 12;
+  --grid-gutter: 1.5rem; /* 24px */
+  --grid-margin: 1.5rem; /* 24px */
+  --container-max: 1260px;
+}
+
+/* Breakpoints (AEB-06 §3) — documented here for reference; media queries use literal px values
+   since CSS custom properties cannot be used inside @media conditions.
+     Mobile:     375px
+     Tablet:     768px
+     Laptop:     1024px
+     Desktop:    1260px
+     Ultra-wide: 1820px+
+*/

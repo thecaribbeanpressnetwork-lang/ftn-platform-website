@@ -1,0 +1,209 @@
+/* FTN Platform Website — global navigation (AEB-09 §2) */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-white);
+  border-bottom: 1px solid #ECECEC;
+}
+
+.site-header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-24);
+  padding-block: var(--space-16);
+}
+
+.site-header__logo img {
+  height: 32px;
+  width: auto;
+}
+
+/* Desktop nav — hidden below tablet, shown at laptop+ */
+.site-nav {
+  display: none;
+}
+
+.site-nav__list {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-8);
+}
+
+.site-nav__item {
+  position: relative;
+}
+
+.site-nav__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 100%;
+  padding: var(--space-8) var(--space-12);
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-small-size);
+  color: var(--color-black);
+  border-radius: var(--radius-8);
+  cursor: pointer;
+}
+
+.site-nav__trigger:hover,
+.site-nav__item.is-open .site-nav__trigger {
+  background: #F5F5F5;
+}
+
+.site-nav__trigger .chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.15s ease;
+}
+
+.site-nav__item.is-open .chevron {
+  transform: rotate(180deg);
+}
+
+.site-nav__dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + var(--space-8));
+  left: 0;
+  min-width: 220px;
+  background: var(--color-white);
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8);
+}
+
+.site-nav__item.is-open .site-nav__dropdown {
+  display: block;
+}
+
+.site-nav__dropdown a {
+  display: block;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-8);
+  font-size: var(--text-small-size);
+  text-decoration: none;
+  color: var(--color-charcoal);
+}
+
+.site-nav__dropdown a:hover {
+  background: #F5F5F5;
+  color: var(--color-black);
+}
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+/* Mobile menu toggle — visible below laptop breakpoint */
+.nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-8);
+  cursor: pointer;
+}
+
+.nav-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.nav-toggle .icon-close {
+  display: none;
+}
+
+.nav-toggle[aria-expanded="true"] .icon-menu {
+  display: none;
+}
+
+.nav-toggle[aria-expanded="true"] .icon-close {
+  display: block;
+}
+
+/* Mobile nav panel */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  inset: 0;
+  top: 65px;
+  z-index: 40;
+  background: var(--color-white);
+  overflow-y: auto;
+  padding: var(--space-24) var(--grid-margin) var(--space-48);
+}
+
+.mobile-nav.is-open {
+  display: block;
+}
+
+.mobile-nav__section + .mobile-nav__section {
+  margin-top: var(--space-24);
+  padding-top: var(--space-24);
+  border-top: 1px solid #ECECEC;
+}
+
+.mobile-nav__heading {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-body-size);
+  margin-bottom: var(--space-12);
+}
+
+.mobile-nav__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.mobile-nav__links a {
+  display: block;
+  padding: var(--space-8) 0;
+  color: var(--color-graphite);
+  text-decoration: none;
+  font-size: var(--text-small-size);
+}
+
+.mobile-nav__actions {
+  margin-top: var(--space-32);
+}
+
+.mobile-nav__actions .btn {
+  width: 100%;
+}
+
+/* No-JS baseline: without JavaScript the toggle button is inert, so the mobile
+   nav must remain reachable — show it inline, under the header, at narrow widths. */
+.no-js .mobile-nav {
+  display: block;
+  position: static;
+  padding-top: var(--space-16);
+}
+
+.no-js .nav-toggle {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .site-nav {
+    display: block;
+  }
+
+  .nav-toggle,
+  .mobile-nav {
+    display: none !important;
+  }
+}

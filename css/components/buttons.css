@@ -1,0 +1,81 @@
+/* FTN Platform Website — button component (AEB-02 §2.1, AEB-06 §7) */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-body-size);
+  line-height: 1;
+  padding: var(--space-12) var(--space-24);
+  border-radius: var(--radius-8);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Primary */
+.btn-primary {
+  background: var(--color-red);
+  color: var(--color-white);
+}
+
+.btn-primary:hover {
+  background: #b80510;
+}
+
+.btn-primary:active {
+  background: #9a040e;
+}
+
+.btn-primary:disabled {
+  background: var(--color-silver);
+  color: var(--color-white);
+  cursor: not-allowed;
+}
+
+/* Secondary */
+.btn-secondary {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.btn-secondary:hover {
+  background: var(--color-charcoal);
+}
+
+.btn-secondary:disabled {
+  background: var(--color-silver);
+  cursor: not-allowed;
+}
+
+/* Outline */
+.btn-outline {
+  background: transparent;
+  color: var(--color-black);
+  border-color: var(--color-black);
+}
+
+.btn-outline:hover {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.btn-outline:disabled {
+  color: var(--color-silver);
+  border-color: var(--color-silver);
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: var(--space-8) var(--space-16);
+  font-size: var(--text-small-size);
+}
+
+.btn-lg {
+  padding: var(--space-16) var(--space-32);
+  font-size: var(--text-h3-size);
+}

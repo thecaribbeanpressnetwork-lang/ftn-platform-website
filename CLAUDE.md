@@ -174,11 +174,25 @@ a value goes into a shipped CSS token:
    file named `12_AEB_Platform_Ecosystem_Reference_v1.0.png.png`. Don't trust filenames over embedded
    board titles when extracting assets — verify against the board's own header stamp.
 
+**Founder decisions recorded (2026-07-10), scoped to this website build only:**
+
+- **FTN Red implementation token: `#E10613`** (the AEB-06/AEB-12/AEB-13 value). This is a founder
+  decision for website implementation purposes, not a retroactive edit to AEB-01 — the underlying
+  conflict in the asset library itself remains unresolved and will still be settled in Asset Library
+  v2.0.
+- **Primary typeface for the FTN Platform design system: Montserrat (headings) + Inter (body)** —
+  the founder confirmed the Montserrat variant over AEB-01/AEB-06's Manrope/Inter, for website
+  implementation purposes only. Same caveat: the library's own internal conflict is not retroactively
+  edited.
+- Success green hex (`#22C55E` vs `#16A34A`) and the file/board-number mismatch (§ item 4 above)
+  remain **open** — ask before any implementation touches either.
+
 **Interim resolution (founder decision, in effect for the duration of website development):** the
-four conflicts above are **not to be resolved by AI judgment, ever** — they are explicitly reserved
-as founder decisions and will be settled later during the creation of **FTN Master Asset Library
-v2.0**, after the website is complete. `FTN_Master_Asset_Library_v1.0/` is **frozen** for the
-duration of this build: no substitutes, no reinterpretation, no "best guess" tokens. Until v2.0:
+remaining conflicts above are **not to be resolved by AI judgment, ever** — they are explicitly
+reserved as founder decisions and will be settled later during the creation of **FTN Master Asset
+Library v2.0**, after the website is complete. `FTN_Master_Asset_Library_v1.0/` is **frozen** for the
+duration of this build: no substitutes, no reinterpretation, no "best guess" tokens beyond the two
+decisions explicitly recorded above. Until v2.0:
 
 - Use the approved branding **exactly as it currently exists** in the supplied assets.
 - Do not redesign logos. Do not recolor assets. Do not substitute typography. Do not regenerate
