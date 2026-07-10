@@ -1,0 +1,96 @@
+FTN MASTER ASSET LIBRARY
+
+MASTER MANIFEST v1.0
+
+Publisher: RealityArtTV Media Platform: FTN Platform Primary Product:
+Community Connect Website: FTN Platform Website Status: Official
+Production Asset Library Version: 1.0 Date: July 2026
+
+------------------------------------------------------------------------
+
+PURPOSE
+
+This Asset Library is the authoritative visual reference for the FTN
+Platform ecosystem.
+
+These Asset Extraction Boards (AEB) are engineering documents for
+AI-assisted asset extraction, optimization, organization and production.
+
+They define: - Brand Identity - Website Design - Product Graphics -
+Marketing - Mission Control - UI Components - Photography Direction -
+Website Architecture - Production Roadmap
+
+CURRENT PROJECT
+
+Build the FTN Platform Website.
+
+The website is completely separate from the Community Connect
+application.
+
+Do NOT: - Modify Community Connect source code. - Move files inside the
+Community Connect application. - Rename application assets.
+
+Shared assets should be copied from this library.
+
+BOARD HIERARCHY
+
+1.  AEB-01 Brand Foundation
+2.  AEB-06 Design System
+3.  AEB-09 Website Architecture
+4.  AEB-03 Community Connect Assets
+5.  AEB-04 Marketing & Media
+6.  AEB-08 Hero Artwork & Photography
+7.  AEB-05 Mission Control
+8.  AEB-07 Icon Library
+9.  AEB-10 Asset Production Roadmap
+
+EXTRACTION RULES
+
+Extract assets individually. Generate SVG, PNG, WEBP and AVIF where
+appropriate. Maintain proportions and colours. Use sRGB. Optimize for
+web. Generate transparent backgrounds.
+
+RECOMMENDED FOLDER STRUCTURE
+
+/assets/ logos/ icons/ buttons/ hero/ photos/ community/ ui/
+backgrounds/ patterns/ playstore/ press/ social/ mission-control/
+downloads/ typography/
+
+WEBSITE STYLE
+
+Light, premium, modern SaaS, government-grade, black, white and FTN red.
+
+COMMUNITY CONNECT APP STYLE
+
+Light theme, professional, fast and accessible.
+
+MISSION CONTROL STYLE
+
+Dark operations centre aesthetic.
+
+Do not apply Mission Control styling to the public website.
+
+DO NOT
+
+-   Redesign approved logos.
+-   Invent new branding.
+-   Change approved colours.
+-   Modify Community Connect source code.
+
+PERMITTED
+
+Improve quality, vectorize, optimize, compress, reorganize, create
+responsive variants and improve accessibility.
+
+FILE NAMING
+
+Use lowercase hyphen-separated filenames.
+
+Examples: logo-ftn-platform-primary.svg community-connect-dashboard.webp
+button-primary.svg hero-homepage.webp background-grid-light.svg
+
+FINAL OBJECTIVE
+
+Build a world-class FTN Platform website using this library as the
+authoritative visual reference while keeping the Community Connect
+application untouched.
