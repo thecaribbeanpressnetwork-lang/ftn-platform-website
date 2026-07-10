@@ -1,0 +1,55 @@
+/* FTN Platform Website — legal document framework.
+   These pages are structural placeholders only — see the banner markup used on
+   every legal page. Do not add substantive clause text here without founder/counsel
+   approval (CLAUDE.md §16/§17). */
+
+.legal-banner {
+  display: flex;
+  gap: var(--space-16);
+  align-items: flex-start;
+  padding: var(--space-24);
+  background: #FFF7ED;
+  border: 1px solid #F59E0B;
+  border-radius: var(--radius-12);
+  margin-bottom: var(--space-48);
+}
+
+.legal-banner__icon {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #B45309;
+}
+
+.legal-banner p {
+  color: #7C2D12;
+  font-size: var(--text-small-size);
+}
+
+.legal-doc {
+  max-width: 72ch;
+}
+
+.legal-doc h2 {
+  margin-top: var(--space-48);
+  margin-bottom: var(--space-12);
+}
+
+.legal-doc h2:first-child {
+  margin-top: 0;
+}
+
+.legal-doc p {
+  color: var(--color-graphite);
+  margin-top: var(--space-12);
+}
+
+.legal-doc .placeholder-text {
+  font-style: italic;
+  color: var(--color-silver);
+}
+
+.legal-meta {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+  margin-bottom: var(--space-24);
+}

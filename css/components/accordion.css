@@ -1,0 +1,54 @@
+/* FTN Platform Website — FAQ accordion.
+   Built on native <details>/<summary> so it works with zero JavaScript and is
+   keyboard/screen-reader operable by default — no custom ARIA state to maintain. */
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  max-width: 760px;
+}
+
+.faq-item {
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-12);
+  padding: var(--space-16) var(--space-24);
+}
+
+.faq-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-body-size);
+  list-style: none;
+  padding-block: var(--space-8);
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: "+";
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--color-red);
+  flex-shrink: 0;
+}
+
+.faq-item[open] summary::after {
+  content: "\2212"; /* minus sign */
+}
+
+.faq-item__answer {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-4);
+  color: var(--color-graphite);
+  font-size: var(--text-small-size);
+  max-width: 65ch;
+}

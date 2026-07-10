@@ -248,26 +248,49 @@ Recommended asset structure (manifest, verbatim categories):
 ```
 
 This repo's own convention for the rest of the site (not manifest-specified — a reasonable default
-for a vanilla HTML/CSS/JS static site; revisit if the founder prefers otherwise):
+for a vanilla HTML/CSS/JS static site; revisit if the founder prefers otherwise). Current actual
+structure as of Phase 2:
 
 ```
 /
-├── index.html
-├── about/
-├── community-connect/
-├── mission-control/
-├── insights/
-├── news/
-├── resources/
-├── contact/
+├── index.html                        # Homepage
+├── about/index.html                  # Mission, Vision, Founding Principles, Philosophy, Vision
+├── community-connect/index.html      # Overview, Features, Workflow, Benefits, Privacy, FAQ
+├── mission-control/index.html        # Government Dashboard, Analytics, Security, Future Modules
+├── resources/index.html              # FAQ, Documentation status, Media Kit
+├── contact/index.html                # Inquiry categories, contact form, direct contact (placeholder)
+├── insights/index.html               # Coming Soon (AEB-09 page-type 12)
+├── news/index.html                   # Coming Soon (AEB-09 page-type 12)
+├── sitemap/index.html                # Full page list
+├── accessibility/index.html          # Genuine content — WCAG 2.2 AA target, not a legal placeholder
 ├── legal/
-├── 404.html
-├── assets/                          # production assets only — see structure above
+│   ├── privacy-policy/index.html     # Structural placeholder — see §5 legal-wording rule
+│   ├── terms-of-service/index.html   # Structural placeholder
+│   ├── cookie-policy/index.html      # Structural placeholder
+│   └── data-retention/index.html     # Structural placeholder
+├── assets/
+│   ├── logos/                        # logo-ftn-platform-primary-{light,dark}.svg
+│   └── icons/                        # favicon + hand-authored UI/social icons
 ├── css/
+│   ├── tokens.css                    # design tokens (color/type/spacing/radius/shadow/breakpoints)
+│   ├── base.css                      # reset, container, focus states
+│   ├── utilities.css                 # small spacing/color/width utility classes
+│   ├── main.css                      # import entry point
+│   └── components/                   # nav, footer, buttons, blocks, accordion,
+│                                      # content-sections, form, legal
 ├── js/
-├── FTN_Master_Asset_Library_v1.0/   # reference source boards — never referenced live, never edited
+│   ├── nav.js                        # mobile menu + dropdown behavior (progressive enhancement)
+│   └── contact-form.js               # client-side validation; honest no-backend status message
+├── 00_Phase1_Discovery/              # Discovery Report (planning artifact, not shipped site)
+├── FTN_Master_Asset_Library_v1.0/    # reference source boards — never referenced live, never edited
 └── CLAUDE.md
 ```
+
+All internal links use root-relative paths (`/about/`, `/assets/...`) rather than page-relative
+paths, since pages live at varying folder depths — this was a Phase 2 correction to a Phase 1
+oversight (see git history). Every page shares byte-identical header and footer markup, hand-kept
+in sync via a one-time generator script (not part of the shipped site) rather than a templating
+engine, consistent with the vanilla-only mandate in §3.
 
 ## 8. HTML Standards
 

@@ -1,0 +1,293 @@
+/* FTN Platform Website — shared content-page building blocks (interior pages) */
+
+/* Simple page hero — interior pages that don't need the homepage's split-media hero */
+.page-hero {
+  padding-block: var(--space-64) var(--space-48);
+  border-bottom: 1px solid #ECECEC;
+}
+
+.page-hero__eyebrow {
+  display: inline-block;
+  font-weight: 700;
+  font-size: var(--text-caption-size);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-red);
+  margin-bottom: var(--space-16);
+}
+
+.page-hero__title {
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-line);
+  margin-bottom: var(--space-16);
+}
+
+.page-hero__lede {
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  color: var(--color-graphite);
+  max-width: 56ch;
+}
+
+.page-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  margin-top: var(--space-32);
+}
+
+/* Alternating band background for long-form pages */
+.section--tint {
+  background: #FAFAFA;
+}
+
+.section--dark {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.section--dark h2,
+.section--dark h3 {
+  color: var(--color-white);
+}
+
+.section--dark p {
+  color: var(--color-silver);
+}
+
+/* Prose used for mission/vision/philosophy copy */
+.prose {
+  max-width: 68ch;
+}
+
+.prose > * + * {
+  margin-top: var(--space-16);
+}
+
+.prose p {
+  color: var(--color-graphite);
+}
+
+/* Principle / pillar cards (About: Founding Principles) */
+.principle-grid {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-columns: 1fr;
+}
+
+.principle-card {
+  padding: var(--space-24);
+  border-radius: var(--radius-16);
+  background: var(--color-white);
+  border: 1px solid #ECECEC;
+}
+
+.principle-card__index,
+.principle-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-black);
+  color: var(--color-white);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-small-size);
+  margin-bottom: var(--space-16);
+}
+
+.principle-card__icon {
+  background: var(--color-red);
+}
+
+.principle-card h3 {
+  margin-bottom: var(--space-8);
+}
+
+.principle-card p {
+  color: var(--color-graphite);
+  font-size: var(--text-small-size);
+}
+
+/* Two-column benefit lists (e.g. "For Citizens" / "For Governments") */
+.benefit-columns {
+  display: grid;
+  gap: var(--space-32);
+  grid-template-columns: 1fr;
+}
+
+.benefit-column {
+  padding: var(--space-32);
+  border-radius: var(--radius-16);
+  border: 1px solid #ECECEC;
+}
+
+.benefit-column h3 {
+  margin-bottom: var(--space-16);
+}
+
+.benefit-column ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.benefit-column li {
+  display: flex;
+  gap: var(--space-12);
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+}
+
+.benefit-column li::before {
+  content: "";
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 0.55em;
+  border-radius: var(--radius-full);
+  background: var(--color-red);
+}
+
+/* Numbered workflow steps (Community Connect: reporting workflow) */
+.workflow-steps {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-columns: 1fr;
+  counter-reset: workflow-step;
+}
+
+.workflow-step {
+  position: relative;
+  padding: var(--space-24) var(--space-16) var(--space-16);
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-16);
+  counter-increment: workflow-step;
+}
+
+.workflow-step::before {
+  content: counter(workflow-step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-red);
+  color: var(--color-white);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-small-size);
+  margin-bottom: var(--space-12);
+}
+
+.workflow-step h3 {
+  font-size: var(--text-body-size);
+  margin-bottom: var(--space-4);
+}
+
+.workflow-step p {
+  color: var(--color-graphite);
+  font-size: var(--text-small-size);
+}
+
+/* Module / capability cards (Mission Control) */
+.module-grid {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-columns: 1fr;
+}
+
+.module-card {
+  padding: var(--space-24);
+  border-radius: var(--radius-16);
+  border: 1px solid #ECECEC;
+}
+
+.module-card__status {
+  display: inline-block;
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-12);
+}
+
+.module-card__status--planned {
+  background: #F5F5F5;
+  color: var(--color-graphite);
+}
+
+.module-card h3 {
+  margin-bottom: var(--space-8);
+}
+
+.module-card p {
+  color: var(--color-graphite);
+  font-size: var(--text-small-size);
+}
+
+/* Screenshot placeholder frames (device mockup, no real screenshots yet) */
+.screenshot-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-24);
+  justify-content: center;
+}
+
+.screenshot-frame {
+  width: 220px;
+  aspect-ratio: 9 / 19.5;
+  border-radius: var(--radius-24);
+  border: 8px solid var(--color-black);
+  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-16);
+  color: var(--color-graphite);
+  font-size: var(--text-caption-size);
+}
+
+/* Inline callout used for honest "not yet available" notes */
+.callout {
+  padding: var(--space-16) var(--space-24);
+  border-left: 3px solid var(--color-red);
+  background: #FAFAFA;
+  border-radius: var(--radius-8);
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+}
+
+@media (min-width: 768px) {
+  .principle-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .benefit-columns {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .module-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .workflow-steps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .principle-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .module-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

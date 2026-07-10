@@ -1,0 +1,113 @@
+/* FTN Platform Website — small utility classes.
+   Used sparingly, for one-off spacing/color/width tweaks that don't warrant a
+   named component class. Prefer a real component class over reaching for these
+   when a pattern repeats more than once or two. */
+
+.u-mt-16 { margin-top: var(--space-16); }
+.u-mt-24 { margin-top: var(--space-24); }
+.u-mt-32 { margin-top: var(--space-32); }
+.u-mb-4  { margin-bottom: var(--space-4); }
+.u-mb-16 { margin-bottom: var(--space-16); }
+.u-mb-24 { margin-bottom: var(--space-24); }
+
+.u-max-480  { max-width: 480px; }
+.u-max-640  { max-width: 640px; }
+.u-max-60ch { max-width: 60ch; }
+.u-max-68ch { max-width: 68ch; }
+
+.u-text-graphite { color: var(--color-graphite); }
+.u-text-silver   { color: var(--color-silver); }
+.u-text-white    { color: var(--color-white); }
+.u-text-black    { color: var(--color-black); }
+.u-text-sm       { font-size: var(--text-small-size); }
+.u-underline     { text-decoration: underline; }
+
+.u-link-on-dark {
+  color: var(--color-white);
+  text-decoration: underline;
+}
+
+.u-icon-invert { filter: invert(1); }
+
+.logo-mark {
+  height: 32px;
+  width: auto;
+}
+
+.logo-mark--footer {
+  height: 28px;
+  width: auto;
+}
+
+/* Card/section modifiers used on dark bands */
+.principle-card--on-dark {
+  background: var(--color-charcoal);
+  border-color: var(--color-charcoal);
+}
+
+.principle-card--on-dark h3 {
+  color: var(--color-white);
+}
+
+.principle-card--on-dark p {
+  color: var(--color-silver);
+}
+
+.benefit-column--on-dark {
+  border-color: var(--color-charcoal);
+}
+
+/* Disabled-looking action (e.g. "coming soon" store badge) — not an actual disabled
+   control, just a visual cue since there's nothing to click through to yet. */
+.btn--unavailable {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.icon-row {
+  display: flex;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+
+.icon-row--center {
+  justify-content: center;
+  margin-bottom: var(--space-16);
+}
+
+.icon-circle--light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 1px solid #ECECEC;
+  color: var(--color-black);
+}
+
+.icon-circle--light:hover {
+  background: #F5F5F5;
+}
+
+.inquiry-category__title {
+  font-size: var(--text-body-size);
+}
+
+.stack-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.plain-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  max-width: 480px;
+}
+
+.plain-list a {
+  font-size: var(--text-body-size);
+  text-decoration: underline;
+}

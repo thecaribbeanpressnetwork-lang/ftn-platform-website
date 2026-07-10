@@ -1,0 +1,120 @@
+/* FTN Platform Website — form elements (AEB-02 §2.4, AEB-06 §8) */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-bottom: var(--space-24);
+}
+
+.form-field label {
+  font-weight: 600;
+  font-size: var(--text-small-size);
+}
+
+.form-field .hint {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  font: inherit;
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid #D9D9D9;
+  border-radius: var(--radius-8);
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+.form-field input:focus-visible,
+.form-field select:focus-visible,
+.form-field textarea:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: 1px;
+  border-color: var(--color-red);
+}
+
+.form-field textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.form-field[data-invalid="true"] input,
+.form-field[data-invalid="true"] select,
+.form-field[data-invalid="true"] textarea {
+  border-color: #DC2626;
+}
+
+.form-field__error {
+  display: none;
+  font-size: var(--text-caption-size);
+  color: #DC2626;
+}
+
+.form-field[data-invalid="true"] .form-field__error {
+  display: block;
+}
+
+.form-row {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-columns: 1fr;
+}
+
+.inquiry-categories {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: 1fr;
+  margin-bottom: var(--space-24);
+}
+
+.inquiry-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border: 1px solid #D9D9D9;
+  border-radius: var(--radius-8);
+  cursor: pointer;
+}
+
+.inquiry-option input {
+  margin-top: 0.2em;
+}
+
+.inquiry-option strong {
+  display: block;
+  font-size: var(--text-small-size);
+}
+
+.inquiry-option span.desc {
+  display: block;
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+}
+
+.form-status {
+  display: none;
+  padding: var(--space-16) var(--space-24);
+  border-radius: var(--radius-8);
+  background: #FAFAFA;
+  border-left: 3px solid var(--color-red);
+  font-size: var(--text-small-size);
+  margin-top: var(--space-24);
+}
+
+.form-status.is-visible {
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .form-row--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .inquiry-categories {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

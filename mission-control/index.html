@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FTN Platform — Report. Connect. Improve.</title>
-  <meta name="description" content="FTN Platform is the operating system for community intelligence — connecting communities, empowering governments, and building a smarter nation through Community Connect and Mission Control.">
-  <link rel="canonical" href="/">
+  <title>Mission Control — Government Intelligence Dashboard | FTN Platform</title>
+  <meta name="description" content="Mission Control is the government-facing side of FTN Platform — a dashboard designed to help agencies see, understand, and act on community reports.">
+  <link rel="canonical" href="/mission-control/">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -194,213 +194,158 @@
   </header>
 
   <main id="main">
-    <section class="hero">
-      <div class="container hero__grid">
-        <div>
-          <span class="hero__eyebrow">FTN Platform</span>
-          <h1 class="hero__title">Report. Connect. Improve.</h1>
-          <p class="hero__lede">
-            One platform. Every community. Every voice. FTN Platform connects citizens and
-            governments through Community Connect and Mission Control — building stronger,
-            more transparent communities together.
-          </p>
-          <div class="hero__actions">
-            <a class="btn btn-primary btn-lg" href="/community-connect/#download">Download the App</a>
-            <a class="btn btn-outline btn-lg" href="/community-connect/">See How It Works</a>
-          </div>
-        </div>
-        <div class="hero__media" role="img" aria-label="FTN Platform product preview — placeholder pending approved hero photography">
-          Hero photography pending — see Phase 1 Discovery Report &sect;5.2
+    <section class="page-hero" id="overview">
+      <div class="container">
+        <span class="page-hero__eyebrow">Mission Control</span>
+        <h1 class="page-hero__title">A clearer picture for the people responsible for the response.</h1>
+        <p class="page-hero__lede">
+          Mission Control is the government-facing side of FTN Platform — a dashboard built to
+          help agencies see what communities are reporting through Community Connect, understand
+          where issues are concentrated, and track how they're being resolved.
+        </p>
+        <div class="callout u-mt-32 u-max-60ch">
+          The capabilities described on this page reflect Mission Control's current product
+          design. Availability and feature scope may vary by agency and deployment — contact our
+          government team for specifics relevant to your agency.
         </div>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="government-dashboard">
       <div class="container">
         <div class="section__header">
-          <span class="section__eyebrow">Why FTN Exists</span>
-          <h2>Communities generate information every day. Most of it goes nowhere.</h2>
+          <span class="section__eyebrow">Government Dashboard</span>
+          <h2>One dashboard, six views into the same data.</h2>
+        </div>
+        <div class="module-grid">
+          <div class="module-card">
+            <h3>Executive Overview</h3>
+            <p>A high-level summary of report volume, status, and resolution rate — see the Executive Brief section below.</p>
+          </div>
+          <div class="module-card">
+            <h3>Reports Management</h3>
+            <p>Browse, filter, and manage incoming citizen reports as they arrive.</p>
+          </div>
+          <div class="module-card">
+            <h3>Analytics &amp; Trends</h3>
+            <p>Trends in report volume and category over time — see the Analytics section below.</p>
+          </div>
+          <div class="module-card">
+            <h3>Map Intelligence</h3>
+            <p>A geographic view of where reports are concentrated — see Situational Awareness below.</p>
+          </div>
+          <div class="module-card">
+            <h3>Agency Performance</h3>
+            <p>Performance data scoped to a specific agency's area of responsibility — see Agency Views below.</p>
+          </div>
+          <div class="module-card">
+            <h3>System Monitor</h3>
+            <p>Operational status of the platform itself, for administrators.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="executive-brief">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">Executive Brief</span>
+          <h2>A summary built for leadership, not analysts.</h2>
         </div>
         <div class="prose">
           <p>
-            A pothole gets reported to no one in particular. A community meeting's decisions never
-            reach the people they affect. A government agency wants to understand what's actually
-            happening on the ground, but the data arrives too late, too filtered, or not at all.
-          </p>
-          <p>
-            FTN Platform was built to close that gap — giving citizens a direct, trackable way to
-            report what they see, and giving governments a clear, structured view of what their
-            communities are telling them. Two sides of the same problem, on one platform.
+            The Executive Overview is designed to answer the questions leadership actually asks:
+            how many reports came in, how many are still open, and how quickly they're being
+            resolved — without requiring anyone to build their own report first.
           </p>
         </div>
       </div>
     </section>
 
-    <section class="section section--tint">
+    <section class="section" id="agency-views">
       <div class="container">
         <div class="section__header">
-          <span class="section__eyebrow">Platform Overview</span>
-          <h2>One platform. Two audiences. One shared source of truth.</h2>
-          <p class="u-mt-16 u-text-graphite">
-            FTN Platform is the operating system connecting citizens and governments &mdash;
-            <strong>Community Connect</strong> for the people reporting and following up, and
-            <strong>Mission Control</strong> for the agencies acting on what's reported. Both draw
-            from the same underlying reports, so nothing has to be re-entered or re-explained
-            between the two.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="community-connect-intro">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Community Connect</span>
-          <h2>Built for citizens. Built for change.</h2>
-          <p class="u-mt-16 u-text-graphite u-max-60ch">
-            Community Connect is the citizen-facing side of FTN Platform — a free way to report
-            issues, follow their progress, and see what's happening across your community.
-          </p>
-        </div>
-        <div class="feature-grid">
-          <article class="feature-card">
-            <span class="feature-card__icon">
-              <img src="/assets/icons/icon-report.svg" alt="" width="20" height="20">
-            </span>
-            <h3>Report Issues Easily</h3>
-            <p>Take a photo, describe the issue, and pin the exact location — reporting a problem in your community takes minutes.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-card__icon">
-              <img src="/assets/icons/icon-community.svg" alt="" width="20" height="20">
-            </span>
-            <h3>Connect With Your Community</h3>
-            <p>See what your neighbours are reporting, follow progress, and stay informed about the places you live.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-card__icon">
-              <img src="/assets/icons/icon-progress.svg" alt="" width="20" height="20">
-            </span>
-            <h3>Track Progress Over Time</h3>
-            <p>Every report is tracked from submission to resolution, so you can see the real impact of your voice.</p>
-          </article>
-        </div>
-        <div class="u-mt-32">
-          <a class="btn btn-outline" href="/community-connect/">Explore Community Connect</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section section--dark" id="mission-control-intro">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Mission Control</span>
-          <h2>A clearer picture for the people responsible for the response.</h2>
-          <p class="u-mt-16 u-max-60ch u-text-silver">
-            Mission Control is the government-facing side of FTN Platform — a dashboard designed to
-            help agencies see what's being reported, understand where it's concentrated, and track
-            how it's being resolved.
-          </p>
-        </div>
-        <div class="benefit-columns u-mt-32">
-          <div class="benefit-column benefit-column--on-dark">
-            <h3>Built for agency use</h3>
-            <ul>
-              <li>Executive-level overview of report volume and status</li>
-              <li>Geographic and category breakdowns of community reports</li>
-              <li>Views scoped to a specific agency's area of responsibility</li>
-            </ul>
-          </div>
-          <div class="benefit-column benefit-column--on-dark">
-            <h3>Designed around transparency</h3>
-            <ul>
-              <li>Same underlying data citizens submitted through Community Connect</li>
-              <li>No re-keying of reports between citizen and agency systems</li>
-              <li>Built to support public accountability, not replace it</li>
-            </ul>
-          </div>
-        </div>
-        <div class="u-mt-32">
-          <a class="btn btn-secondary" href="/mission-control/">Explore Mission Control</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Platform Benefits</span>
-          <h2>What each side actually gets out of it.</h2>
-        </div>
-        <div class="benefit-columns">
-          <div class="benefit-column">
-            <h3>For Citizens</h3>
-            <ul>
-              <li>Report issues in minutes, from your phone</li>
-              <li>Track the status of what you've reported</li>
-              <li>See what's happening across your community, not just your own reports</li>
-              <li>Your data is protected — see our <a href="/community-connect/#privacy">privacy approach</a></li>
-            </ul>
-          </div>
-          <div class="benefit-column">
-            <h3>For Governments</h3>
-            <ul>
-              <li>A structured, centralized view of citizen reports</li>
-              <li>Reports arrive already located, categorized, and time-stamped</li>
-              <li>A shared source of truth with the community being served</li>
-              <li>Learn more in <a href="/mission-control/">Mission Control</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section section--tint">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Our Mission</span>
-          <h2>Helping communities understand themselves.</h2>
+          <span class="section__eyebrow">Agency Views</span>
+          <h2>Scoped to what each agency is actually responsible for.</h2>
         </div>
         <div class="prose">
           <p>
-            FTN Platform exists to connect communities, empower governments, and help build a
-            smarter, more transparent nation — one report, one dashboard, one conversation at a
-            time. Read more about <a href="/about/#our-mission">our mission</a> and the principles
-            behind how we build.
+            Agency Performance views are designed to be scoped — an agency sees the reports and
+            performance data relevant to its own area of responsibility, rather than a
+            city-wide or national feed it has no mandate to act on.
           </p>
         </div>
       </div>
     </section>
 
-    <section class="section stats">
+    <section class="section section--tint" id="analytics">
       <div class="container">
-        <div class="stats-grid">
-          <div class="stat">
-            <p class="stat__value">24,851</p>
-            <p class="stat__label">Total Reports</p>
-          </div>
-          <div class="stat">
-            <p class="stat__value">4,392</p>
-            <p class="stat__label">Active Reports</p>
-          </div>
-          <div class="stat">
-            <p class="stat__value">1,275</p>
-            <p class="stat__label">Verified Issues</p>
-          </div>
-          <div class="stat">
-            <p class="stat__value">98%</p>
-            <p class="stat__label">Resolution Rate</p>
-          </div>
+        <div class="section__header">
+          <span class="section__eyebrow">Analytics</span>
+          <h2>Trends, not just totals.</h2>
+        </div>
+        <div class="prose">
+          <p>
+            Analytics &amp; Trends is designed to show how report volume and category shift over
+            time — using line, bar, and category-breakdown views — so agencies can see whether a
+            given issue is growing, shrinking, or seasonal, rather than reading a single report
+            in isolation.
+          </p>
         </div>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="situational-awareness">
       <div class="container">
-        <div class="cta">
-          <h2>Ready to Make a Difference?</h2>
-          <p>Your data is protected end-to-end. Download Community Connect and help build a stronger community today.</p>
-          <a class="btn btn-secondary btn-lg" href="/community-connect/#download">Download Now</a>
+        <div class="section__header">
+          <span class="section__eyebrow">Situational Awareness</span>
+          <h2>Where issues are, not just what they are.</h2>
+        </div>
+        <div class="prose">
+          <p>
+            Map Intelligence is designed to plot reports geographically, so agencies can see where
+            issues are concentrated across a community — useful for spotting patterns that a list
+            of individual reports wouldn't show on its own.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--dark" id="platform-security">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">Platform Security</span>
+          <h2>Built around the same trust principles as the rest of the platform.</h2>
+        </div>
+        <div class="prose u-max-68ch">
+          <p class="u-text-silver">
+            Mission Control is designed with government use in mind: access is intended to be
+            scoped by role and agency, so users see only what's relevant to their own
+            responsibilities. Security and compliance requirements vary by government and
+            jurisdiction — if your agency needs detailed security documentation as part of an
+            evaluation, our government team can provide it directly.
+          </p>
+        </div>
+        <div class="u-mt-24">
+          <a class="btn btn-secondary" href="/contact/#government">Talk to Our Government Team</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="future-modules">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">Future Modules</span>
+          <h2>Where we're looking next.</h2>
+        </div>
+        <div class="prose">
+          <p>
+            Areas we're exploring for future versions of Mission Control include expanded
+            predictive analytics and additional integrations with agency systems. These are
+            directions under exploration, not committed features or a published timeline — see
+            our <a href="/about/#long-term-vision">long-term institutional vision</a> for how we
+            think about extending the platform responsibly.
+          </p>
         </div>
       </div>
     </section>
