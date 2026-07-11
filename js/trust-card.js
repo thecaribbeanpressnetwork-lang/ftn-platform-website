@@ -187,5 +187,5 @@
   }
 
   global.FTN = global.FTN || {};
-  global.FTN.TrustCard = { open: open, close: close };
+  global.FTN.TrustCard = { open: open, close: close, classificationBadgeClass: classificationBadgeClass };
 })(window);

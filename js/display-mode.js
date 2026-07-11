@@ -90,7 +90,7 @@
     var DC = global.FTN.DisplayConfig;
     if (!DC) return;
     var cfg = DC.load();
-    if (!cfg.rotation) return;
+    if (cfg.rotationBehavior !== 'ordered') return;
     var layouts = DC.listLayouts();
     if (layouts.length < 2) return;
 

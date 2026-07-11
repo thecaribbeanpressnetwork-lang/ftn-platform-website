@@ -19,11 +19,11 @@
   // between them, matching how the founder direction describes "save,
   // load, switch between, share layouts."
   function listLayouts() {
-    try { return JSON.parse(global.localStorage.getItem(LAYOUTS_KEY) || '[]'); } catch (e) { return []; }
+    return global.FTN.storage.getJSON(LAYOUTS_KEY, []);
   }
 
   function saveLayouts(layouts) {
-    try { global.localStorage.setItem(LAYOUTS_KEY, JSON.stringify(layouts)); } catch (e) { /* noop */ }
+    global.FTN.storage.setJSON(LAYOUTS_KEY, layouts);
   }
 
   function saveAsLayout(name, cfg) {
@@ -54,23 +54,18 @@
   }
 
   function load() {
-    try {
-      var raw = global.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return global.FTN.DisplayConfigData.defaultConfig();
-      return Object.assign(global.FTN.DisplayConfigData.defaultConfig(), JSON.parse(raw));
-    } catch (e) {
-      return global.FTN.DisplayConfigData.defaultConfig();
-    }
+    var stored = global.FTN.storage.getJSON(STORAGE_KEY, null);
+    return Object.assign(global.FTN.DisplayConfigData.defaultConfig(), stored || {});
   }
 
   function save(cfg) {
     cfg.savedAt = new Date().toISOString();
-    try { global.localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); } catch (e) { /* storage unavailable */ }
+    global.FTN.storage.setJSON(STORAGE_KEY, cfg);
     global.dispatchEvent(new CustomEvent('ftn:display-config-changed', { detail: cfg }));
   }
 
   function reset() {
-    try { global.localStorage.removeItem(STORAGE_KEY); } catch (e) { /* noop */ }
+    global.FTN.storage.remove(STORAGE_KEY);
     var cfg = global.FTN.DisplayConfigData.defaultConfig();
     global.dispatchEvent(new CustomEvent('ftn:display-config-changed', { detail: cfg }));
     return cfg;
@@ -135,7 +130,7 @@
       '</div>' +
       '<div class="form-field">' +
         '<label class="customize-panel__item" for="dc-rotation">' +
-          '<input type="checkbox" id="dc-rotation"' + (cfg.rotation ? ' checked' : '') + '> ' +
+          '<input type="checkbox" id="dc-rotation"' + (cfg.rotationBehavior === 'ordered' ? ' checked' : '') + '> ' +
           'Rotating Display &mdash; cycle through saved layouts while in Display Mode' +
         '</label>' +
         '<div class="form-row form-row--2 u-mt-8">' +
@@ -216,7 +211,7 @@
           categories: Array.prototype.slice.call(mount.querySelectorAll('[data-dc-category]'))
             .filter(function (el) { return el.checked; })
             .map(function (el) { return el.getAttribute('data-dc-category'); }),
-          rotation: mount.querySelector('#dc-rotation').checked,
+          rotationBehavior: mount.querySelector('#dc-rotation').checked ? 'ordered' : 'locked',
           rotationIntervalSec: Number(mount.querySelector('#dc-rotation-interval').value),
         };
         // "All checked" is equivalent to no filter — store null so future

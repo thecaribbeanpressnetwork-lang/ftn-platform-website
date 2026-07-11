@@ -2,22 +2,14 @@
 (function (global) {
   'use strict';
 
+  // Shared across the platform (js/trust-card.js, js/charts.js) — see
+  // CLAUDE.md §7.7 Reality Engine. Do not reintroduce a local copy here.
   function classificationClass(c) {
-    var map = {
-      'Official': 'trust-badge--official',
-      'Sourced': 'trust-badge--sourced',
-      'FTN Derived': 'trust-badge--derived',
-      'FTN Estimated': 'trust-badge--estimated',
-      'FTN Modelled': 'trust-badge--modelled',
-      'Demonstration': 'trust-badge--demo',
-    };
-    return map[c] || 'trust-badge--demo';
+    return global.FTN.TrustCard.classificationBadgeClass(c);
   }
 
   function trendGlyph(trend) {
-    if (trend === 'up') return '▲';
-    if (trend === 'down') return '▼';
-    return '—';
+    return global.FTN.Charts.trendGlyph(trend);
   }
 
   function sourceHTML(ind) {
@@ -169,15 +161,11 @@
   var STORAGE_KEY = 'ftn-observatory-hidden-categories';
 
   function getHiddenCategories() {
-    try {
-      return JSON.parse(global.localStorage.getItem(STORAGE_KEY) || '[]');
-    } catch (e) {
-      return [];
-    }
+    return global.FTN.storage.getJSON(STORAGE_KEY, []);
   }
 
   function setHiddenCategories(list) {
-    try { global.localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) { /* storage unavailable */ }
+    global.FTN.storage.setJSON(STORAGE_KEY, list);
   }
 
   function applyCategoryVisibility() {

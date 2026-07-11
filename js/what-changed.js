@@ -68,7 +68,7 @@
           var ind = item.indicator;
           var dir = item.magnitude > 0 ? 'up' : 'down';
           return '<li class="what-changed__item">' +
-            '<span class="what-changed__glyph what-changed__glyph--' + dir + '">' + (dir === 'up' ? '▲' : '▼') + '</span>' +
+            '<span class="what-changed__glyph what-changed__glyph--' + dir + '">' + global.FTN.Charts.trendGlyph(dir) + '</span>' +
             '<button type="button" class="trust-trigger" data-trust-card="' + ind.id + '">' + ind.title + '</button>' +
             '<span class="what-changed__value">' + ind.changeLabel + '</span>' +
           '</li>';

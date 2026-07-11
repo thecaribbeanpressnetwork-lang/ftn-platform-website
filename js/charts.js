@@ -127,6 +127,15 @@
     return svg;
   }
 
+  // Shared trend glyph — was independently reimplemented in observatory.js,
+  // mission-control-demo.js (twice), and what-changed.js. One home for the
+  // up/down/flat convention used across every trend display in the platform.
+  function trendGlyph(trend) {
+    if (trend === 'up') return '▲';
+    if (trend === 'down') return '▼';
+    return '—';
+  }
+
   global.FTN = global.FTN || {};
-  global.FTN.Charts = { sparkline: sparkline, lineChart: lineChart, barChart: barChart, gauge: gauge };
+  global.FTN.Charts = { sparkline: sparkline, lineChart: lineChart, barChart: barChart, gauge: gauge, trendGlyph: trendGlyph };
 })(window);

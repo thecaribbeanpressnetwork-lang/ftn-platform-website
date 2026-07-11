@@ -13,11 +13,11 @@
   var DISABLED_KEY = 'ftn-founder-disabled-indicators';
 
   function getDisabled() {
-    try { return JSON.parse(global.localStorage.getItem(DISABLED_KEY) || '[]'); } catch (e) { return []; }
+    return global.FTN.storage.getJSON(DISABLED_KEY, []);
   }
 
   function setDisabled(list) {
-    try { global.localStorage.setItem(DISABLED_KEY, JSON.stringify(list)); } catch (e) { /* noop */ }
+    global.FTN.storage.setJSON(DISABLED_KEY, list);
     global.dispatchEvent(new CustomEvent('ftn:founder-controls-changed'));
   }
 

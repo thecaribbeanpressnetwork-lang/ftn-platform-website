@@ -304,11 +304,14 @@ structure as of Phase 3:
 │                                      # observatory, mission-control-demo
 ├── js/
 │   ├── nav.js                        # mobile menu + dropdown behavior (progressive enhancement)
+│   ├── storage.js                    # RC3, §7.7 — shared localStorage JSON get/set/remove helper
 │   ├── contact-form.js               # client-side validation; honest no-backend status message
 │   ├── indicators-data.js            # FTN Live indicator registry (~70 demo indicators, see below)
 │   ├── ads-data.js / ads.js          # advertisement campaign registry + generic panel renderer
-│   ├── charts.js                     # dependency-free SVG sparkline/line/bar/gauge helpers
-│   ├── trust-card.js                 # shared accessible modal — renders any indicator/evidence object
+│   ├── charts.js                     # dependency-free SVG sparkline/line/bar/gauge helpers +
+│   │                                  # shared trendGlyph() (RC3, §7.7)
+│   ├── trust-card.js                 # shared accessible modal — renders any indicator/evidence object;
+│   │                                  # also the shared classificationBadgeClass() (RC3, §7.7)
 │   ├── live-clocks.js                # interpolation engine for ticking demo counters + Fast Counter Engine
 │   ├── observatory.js                # renders the indicator wall, kiosk mode, dashboard customization
 │   ├── mission-control-data.js       # Mission Control demo data (correlations, graph, scenarios, etc.)
@@ -332,6 +335,9 @@ structure as of Phase 3:
 ├── ANALYTICS_STANDARD.md             # operational rules for classification/confidence/weighting/etc.
 ├── 00_Phase1_Discovery/              # Discovery Report (planning artifact, not shipped site)
 ├── FTN_Master_Asset_Library_v1.0/    # reference source boards — never referenced live, never edited
+├── GOVERNANCE/                       # RC3, §7.7 — FTN_Platform_Constitution_v1.0.md is the real
+│                                      # content; the other 3 files here are unfilled templates
+├── FTN_Strategic_Foundation_v1.0/    # RC3, §7.7 — founder working-draft strategic reference only
 └── CLAUDE.md
 ```
 
@@ -607,6 +613,102 @@ Community Connect or Mission Control source was touched; no unsupported function
 - **`.module-card` became a real link component**, not styling reused from a static card — added
   `:hover`/focus treatment (border + shadow + heading underline) consistent with the rest of the
   button/link system, since it's now a clickable deep-link into the demo, not inert text.
+
+## 7.7 Release Candidate 3 — Architecture & Excellence Pass: Reality Engine, Presentation Engine
+
+RC3 introduced repository governance: `GOVERNANCE/FTN_Platform_Constitution_v1.0.md` is now the
+highest governing document for this platform (the correctly-named-but-placeholder
+`GOVERNANCE/FTN_CONSTITUTION.md`, `FTN_BOUNDARIES.md`, and `FTN_EXCELLENCE.md` are unfilled
+templates — treat the `_v1.0.md` file as the real Constitution content until the founder fills in
+the others; don't be fooled by the filename mismatch, the same "verify against actual content, not
+filename" lesson already logged for the AEB boards in §5). `FTN_Strategic_Foundation_v1.0/` holds
+founder working-draft strategic reference material (presentation profiles, commercial catalogue,
+revenue model, award readiness, competitive advantage, IP register) — text-only planning material,
+authoritative below the Constitution and above ordinary repository/engineering guidance per its own
+stated authority hierarchy.
+
+This pass was architecture-only — no new pages, no new visible features. Everything below is either
+a real correctness fix, a genuine deduplication, or a documentation/naming clarification.
+
+### Reality Engine — a name for a system that already existed
+
+The Constitution and Strategic Foundation both refer to a "Reality Engine" as a first-class
+platform capability. No new file was created for it — it's the existing combination of:
+
+- **Indicator Engine** (`js/indicators-data.js`) — the `ind()` factory registry (§7.1)
+- **Relationship Engine** (`js/relationships-data.js`) — correlation/influence/dependency/
+  parent-child edges (§7.3)
+- **Trust Card System** (`js/trust-card.js`) — the shared modal exposing source, methodology,
+  freshness, classification, confidence, and relationships for any of the above
+- **Source Registry** (`js/source-registry.js`) — the only place real external source URLs live
+
+Together these four already implement Constitution Article IX (Evidence Standard — "every
+significant claim should expose its source, methodology, freshness and confidence") and Article
+VIII (Data Philosophy — clearly distinguish Official/Sourced/FTN Derived/FTN Estimated/FTN
+Modelled/Demonstration). "Reality Engine" is the name for this combination when discussing platform
+architecture — do not build a fifth file called `reality-engine.js`; extend one of the four above.
+
+### Duplication removed, one real bug fixed
+
+An architecture survey found the same small pieces of logic independently reimplemented across
+files that all load on the same pages — exactly the kind of drift Constitution Article V ("build
+once, reuse everywhere") warns against:
+
+- **Trend glyph** (▲/▼/—): was implemented separately in `observatory.js`, twice in
+  `mission-control-demo.js` (KPI cards and the Scenario Studio), and `what-changed.js`. Now one
+  function, `FTN.Charts.trendGlyph(trend)` (`js/charts.js`) — Charts already the natural shared
+  home for visual-rendering helpers. The three call sites now call it instead of reimplementing it;
+  `observatory.js` keeps a same-named local wrapper (`function trendGlyph(trend) { return
+  global.FTN.Charts.trendGlyph(trend); }`) so its many internal call sites didn't need touching.
+- **Classification badge class mapping** (Official/Sourced/FTN Derived/FTN Estimated/FTN
+  Modelled/Demonstration → `trust-badge--*` CSS class): was byte-for-byte duplicated in
+  `observatory.js` and `trust-card.js`. Now lives once, exported as
+  `FTN.TrustCard.classificationBadgeClass(classification)` — the natural owner, since trust-card.js
+  already exports the `TrustCard` namespace and already had this exact map internally.
+- **Real bug fixed in the process**: `js/community-profile.js`'s badge markup was hardcoded to
+  `trust-badge--demo` regardless of a profile's actual `classification` field — any future
+  Community Profile with a non-Demonstration classification would have silently rendered the wrong
+  badge color. Now calls the same shared `classificationBadgeClass()`, so it's correct by
+  construction instead of correct by coincidence (every profile today happens to be Demonstration).
+- **Shared localStorage JSON helper** (`js/storage.js`, new, loads on `/observatory/` only — it's
+  the only page that currently touches `localStorage`): `FTN.storage.getJSON(key, fallback)` /
+  `setJSON(key, value)` / `remove(key)`. Replaces three independent try/catch-wrapped
+  `JSON.parse(localStorage.getItem(...) || '[]')` implementations in `display-config.js`,
+  `founder-controls.js`, and `observatory.js` — one place to get storage-unavailable handling
+  (private browsing, quota, disabled storage) right.
+
+### Presentation Engine — early foundations, groundwork laid, not built out
+
+`FTN_PRESENTATION_PROFILE_CATALOGUE.md` describes a full future Presentation Engine (22 named
+profiles, 7 viewing-distance bands, 15 rotation/behaviour modes, reading-pace rules keyed to content
+complexity, sunlight/night/broadcast visual modes). **None of that was implemented in RC3** — the
+brief was explicit that this is architecture groundwork, not a feature pass, and building profiles
+speculatively ahead of real venues/hardware would violate "do not invent unsupported functionality."
+
+What already exists and *is* this system's early foundation, today: `js/display-config-data.js`
+(`VENUE_PRESETS`, `DENSITY_MODES`) + `js/display-config.js` (load/save/apply + named Saved Layouts)
++ `js/display-mode.js` (fullscreen chrome + background promotion + rotation). A `VENUE_PRESETS`
+entry already *is* a small, concrete instance of what the catalogue calls a "Presentation Profile"
+— it just doesn't yet carry the catalogue's full dimension set (viewing distance band, ambient
+light, reading-pace rules, etc.).
+
+One concrete architectural step taken this pass: **`rotation: boolean` became `rotationBehavior:
+'locked' | 'ordered'`** (`js/display-config-data.js`, `js/display-config.js`, `js/display-mode.js`).
+This is a direct, minimal-risk alignment with the catalogue's documented Behaviour Modes list
+(Fixed Page, Ordered Rotation, Random Rotation, Weighted Random Rotation, Scheduled Rotation,
+Event-Driven Rotation, Emergency Override, ...) — the enum shape means a future "Random Rotation" or
+"Emergency Override" mode is a new enum value and a new branch in `display-mode.js`'s
+`startRotation()`, not another representation change. `'locked'` and `'ordered'` are the only two
+values with real behavior behind them today; anything else the config object might contain is
+inert, same as `rotation` was before RC2 gave it a real implementation.
+
+**Left deliberately undone, and why:** distance-aware rendering, adaptive information density,
+reading-speed timing, two-statistic story mode, weighted/random/scheduled rotation, emergency
+override, sunlight/night visual modes, and the 22 named presentation profiles are all real,
+well-specified future work — but implementing any of them now would mean guessing at hardware and
+venues this project doesn't have yet. The architecturally honest move was to make the *existing*
+system's extension points genuine (the enum above) rather than add speculative config fields or
+CSS that nothing reads yet.
 
 ## 8. HTML Standards
 

@@ -41,7 +41,13 @@
       density: 'balanced',
       categories: null, // null = all categories
       adLevel: 'standard',
-      rotation: false,
+      // One of the Behaviour Modes named in FTN_Strategic_Foundation_v1.0's
+      // Presentation Profile Catalogue ("locked" = Fixed Page, "ordered" =
+      // Ordered Rotation through Saved Layouts). Only these two are
+      // implemented today (see display-mode.js startRotation()) — the enum
+      // shape exists so random/weighted/scheduled/event-driven rotation can
+      // be added later without another representation change.
+      rotationBehavior: 'locked',
       rotationIntervalSec: 20,
       savedAt: null,
     };

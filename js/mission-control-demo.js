@@ -60,7 +60,7 @@
   // ============================================================ EXECUTIVE DASHBOARD ====
   function kpiCardHTML(kpi, multiplier) {
     var value = Math.round(kpi.base * multiplier);
-    var glyph = kpi.trend === 'up' ? '▲' : kpi.trend === 'down' ? '▼' : '—';
+    var glyph = Charts.trendGlyph(kpi.trend);
     return (
       '<div class="mc-kpi-card' + (kpi.status === 'watch' ? ' mc-kpi-card--watch' : '') + '">' +
         '<p class="mc-kpi-card__title">' + kpi.title + '</p>' +
@@ -277,7 +277,7 @@
         });
         score = Math.round(score * 10) / 10;
         var direction = score > 0.5 ? 'up' : score < -0.5 ? 'down' : 'flat';
-        var glyph = direction === 'up' ? '▲' : direction === 'down' ? '▼' : '—';
+        var glyph = Charts.trendGlyph(direction);
         var goodOrBad = /Risk|Cost|Pressure/.test(outcome.title) ? (direction === 'down' ? 'positive' : direction === 'up' ? 'negative' : 'neutral')
           : (direction === 'up' ? 'positive' : direction === 'down' ? 'negative' : 'neutral');
         return (
