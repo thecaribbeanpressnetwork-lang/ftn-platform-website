@@ -137,6 +137,18 @@
   color: var(--color-white);
 }
 
+.jump-to-indicators {
+  display: inline-block;
+  font-weight: 600;
+  font-size: var(--text-small-size);
+  color: var(--color-red);
+  text-decoration: none;
+}
+
+.jump-to-indicators:hover {
+  text-decoration: underline;
+}
+
 /* Today in Trinidad & Tobago panel */
 .today-panel__grid {
   display: grid;
@@ -731,14 +743,28 @@ body.display-mode .bg-promotion {
   display: none;
 }
 
+html.display-mode,
+body.display-mode {
+  overflow: hidden;
+  height: 100%;
+}
+
 body.display-mode {
   background: var(--color-black);
 }
 
+/* Display Mode is a broadcast presentation layer, not an interactive session
+   (see CLAUDE.md §7.6) — every menu, secondary control, and hover-only
+   affordance is hidden, not just the site chrome. Today in TT / What Changed
+   assume closer reading distance, same rationale kiosk-mode already applies. */
 body.display-mode .site-header,
 body.display-mode .site-footer,
 body.display-mode .category-jump-row,
 body.display-mode .observatory-controls,
+body.display-mode .search-discover-row,
+body.display-mode .trust-trigger,
+body.display-mode #today-in-tt,
+body.display-mode #what-changed,
 body.display-mode #commercial-packages {
   display: none;
 }

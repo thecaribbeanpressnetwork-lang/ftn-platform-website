@@ -216,9 +216,30 @@
 }
 
 .module-card {
+  display: block;
   padding: var(--space-24);
   border-radius: var(--radius-16);
   border: 1px solid #ECECEC;
+  background: var(--color-white);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.module-card:hover {
+  border-color: var(--color-red);
+  box-shadow: 0 8px 20px rgba(11, 11, 11, 0.08);
+}
+
+.module-card h3 {
+  margin-bottom: var(--space-8);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.module-card:hover h3 {
+  text-decoration-color: var(--color-red);
 }
 
 .module-card__status {
@@ -237,16 +258,12 @@
   color: var(--color-graphite);
 }
 
-.module-card h3 {
-  margin-bottom: var(--space-8);
-}
-
 .module-card p {
   color: var(--color-graphite);
   font-size: var(--text-small-size);
 }
 
-/* Screenshot placeholder frames (device mockup, no real screenshots yet) */
+/* Screenshot gallery — reference device mockups (RC2, assets/community/) */
 .screenshot-row {
   display: flex;
   flex-wrap: wrap;
@@ -254,19 +271,24 @@
   justify-content: center;
 }
 
-.screenshot-frame {
-  width: 220px;
-  aspect-ratio: 9 / 19.5;
-  border-radius: var(--radius-24);
-  border: 8px solid var(--color-black);
-  background: #F5F5F5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.screenshot-figure {
+  width: 180px;
   text-align: center;
-  padding: var(--space-16);
+}
+
+.screenshot-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-16);
+  box-shadow: 0 8px 24px rgba(11, 11, 11, 0.15);
+  margin-bottom: var(--space-12);
+}
+
+.screenshot-figure figcaption {
+  font-size: var(--text-small-size);
+  font-weight: 600;
   color: var(--color-graphite);
-  font-size: var(--text-caption-size);
 }
 
 /* Inline callout used for honest "not yet available" notes */

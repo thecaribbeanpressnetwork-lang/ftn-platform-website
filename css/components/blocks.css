@@ -146,6 +146,14 @@
   color: var(--color-white);
 }
 
+.stats .section__eyebrow {
+  color: var(--color-red-on-dark);
+}
+
+.stats .section__header p {
+  color: var(--color-silver);
+}
+
 .stats-grid {
   display: grid;
   gap: var(--space-32);
@@ -195,6 +203,90 @@
   background: #F0F0F0;
 }
 
+/* Section media — real product screenshot showcase (RC2) */
+.section-media {
+  border-radius: var(--radius-16);
+  overflow: hidden;
+  border: 1px solid #ECECEC;
+  box-shadow: 0 12px 32px rgba(11, 11, 11, 0.12);
+  line-height: 0;
+}
+
+.section-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.section-media__caption {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+  margin-top: var(--space-12);
+}
+
+.section--dark .section-media {
+  border-color: var(--color-charcoal);
+}
+
+.section--dark .section-media__caption {
+  color: var(--color-silver);
+}
+
+/* Phone strip — small device-mockup row (RC2), used where a quick visual beats more text */
+.phone-strip {
+  display: flex;
+  gap: var(--space-16);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.phone-strip img {
+  width: 92px;
+  height: auto;
+  border-radius: var(--radius-12);
+  box-shadow: 0 8px 20px rgba(11, 11, 11, 0.15);
+}
+
+/* Platform flow diagram — "How They Work Together" (RC2) */
+.platform-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  align-items: stretch;
+}
+
+.platform-flow__node {
+  padding: var(--space-24);
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-16);
+  text-align: center;
+  background: var(--color-white);
+}
+
+.platform-flow__node h3 {
+  margin-bottom: var(--space-8);
+}
+
+.platform-flow__node p {
+  color: var(--color-graphite);
+  font-size: var(--text-small-size);
+}
+
+.platform-flow__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-red);
+  font-size: 24px;
+  transform: rotate(90deg);
+}
+
+.platform-flow__split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
 @media (min-width: 768px) {
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -202,6 +294,14 @@
 
   .stats-grid {
     grid-template-columns: repeat(4, 1fr);
+  }
+
+  .platform-flow__split {
+    flex-direction: row;
+  }
+
+  .platform-flow__split .platform-flow__node {
+    flex: 1;
   }
 }
 
@@ -212,5 +312,26 @@
 
   .feature-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .platform-flow {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .platform-flow__node {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .platform-flow__arrow {
+    transform: none;
+  }
+
+  .platform-flow__split {
+    flex: 1;
+    flex-direction: column;
   }
 }

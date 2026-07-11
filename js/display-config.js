@@ -133,6 +133,27 @@
           '<option value="enterprise"' + (cfg.adLevel === 'enterprise' ? ' selected' : '') + '>Enterprise / Government</option>' +
         '</select>' +
       '</div>' +
+      '<div class="form-field">' +
+        '<label class="customize-panel__item" for="dc-rotation">' +
+          '<input type="checkbox" id="dc-rotation"' + (cfg.rotation ? ' checked' : '') + '> ' +
+          'Rotating Display &mdash; cycle through saved layouts while in Display Mode' +
+        '</label>' +
+        '<div class="form-row form-row--2 u-mt-8">' +
+          '<div class="form-field">' +
+            '<label for="dc-rotation-interval">Seconds per layout</label>' +
+            '<select id="dc-rotation-interval">' +
+              [10, 15, 20, 30, 45, 60, 90, 120].map(function (n) {
+                return '<option value="' + n + '"' + (n === cfg.rotationIntervalSec ? ' selected' : '') + '>' + n + 's</option>';
+              }).join('') +
+            '</select>' +
+          '</div>' +
+        '</div>' +
+        '<p class="hint u-mt-8">' +
+          (listLayouts().length >= 2
+            ? 'Will rotate through your ' + listLayouts().length + ' saved layouts, in order.'
+            : 'Save at least 2 named layouts below for rotation to have something to cycle through. A Locked Display (unchecked) always shows the layout applied above.') +
+        '</p>' +
+      '</div>' +
       '<div class="icon-row">' +
         '<button type="button" class="btn btn-primary btn-sm" id="dc-apply">Apply Configuration</button>' +
         '<button type="button" class="btn btn-outline btn-sm" id="dc-reset">Reset to Default</button>' +
@@ -195,7 +216,8 @@
           categories: Array.prototype.slice.call(mount.querySelectorAll('[data-dc-category]'))
             .filter(function (el) { return el.checked; })
             .map(function (el) { return el.getAttribute('data-dc-category'); }),
-          rotation: cfg.rotation,
+          rotation: mount.querySelector('#dc-rotation').checked,
+          rotationIntervalSec: Number(mount.querySelector('#dc-rotation-interval').value),
         };
         // "All checked" is equivalent to no filter — store null so future
         // categories added to the registry are included by default.

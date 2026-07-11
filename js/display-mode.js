@@ -70,10 +70,55 @@
     var clockEl = document.getElementById('display-mode-clock');
     if (clockEl) clockEl.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     var idEl = document.getElementById('display-mode-config-id');
-    if (idEl) idEl.textContent = cfg.venue ? cfg.venue + ' · ' + cfg.density : 'custom';
+    if (idEl) {
+      var base = cfg.venue ? cfg.venue + ' · ' + cfg.density : 'custom';
+      idEl.textContent = rotationSeqTimer ? 'Rotating · ' + base : 'Locked · ' + base;
+    }
   }
 
   var chromeTimer = null;
+  var rotationSeqTimer = null;
+
+  // Rotating Display: cycles through the user's named Saved Layouts
+  // (js/display-config.js) while in Display Mode, reusing that same engine
+  // rather than inventing a second layout-storage mechanism. A Locked
+  // Display (the default) just shows whatever configuration was applied —
+  // this is the only difference between the two modes.
+  var preRotationConfig = null;
+
+  function startRotation() {
+    var DC = global.FTN.DisplayConfig;
+    if (!DC) return;
+    var cfg = DC.load();
+    if (!cfg.rotation) return;
+    var layouts = DC.listLayouts();
+    if (layouts.length < 2) return;
+
+    preRotationConfig = cfg;
+    var i = 0;
+    var seq = layouts.map(function (l) { return l.name; });
+    var intervalMs = Math.max(5, cfg.rotationIntervalSec || 20) * 1000;
+
+    rotationSeqTimer = setInterval(function () {
+      i = (i + 1) % seq.length;
+      DC.loadLayout(seq[i]);
+    }, intervalMs);
+
+    document.body.classList.add('display-mode--rotating');
+  }
+
+  function stopRotation() {
+    if (rotationSeqTimer) clearInterval(rotationSeqTimer);
+    rotationSeqTimer = null;
+    document.body.classList.remove('display-mode--rotating');
+    // Rotation temporarily overwrites the "active" config via loadLayout();
+    // restore whatever was active before rotation started so leaving Display
+    // Mode doesn't silently change the user's saved active configuration.
+    if (preRotationConfig && global.FTN.DisplayConfig) {
+      global.FTN.DisplayConfig.save(preRotationConfig);
+    }
+    preRotationConfig = null;
+  }
 
   function enter() {
     var root = document.documentElement;
@@ -82,6 +127,8 @@
       try { request.call(root); } catch (e) { /* fullscreen may be blocked (e.g. iframe) — degrade gracefully */ }
     }
     document.body.classList.add('display-mode');
+    document.documentElement.classList.add('display-mode');
+    startRotation();
     updateChrome();
     chromeTimer = setInterval(updateChrome, 1000);
     startBackgroundPromotion();
@@ -93,8 +140,10 @@
       try { exitFn.call(document); } catch (e) { /* noop */ }
     }
     document.body.classList.remove('display-mode');
+    document.documentElement.classList.remove('display-mode');
     if (chromeTimer) clearInterval(chromeTimer);
     stopBackgroundPromotion();
+    stopRotation();
   }
 
   function initToggle(buttonId, exitButtonId) {

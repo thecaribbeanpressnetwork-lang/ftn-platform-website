@@ -42,6 +42,7 @@
       categories: null, // null = all categories
       adLevel: 'standard',
       rotation: false,
+      rotationIntervalSec: 20,
       savedAt: null,
     };
   }

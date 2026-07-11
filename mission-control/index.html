@@ -85,7 +85,7 @@
             <div class="site-nav__dropdown">
               <a href="/mission-control/#overview">Overview</a>
               <a href="/mission-control/#government-dashboard">For Government</a>
-              <a href="/mission-control/#agency-views">For Agencies</a>
+              <a href="/mission-control/#government-dashboard">Capabilities</a>
               <a href="/mission-control/#platform-security">Platform Security</a>
               <a href="/mission-control/demo/">Interactive Demonstration</a>
             </div>
@@ -177,7 +177,7 @@
         <div class="mobile-nav__links">
           <a href="/mission-control/#overview">Overview</a>
           <a href="/mission-control/#government-dashboard">For Government</a>
-          <a href="/mission-control/#agency-views">For Agencies</a>
+          <a href="/mission-control/#government-dashboard">Capabilities</a>
           <a href="/mission-control/#platform-security">Platform Security</a>
           <a href="/mission-control/demo/">Interactive Demonstration</a>
         </div>
@@ -247,102 +247,71 @@
       </div>
     </section>
 
-    <section class="section" id="government-dashboard">
+    <section class="section" id="executive-operations-centre">
       <div class="container">
         <div class="section__header">
-          <span class="section__eyebrow">Government Dashboard</span>
-          <h2>One dashboard, six views into the same data.</h2>
+          <span class="section__eyebrow">Executive Operations Centre</span>
+          <h2>Reality is the final authority. Every observation is a clue.</h2>
+          <p class="u-mt-16 u-text-graphite u-max-60ch">
+            Mission Control is an evidence-based decision-support environment for authorized
+            leaders — a single operations view that turns community reports into an executive
+            picture, live relationships, and evidence-backed recommendations.
+          </p>
+        </div>
+        <div class="section-media u-mt-32">
+          <img src="/assets/mission-control/executive-dashboard-preview.webp" alt="Mission Control Executive Dashboard showing indicators for infrastructure pressure, household pressure, service reliability, agency workload, and improving vs. deteriorating indicator counts" width="1400" height="320">
+        </div>
+        <p class="section-media__caption">From the public Interactive Demonstration — illustrative data, the real interface.</p>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="government-dashboard">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">Capabilities</span>
+          <h2>Eight ways to work with the same evidence.</h2>
+          <p class="u-mt-16 u-text-graphite u-max-60ch">
+            Every capability below is live in the public Interactive Demonstration today — built
+            with clearly labelled demonstration data, not the secure production application.
+            Select any card to open it directly.
+          </p>
         </div>
         <div class="module-grid">
-          <div class="module-card">
-            <h3>Executive Overview</h3>
-            <p>A high-level summary of report volume, status, and resolution rate — see the Executive Brief section below.</p>
-          </div>
-          <div class="module-card">
-            <h3>Reports Management</h3>
-            <p>Browse, filter, and manage incoming citizen reports as they arrive.</p>
-          </div>
-          <div class="module-card">
-            <h3>Analytics &amp; Trends</h3>
-            <p>Trends in report volume and category over time — see the Analytics section below.</p>
-          </div>
-          <div class="module-card">
-            <h3>Map Intelligence</h3>
-            <p>A geographic view of where reports are concentrated — see Situational Awareness below.</p>
-          </div>
-          <div class="module-card">
-            <h3>Agency Performance</h3>
-            <p>Performance data scoped to a specific agency's area of responsibility — see Agency Views below.</p>
-          </div>
-          <div class="module-card">
-            <h3>System Monitor</h3>
-            <p>Operational status of the platform itself, for administrators.</p>
-          </div>
+          <a class="module-card" href="/mission-control/demo/#exec-dashboard">
+            <h3>Executive Dashboard</h3>
+            <p>A leadership-level read on infrastructure pressure, household pressure, service reliability, and agency workload — the questions leadership actually asks, answered without building a report first.</p>
+          </a>
+          <a class="module-card" href="/mission-control/demo/#correlation-engine">
+            <h3>Correlation Engine</h3>
+            <p>The same shared Relationship Engine used on FTN Live — indicators linked by correlation, influence, and dependency, scoped to what a given response is actually connected to.</p>
+          </a>
+          <a class="module-card" href="/mission-control/demo/#reality-graph">
+            <h3>Reality Graph</h3>
+            <p>An interactive node graph tracing how one factor (rainfall, say) chains into flooding, road access, and economic output — click any node to follow the chain.</p>
+          </a>
+          <a class="module-card" href="/mission-control/demo/#scenario-studio">
+            <h3>Scenario Studio</h3>
+            <p>Adjust a lever and see the projected, illustrative effect on related indicators — every relationship is a hypothesis, every intervention framed as an experiment.</p>
+          </a>
+          <a class="module-card" href="/mission-control/demo/#evidence-explorer">
+            <h3>Evidence Explorer</h3>
+            <p>The chain of evidence behind a recommendation — source records, community observations, related news, and historical precedent, laid out in order.</p>
+          </a>
+          <a class="module-card" href="/mission-control/demo/#strategic-advisor">
+            <h3>Strategic Advisor</h3>
+            <p>Set an outcome, an area, a budget band, and a time horizon — get a situation summary and contributing factors grounded in the same evidence base.</p>
+          </a>
+          <a class="module-card" href="/mission-control/demo/#timeline-memory">
+            <h3>Timeline &amp; Memory</h3>
+            <p>How a situation has moved over time, so a decision is informed by trend, not a single snapshot.</p>
+          </a>
+          <a class="module-card" href="/mission-control/demo/#external-monitor">
+            <h3>External Influence</h3>
+            <p>Factors outside the platform's own reports — regional and international context that shapes what's happening locally.</p>
+          </a>
         </div>
-      </div>
-    </section>
-
-    <section class="section section--tint" id="executive-brief">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Executive Brief</span>
-          <h2>A summary built for leadership, not analysts.</h2>
-        </div>
-        <div class="prose">
-          <p>
-            The Executive Overview is designed to answer the questions leadership actually asks:
-            how many reports came in, how many are still open, and how quickly they're being
-            resolved — without requiring anyone to build their own report first.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="agency-views">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Agency Views</span>
-          <h2>Scoped to what each agency is actually responsible for.</h2>
-        </div>
-        <div class="prose">
-          <p>
-            Agency Performance views are designed to be scoped — an agency sees the reports and
-            performance data relevant to its own area of responsibility, rather than a
-            city-wide or national feed it has no mandate to act on.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section section--tint" id="analytics">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Analytics</span>
-          <h2>Trends, not just totals.</h2>
-        </div>
-        <div class="prose">
-          <p>
-            Analytics &amp; Trends is designed to show how report volume and category shift over
-            time — using line, bar, and category-breakdown views — so agencies can see whether a
-            given issue is growing, shrinking, or seasonal, rather than reading a single report
-            in isolation.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="situational-awareness">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Situational Awareness</span>
-          <h2>Where issues are, not just what they are.</h2>
-        </div>
-        <div class="prose">
-          <p>
-            Map Intelligence is designed to plot reports geographically, so agencies can see where
-            issues are concentrated across a community — useful for spotting patterns that a list
-            of individual reports wouldn't show on its own.
-          </p>
+        <div class="u-mt-32">
+          <a class="btn btn-primary" href="/mission-control/demo/">Open the Interactive Demonstration</a>
         </div>
       </div>
     </section>

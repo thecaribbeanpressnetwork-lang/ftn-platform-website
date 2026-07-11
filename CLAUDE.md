@@ -285,8 +285,14 @@ structure as of Phase 3:
 │   ├── logos/                        # logo-ftn-platform-primary-{light,dark}.svg
 │   ├── icons/                        # favicon.svg + favicon-32.png + apple-touch-icon.png (RC1)
 │   │                                  # + hand-authored UI/social icons
-│   └── social/                       # og-image-default.png (RC1, §7.5) — generated 1200x630 card,
-│                                      # composed from the approved wordmark + tagline, not new art
+│   ├── social/                       # og-image-default.png (RC1, §7.5) — generated 1200x630 card,
+│   │                                  # composed from the approved wordmark + tagline, not new art
+│   ├── community/                    # RC2, §7.6 — real device-mockup screens + dashboard preview,
+│   │                                  # extracted from FTN_Master_Asset_Library_v1.0 AEB-03 §3.4/3.5
+│   ├── observatory/                  # RC2, §7.6 — ftn-live-preview.webp, a Playwright screenshot
+│   │                                  # of this site's own live /observatory/ page
+│   └── mission-control/              # RC2, §7.6 — executive-dashboard-preview.webp, a Playwright
+│                                      # screenshot of this site's own live /mission-control/demo/
 ├── css/
 │   ├── tokens.css                    # design tokens (color/type/spacing/radius/shadow/breakpoints)
 │   ├── base.css                      # reset, container, focus states
@@ -527,6 +533,80 @@ the deployment-readiness files a static site needs before it can be hosted for r
     `twitter:image` currently use `https://www.ftnplatform.com` as an explicitly-commented
     placeholder. **This must be replaced with the real production domain before go-live** — it is
     not a founder-approved brand fact, just the minimum needed for these files to be valid.
+
+## 7.6 Release Candidate 2 — product journey, real screenshots, Display Mode maturity
+
+RC2's mandate was product and experience, not new engines: turn the site from an engineering
+demonstration into a coherent public product, using only capabilities that already exist. No
+Community Connect or Mission Control source was touched; no unsupported functionality was invented.
+
+- **Real Community Connect screenshots.** `FTN_Master_Asset_Library_v1.0/03_AEB_Product_Website_Assets_v1.0.png.png`
+  §3.5 ("Device Mockups — App Screens", AI-extraction-approved, CRITICAL priority) and §3.4
+  ("Dashboard Preview") contain actual reference UI mockups, not just icons — these had never been
+  extracted before RC2. Cropped and exported to `assets/community/` (5 phone screens: splash,
+  report form, activity feed, report details, dashboard; plus the web dashboard preview). Used on
+  the homepage Community Connect section (a 3-screen teaser strip) and in full on
+  `community-connect/index.html`'s `#screenshots` section, replacing the empty
+  `.screenshot-frame` placeholders and their "production screenshots haven't been captured yet"
+  copy. These are still reference mockups ("final UI may vary" per the source board), not literal
+  production screenshots — the page copy says so honestly.
+- **Real FTN Live and Mission Control previews.** Rather than extract more board imagery, these two
+  are genuine Playwright screenshots of this repo's own live `/observatory/` and
+  `/mission-control/demo/` pages — zero fabrication risk since it's this site's real, already-built,
+  already-tested interface. Stored at `assets/observatory/ftn-live-preview.webp` and
+  `assets/mission-control/executive-dashboard-preview.webp`. Reused on both the homepage and the
+  Mission Control marketing page.
+- **Homepage restructured into the explicit journey** (`index.html`): Problem (narrative band + "Why
+  FTN Exists") → FTN Platform (Platform Overview) → Community Connect → FTN Live (new section) →
+  Mission Control → How They Work Together (new `.platform-flow` diagram) → Evidence (stats,
+  absorbed the old "Our Mission" blurb) → CTA. Removed the "Platform Benefits" section — its
+  For-Citizens/For-Governments bullets duplicated what the Community Connect and Mission Control
+  sections above it already said (§16: "remove, merge, or simplify anything that does not improve
+  understanding").
+- **`.platform-flow` (blocks.css)** — a small reusable flow-diagram component (node → arrow → node
+  → arrow → two-way split), built for "How They Work Together" but generic enough for any future
+  "how the pieces connect" explainer. Arrow glyph rotates 90° on narrow viewports so the diagram
+  reads top-to-bottom on mobile without a second markup variant.
+- **`.section-media` / `.phone-strip` (blocks.css)** — the shared presentation pattern for "put a
+  real screenshot in a bordered, shadowed frame" and "show a small row of phone mockups." Reused
+  across the homepage, Community Connect, and Mission Control rather than one-off image styling
+  per page.
+- **Mission Control marketing page realigned to the real demo** (`mission-control/index.html`): the
+  old "Government Dashboard" module grid (Executive Overview, Reports Management, Analytics &
+  Trends, Map Intelligence, Agency Performance, System Monitor) described a *different, uncoded*
+  feature set from what `/mission-control/demo/` actually implements. Replaced with 8 cards
+  matching the demo's real tabs verbatim (Executive Dashboard, Correlation Engine, Reality Graph,
+  Scenario Studio, Evidence Explorer, Strategic Advisor, Timeline & Memory, External Influence),
+  each deep-linking straight into that tab via `/mission-control/demo/#<tab-id>` (the demo already
+  reads `location.hash` on load — `mission-control-demo.js` `initTabs()` — no new JS needed). The
+  four old prose-only sections (Executive Brief, Agency Views, Analytics, Situational Awareness)
+  were removed as redundant once the capability cards linked directly and accurately. The shared
+  nav's "For Agencies" item now points to `#government-dashboard` (relabelled "Capabilities") since
+  the page no longer has a separate agency-scoped section to distinguish it from "For Government."
+- **Display Mode hardened into a real broadcast layer** (`js/display-mode.js`,
+  `css/components/observatory.css`): `body.display-mode`/`html.display-mode` now sets
+  `overflow: hidden` (no scroll, per the RC2 Display Network spec), and hides
+  `.search-discover-row` and every `.trust-trigger` in addition to the site chrome already hidden —
+  a broadcast display has no one to click a hover-only control. `#today-in-tt` and `#what-changed`
+  are hidden too, same closer-reading-distance rationale kiosk-mode already established.
+- **Rotating Display, built on the existing Saved Layouts engine, not a new one.** `display-config-
+  data.js`'s previously-inert `rotation` flag (present since Phase 4, read nowhere) now does
+  something: a `rotationIntervalSec` field, a real form checkbox + interval selector in
+  `display-config.js`'s `formHTML()`, and `display-mode.js`'s `startRotation()`/`stopRotation()`,
+  which cycle through `DisplayConfig.listLayouts()` via the same `loadLayout()` API the manual
+  Saved-Layouts UI already uses — no second storage mechanism. Needs ≥2 saved layouts to do
+  anything; with 0 or 1, rotation silently behaves as a Locked Display and the config form says so.
+  `stopRotation()` restores whatever config was active *before* rotation started (captured once, at
+  `startRotation()`), so leaving Display Mode never silently overwrites the user's saved active
+  configuration with whatever layout the rotation happened to land on. The chrome bar's config-id
+  field now reads "Locked · venue · density" or "Rotating · venue · density" depending on state.
+- **FTN Live discoverability**: added a small "Explore the full indicator wall ↓" link
+  (`.jump-to-indicators`) at the end of the What Changed panel, into `#indicator-search` — connective
+  tissue between the storytelling panels (Reality Insight, Today in TT, What Changed) and the
+  indicator wall + search/discovery row beneath them.
+- **`.module-card` became a real link component**, not styling reused from a static card — added
+  `:hover`/focus treatment (border + shadow + heading underline) consistent with the rest of the
+  button/link system, since it's now a clickable deep-link into the demo, not inert text.
 
 ## 8. HTML Standards
 
