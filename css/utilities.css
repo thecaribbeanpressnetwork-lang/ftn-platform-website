@@ -21,6 +21,7 @@
 .u-text-black    { color: var(--color-black); }
 .u-text-sm       { font-size: var(--text-small-size); }
 .u-underline     { text-decoration: underline; }
+.u-font-bold     { font-weight: 700; }
 
 .u-link-on-dark {
   color: var(--color-white);

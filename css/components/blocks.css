@@ -56,6 +56,28 @@
   padding: var(--space-24);
 }
 
+/* Narrative band — restrained institutional storytelling, used sparingly */
+.narrative-band {
+  text-align: center;
+  padding-block: var(--space-96);
+}
+
+.narrative-band__lead {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-line);
+  margin-bottom: var(--space-24);
+}
+
+.narrative-band__body {
+  max-width: 62ch;
+  margin-inline: auto;
+  color: var(--color-graphite);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+}
+
 /* Feature block */
 .section {
   padding-block: var(--space-64);

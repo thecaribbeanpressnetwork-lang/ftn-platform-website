@@ -57,6 +57,15 @@
   background: #F5F5F5;
 }
 
+.site-nav__trigger--link {
+  text-decoration: none;
+  color: var(--color-red);
+}
+
+.site-nav__trigger--link:hover {
+  background: #FFF1F1;
+}
+
 .site-nav__trigger .chevron {
   width: 12px;
   height: 12px;
@@ -80,7 +89,9 @@
   padding: var(--space-8);
 }
 
-.site-nav__item.is-open .site-nav__dropdown {
+.site-nav__item.is-open .site-nav__dropdown,
+.site-nav__item:hover .site-nav__dropdown,
+.site-nav__item:focus-within .site-nav__dropdown {
   display: block;
 }
 
@@ -175,6 +186,13 @@
   color: var(--color-graphite);
   text-decoration: none;
   font-size: var(--text-small-size);
+}
+
+.mobile-nav__link--top {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-body-size);
+  color: var(--color-red) !important;
 }
 
 .mobile-nav__actions {

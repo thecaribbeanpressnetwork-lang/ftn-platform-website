@@ -249,14 +249,17 @@ Recommended asset structure (manifest, verbatim categories):
 
 This repo's own convention for the rest of the site (not manifest-specified — a reasonable default
 for a vanilla HTML/CSS/JS static site; revisit if the founder prefers otherwise). Current actual
-structure as of Phase 2:
+structure as of Phase 3:
 
 ```
 /
 ├── index.html                        # Homepage
 ├── about/index.html                  # Mission, Vision, Founding Principles, Philosophy, Vision
 ├── community-connect/index.html      # Overview, Features, Workflow, Benefits, Privacy, FAQ
-├── mission-control/index.html        # Government Dashboard, Analytics, Security, Future Modules
+├── mission-control/
+│   ├── index.html                    # Government Dashboard, Analytics, Security, Future Modules (marketing)
+│   └── demo/index.html               # Interactive Demonstration — public preview, not the secure product
+├── observatory/index.html            # FTN Live — National Observatory (indicator wall, live clocks)
 ├── resources/index.html              # FAQ, Documentation status, Media Kit
 ├── contact/index.html                # Inquiry categories, contact form, direct contact (placeholder)
 ├── insights/index.html               # Coming Soon (AEB-09 page-type 12)
@@ -277,14 +280,47 @@ structure as of Phase 2:
 │   ├── utilities.css                 # small spacing/color/width utility classes
 │   ├── main.css                      # import entry point
 │   └── components/                   # nav, footer, buttons, blocks, accordion,
-│                                      # content-sections, form, legal
+│                                      # content-sections, form, legal, trust-card, charts,
+│                                      # observatory, mission-control-demo
 ├── js/
 │   ├── nav.js                        # mobile menu + dropdown behavior (progressive enhancement)
-│   └── contact-form.js               # client-side validation; honest no-backend status message
+│   ├── contact-form.js               # client-side validation; honest no-backend status message
+│   ├── indicators-data.js            # FTN Live indicator registry (~70 demo indicators, see below)
+│   ├── ads-data.js / ads.js          # advertisement campaign registry + generic panel renderer
+│   ├── charts.js                     # dependency-free SVG sparkline/line/bar/gauge helpers
+│   ├── trust-card.js                 # shared accessible modal — renders any indicator/evidence object
+│   ├── live-clocks.js                # interpolation engine for ticking demo counters
+│   ├── observatory.js                # renders the indicator wall, kiosk mode, dashboard customization
+│   ├── mission-control-data.js       # Mission Control demo data (correlations, graph, scenarios, etc.)
+│   └── mission-control-demo.js       # tabs + all 8 Mission Control demo panel behaviors
+├── ANALYTICS_STANDARD.md             # operational rules for classification/confidence/weighting/etc.
 ├── 00_Phase1_Discovery/              # Discovery Report (planning artifact, not shipped site)
 ├── FTN_Master_Asset_Library_v1.0/    # reference source boards — never referenced live, never edited
 └── CLAUDE.md
 ```
+
+## 7.1 The Indicator Engine (Phase 3)
+
+`js/indicators-data.js` is a **registry, not a set of one-off widgets**. Every indicator — from
+GDP to "estimated births today" — is a data object built by the same `ind()` factory and rendered
+by the same functions (`observatory.js` cardHTML, `live-clocks.js` computeClockValue, `trust-
+card.js` render). Adding an indicator means adding a data object, never new component code. See
+`ANALYTICS_STANDARD.md` for the classification rules every entry must satisfy, and §16/§17 below
+for why nothing in this registry is currently classified "Official" or "Sourced."
+
+The indicator grid (`.indicator-grid`, `css/components/observatory.css`) uses CSS Grid
+`repeat(auto-fill, minmax(240px, 1fr))` — a constraint-based layout, not a hand-maintained set of
+breakpoints — specifically so the wall scales from 5 indicators to hundreds without a redesign.
+
+Dashboard customization (show/hide categories) is implemented client-side via `localStorage` on
+`/observatory/` — a real, working foundation for what a future multi-organization version would
+do server-side per account, not a mockup.
+
+The advertisement system (`js/ads-data.js`, `js/ads.js`) treats ads as **configurable dashboard
+panels** driven by a campaign registry (placements, dates, status), not hand-placed markup. The
+current campaign is the approved Face The Nation co-brand lockup, rendered as an in-code SVG
+(consistent with how every other logo in this repo is extracted — see §6) rather than an uploaded
+image, since no production ad creative exists yet.
 
 All internal links use root-relative paths (`/about/`, `/assets/...`) rather than page-relative
 paths, since pages live at varying folder depths — this was a Phase 2 correction to a Phase 1

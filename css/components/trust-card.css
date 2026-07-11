@@ -1,0 +1,142 @@
+/* FTN Platform Website — Trust Card modal (shared: Observatory + Mission Control demo) */
+
+.trust-card-dialog {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.trust-card-dialog.is-open {
+  display: block;
+}
+
+.trust-card-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 11, 11, 0.55);
+}
+
+.trust-card-dialog__panel {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+  width: calc(100% - var(--space-32));
+  margin: 8vh auto 0;
+  max-height: 82vh;
+  overflow-y: auto;
+  background: var(--color-white);
+  border-radius: var(--radius-16);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-32);
+}
+
+body.trust-card-open {
+  overflow: hidden;
+}
+
+.trust-card__close {
+  position: absolute;
+  top: var(--space-16);
+  right: var(--space-16);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-full);
+  background: var(--color-white);
+  cursor: pointer;
+}
+
+.trust-badge {
+  display: inline-block;
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-12);
+}
+
+.trust-badge--official   { background: #E7F7EC; color: #16A34A; }
+.trust-badge--sourced    { background: #E8F1FE; color: #2563EB; }
+.trust-badge--derived    { background: #F3E8FE; color: #7E22CE; }
+.trust-badge--estimated  { background: #FEF3E2; color: #B45309; }
+.trust-badge--modelled   { background: #FEE8E8; color: #B80510; }
+.trust-badge--demo       { background: #F0F0F0; color: var(--color-graphite); }
+
+.trust-card__title {
+  margin-bottom: var(--space-8);
+}
+
+.trust-card__value {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-h1-size);
+  margin-bottom: var(--space-16);
+}
+
+.trust-card__value span {
+  font-size: var(--text-small-size);
+  font-weight: 500;
+  color: var(--color-graphite);
+}
+
+.trust-card__fields {
+  border-top: 1px solid #ECECEC;
+  padding-top: var(--space-16);
+}
+
+.trust-card__row {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  gap: var(--space-12);
+  padding-block: var(--space-8);
+  border-bottom: 1px solid #F5F5F5;
+}
+
+.trust-card__row dt {
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  color: var(--color-graphite);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.trust-card__row dd {
+  font-size: var(--text-small-size);
+  color: var(--color-black);
+}
+
+/* Small inline trigger used on indicator cards / evidence rows */
+.trust-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  color: var(--color-graphite);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.trust-trigger:hover {
+  color: var(--color-red);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .trust-card-dialog__panel {
+    animation: trustCardIn 0.15s ease-out;
+  }
+}
+
+@keyframes trustCardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

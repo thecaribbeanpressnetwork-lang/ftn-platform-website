@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cookie Policy (Draft) — FTN Platform</title>
-  <meta name="description" content="FTN Platform Cookie Policy — structural placeholder pending legal review.">
-  <link rel="canonical" href="/legal/cookie-policy/">
+  <title>Mission Control — Interactive Demonstration | FTN Platform</title>
+  <meta name="description" content="A public, illustrative demonstration of Mission Control — the government-facing decision-support environment at the core of FTN Platform.">
+  <link rel="canonical" href="/mission-control/demo/">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -204,39 +204,214 @@
   </header>
 
   <main id="main">
-    <section class="page-hero">
+    <section class="mc-demo-hero">
       <div class="container">
-        <span class="page-hero__eyebrow">Legal</span>
-        <h1 class="page-hero__title">Cookie Policy</h1>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container">
-      <div class="legal-banner">
-        <span class="legal-banner__icon" aria-hidden="true">&#9888;</span>
-        <p>
-          <strong>This page is a structural placeholder.</strong> The legal wording below has not
-          been drafted, reviewed, or approved. Do not treat this page as a binding policy until it
-          has been finalized with founder and counsel sign-off (see <code>CLAUDE.md</code> &sect;16&ndash;17).
+        <span class="page-hero__eyebrow">Mission Control</span>
+        <h1 class="mc-demo-hero__title">Interactive Demonstration</h1>
+        <p class="mc-demo-hero__lede">
+          Mission Control is an evidence-based decision-support environment for authorized leaders.
+          What follows is a public demonstration of the concept — built with clearly labelled
+          demonstration data, not the secure production application. Every number, relationship, and
+          recommendation below is illustrative.
         </p>
-      </div>
-        <p class="legal-meta">Status: Draft placeholder &mdash; not yet legally reviewed or approved.</p>
-        <div class="legal-doc">
-        <h2>What Are Cookies</h2>
-        <p class="placeholder-text">[Placeholder &mdash; this section requires legal review and founder approval before publication.]</p>
-        <h2>How We Use Cookies</h2>
-        <p class="placeholder-text">[Placeholder &mdash; this section requires legal review and founder approval before publication.]</p>
-        <h2>Types of Cookies We Use</h2>
-        <p class="placeholder-text">[Placeholder &mdash; this section requires legal review and founder approval before publication.]</p>
-        <h2>Managing Your Cookie Preferences</h2>
-        <p class="placeholder-text">[Placeholder &mdash; this section requires legal review and founder approval before publication.]</p>
-        <h2>Changes to This Policy</h2>
-        <p class="placeholder-text">[Placeholder &mdash; this section requires legal review and founder approval before publication.]</p>
-        <h2>Contact Us</h2>
-        <p class="placeholder-text">[Placeholder &mdash; this section requires legal review and founder approval before publication.]</p>
+
+        <ul class="mc-philosophy">
+          <li><strong>Reality is the final authority.</strong> Every observation is a clue.</li>
+          <li><strong>Every relationship is a hypothesis.</strong> Every intervention is an experiment.</li>
+          <li><strong>Every outcome becomes new evidence.</strong> Every decision should leave the nation wiser than before.</li>
+        </ul>
+
+        <div class="mc-access-note">
+          <strong>On access:</strong> the production Mission Control platform is designed to be private
+          and access-controlled — built around Founder-controlled administration, organization
+          provisioning, expiring and revocable access codes, permission templates, module-level
+          visibility, audit logs, and role-scoped access packs for ministers, mayors, agencies,
+          researchers, banks, and public-safety organizations. This public demonstration has none of
+          that: no accounts, no login, and no real access control. It exists to show what the platform
+          does, not to run it.
         </div>
       </div>
     </section>
+
+    <div class="no-js-notice callout u-max-60ch u-mt-24">
+      This page is far more useful with JavaScript enabled — the sections below become an interactive
+      tabbed demonstration. Every section is still readable in order without it.
+    </div>
+
+    <div class="container">
+      <div class="mc-tablist" id="mc-tablist" role="tablist" aria-label="Mission Control demonstration sections">
+        <button type="button" class="mc-tab" role="tab" data-tab-target="exec-dashboard" aria-selected="true">Executive Dashboard</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="correlation-engine" aria-selected="false">Correlation Engine</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="reality-graph" aria-selected="false">Reality Graph</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="scenario-studio" aria-selected="false">Scenario Studio</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="evidence-explorer" aria-selected="false">Evidence Explorer</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="strategic-advisor" aria-selected="false">Strategic Advisor</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="timeline-memory" aria-selected="false">Timeline &amp; Memory</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="external-monitor" aria-selected="false">External Influence</button>
+      </div>
+
+      <section class="mc-panel" id="exec-dashboard" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Executive Dashboard</span>
+          <h2>What changed, and where.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">A leadership-level view of national conditions. Select a time range and area to see how the picture shifts — demonstration figures only.</p>
+        </div>
+        <div class="exec-controls">
+          <div class="exec-range-group" role="group" aria-label="Time range">
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">Today</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">Last 7 Days</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="true">Last 30 Days</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">This Quarter</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">This Year</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">5 Years</button>
+          </div>
+          <label class="u-text-sm">Area:
+            <select id="exec-region">
+              <option>National</option>
+              <option>Port of Spain</option>
+              <option>San Fernando</option>
+              <option>Chaguanas</option>
+              <option>Arima</option>
+              <option>Tobago</option>
+            </select>
+          </label>
+        </div>
+        <p class="u-text-sm u-text-graphite u-mb-16" id="exec-range-label">Showing: Last 30 Days</p>
+        <div class="mc-kpi-grid" id="exec-kpi-grid"></div>
+      </section>
+
+      <section class="mc-panel" id="correlation-engine" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Correlation Engine</span>
+          <h2>Relationships across the systems that shape daily life.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Correlation is not causation. Every relationship below carries a confidence level and a Trust Card explaining method, sample, and limitations.</p>
+        </div>
+        <div id="correlation-list"></div>
+      </section>
+
+      <section class="mc-panel" id="reality-graph" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Reality Graph</span>
+          <h2>How one variable connects to the next.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Select a node to trace its connections. Relationships vary by context — this is one illustrative reading, not a universal rule.</p>
+        </div>
+        <label class="u-text-sm">Filter by category:
+          <select id="graph-category-filter">
+            <option value="all">All categories</option>
+            <option value="Infrastructure">Infrastructure</option>
+            <option value="Economy">Economy</option>
+            <option value="Community">Community</option>
+            <option value="Weather">Weather</option>
+          </select>
+        </label>
+        <div class="reality-graph-wrap u-mt-16" id="reality-graph-svg"></div>
+      </section>
+
+      <section class="mc-panel" id="scenario-studio" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Scenario Studio</span>
+          <h2>Adjust the inputs. See what moves.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Illustrative demonstration scenarios only — not real forecasts. Outcomes are calculated from simple, disclosed weights, not a predictive model.</p>
+        </div>
+        <div class="scenario-studio-layout">
+          <div>
+            <div id="scenario-sliders"></div>
+            <button type="button" class="btn btn-outline btn-sm" id="scenario-reset">Reset to Baseline</button>
+          </div>
+          <div>
+            <p class="u-mb-16 u-font-bold">Projected effects (illustrative)</p>
+            <div class="scenario-outputs" id="scenario-outputs"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mc-panel" id="evidence-explorer" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Evidence Explorer</span>
+          <h2>From a national number down to what's behind it.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Select a metric to see the chain of evidence connecting it to source records, community observations, and news.</p>
+        </div>
+        <label class="u-text-sm">Metric:
+          <select id="evidence-select">
+            <option value="infrastructure-pressure">Infrastructure Pressure Index</option>
+            <option value="household-pressure">Household Financial Pressure Index</option>
+            <option value="community-participation">Community Participation Index</option>
+            <option value="service-reliability">Service Reliability Index</option>
+          </select>
+        </label>
+        <div id="evidence-detail" class="u-mt-16"></div>
+      </section>
+
+      <section class="mc-panel" id="strategic-advisor" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Strategic Advisor</span>
+          <h2>Structured options, not instructions.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Answer a few qualifying questions first. The Advisor responds with scripted demonstration options, trade-offs, and monitoring indicators — never a single "do this" answer.</p>
+        </div>
+        <form id="advisor-form" class="u-max-640">
+          <div class="form-field">
+            <label for="advisor-outcome">What outcome are you trying to achieve?</label>
+            <select id="advisor-outcome" required>
+              <option value="flooding">Reduce flooding impact</option>
+              <option value="employment">Improve employment</option>
+              <option value="healthcare">Reduce healthcare-system pressure</option>
+              <option value="attendance">Improve school attendance</option>
+            </select>
+          </div>
+          <div class="form-row form-row--2">
+            <div class="form-field">
+              <label for="advisor-area">Geographic area</label>
+              <select id="advisor-area">
+                <option>National</option>
+                <option>Port of Spain</option>
+                <option>San Fernando</option>
+                <option>Chaguanas</option>
+                <option>Arima</option>
+                <option>Tobago</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="advisor-budget">Available budget</label>
+              <select id="advisor-budget">
+                <option>Under $5M TTD</option>
+                <option>$5M – $25M TTD</option>
+                <option>$25M – $100M TTD</option>
+                <option>Over $100M TTD</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="advisor-horizon">Time horizon</label>
+            <select id="advisor-horizon">
+              <option>3 months</option>
+              <option>1 year</option>
+              <option>3 years</option>
+              <option>5+ years</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Get Structured Options</button>
+        </form>
+        <div id="advisor-result" class="u-mt-32" hidden></div>
+      </section>
+
+      <section class="mc-panel" id="timeline-memory" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Timeline &amp; Institutional Memory</span>
+          <h2>What happened, what we expected, and what actually occurred.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">A Decision Journal concept: comparing expected outcomes against observed outcomes over time, so the system accumulates memory rather than starting over each time.</p>
+        </div>
+        <div id="mc-timeline"></div>
+      </section>
+
+      <section class="mc-panel" id="external-monitor" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">External Influence Monitor</span>
+          <h2>What's happening beyond our borders still reaches here.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">International developments that plausibly connect to domestic indicators — illustrative unless individually sourced.</p>
+        </div>
+        <div class="module-grid" id="external-monitor-grid"></div>
+      </section>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -304,5 +479,10 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/indicators-data.js"></script>
+  <script src="/js/mission-control-data.js"></script>
+  <script src="/js/charts.js"></script>
+  <script src="/js/trust-card.js"></script>
+  <script src="/js/mission-control-demo.js"></script>
 </body>
 </html>
