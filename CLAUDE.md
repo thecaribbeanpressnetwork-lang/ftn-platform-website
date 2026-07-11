@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 permanent source of truth for the FTN Platform Website repository. It is derived from
 `FTN_Master_Asset_Library_v1.0/00_FTN_MASTER_ASSET_LIBRARY_MANIFEST_v1.0.txt.txt` and AEB boards
 01–13. Update it whenever architecture, tooling, or brand direction changes materially — it should
-never drift out of sync with reality.
+never drift out of sync with reality. Governed by `GOVERNANCE/FTN_Platform_Constitution_v1.0.md`
+(RC3, §7.7) where the two overlap. Platform release version/build/commit tracked in `VERSION.md`.
 
 ---
 
@@ -810,6 +811,22 @@ without needing a framework's hydration budget.
 - Don't commit unoptimized/raw exports — only the optimized SVG/PNG/WEBP/AVIF outputs described in
   §6 belong in `/assets/`.
 - No secrets, API keys, or credentials in any commit.
+
+### 15.1 Official Release Procedure (permanent, from 2026-07-11)
+
+Every official release must complete, in order, and stop and report rather than assume success on
+any step it cannot verify: repository audit (clean tree, no stray zips/temp/cache/duplicate/
+obsolete files) → full verification pass (html-validate, stylelint, console, links, assets,
+responsive incl. mobile/tablet/desktop/TV/portrait/kiosk, accessibility, regression) → version
+info updated in `VERSION.md` (version/build/commit/date, internally consistent) → release commit →
+push to the configured GitHub remote → deployment verification (only claim what was actually
+observed) → cache validation → production smoke test → a source archive written to
+`C:\Users\FGR\Desktop\Face The Nation\website version archive\` (never inside the repo, named
+`FTN_Platform_Website_v<Major>.<Minor>.<Patch>_<YYYY-MM-DD>_<ShortCommit>.zip`, excluding `.git`/
+`node_modules`/temp/cache/OS files/prior archives) → archive integrity verification → a release
+report. Never report a push, deployment, or cache state as successful without having actually
+checked it — if a step can't be verified (no remote configured, no deploy target, hosting platform
+doesn't expose a check), say so explicitly rather than assuming success.
 
 ## 16. AI Collaboration Rules
 
