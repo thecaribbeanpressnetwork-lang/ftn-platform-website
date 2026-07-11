@@ -87,6 +87,99 @@
     }
   }
 
+  // ---------------------------------------------------------- Fast Counter Engine
+  // Normalizes whatever clock config an indicator has into a single
+  // per-second rate, then derives every other useful time unit from it.
+  // Only "accumulating count" clock kinds (currency, population, day-counter)
+  // produce a rate — progress/countdown kinds correctly return null so no
+  // false "how fast" line gets attached to a static-feeling value.
+  var DAY_SECONDS = 24 * 60 * 60;
+
+  function getPerSecondRate(indicator) {
+    var cfg = indicator.clock;
+    if (!cfg) return null;
+    switch (cfg.kind) {
+      case 'currency':
+        return cfg.ratePerSecond || 0;
+      case 'population': {
+        var perYearChange = (cfg.birthsPerYear || 0) - (cfg.deathsPerYear || 0) + (cfg.netMigrationPerYear || 0);
+        return perYearChange / YEAR_MS * 1000;
+      }
+      case 'day-counter':
+        return (cfg.perYear || 0) / 365.25 / DAY_SECONDS;
+      default:
+        return null;
+    }
+  }
+
+  function getRateBreakdown(indicator) {
+    var perSecond = getPerSecondRate(indicator);
+    if (perSecond === null || !isFinite(perSecond) || perSecond === 0) return null;
+    return {
+      perSecond: perSecond,
+      perMinute: perSecond * 60,
+      perHour: perSecond * 3600,
+      perDay: perSecond * DAY_SECONDS,
+      perWeek: perSecond * DAY_SECONDS * 7,
+      perMonth: perSecond * DAY_SECONDS * 30.44,
+      perYear: perSecond * DAY_SECONDS * 365.25,
+      secondsPerEvent: Math.abs(1 / perSecond),
+    };
+  }
+
+  function fmtRate(n) {
+    var abs = Math.abs(n);
+    if (abs >= 100) return Math.round(n).toLocaleString('en-US');
+    if (abs >= 1) return (Math.round(n * 10) / 10).toString();
+    return (Math.round(n * 100) / 100).toString();
+  }
+
+  // Units that are represented with a prefix (TT$620) rather than a trailing
+  // unit word, so they shouldn't also be echoed as a suffix.
+  var BARE_COUNT_UNITS = { 'TTD': true };
+
+  function paceAmount(n, indicator) {
+    var unit = indicator.paceUnitLabel || indicator.units;
+    if (unit === 'people' && Math.round(n) === 1) unit = 'person';
+    var isCurrency = unit === 'TTD';
+    var prefix = isCurrency ? 'TT$' : '';
+    var suffix = BARE_COUNT_UNITS[unit] ? '' : ' ' + unit;
+    return prefix + fmtRate(n) + suffix;
+  }
+
+  // Produces a short, human, kiosk-readable line like "About 1 every 3
+  // seconds" or "About TT$620 every second" — or null when the indicator
+  // doesn't meaningfully accumulate (per Phase 3.5 founder direction §7:
+  // never fabricate a rate line for a static percentage or index).
+  function getPaceLine(indicator) {
+    var rate = getRateBreakdown(indicator);
+    if (!rate) return null;
+
+    if (rate.secondsPerEvent <= 1) {
+      return 'About ' + paceAmount(rate.perSecond, indicator) + ' every second';
+    }
+    if (rate.secondsPerEvent <= 90) {
+      return 'About ' + paceAmount(1, indicator) + ' every ' + Math.round(rate.secondsPerEvent) + ' seconds';
+    }
+    if (rate.perMinute >= 1) {
+      return 'About ' + paceAmount(rate.perMinute, indicator) + ' per minute';
+    }
+    if (rate.perHour >= 1) {
+      return 'About ' + paceAmount(rate.perHour, indicator) + ' per hour';
+    }
+    if (rate.perDay >= 1) {
+      return 'About ' + paceAmount(rate.perDay, indicator) + ' per day';
+    }
+    var secondsPerEvent = rate.secondsPerEvent;
+    if (secondsPerEvent <= 3600 * 24) {
+      return 'About ' + paceAmount(1, indicator) + ' every ' + Math.round(secondsPerEvent / 60) + ' minutes';
+    }
+    if (secondsPerEvent <= 3600 * 24 * 14) {
+      return 'About ' + paceAmount(1, indicator) + ' every ' + Math.round(secondsPerEvent / 3600) + ' hours';
+    }
+    return 'About ' + paceAmount(1, indicator) + ' every ' + Math.round(secondsPerEvent / (3600 * 24)) + ' days';
+  }
+
   var paused = false;
 
   function tick() {
@@ -105,6 +198,18 @@
     var reduceMotion = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
     tick();
     setInterval(tick, reduceMotion ? 5000 : 1000);
+
+    // Browsers throttle/suspend timers on a hidden or sleeping tab. Because
+    // every value here is recomputed from (benchmark + elapsed-real-time ×
+    // rate) rather than incremented per tick, the math itself never drifts —
+    // but the *displayed* text can go stale until the next tick fires. Force
+    // an immediate recalculation the moment the tab is visible again so a
+    // resumed kiosk display snaps straight to the correct value.
+    if (document.addEventListener) {
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) tick();
+      });
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -120,5 +225,7 @@
     pause: function () { paused = true; },
     resume: function () { paused = false; tick(); },
     isPaused: function () { return paused; },
+    getRateBreakdown: getRateBreakdown,
+    getPaceLine: getPaceLine,
   };
 })(window);

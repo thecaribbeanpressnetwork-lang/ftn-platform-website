@@ -322,6 +322,36 @@ current campaign is the approved Face The Nation co-brand lockup, rendered as an
 (consistent with how every other logo in this repo is extracted — see §6) rather than an uploaded
 image, since no production ad creative exists yet.
 
+## 7.2 Phase 3.5 additions — real sources, display config, packages, kiosk runtime
+
+- **`js/source-registry.js`** — the only place real external source URLs live. Indicators attach a
+  `sourceId` (never a hardcoded URL) and Trust Cards resolve it to a clickable
+  `target="_blank" rel="noopener noreferrer"` link. An indicator with no supplied source correctly
+  has no `sourceId` and stays `Demonstration` — do not invent one to fill the field.
+- **`js/live-clocks.js` Fast Counter Engine** (`getRateBreakdown`/`getPaceLine`) — normalizes any
+  ticking indicator's config into a per-second rate and generates the "About TT$620 every second"
+  line. Every clock value is still `benchmark + elapsed × rate`, recomputed fresh each tick (see
+  the `visibilitychange` handler) — never an incremented counter that can drift.
+- **`js/display-config-data.js` + `js/display-config.js`** — venue presets and a config
+  form/localStorage layer, deliberately generic (not Observatory-specific) so a future kiosk or
+  widget page can reuse it unchanged. Renders via the `ftn:display-config-changed` event rather
+  than a direct function call, keeping the config layer decoupled from whatever renders indicators.
+- **`js/ad-packages-data.js`** — commercial tier *capability structures* (no pricing). Its `id`
+  values intentionally match `DisplayConfig.adLevel` so a package and a display configuration
+  describe the same axis from two angles.
+- **`js/display-mode.js`** — shared Fullscreen Display Mode + the low-opacity (~7%) rotating
+  background promotion layer. Disabled under `prefers-reduced-motion`; never intended to be
+  consciously read like a banner.
+- **`js/benchmarks-data.js`, `js/seasonal-profiles.js`, `js/founder-controls.js`** — architectural
+  stubs only. Benchmarks model the future daily server-side ingestion file this repo does not (and
+  must not) fetch live; seasonal profiles are named placeholders at a neutral 1.0 multiplier; founder
+  controls is an unauthenticated local-only preview (visibility toggle works, everything else in its
+  "planned capabilities" list is deliberately not implemented).
+- **Recorded Murders** (`js/indicators-data.js`) ships with no numeric value on purpose — see the
+  comment on that entry. Do not fill in a specific current homicide total without an explicit
+  founder- or news-verified benchmark; this is a sensitive, checkable public-safety statistic, not
+  one to estimate for visual effect.
+
 All internal links use root-relative paths (`/about/`, `/assets/...`) rather than page-relative
 paths, since pages live at varying folder depths — this was a Phase 2 correction to a Phase 1
 oversight (see git history). Every page shares byte-identical header and footer markup, hand-kept

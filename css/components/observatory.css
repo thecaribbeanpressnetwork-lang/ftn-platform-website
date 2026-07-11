@@ -169,6 +169,11 @@
   display: block;
 }
 
+.customize-panel--wide {
+  width: 340px;
+  max-height: 80vh;
+}
+
 .customize-panel__heading {
   font-weight: 700;
   font-size: var(--text-small-size);
@@ -323,6 +328,22 @@
 .indicator-card__source {
   font-size: var(--text-caption-size);
   color: var(--color-silver);
+  text-decoration: none;
+}
+
+a.indicator-card__source {
+  text-decoration: underline;
+}
+
+a.indicator-card__source:hover {
+  color: var(--color-red);
+}
+
+.indicator-card__pace {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+  font-style: italic;
+  margin-top: var(--space-4);
 }
 
 /* Advertisement rail */
@@ -376,6 +397,225 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+
+/* Display density modes (js/display-config.js) */
+body.density-executive .indicator-grid {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+body.density-executive .indicator-card__value {
+  font-size: 2rem;
+}
+
+body.density-executive .indicator-card__pace,
+body.density-executive .indicator-card__source {
+  display: none;
+}
+
+body.density-balanced .indicator-grid {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+body.density-observatory .indicator-grid {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+body.density-observatory .indicator-card {
+  padding: var(--space-12);
+}
+
+body.density-observatory .indicator-card__value {
+  font-size: var(--text-h3-size);
+}
+
+/* Commercial ad packages */
+.package-card__specs {
+  margin-top: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.package-card__specs > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-8);
+  font-size: var(--text-caption-size);
+  border-top: 1px solid #F5F5F5;
+  padding-top: var(--space-8);
+}
+
+.package-card__specs dt {
+  font-weight: 700;
+  color: var(--color-graphite);
+}
+
+.package-card__specs dd {
+  text-align: right;
+}
+
+.ad-combo {
+  margin-bottom: var(--space-16);
+}
+
+.ad-combo__label {
+  font-size: var(--text-small-size);
+  font-weight: 600;
+  margin-bottom: var(--space-8);
+}
+
+.ad-combo__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.ad-combo__tile {
+  width: 32px;
+  height: 24px;
+  border-radius: var(--radius-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  font-weight: 700;
+  text-align: center;
+  overflow: hidden;
+}
+
+.ad-combo__tile--data {
+  background: #ECECEC;
+}
+
+.ad-combo__tile--ad {
+  background: var(--color-red);
+  color: var(--color-white);
+  width: auto;
+  padding-inline: var(--space-4);
+}
+
+/* Background promotion layer — golden-ratio framing: reserves the visually
+   dominant ~2/3 of the screen for data, this sits behind it at very low
+   opacity. Never intended to be consciously "read" like a banner ad. */
+.bg-promotion {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0.07;
+  transition: opacity 1.2s ease;
+}
+
+body.display-mode .bg-promotion {
+  display: flex;
+}
+
+.bg-promotion__item {
+  text-align: center;
+  color: var(--color-white);
+}
+
+.bg-promotion__item--logo svg {
+  margin-inline: auto;
+}
+
+.bg-promotion__headline {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 4rem;
+  color: var(--color-white);
+}
+
+.bg-promotion__item p {
+  color: var(--color-silver);
+  margin-top: var(--space-8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-promotion {
+    transition: none;
+  }
+}
+
+/* Fullscreen Display Mode chrome */
+.display-mode-bar {
+  display: none;
+}
+
+body.display-mode {
+  background: var(--color-black);
+}
+
+body.display-mode .site-header,
+body.display-mode .site-footer,
+body.display-mode .category-jump-row,
+body.display-mode .observatory-controls,
+body.display-mode #commercial-packages {
+  display: none;
+}
+
+body.display-mode .display-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+  padding: var(--space-16) var(--space-24);
+  color: var(--color-white);
+  font-size: var(--text-small-size);
+  border-bottom: 1px solid var(--color-charcoal);
+}
+
+body.display-mode .observatory-layout,
+body.display-mode .observatory-hero,
+body.display-mode .methodology-banner {
+  position: relative;
+  z-index: 1;
+}
+
+body.display-mode .observatory-hero {
+  background: transparent;
+}
+
+/* Founder Controls (internal demo stub) */
+.founder-controls summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+}
+
+.founder-controls__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-caption-size);
+}
+
+.founder-controls__table th,
+.founder-controls__table td {
+  text-align: left;
+  padding: var(--space-8) var(--space-12);
+  border-bottom: 1px solid #ECECEC;
+}
+
+.founder-controls__table th {
+  font-weight: 700;
+  color: var(--color-graphite);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.founder-controls__status {
+  font-weight: 700;
+}
+
+.founder-controls__status--ok { color: #16A34A; }
+.founder-controls__status--stale { color: #F59E0B; }
+.founder-controls__status--error { color: #DC2626; }
+.founder-controls__status--not-integrated { color: var(--color-silver); }
 
 /* Kiosk mode */
 body.kiosk-mode .site-header,

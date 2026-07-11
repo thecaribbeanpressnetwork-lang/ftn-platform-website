@@ -20,6 +20,19 @@
     return '—';
   }
 
+  function sourceHTML(ind) {
+    var src = ind.sourceId && global.FTN.Sources ? global.FTN.Sources.get(ind.sourceId) : null;
+    if (src && src.url) {
+      return '<a class="indicator-card__source" href="' + src.url + '" target="_blank" rel="noopener noreferrer">' + src.name + '</a>';
+    }
+    return '<span class="indicator-card__source">' + ind.sourceName + '</span>';
+  }
+
+  function paceLineHTML(ind) {
+    var line = global.FTN.LiveClocks && ind.isLiveClock ? global.FTN.LiveClocks.getPaceLine(ind) : null;
+    return line ? '<p class="indicator-card__pace">' + line + '</p>' : '';
+  }
+
   function cardHTML(ind) {
     var live = ind.isLiveClock
       ? '<span data-live-clock="' + ind.id + '" aria-live="off">' + ind.value + '</span>'
@@ -33,21 +46,40 @@
         '<h3 class="indicator-card__title">' + ind.title + '</h3>' +
         '<p class="indicator-card__value">' + live + (ind.units ? ' <span class="indicator-card__units">' + ind.units + '</span>' : '') + '</p>' +
         (ind.changeLabel ? '<p class="indicator-card__change indicator-card__change--' + ind.trend + '">' + trendGlyph(ind.trend) + ' ' + ind.changeLabel + '</p>' : '') +
+        paceLineHTML(ind) +
         '<div class="indicator-card__spark" data-spark="' + ind.id + '"></div>' +
         '<div class="indicator-card__footer">' +
-          '<span class="indicator-card__source">' + ind.sourceName + '</span>' +
+          sourceHTML(ind) +
           '<button type="button" class="trust-trigger" data-trust-card="' + ind.id + '">Trust Card</button>' +
         '</div>' +
       '</article>'
     );
   }
 
-  function renderCategories() {
+  // Applies a DisplayConfig (js/display-config.js) to the full indicator set:
+  // category allow-list first, then an overall count cap distributed evenly
+  // across whatever categories remain — the same function a future kiosk or
+  // widget renderer would call, not something Observatory-specific.
+  function applyDisplayConfig(allIndicators, cfg) {
+    var pool = allIndicators;
+    if (global.FTN.FounderControls) {
+      pool = pool.filter(function (ind) { return !global.FTN.FounderControls.isDisabled(ind.id); });
+    }
+    if (cfg && cfg.categories) {
+      pool = pool.filter(function (ind) { return cfg.categories.indexOf(ind.category) !== -1; });
+    }
+    if (!cfg || !cfg.indicatorCount || pool.length <= cfg.indicatorCount) return pool;
+    return pool.slice(0, cfg.indicatorCount);
+  }
+
+  function renderCategories(cfg) {
     var root = document.getElementById('indicator-wall');
     if (!root || !global.FTN || !global.FTN.indicators) return;
 
+    var indicatorsToRender = cfg ? applyDisplayConfig(global.FTN.indicators, cfg) : global.FTN.indicators;
+
     var byCategory = {};
-    global.FTN.indicators.forEach(function (ind) {
+    indicatorsToRender.forEach(function (ind) {
       byCategory[ind.category] = byCategory[ind.category] || [];
       byCategory[ind.category].push(ind);
     });
@@ -62,10 +94,10 @@
       html += '<div class="indicator-grid">' + items.map(cardHTML).join('') + '</div>';
       html += '</section>';
     });
-    root.innerHTML = html;
+    root.innerHTML = html || '<p class="u-text-graphite">No indicators match the current display configuration.</p>';
 
     // Sparklines
-    global.FTN.indicators.forEach(function (ind) {
+    indicatorsToRender.forEach(function (ind) {
       if (!ind.history || !ind.history.length) return;
       var mount = root.querySelector('[data-spark="' + ind.id + '"]');
       if (mount) mount.appendChild(global.FTN.Charts.sparkline(ind.history, { width: 140, height: 28 }));
@@ -157,6 +189,18 @@
     applyCategoryVisibility();
   }
 
+  // Generic disclosure-panel toggle — used by Customize and Display Setup
+  // alike, and reusable by any future panel of the same shape.
+  function initPanelToggle(toggleId, panelId) {
+    var toggleBtn = document.getElementById(toggleId);
+    var panel = document.getElementById(panelId);
+    if (!toggleBtn || !panel) return;
+    toggleBtn.addEventListener('click', function () {
+      var isOpen = panel.classList.toggle('is-open');
+      toggleBtn.setAttribute('aria-expanded', String(isOpen));
+    });
+  }
+
   function initPauseControl() {
     var btn = document.getElementById('pause-toggle');
     if (!btn || !global.FTN || !global.FTN.LiveClocks) return;
@@ -204,6 +248,40 @@
     });
   }
 
+  // ---- Commercial ad packages (capability structures, no pricing) ----
+  function renderAdPackages() {
+    var mount = document.getElementById('ad-packages-grid');
+    if (!mount || !global.FTN.AdPackages) return;
+    mount.innerHTML = global.FTN.AdPackages.all.map(function (pkg) {
+      var promo = pkg.customerPromotionAllowed === true ? 'Yes'
+        : pkg.customerPromotionAllowed === 'limited' ? 'Limited' : 'No';
+      return (
+        '<div class="module-card">' +
+          '<h3>' + pkg.name + '</h3>' +
+          '<p>' + pkg.tagline + '</p>' +
+          '<dl class="package-card__specs">' +
+            '<div><dt>Network ad density</dt><dd>' + pkg.networkAdDensity + '</dd></div>' +
+            '<div><dt>Customer promotion</dt><dd>' + promo + '</dd></div>' +
+            '<div><dt>Branding</dt><dd>' + pkg.brandingRequired + '</dd></div>' +
+            '<div><dt>Example layout</dt><dd>' + pkg.exampleCombination.indicators + ' indicators + ' + pkg.exampleCombination.ads + ' ad panels</dd></div>' +
+          '</dl>' +
+        '</div>'
+      );
+    }).join('');
+
+    var comboMount = document.getElementById('ad-combo-demo');
+    if (comboMount) {
+      var labels = ['Advertisement', 'Sponsored', 'FTN Promotion', 'Public Service Message'];
+      comboMount.innerHTML = global.FTN.AdPackages.all.map(function (pkg, i) {
+        var combo = pkg.exampleCombination;
+        var tiles = '';
+        for (var d = 0; d < Math.min(combo.indicators, 6); d++) tiles += '<span class="ad-combo__tile ad-combo__tile--data"></span>';
+        for (var a = 0; a < combo.ads; a++) tiles += '<span class="ad-combo__tile ad-combo__tile--ad">' + labels[a % labels.length] + '</span>';
+        return '<div class="ad-combo"><p class="ad-combo__label">' + pkg.name + ': ' + combo.indicators + ' indicators + ' + combo.ads + ' ad panels</p><div class="ad-combo__row">' + tiles + '</div></div>';
+      }).join('');
+    }
+  }
+
   function initRefreshClock() {
     var el = document.getElementById('last-refresh');
     if (!el) return;
@@ -220,14 +298,37 @@
     else fn();
   }
 
+  function applyDensityClass(cfg) {
+    document.body.classList.remove('density-executive', 'density-balanced', 'density-observatory');
+    document.body.classList.add('density-' + ((cfg && cfg.density) || 'balanced'));
+  }
+
   ready(function () {
+    var cfg = global.FTN.DisplayConfig ? global.FTN.DisplayConfig.load() : null;
+    applyDensityClass(cfg);
     renderCategoryChips();
-    renderCategories();
+    renderCategories(cfg);
     applyCategoryVisibility();
     initCustomizePanel();
+    initPanelToggle('display-config-toggle', 'display-config-panel');
     initKioskMode();
     initRefreshClock();
     initPauseControl();
+    if (global.FTN.DisplayConfig) global.FTN.DisplayConfig.init('display-config-panel');
     if (global.FTN.Ads) global.FTN.Ads.renderPlacement('ad-rail-mount', 'rail');
+    if (global.FTN.DisplayMode) global.FTN.DisplayMode.initToggle('fullscreen-toggle', 'display-mode-exit');
+    if (global.FTN.FounderControls) global.FTN.FounderControls.render('founder-controls-mount');
+    renderAdPackages();
+
+    global.addEventListener('ftn:display-config-changed', function (e) {
+      applyDensityClass(e.detail);
+      renderCategories(e.detail);
+      applyCategoryVisibility();
+    });
+
+    global.addEventListener('ftn:founder-controls-changed', function () {
+      renderCategories(cfg);
+      applyCategoryVisibility();
+    });
   });
 })(window);

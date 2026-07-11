@@ -204,6 +204,14 @@
   </header>
 
   <main id="main">
+    <div class="display-mode-bar">
+      <span>FTN Live &mdash; <strong id="display-mode-screen-name">FTN Live Display</strong></span>
+      <span id="display-mode-config-id">custom</span>
+      <span id="display-mode-clock">&mdash;</span>
+      <button type="button" class="btn btn-outline btn-outline--on-dark btn-sm" id="display-mode-exit">Exit Display Mode</button>
+    </div>
+    <div class="bg-promotion" id="bg-promotion" aria-hidden="true"></div>
+
     <section class="observatory-hero">
       <div class="container">
         <div class="observatory-hero__top">
@@ -226,7 +234,7 @@
 
         <div class="hero-clocks">
           <div class="hero-clock">
-            <p class="hero-clock__label">National Debt (estimated)</p>
+            <p class="hero-clock__label">National Debt</p>
             <p class="hero-clock__value"><span data-live-clock="national-debt" aria-live="off">19,400,000,000</span> <span>TTD</span></p>
             <div class="hero-clock__meta">
               <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
@@ -242,7 +250,7 @@
             </div>
           </div>
           <div class="hero-clock">
-            <p class="hero-clock__label">Estimated Population</p>
+            <p class="hero-clock__label">Population</p>
             <p class="hero-clock__value"><span data-live-clock="population" aria-live="off">1,531,000</span></p>
             <div class="hero-clock__meta">
               <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
@@ -266,22 +274,28 @@
         <div class="methodology-banner">
           <span aria-hidden="true">&#9432;</span>
           <p>
-            Every figure on this page is classified: <strong>Official</strong> and <strong>Sourced</strong>
-            values come from a named external source; <strong>FTN Derived</strong> values are calculated
-            directly from a known rule (like calendar position in a fiscal year); <strong>FTN Estimated</strong>
-            and <strong>FTN Modelled</strong> values are illustrative interpolations built to demonstrate the
-            concept; <strong>Demonstration</strong> values are placeholders with no live source at all. This
-            build uses no live external feeds yet, so nothing here is currently classified "Official" — open
-            any card's Trust Card for the full picture, methodology, and limitations.
+            Animated counters are calculated from the latest available annual, quarterly, monthly
+            or daily benchmark figures. Sources, benchmark dates and methods are available in each
+            card's Trust Card. Classifications range from Official benchmark and Published source
+            through to FTN calculated counter, FTN derived indicator, and Demonstration scenario —
+            this build has no live external feeds yet, so nothing here is currently classified
+            Official.
           </p>
         </div>
       </div>
 
       <div class="category-jump-row u-mt-24">
         <nav class="category-jump category-jump--inline" id="category-jump" aria-label="Jump to indicator category"></nav>
-        <div class="customize-panel-wrap">
-          <button type="button" id="customize-toggle" class="btn btn-outline btn-sm" aria-expanded="false" aria-controls="customize-panel">Customize</button>
-          <div class="customize-panel" id="customize-panel"></div>
+        <div class="icon-row">
+          <div class="customize-panel-wrap">
+            <button type="button" id="customize-toggle" class="btn btn-outline btn-sm" aria-expanded="false" aria-controls="customize-panel">Customize</button>
+            <div class="customize-panel" id="customize-panel"></div>
+          </div>
+          <div class="customize-panel-wrap">
+            <button type="button" id="display-config-toggle" class="btn btn-outline btn-sm" aria-expanded="false" aria-controls="display-config-panel">Display Setup</button>
+            <div class="customize-panel customize-panel--wide" id="display-config-panel"></div>
+          </div>
+          <button type="button" id="fullscreen-toggle" class="btn btn-primary btn-sm">Launch Fullscreen Display</button>
         </div>
       </div>
 
@@ -311,6 +325,31 @@
           </div>
         </aside>
       </div>
+
+      <section class="section section--tint" id="commercial-packages">
+        <div class="section__header">
+          <span class="section__eyebrow">FTN Display Network</span>
+          <h2>Commercial display packages.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">
+            Capability structures for how a managed screen could be deployed — banks, offices,
+            universities, waiting rooms. No prices are set here; this demonstrates what each tier
+            includes.
+          </p>
+        </div>
+        <div class="module-grid" id="ad-packages-grid"></div>
+
+        <div class="u-mt-32">
+          <p class="u-mb-16 u-font-bold">Indicator + advertisement panel combinations (illustrative)</p>
+          <div id="ad-combo-demo"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <details class="founder-controls">
+          <summary>Founder Controls (internal demo stub)</summary>
+          <div id="founder-controls-mount" class="u-mt-24"></div>
+        </details>
+      </section>
     </div>
   </main>
 
@@ -379,12 +418,20 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/source-registry.js"></script>
   <script src="/js/indicators-data.js"></script>
   <script src="/js/ads-data.js"></script>
   <script src="/js/ads.js"></script>
+  <script src="/js/ad-packages-data.js"></script>
   <script src="/js/charts.js"></script>
   <script src="/js/trust-card.js"></script>
   <script src="/js/live-clocks.js"></script>
+  <script src="/js/display-config-data.js"></script>
+  <script src="/js/display-config.js"></script>
+  <script src="/js/display-mode.js"></script>
+  <script src="/js/benchmarks-data.js"></script>
+  <script src="/js/seasonal-profiles.js"></script>
+  <script src="/js/founder-controls.js"></script>
   <script src="/js/observatory.js"></script>
 </body>
 </html>

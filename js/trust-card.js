@@ -12,6 +12,22 @@
     return '<div class="trust-card__row"><dt>' + label + '</dt><dd>' + value + '</dd></div>';
   }
 
+  // Renders a source as a real clickable link when a Source Registry entry
+  // exists (js/source-registry.js); falls back to plain text otherwise.
+  // roleLabel distinguishes a primary benchmark source from a secondary
+  // comparison-only source (e.g. Worldometer is never primary — see
+  // ANALYTICS_STANDARD.md and Phase 3.5 founder direction §4).
+  function sourceLinkRow(label, sourceId, roleLabel) {
+    if (!sourceId) return '';
+    var src = global.FTN && global.FTN.Sources ? global.FTN.Sources.get(sourceId) : null;
+    if (!src) return '';
+    var roleNote = roleLabel ? ' <span class="trust-card__source-role">(' + roleLabel + ')</span>' : '';
+    var value = src.url
+      ? '<a href="' + src.url + '" target="_blank" rel="noopener noreferrer">' + src.name + '</a>' + roleNote
+      : src.name + roleNote;
+    return fieldRow(label, value);
+  }
+
   function classificationBadgeClass(classification) {
     var map = {
       'Official': 'trust-badge--official',
@@ -36,7 +52,11 @@
       '<dl class="trust-card__fields">' +
         fieldRow('Confidence', data.confidence) +
         fieldRow('Methodology', data.methodology) +
-        fieldRow('Source', data.sourceName) +
+        (data.sourceId
+          ? sourceLinkRow('Primary source', data.sourceId, 'primary benchmark source')
+          : fieldRow('Source', data.sourceName)) +
+        (data.secondarySourceId ? sourceLinkRow('Secondary source', data.secondarySourceId, null) : '') +
+        (data.comparisonSourceId ? sourceLinkRow('Comparison source', data.comparisonSourceId, 'comparison, not primary') : '') +
         fieldRow('Update frequency', data.updateFrequency) +
         fieldRow('Last updated', data.lastUpdated) +
         fieldRow('Time coverage', data.timeCoverage) +

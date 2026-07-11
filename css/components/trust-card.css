@@ -111,6 +111,17 @@ body.trust-card-open {
   color: var(--color-black);
 }
 
+.trust-card__row dd a {
+  color: var(--color-red);
+  text-decoration: underline;
+}
+
+.trust-card__source-role {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+  font-style: italic;
+}
+
 /* Small inline trigger used on indicator cards / evidence rows */
 .trust-trigger {
   display: inline-flex;
