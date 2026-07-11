@@ -16,6 +16,14 @@
   margin-bottom: var(--space-16);
 }
 
+/* mc-demo-hero and observatory-hero are always dark (see mission-control-demo.css /
+   observatory.css); the plain marketing .page-hero is always light, so no extra
+   selector guard is needed here. */
+.mc-demo-hero .page-hero__eyebrow,
+.observatory-hero .page-hero__eyebrow {
+  color: var(--color-red-on-dark);
+}
+
 .page-hero__title {
   font-size: var(--text-display-size);
   line-height: var(--text-display-line);
@@ -52,6 +60,13 @@
 }
 
 .section--dark p {
+  color: var(--color-silver);
+}
+
+/* .prose p (below) matches with equal specificity and would otherwise win this on
+   source order alone, silently reverting dark-section body text back to graphite
+   (fails WCAG AA contrast on black — see CLAUDE.md §11). Pin it explicitly. */
+.section--dark .prose p {
   color: var(--color-silver);
 }
 

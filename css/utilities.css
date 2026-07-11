@@ -10,17 +10,13 @@
 .u-mb-16 { margin-bottom: var(--space-16); }
 .u-mb-24 { margin-bottom: var(--space-24); }
 
-.u-max-480  { max-width: 480px; }
 .u-max-640  { max-width: 640px; }
 .u-max-60ch { max-width: 60ch; }
 .u-max-68ch { max-width: 68ch; }
 
 .u-text-graphite { color: var(--color-graphite); }
 .u-text-silver   { color: var(--color-silver); }
-.u-text-white    { color: var(--color-white); }
-.u-text-black    { color: var(--color-black); }
 .u-text-sm       { font-size: var(--text-small-size); }
-.u-underline     { text-decoration: underline; }
 .u-font-bold     { font-weight: 700; }
 
 .u-link-on-dark {
@@ -56,6 +52,10 @@
 
 .benefit-column--on-dark {
   border-color: var(--color-charcoal);
+}
+
+.benefit-column--on-dark li {
+  color: var(--color-silver);
 }
 
 /* Disabled-looking action (e.g. "coming soon" store badge) — not an actual disabled

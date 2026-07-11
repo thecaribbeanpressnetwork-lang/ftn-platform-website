@@ -70,31 +70,6 @@
   margin-bottom: var(--space-24);
 }
 
-.inquiry-option {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-12);
-  padding: var(--space-16);
-  border: 1px solid #D9D9D9;
-  border-radius: var(--radius-8);
-  cursor: pointer;
-}
-
-.inquiry-option input {
-  margin-top: 0.2em;
-}
-
-.inquiry-option strong {
-  display: block;
-  font-size: var(--text-small-size);
-}
-
-.inquiry-option span.desc {
-  display: block;
-  font-size: var(--text-caption-size);
-  color: var(--color-graphite);
-}
-
 .form-status {
   display: none;
   padding: var(--space-16) var(--space-24);

@@ -9,8 +9,6 @@
   var MC = {};
 
   // ---------------------------------------------------------------- Executive Dashboard
-  MC.regions = ['National', 'Port of Spain', 'San Fernando', 'Chaguanas', 'Arima', 'Tobago'];
-
   // Small illustrative multipliers so the region selector visibly changes
   // something, rather than being decorative.
   MC.regionMultipliers = {
@@ -21,8 +19,6 @@
     'Arima': 0.9,
     'Tobago': 0.8,
   };
-
-  MC.timeRanges = ['Today', 'Last 7 Days', 'Last 30 Days', 'This Quarter', 'This Year', '5 Years', 'Historical'];
 
   MC.executiveKPIs = [
     { id: 'active-events', title: 'Active Events', base: 6, units: 'events', trend: 'flat' },
@@ -150,17 +146,6 @@
   };
 
   // ---------------------------------------------------------------- Strategic Advisor
-  MC.advisorOutcomes = [
-    { value: 'flooding', label: 'Reduce flooding impact' },
-    { value: 'employment', label: 'Improve employment' },
-    { value: 'healthcare', label: 'Reduce healthcare-system pressure' },
-    { value: 'attendance', label: 'Improve school attendance' },
-  ];
-
-  MC.advisorAreas = ['National', 'Port of Spain', 'San Fernando', 'Chaguanas', 'Arima', 'Tobago'];
-  MC.advisorBudgets = ['Under $5M TTD', '$5M – $25M TTD', '$25M – $100M TTD', 'Over $100M TTD'];
-  MC.advisorHorizons = ['3 months', '1 year', '3 years', '5+ years'];
-
   MC.advisorScripts = {
     flooding: {
       situationSummary: 'Flood-related community reports have risen in the areas selected, correlating with above-normal rainfall and open drainage-maintenance backlogs (demonstration correlation: +0.82).',

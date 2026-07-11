@@ -7,10 +7,36 @@
   <meta name="description" content="Contact FTN Platform for general inquiries, government partnerships, media requests, careers, or support.">
   <link rel="canonical" href="/contact/">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FTN Platform">
+  <meta property="og:title" content="Contact — FTN Platform">
+  <meta property="og:description" content="Contact FTN Platform for general inquiries, government partnerships, media requests, careers, or support.">
+  <meta property="og:url" content="https://www.ftnplatform.com/contact/">
+  <meta property="og:image" content="https://www.ftnplatform.com/assets/social/og-image-default.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Contact — FTN Platform">
+  <meta name="twitter:description" content="Contact FTN Platform for general inquiries, government partnerships, media requests, careers, or support.">
+  <meta name="twitter:image" content="https://www.ftnplatform.com/assets/social/og-image-default.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components/buttons.css">
+  <link rel="stylesheet" href="/css/components/nav.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/blocks.css">
+  <link rel="stylesheet" href="/css/components/content-sections.css">
+  <link rel="stylesheet" href="/css/components/accordion.css">
+  <link rel="stylesheet" href="/css/components/form.css">
+  <link rel="stylesheet" href="/css/components/legal.css">
+  <link rel="stylesheet" href="/css/components/trust-card.css">
+  <link rel="stylesheet" href="/css/components/charts.css">
+  <link rel="stylesheet" href="/css/components/observatory.css">
+  <link rel="stylesheet" href="/css/components/mission-control-demo.css">
+  <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -203,7 +229,7 @@
     </div>
   </header>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <section class="page-hero">
       <div class="container">
         <span class="page-hero__eyebrow">Contact</span>
@@ -261,16 +287,18 @@
           <div class="form-row form-row--2">
             <div class="form-field">
               <label for="cf-name">Full name</label>
-              <input type="text" id="cf-name" name="name" autocomplete="name" required>
+              <input type="text" id="cf-name" name="name" autocomplete="name" required aria-describedby="cf-name-error">
+              <p class="form-field__error" id="cf-name-error" role="alert"></p>
             </div>
             <div class="form-field">
               <label for="cf-email">Email address</label>
-              <input type="email" id="cf-email" name="email" autocomplete="email" required>
+              <input type="email" id="cf-email" name="email" autocomplete="email" required aria-describedby="cf-email-error">
+              <p class="form-field__error" id="cf-email-error" role="alert"></p>
             </div>
           </div>
           <div class="form-field">
             <label for="cf-category">Inquiry category</label>
-            <select id="cf-category" name="category" required>
+            <select id="cf-category" name="category" required aria-describedby="cf-category-error">
               <option value="">Select a category</option>
               <option value="general">General Inquiries</option>
               <option value="government">Government &amp; Agencies</option>
@@ -279,10 +307,12 @@
               <option value="careers">Careers</option>
               <option value="support">Support</option>
             </select>
+            <p class="form-field__error" id="cf-category-error" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="cf-message">Message</label>
-            <textarea id="cf-message" name="message" required></textarea>
+            <textarea id="cf-message" name="message" required aria-describedby="cf-message-error"></textarea>
+            <p class="form-field__error" id="cf-message-error" role="alert"></p>
           </div>
           <button type="submit" class="btn btn-primary">Send Message</button>
           <div class="form-status" id="contact-form-status" role="status"></div>

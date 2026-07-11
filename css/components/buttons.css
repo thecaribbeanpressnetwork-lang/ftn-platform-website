@@ -47,6 +47,10 @@
   background: var(--color-charcoal);
 }
 
+.btn-secondary:active {
+  background: var(--color-black);
+}
+
 .btn-secondary:disabled {
   background: var(--color-silver);
   cursor: not-allowed;
@@ -61,6 +65,12 @@
 
 .btn-outline:hover {
   background: var(--color-black);
+  color: var(--color-white);
+}
+
+.btn-outline:active {
+  background: var(--color-charcoal);
+  border-color: var(--color-charcoal);
   color: var(--color-white);
 }
 

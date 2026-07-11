@@ -17,6 +17,18 @@
       var wrapper = field.closest('.form-field');
       var isValid = field.value.trim().length > 0 && field.checkValidity();
       if (wrapper) wrapper.setAttribute('data-invalid', String(!isValid));
+      field.setAttribute('aria-invalid', String(!isValid));
+
+      var errorId = field.getAttribute('aria-describedby');
+      var errorEl = errorId ? document.getElementById(errorId) : null;
+      if (errorEl) {
+        errorEl.textContent = isValid
+          ? ''
+          : (field.type === 'email' && field.value.trim().length > 0
+            ? 'Please enter a valid email address.'
+            : 'This field is required.');
+      }
+
       if (!isValid) valid = false;
     });
 

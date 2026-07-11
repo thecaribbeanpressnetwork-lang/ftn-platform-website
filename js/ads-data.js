@@ -43,6 +43,5 @@
   }
 
   global.FTN = global.FTN || {};
-  global.FTN.ads = campaigns;
   global.FTN.getAdsForPlacement = forPlacement;
 })(window);

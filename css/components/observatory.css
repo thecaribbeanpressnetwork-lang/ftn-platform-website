@@ -104,7 +104,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-red);
+  color: var(--color-red-on-dark);
   margin-bottom: var(--space-12);
 }
 
@@ -509,7 +509,7 @@
 
 .indicator-card__source {
   font-size: var(--text-caption-size);
-  color: var(--color-silver);
+  color: var(--color-graphite);
   text-decoration: none;
 }
 

@@ -1,4 +1,9 @@
-/* FTN Platform Website — stylesheet entry point */
+/* FTN Platform Website — canonical stylesheet load order, for reference only.
+   Not loaded directly by any page (a single-file @import chain is render-blocking
+   and serializes what should be parallel fetches). Every page instead links each
+   of the files below individually, in this same order, directly in its <head>.
+   If you add or reorder a component stylesheet, update both this file and the
+   <link> block in every page's <head> to keep them in sync. */
 @import url("tokens.css");
 @import url("base.css");
 @import url("components/buttons.css");

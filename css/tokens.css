@@ -12,6 +12,11 @@
   --color-black: #0B0B0B;
   --color-white: #FFFFFF;
   --color-red: #E10613; /* founder-resolved, see CLAUDE.md §5 */
+  /* Same brand red, lightened toward white just enough to clear WCAG AA (4.5:1) at
+     small caption sizes on a black/charcoal background. Not a new brand color — a
+     dark-surface contrast variant of --color-red, same as the existing --on-dark
+     button/card modifiers use var(--color-silver) instead of var(--color-graphite). */
+  --color-red-on-dark: #E94750;
 
   /* Color — secondary neutrals (AEB-01 §1.5) */
   --color-charcoal: #1A1A1A;

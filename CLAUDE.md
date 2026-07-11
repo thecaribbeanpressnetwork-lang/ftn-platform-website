@@ -186,6 +186,12 @@ a value goes into a shipped CSS token:
   edited.
 - Success green hex (`#22C55E` vs `#16A34A`) and the file/board-number mismatch (§ item 4 above)
   remain **open** — ask before any implementation touches either.
+- **RC1 update (see §7.5):** the shipped `#16A34A` "trend up" / "change up" green (used in
+  `indicator-card__change--up` and `mc-kpi-card__trend--up`) fails WCAG AA contrast (3.29:1) at
+  the small caption size it's used at, on white. This is now flagged as a known, unresolved
+  accessibility defect, not just a brand-consistency question — fixing it requires picking a
+  specific shade, which is exactly the reserved decision above. Do not silently lighten/darken it;
+  raise it with the founder alongside the rest of this conflict.
 
 **Interim resolution (founder decision, in effect for the duration of website development):** the
 remaining conflicts above are **not to be resolved by AI judgment, ever** — they are explicitly
@@ -265,6 +271,10 @@ structure as of Phase 3:
 ├── insights/index.html               # Coming Soon (AEB-09 page-type 12)
 ├── news/index.html                   # Coming Soon (AEB-09 page-type 12)
 ├── sitemap/index.html                # Full page list
+├── 404.html                          # Custom 404 (root, not /404/ — required at this path for
+│                                      # GitHub Pages/Netlify/most static hosts to auto-serve it)
+├── sitemap.xml                       # Real sitemap, all 16 pages (RC1, §7.5) — placeholder domain
+├── robots.txt                        # RC1, §7.5 — placeholder domain in its Sitemap: line
 ├── accessibility/index.html          # Genuine content — WCAG 2.2 AA target, not a legal placeholder
 ├── legal/
 │   ├── privacy-policy/index.html     # Structural placeholder — see §5 legal-wording rule
@@ -273,12 +283,16 @@ structure as of Phase 3:
 │   └── data-retention/index.html     # Structural placeholder
 ├── assets/
 │   ├── logos/                        # logo-ftn-platform-primary-{light,dark}.svg
-│   └── icons/                        # favicon + hand-authored UI/social icons
+│   ├── icons/                        # favicon.svg + favicon-32.png + apple-touch-icon.png (RC1)
+│   │                                  # + hand-authored UI/social icons
+│   └── social/                       # og-image-default.png (RC1, §7.5) — generated 1200x630 card,
+│                                      # composed from the approved wordmark + tagline, not new art
 ├── css/
 │   ├── tokens.css                    # design tokens (color/type/spacing/radius/shadow/breakpoints)
 │   ├── base.css                      # reset, container, focus states
 │   ├── utilities.css                 # small spacing/color/width utility classes
-│   ├── main.css                      # import entry point
+│   ├── main.css                      # canonical load-order reference only (RC1: each page links
+│   │                                  # every component file directly — see §7.5 — not this file)
 │   └── components/                   # nav, footer, buttons, blocks, accordion,
 │                                      # content-sections, form, legal, trust-card, charts,
 │                                      # observatory, mission-control-demo
@@ -442,6 +456,77 @@ Mission Control, FTN Live, and future FTN Platform surfaces to share, not a one-
   closer reading distance/interaction (`#today-in-tt`, `#what-changed`, `#commercial-packages`,
   `.search-discover-row`) under `body.kiosk-mode`, consistent with kiosk mode's existing purpose as
   a from-a-distance display surface rather than an interactive session.
+
+## 7.5 Release Candidate 1 — cleanup, contrast fixes, deployment readiness
+
+RC1's mandate was not new features but stabilizing and polishing everything built in Phases 1–4
+for a first public deployment: dead-code cleanup, cross-page consistency, a real performance fix,
+a real WCAG audit (not just a checklist read), full responsive/regression re-verification, and
+the deployment-readiness files a static site needs before it can be hosted for real.
+
+- **CSS delivery changed from `@import` chain to parallel `<link>` tags.** `css/main.css`'s
+  16-file `@import` chain was a genuine render-blocking waterfall (browser can't discover
+  `tokens.css` needs fetching until `main.css` itself has downloaded and parsed, then discovers
+  `base.css`, and so on, serially). Every page's `<head>` now links each component stylesheet
+  directly, in the same cascade order, so the browser fetches all of them in parallel. `main.css`
+  itself is kept only as a documented reference of the canonical load order — it is not loaded by
+  any page. If you add or reorder a component stylesheet, update both `main.css` and the `<link>`
+  block in every page's `<head>`.
+- **Dead code removed** (low-risk only, verified unreferenced before removal): unused CSS
+  (`.chart-card__header/__subtitle/--dark`, `.inquiry-option`, unused `.u-*` utilities),
+  unused JS (`MC.regions`/`timeRanges`/`advisorOutcomes`/`advisorAreas`/`advisorBudgets`/
+  `advisorHorizons` — `mission-control-demo.js` hardcodes the equivalent `<option>` lists instead;
+  the dead `global.FTN.ads` export in `ads-data.js`). Extracted brand asset files
+  (`logo-ftn-platform-primary-{light,dark}.svg`) were *not* removed even though currently
+  unreferenced — they're approved production assets per §6, kept for future use, not dead code.
+- **Real WCAG 2.2 AA contrast defects found and fixed via an automated axe-core sweep** (not just
+  a manual read of the boards) — all in the "verify actual contrast, don't assume brand red passes
+  at small sizes" territory §11 already warned about:
+  - `.section__eyebrow` / `.page-hero__eyebrow` / `.reality-insight__title` used `--color-red`
+    unconditionally, including on `.section--dark` bands, `.observatory-hero`, `.mc-demo-hero`, and
+    the always-charcoal `.reality-insight` card — 3.97:1 and worse against black/charcoal. Fixed
+    with a new token, `--color-red-on-dark` (`#E94750`, tokens.css) — the same resolved brand red,
+    lightened just enough to clear 4.5:1 against both `--color-black` and `--color-charcoal`. This
+    is a dark-surface contrast *variant* of the already-founder-resolved red, not a new brand color
+    and not a reopening of the red-hex conflict in §5.
+  - `.benefit-column--on-dark li` and `.section--dark .prose p` were silently falling back to
+    `--color-graphite` (2.32:1 on black) instead of the intended `--color-silver` — the first was a
+    genuinely missing override on the `--on-dark` modifier, the second an equal-specificity source-
+    order tie between `.section--dark p` and `.prose p` that `.prose p` happened to win. Fixed with
+    an explicit `.benefit-column--on-dark li` rule and a `.section--dark .prose p` override.
+  - `.cta p` used `rgba(255,255,255,0.85)` on the solid-red CTA band (3.81:1) — switched to solid
+    `--color-white` to match the CTA's own `h2`.
+  - `.indicator-card__source` (the "via [Source]" link in indicator card footers) and
+    `.legal-doc .placeholder-text` both used `--color-silver` on white (2.58:1) — switched to
+    `--color-graphite`, which is already proven safe on white elsewhere on the site.
+  - The `#16A34A` "trend up" green remains **unfixed and flagged**, not silently patched — see the
+    new note in §5. Fixing it means picking a specific shade, which is the founder's reserved call.
+- **Contact form accessibility gap fixed** (`contact/index.html`, `js/contact-form.js`,
+  `css/components/form.css`): invalid required fields previously communicated only via a red
+  border (`data-invalid="true"`), no text, violating "color is never the only signal" (§11). Each
+  field now has a paired `<p class="form-field__error" role="alert">` wired via
+  `aria-describedby`, and the field itself gets `aria-invalid` toggled on submit — screen readers
+  now announce what's wrong, not just see a color change.
+- **Skip-link target focus fix.** `<main id="main">` had no `tabindex="-1"`, so activating the
+  existing skip link scrolled the viewport but left keyboard/AT focus on `<body>`. All 16 pages
+  plus `404.html` now set `tabindex="-1"` on `<main>` so focus actually moves to the content region.
+- **Button component states completed.** `.btn-secondary` and `.btn-outline` had `:hover` and
+  `:disabled` but no `:active`/pressed state, unlike `.btn-primary` — added, matching the existing
+  darkening pattern (§9 requires default/hover/active/disabled on every component that has them).
+- **Deployment readiness files added:** `sitemap.xml` (all 16 real pages), `robots.txt`,
+  `404.html` (reuses the same header/footer/page-hero pattern as every other page, `noindex`ed),
+  a generated `assets/social/og-image-default.png` (1200×630, composed from the already-approved
+  wordmark + tagline — not new branding, a responsive/derived variant per §6), and
+  `assets/icons/favicon-32.png` / `assets/icons/apple-touch-icon.png` as raster fallbacks
+  alongside the existing SVG favicon. Every page's `<head>` now carries Open Graph and Twitter Card
+  tags, generated from that page's own existing `<title>`/description so they can't drift out of
+  sync with on-page content.
+  - **⚠️ Placeholder production domain:** no real domain has ever been assigned to this build —
+    nothing in the repo referenced one before RC1, and this wasn't a founder decision available to
+    look up. `sitemap.xml`, `robots.txt`'s `Sitemap:` line, and every page's `og:url`/`og:image`/
+    `twitter:image` currently use `https://www.ftnplatform.com` as an explicitly-commented
+    placeholder. **This must be replaced with the real production domain before go-live** — it is
+    not a founder-approved brand fact, just the minimum needed for these files to be valid.
 
 ## 8. HTML Standards
 
