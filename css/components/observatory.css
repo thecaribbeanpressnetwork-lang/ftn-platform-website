@@ -89,6 +89,143 @@
   gap: var(--space-12);
 }
 
+/* "The Nation Is Speaking" — Reality Insight rotator */
+.reality-insight {
+  margin-top: var(--space-32);
+  padding: var(--space-24);
+  background: var(--color-charcoal);
+  border-left: 3px solid var(--color-red);
+  border-radius: var(--radius-12);
+  max-width: 68ch;
+}
+
+.reality-insight__title {
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-red);
+  margin-bottom: var(--space-12);
+}
+
+.reality-insight__eyebrow {
+  font-size: var(--text-caption-size);
+  color: var(--color-silver);
+  margin-bottom: var(--space-4);
+}
+
+.reality-insight__text {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  color: var(--color-white);
+}
+
+.reality-insight__next {
+  margin-top: var(--space-12);
+  background: none;
+  border: none;
+  color: var(--color-silver);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.reality-insight__next:hover {
+  color: var(--color-white);
+}
+
+/* Today in Trinidad & Tobago panel */
+.today-panel__grid {
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  margin-bottom: var(--space-16);
+}
+
+.today-panel__grid dt {
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  color: var(--color-graphite);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: var(--space-4);
+}
+
+.today-panel__grid dd {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-body-size);
+}
+
+.today-panel__unit {
+  font-family: var(--font-body) !important;
+  font-weight: 400 !important;
+  font-size: var(--text-caption-size) !important;
+  color: var(--color-graphite);
+}
+
+.today-panel__grid--calendar {
+  border-top: 1px solid #ECECEC;
+  padding-top: var(--space-16);
+}
+
+.today-panel__note {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+  border-top: 1px solid #ECECEC;
+  padding-top: var(--space-12);
+}
+
+/* What Changed? panel */
+.what-changed__group {
+  margin-bottom: var(--space-24);
+}
+
+.what-changed__period {
+  font-weight: 700;
+  font-size: var(--text-small-size);
+  margin-bottom: var(--space-12);
+}
+
+.what-changed__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.what-changed__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  background: var(--color-white);
+  border-radius: var(--radius-8);
+  border: 1px solid #ECECEC;
+}
+
+.what-changed__glyph--up { color: #16A34A; }
+.what-changed__glyph--down { color: #DC2626; }
+
+.what-changed__item .trust-trigger {
+  flex: 1;
+  text-align: left;
+  color: var(--color-black);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.what-changed__item .trust-trigger:hover {
+  color: var(--color-red);
+}
+
+.what-changed__value {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+}
+
 /* Methodology disclosure */
 .methodology-banner {
   display: flex;
@@ -135,6 +272,30 @@
   text-decoration: line-through;
 }
 
+.search-discover-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.indicator-search {
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid #D9D9D9;
+  border-radius: var(--radius-full);
+  font: inherit;
+  font-size: var(--text-small-size);
+}
+
+.indicator-search:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: 1px;
+}
+
 .category-jump-row {
   display: flex;
   align-items: center;
@@ -172,6 +333,27 @@
 .customize-panel--wide {
   width: 340px;
   max-height: 80vh;
+  overflow-y: auto;
+}
+
+.saved-layout__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.saved-layout__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-8);
+  font-size: var(--text-caption-size);
 }
 
 .customize-panel__heading {
@@ -370,6 +552,10 @@ a.indicator-card__source:hover {
   align-items: center;
   gap: var(--space-8);
   margin-bottom: var(--space-16);
+}
+
+.ad-rail__image {
+  max-width: 100%;
 }
 
 .ad-rail__tagline {
@@ -642,6 +828,24 @@ body.kiosk-mode .indicator-card__value {
 
 body.kiosk-mode .indicator-category {
   scroll-margin-top: 0;
+}
+
+/* Readability from several metres away — the whole point of a kiosk/TV
+   deployment — not just the indicator cards. */
+body.kiosk-mode .hero-clock__value {
+  font-size: 3rem;
+}
+
+body.kiosk-mode .ad-rail__tagline,
+body.kiosk-mode .reality-insight__text {
+  font-size: var(--text-h2-size);
+}
+
+body.kiosk-mode #today-in-tt,
+body.kiosk-mode #what-changed,
+body.kiosk-mode #commercial-packages,
+body.kiosk-mode .search-discover-row {
+  display: none;
 }
 
 @media (min-width: 640px) {

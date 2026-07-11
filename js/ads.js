@@ -17,12 +17,12 @@
 
   function panelHTML(campaign) {
     var creative = campaign.creativeType === 'image' && campaign.imageUrl
-      ? '<img src="' + campaign.imageUrl + '" alt="' + campaign.headline + '" style="max-width:100%;">'
+      ? '<img class="ad-rail__image" src="' + campaign.imageUrl + '" alt="' + campaign.headline + '">'
       : lockupSVG(campaign.headline);
 
     return (
       '<div class="ad-rail" data-ad-id="' + campaign.id + '">' +
-        '<p class="ad-rail__label">Advertisement</p>' +
+        '<p class="ad-rail__label">' + (campaign.messageType || 'Advertisement') + '</p>' +
         '<div class="ad-rail__logo">' + creative + '</div>' +
         '<p class="ad-rail__tagline">' + campaign.sponsorLabel + '.<br>' + campaign.tagline + '</p>' +
         '<div class="u-mt-24">' +

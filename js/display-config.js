@@ -10,6 +10,48 @@
   'use strict';
 
   var STORAGE_KEY = 'ftn-display-config';
+  var LAYOUTS_KEY = 'ftn-display-layouts';
+
+  // ---- Named Saved Layouts (Phase 4 Dashboard Builder) ----
+  // A "layout" is just a named, stored DisplayConfig snapshot. The single
+  // `load()`/`save()` pair above remains the *active* configuration — these
+  // functions let a user keep several named configurations and switch
+  // between them, matching how the founder direction describes "save,
+  // load, switch between, share layouts."
+  function listLayouts() {
+    try { return JSON.parse(global.localStorage.getItem(LAYOUTS_KEY) || '[]'); } catch (e) { return []; }
+  }
+
+  function saveLayouts(layouts) {
+    try { global.localStorage.setItem(LAYOUTS_KEY, JSON.stringify(layouts)); } catch (e) { /* noop */ }
+  }
+
+  function saveAsLayout(name, cfg) {
+    var layouts = listLayouts().filter(function (l) { return l.name !== name; });
+    layouts.push({ name: name, config: cfg, savedAt: new Date().toISOString() });
+    saveLayouts(layouts);
+    return layouts;
+  }
+
+  function loadLayout(name) {
+    var layout = listLayouts().filter(function (l) { return l.name === name; })[0];
+    if (!layout) return null;
+    save(Object.assign({}, layout.config));
+    return layout.config;
+  }
+
+  function duplicateLayout(name) {
+    var layout = listLayouts().filter(function (l) { return l.name === name; })[0];
+    if (!layout) return null;
+    var newName = layout.name + ' (copy)';
+    return saveAsLayout(newName, Object.assign({}, layout.config));
+  }
+
+  function deleteLayout(name) {
+    var layouts = listLayouts().filter(function (l) { return l.name !== name; });
+    saveLayouts(layouts);
+    return layouts;
+  }
 
   function load() {
     try {
@@ -94,7 +136,33 @@
       '<div class="icon-row">' +
         '<button type="button" class="btn btn-primary btn-sm" id="dc-apply">Apply Configuration</button>' +
         '<button type="button" class="btn btn-outline btn-sm" id="dc-reset">Reset to Default</button>' +
-      '</div>'
+      '</div>' +
+      savedLayoutsHTML()
+    );
+  }
+
+  function savedLayoutsHTML() {
+    var layouts = listLayouts();
+    var rows = layouts.map(function (l) {
+      return '<li class="saved-layout__item">' +
+        '<span>' + l.name + '</span>' +
+        '<span class="icon-row">' +
+          '<button type="button" class="trust-trigger" data-layout-load="' + l.name + '">Load</button>' +
+          '<button type="button" class="trust-trigger" data-layout-duplicate="' + l.name + '">Duplicate</button>' +
+          '<button type="button" class="trust-trigger" data-layout-delete="' + l.name + '">Delete</button>' +
+        '</span>' +
+      '</li>';
+    }).join('');
+
+    return (
+      '<div class="form-field u-mt-24">' +
+        '<label for="dc-layout-name">Save current settings as a named layout</label>' +
+        '<div class="form-row form-row--2">' +
+          '<input type="text" id="dc-layout-name" placeholder="e.g. Main Lobby Screen">' +
+          '<button type="button" class="btn btn-outline btn-sm" id="dc-save-layout">Save As&hellip;</button>' +
+        '</div>' +
+      '</div>' +
+      (rows ? '<ul class="saved-layout__list">' + rows + '</ul>' : '<p class="u-text-sm u-text-graphite">No saved layouts yet.</p>')
     );
   }
 
@@ -139,9 +207,36 @@
         cfg = reset();
         mount.innerHTML = formHTML(cfg);
       }
+      if (e.target.id === 'dc-save-layout') {
+        var nameInput = mount.querySelector('#dc-layout-name');
+        var name = (nameInput.value || '').trim();
+        if (!name) return;
+        saveAsLayout(name, Object.assign({}, cfg));
+        nameInput.value = '';
+        mount.innerHTML = formHTML(cfg);
+      }
+      var loadName = e.target.getAttribute('data-layout-load');
+      if (loadName) {
+        cfg = loadLayout(loadName) || cfg;
+        mount.innerHTML = formHTML(cfg);
+      }
+      var dupName = e.target.getAttribute('data-layout-duplicate');
+      if (dupName) {
+        duplicateLayout(dupName);
+        mount.innerHTML = formHTML(cfg);
+      }
+      var delName = e.target.getAttribute('data-layout-delete');
+      if (delName) {
+        deleteLayout(delName);
+        mount.innerHTML = formHTML(cfg);
+      }
     });
   }
 
   global.FTN = global.FTN || {};
-  global.FTN.DisplayConfig = { load: load, save: save, reset: reset, init: init };
+  global.FTN.DisplayConfig = {
+    load: load, save: save, reset: reset, init: init,
+    listLayouts: listLayouts, saveAsLayout: saveAsLayout, loadLayout: loadLayout,
+    duplicateLayout: duplicateLayout, deleteLayout: deleteLayout,
+  };
 })(window);

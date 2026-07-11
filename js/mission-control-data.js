@@ -37,50 +37,12 @@
   ];
 
   // ---------------------------------------------------------------- Correlation Engine
-  MC.correlations = [
-    {
-      id: 'roads-travel-time', title: 'Road Condition ↔ Travel Time', direction: 'negative', strength: 0.71, confidence: 'Medium',
-      classification: 'Demonstration', sampleSize: '1,204 road reports (demo)', timeCoverage: '24 months (demo)', geoCoverage: 'National',
-      methodology: 'Illustrative weighted correlation between reported road-condition scores and average travel-time change on the same corridors.',
-      limitations: 'Demonstration relationship — correlation does not establish causation; other factors (traffic volume, weather) are not isolated here.',
-      value: '-0.71', units: 'correlation coefficient',
-    },
-    {
-      id: 'rainfall-flooding', title: 'Rainfall ↔ Flood Reports', direction: 'positive', strength: 0.82, confidence: 'High',
-      classification: 'Demonstration', sampleSize: '36 months rainfall vs. reports (demo)', timeCoverage: '3 years (demo)', geoCoverage: 'National',
-      methodology: 'Illustrative correlation between 30-day rainfall totals and flood-related community reports.',
-      limitations: 'Demonstration only — drainage capacity and land use are confounding variables not modelled here.',
-      value: '+0.82', units: 'correlation coefficient',
-    },
-    {
-      id: 'flooding-school-attendance', title: 'Flood Reports ↔ School Attendance', direction: 'negative', strength: 0.48, confidence: 'Medium',
-      classification: 'Demonstration', sampleSize: '18 months (demo)', timeCoverage: '18 months (demo)', geoCoverage: 'Regional',
-      methodology: 'Illustrative lagged correlation (2-day lag) between flood reports and next-day school attendance.',
-      limitations: 'Weaker relationship — plausibly mediated by road access rather than a direct link.',
-      value: '-0.48', units: 'correlation coefficient',
-    },
-    {
-      id: 'unemployment-household-pressure', title: 'Unemployment ↔ Household Pressure', direction: 'positive', strength: 0.66, confidence: 'Medium',
-      classification: 'Demonstration', sampleSize: 'National quarterly series (demo)', timeCoverage: '5 years (demo)', geoCoverage: 'National',
-      methodology: 'Illustrative correlation between unemployment rate and the household financial pressure index.',
-      limitations: 'Demonstration — inflation and cost-of-living are likely co-contributors, not separated out here.',
-      value: '+0.66', units: 'correlation coefficient',
-    },
-    {
-      id: 'fuel-price-business-cost', title: 'Fuel Price ↔ Business Operating Cost', direction: 'positive', strength: 0.58, confidence: 'Medium',
-      classification: 'Demonstration', sampleSize: 'Business survey sample (demo)', timeCoverage: '2 years (demo)', geoCoverage: 'National',
-      methodology: 'Illustrative correlation between domestic fuel price changes and reported small-business operating cost changes.',
-      limitations: 'Demonstration — sample skews toward transport-dependent businesses.',
-      value: '+0.58', units: 'correlation coefficient',
-    },
-    {
-      id: 'tourism-employment', title: 'Tourism Receipts ↔ Regional Employment', direction: 'positive', strength: 0.54, confidence: 'Low',
-      classification: 'Demonstration', sampleSize: 'Limited regional sample (demo)', timeCoverage: '2 years (demo)', geoCoverage: 'Tobago',
-      methodology: 'Illustrative correlation between monthly tourism receipts and regional employment figures.',
-      limitations: 'Low confidence — small sample size and strong seasonality not fully adjusted for in this demonstration.',
-      value: '+0.54', units: 'correlation coefficient',
-    },
-  ];
+  // Phase 4: this used to be the only copy of this data. It now lives in
+  // js/relationships-data.js as the shared Relationship Engine (Observatory,
+  // Trust Cards, and Mission Control all read the same registry) — aliased
+  // here so the existing Correlation Engine / Reality Graph rendering code
+  // in mission-control-demo.js needs no changes.
+  MC.correlations = global.FTN.Relationships ? global.FTN.Relationships.all : [];
 
   // ---------------------------------------------------------------- Reality Graph
   MC.graphNodes = [

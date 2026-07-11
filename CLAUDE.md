@@ -289,10 +289,26 @@ structure as of Phase 3:
 │   ├── ads-data.js / ads.js          # advertisement campaign registry + generic panel renderer
 │   ├── charts.js                     # dependency-free SVG sparkline/line/bar/gauge helpers
 │   ├── trust-card.js                 # shared accessible modal — renders any indicator/evidence object
-│   ├── live-clocks.js                # interpolation engine for ticking demo counters
+│   ├── live-clocks.js                # interpolation engine for ticking demo counters + Fast Counter Engine
 │   ├── observatory.js                # renders the indicator wall, kiosk mode, dashboard customization
 │   ├── mission-control-data.js       # Mission Control demo data (correlations, graph, scenarios, etc.)
-│   └── mission-control-demo.js       # tabs + all 8 Mission Control demo panel behaviors
+│   ├── mission-control-demo.js       # tabs + all 8 Mission Control demo panel behaviors
+│   ├── source-registry.js            # real external source URLs, keyed by sourceId (Phase 3.5)
+│   ├── display-config-data.js / display-config.js   # venue presets + named Saved Layouts (Phase 3.5/4)
+│   ├── display-mode.js               # Fullscreen Display Mode + background promotion layer (Phase 3.5)
+│   ├── ad-packages-data.js           # commercial tier capability structures, no pricing (Phase 3.5)
+│   ├── benchmarks-data.js / seasonal-profiles.js / founder-controls.js   # architectural stubs (Phase 3.5)
+│   ├── relationships-data.js         # shared Relationship Engine — single source of truth for
+│   │                                  # correlation/influence/dependency/parent-child edges (Phase 4)
+│   ├── reality-insights.js           # "The Nation Is Speaking" — generates a pool of insight
+│   │                                  # sentences strictly from real indicator/relationship fields (Phase 4)
+│   ├── today-panel.js                # "Today in Trinidad & Tobago" — real sunrise/sunset/moon-phase
+│   │                                  # calculations + calendar countdowns (Phase 4)
+│   ├── what-changed.js               # groups real changeLabel deltas into Y/Y, Q/Q, M/M, Recent (Phase 4)
+│   ├── national-memory.js            # getHistoricalComparison() over real sparkline history;
+│   │                                  # snapshot() is a documented throwing placeholder (Phase 4)
+│   ├── community-profile-data.js / community-profile.js   # reusable community-profile modal
+│   │                                  # architecture + one demo instance (San Fernando) (Phase 4)
 ├── ANALYTICS_STANDARD.md             # operational rules for classification/confidence/weighting/etc.
 ├── 00_Phase1_Discovery/              # Discovery Report (planning artifact, not shipped site)
 ├── FTN_Master_Asset_Library_v1.0/    # reference source boards — never referenced live, never edited
@@ -357,6 +373,75 @@ paths, since pages live at varying folder depths — this was a Phase 2 correcti
 oversight (see git history). Every page shares byte-identical header and footer markup, hand-kept
 in sync via a one-time generator script (not part of the shipped site) rather than a templating
 engine, consistent with the vanilla-only mandate in §3.
+
+## 7.3 Phase 4 additions — Relationship Engine, Reality Insights, Discovery, National Memory
+
+Phase 4's mandate was to evolve the Observatory from a data wall into a legible, trustworthy,
+explorable product, while continuing the standing "build the platform once, reuse it everywhere"
+principle from the mid-Phase-3 addendum. Every new engine below is deliberately generic — built for
+Mission Control, FTN Live, and future FTN Platform surfaces to share, not a one-off for `/observatory/`.
+
+- **`js/relationships-data.js` — the shared Relationship Engine.** Previously, Mission Control's
+  correlation data was a private array inside `mission-control-data.js`. It is now generalized into
+  a single registry (`{ all, get, forIndicator, random }`) with `fromIndicatorId`/`toIndicatorId`
+  fields that link to real entries in `indicators-data.js` where they exist, plus `type`
+  (`correlation` / `influence` / `dependency` / `parent-child`), `direction`, `strength`, and
+  `confidence`. `mission-control-data.js`'s `MC.correlations` now reads from this registry instead
+  of duplicating it. Trust Cards render a "What this connects to" section from the same registry,
+  with chain-navigable buttons (`data-trust-card="otherId"`) so a citizen can walk the relationship
+  graph card-to-card. This is the pattern to extend, never fork, when a future pillar needs its own
+  correlation data.
+- **`js/reality-insights.js` — "The Nation Is Speaking."** Generates a pool of insight sentences
+  (trend / watch / relationship / pace / aggregate types) computed strictly from real fields already
+  present on indicators and relationships. Only *which* true insight is surfacing rotates — the
+  content itself is never invented. Do not add an insight type that requires a fact the registry
+  doesn't actually have.
+- **`js/today-panel.js` — "Today in Trinidad & Tobago."** Real astronomical calculations: NOAA/
+  Wikipedia solar position equations for Port of Spain's actual coordinates (10.65°N, 61.4°W), moon
+  phase computed from a known reference new moon plus the synodic month constant
+  (29.53058867 days), and local time via `Intl.DateTimeFormat` with
+  `timeZone: 'America/Port_of_Spain'` — never a hardcoded UTC offset, which would silently break
+  across daylight-saving-adjacent regions or if the runtime's assumptions changed. The rendered panel
+  discloses its own methodology in-line ("calculated ... using standard solar/lunar position
+  formulas — not a live feed") so it's never mistaken for a real-time feed.
+- **`js/what-changed.js`.** Parses the existing `changeLabel` strings already on indicators (e.g.
+  "+1.8% y/y") via regex and groups them into Year-over-Year / Quarter-over-Quarter /
+  Month-over-Month / Recent buckets. It does not compute new deltas the registry doesn't already
+  express — it only reorganizes existing labels for legibility.
+- **Trust Card enrichment (`js/trust-card.js`).** Added a `WHY_IT_MATTERS` category-to-explanation
+  map, a `freshness(lastUpdated)` helper, and the relationships section described above. This is the
+  one shared modal every surface (Observatory, Mission Control demo, Community Profile) reuses —
+  extend it in place rather than building a second modal.
+- **Discovery + search (`js/observatory.js`).** `#indicator-search` filters the live wall by title;
+  Random Indicator / Random Relationship / Did You Know buttons open the Trust Card or advance the
+  Reality Insight on demand. All discovery surfaces reuse the existing Trust Card and Reality
+  Insights engines rather than introducing new display components.
+- **Named Saved Layouts (`js/display-config.js`).** Extended the existing single-active-config
+  `localStorage` layer (Phase 3.5) with a separate array of named, persisted layouts
+  (`ftn-display-layouts` key): save-as, load, duplicate, delete. The active-config key
+  (`ftn-display-config`) and the named-layouts key are intentionally separate — loading a saved
+  layout copies it into the active slot rather than merging the two concepts.
+- **`js/national-memory.js`.** `getHistoricalComparison(indicatorId, offsetA, offsetB)` does real
+  arithmetic over each indicator's existing sparkline history array. `snapshot(dateISO)` is a
+  **documented throwing placeholder** — it deliberately does not return a fabricated historical
+  value for an arbitrary date, since this repo has no real dated historical dataset yet. Do not
+  implement a fake return value for `snapshot()` to make a future feature "work"; wire it to a real
+  dataset when one exists, or leave it throwing.
+- **`js/community-profile-data.js` + `js/community-profile.js`.** A generic `profile()` factory and
+  a `profiles` registry, with one demo instance (`san-fernando`) populated with clearly-labeled
+  demonstration content. This is explicitly **not** Community Connect data or a reproduction of the
+  Community Connect product — it's a reusable shell for what a future community landing surface
+  could look like, reusing the Trust Card's own CSS classes (`.trust-card-dialog`) rather than a new
+  modal system.
+- **Ad message-type labeling (`js/ads-data.js`, `js/ads.js`).** Campaigns now declare a
+  `messageType` (e.g. `"FTN Promotion"`) rendered on the ad panel instead of a hardcoded
+  "Advertisement" label, so future non-house campaigns can be labeled accurately (sponsored content,
+  paid placement, PSA, etc.) without a code change.
+- **Kiosk-mode polish (`css/components/observatory.css`).** Enlarged key readability targets
+  (`.hero-clock__value`, `.ad-rail__tagline`, `.reality-insight__text`) and hid panels that assume
+  closer reading distance/interaction (`#today-in-tt`, `#what-changed`, `#commercial-packages`,
+  `.search-discover-row`) under `body.kiosk-mode`, consistent with kiosk mode's existing purpose as
+  a from-a-distance display surface rather than an interactive session.
 
 ## 8. HTML Standards
 

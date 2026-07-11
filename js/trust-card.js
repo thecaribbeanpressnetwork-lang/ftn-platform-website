@@ -7,6 +7,31 @@
 
   var dialog, backdrop, panel, lastFocused;
 
+  // Plain-language "why does this matter" — one per category, not per
+  // indicator, so this stays maintainable as the registry grows. An
+  // indicator can still override with its own `whyItMatters` field.
+  var WHY_IT_MATTERS = {
+    'National Economy': 'These numbers shape government spending power, borrowing costs, and the prices citizens pay day to day.',
+    'Energy & Commodities': 'Energy is the largest single driver of government revenue and the cost of everything that has to be shipped, powered, or fuelled.',
+    'Population & Life': 'Population and household indicators show who the country is planning services, schools, and infrastructure for.',
+    'Migration & Border Pressure': 'Migration shapes demand on schools, healthcare, and housing well before it shows up in national statistics.',
+    'Infrastructure & Services': 'Infrastructure condition is usually the first thing a community actually experiences — before it becomes a budget line.',
+    'Community': 'This is the direct signal from citizens through Community Connect — the closest thing to ground truth this platform has.',
+    'Weather & Environment': 'Weather and climate patterns drive flooding, agriculture, and infrastructure stress well in advance of the events themselves.',
+    'Tourism': 'Tourism is a direct, fast-moving read on regional employment and foreign-exchange earnings.',
+    'Public Sector & National Life': 'These track the institutional calendar — budget cycles, terms, and national dates that set the rhythm for everything else.',
+    'International Context': 'Trinidad and Tobago is a small, trade-exposed economy — external shocks here usually arrive before they show up domestically.',
+  };
+
+  function freshness(lastUpdated) {
+    if (!lastUpdated) return '';
+    var then = new Date(lastUpdated);
+    if (isNaN(then.getTime())) return lastUpdated;
+    var days = Math.round((Date.now() - then.getTime()) / 86400000);
+    var age = days <= 0 ? 'today' : days === 1 ? '1 day ago' : days < 60 ? days + ' days ago' : Math.round(days / 30) + ' months ago';
+    return lastUpdated + ' (' + age + ')';
+  }
+
   function fieldRow(label, value) {
     if (value === undefined || value === null || value === '') return '';
     return '<div class="trust-card__row"><dt>' + label + '</dt><dd>' + value + '</dd></div>';
@@ -40,6 +65,29 @@
     return map[classification] || 'trust-badge--demo';
   }
 
+  // "What influences it / what it influences" — Phase 4 Relationship Engine
+  // linkage. Only renders for objects with a real indicator id; correlation
+  // objects opened directly (Mission Control's Correlation Engine) don't
+  // recurse into this.
+  function relationshipsHTML(data) {
+    if (!data.id || !global.FTN.Relationships) return '';
+    var rels = global.FTN.Relationships.forIndicator(data.id);
+    if (!rels.length) return '';
+    var rows = rels.map(function (r) {
+      var isSource = r.fromIndicatorId === data.id;
+      var otherId = isSource ? r.toIndicatorId : r.fromIndicatorId;
+      var otherLabel = isSource ? r.toLabel : r.fromLabel;
+      var verb = isSource ? 'Influences' : 'Influenced by';
+      var arrow = isSource ? '&rarr;' : '&larr;';
+      var trigger = otherId
+        ? '<button type="button" class="trust-trigger" data-trust-card="' + otherId + '">' + otherLabel + '</button>'
+        : '<span>' + otherLabel + '</span>';
+      return '<li>' + arrow + ' <strong>' + verb + ':</strong> ' + trigger +
+        ' <span class="trust-card__rel-meta">(' + r.direction + ', ' + r.confidence.toLowerCase() + ' confidence)</span></li>';
+    }).join('');
+    return '<div class="trust-card__relationships"><p class="trust-card__fields-heading">What this connects to</p><ul>' + rows + '</ul></div>';
+  }
+
   function render(data) {
     var badgeClass = classificationBadgeClass(data.classification);
     panel.innerHTML =
@@ -49,6 +97,8 @@
       '<span class="trust-badge ' + badgeClass + '">' + (data.classification || 'Demonstration') + '</span>' +
       '<h2 id="trustCardTitle" class="trust-card__title">' + data.title + '</h2>' +
       (data.value ? '<p class="trust-card__value">' + data.value + (data.units ? ' <span>' + data.units + '</span>' : '') + '</p>' : '') +
+      (data.whyItMatters || WHY_IT_MATTERS[data.category]
+        ? '<p class="trust-card__why">' + (data.whyItMatters || WHY_IT_MATTERS[data.category]) + '</p>' : '') +
       '<dl class="trust-card__fields">' +
         fieldRow('Confidence', data.confidence) +
         fieldRow('Methodology', data.methodology) +
@@ -58,13 +108,14 @@
         (data.secondarySourceId ? sourceLinkRow('Secondary source', data.secondarySourceId, null) : '') +
         (data.comparisonSourceId ? sourceLinkRow('Comparison source', data.comparisonSourceId, 'comparison, not primary') : '') +
         fieldRow('Update frequency', data.updateFrequency) +
-        fieldRow('Last updated', data.lastUpdated) +
+        fieldRow('Last updated', freshness(data.lastUpdated)) +
         fieldRow('Time coverage', data.timeCoverage) +
         fieldRow('Geographic coverage', data.geoCoverage) +
         fieldRow('Sample size', data.sampleSize) +
         fieldRow('Limitations', data.limitations) +
         fieldRow('Contradictory evidence', data.contradictoryEvidence) +
-      '</dl>';
+      '</dl>' +
+      relationshipsHTML(data);
   }
 
   function open(dataOrId) {

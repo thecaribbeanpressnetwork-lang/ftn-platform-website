@@ -6,9 +6,13 @@
 (function (global) {
   'use strict';
 
+  // messageType is one of: 'Advertisement' | 'Sponsored' | 'FTN Promotion' |
+  // 'Public Service Message' (Phase 3.5 §11) — rendered as the panel's own
+  // label rather than every placement hardcoding "Advertisement".
   var campaigns = [
     {
       id: 'face-the-nation-house-ad',
+      messageType: 'FTN Promotion',
       sponsorLabel: 'Presented by RealityArtTV Media',
       headline: 'Face The Nation',
       tagline: 'Public affairs. National conversation. Real issues.',

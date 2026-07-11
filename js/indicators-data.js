@@ -224,7 +224,7 @@
     ind('community-reports-verified', 'Community', 'Verified Reports', '1,275', 'reports', { trend: 'up' }),
     ind('community-reports-resolved', 'Community', 'Resolved Reports', '18,940', 'reports', { trend: 'up', changeLabel: '98% resolution rate' }),
     ind('community-participation', 'Community', 'Community Participation Index', '66', 'index (0-100)', { trend: 'up', classification: 'FTN Derived' }),
-    ind('most-active-community', 'Community', 'Most Active Community (demo)', 'San Fernando', '', { trend: 'flat', classification: 'Demonstration' }),
+    ind('most-active-community', 'Community', 'Most Active Community (demo)', 'San Fernando', '', { trend: 'flat', classification: 'Demonstration', communityProfileKey: 'san-fernando' }),
     ind('service-reliability', 'Community', 'Service Reliability Index', '71', 'index (0-100)', { trend: 'flat', classification: 'FTN Derived' })
   );
 
@@ -262,6 +262,7 @@
     ind('public-projects', 'Public Sector & National Life', 'Active Public Infrastructure Projects', '89', 'projects', { trend: 'flat' }),
     ind('school-term-progress', 'Public Sector & National Life', 'School-Term Progress', '—', '%', { isLiveClock: true, clock: { kind: 'term-progress' }, classification: 'FTN Derived' }),
     ind('independence-countdown', 'Public Sector & National Life', 'Days to Independence Day', '—', 'days', { isLiveClock: true, clock: { kind: 'countdown', month: 8, day: 31 }, classification: 'FTN Derived' }),
+    ind('republic-day-countdown', 'Public Sector & National Life', 'Days to Republic Day', '—', 'days', { isLiveClock: true, clock: { kind: 'countdown', month: 9, day: 24 }, classification: 'FTN Derived' }),
     ind('budget-countdown', 'Public Sector & National Life', 'Days to National Budget', '—', 'days', { isLiveClock: true, clock: { kind: 'countdown', month: 10, day: 1 }, classification: 'FTN Derived' }),
 
     // Recorded Murders deliberately ships with NO numeric value. Per Phase 3.5

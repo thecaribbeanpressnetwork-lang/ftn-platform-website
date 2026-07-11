@@ -50,7 +50,10 @@
         '<div class="indicator-card__spark" data-spark="' + ind.id + '"></div>' +
         '<div class="indicator-card__footer">' +
           sourceHTML(ind) +
-          '<button type="button" class="trust-trigger" data-trust-card="' + ind.id + '">Trust Card</button>' +
+          '<span class="icon-row">' +
+            (ind.communityProfileKey ? '<button type="button" class="trust-trigger" data-community-profile="' + ind.communityProfileKey + '">Profile</button>' : '') +
+            '<button type="button" class="trust-trigger" data-trust-card="' + ind.id + '">Trust Card</button>' +
+          '</span>' +
         '</div>' +
       '</article>'
     );
@@ -60,16 +63,62 @@
   // category allow-list first, then an overall count cap distributed evenly
   // across whatever categories remain — the same function a future kiosk or
   // widget renderer would call, not something Observatory-specific.
+  var searchTerm = '';
+
   function applyDisplayConfig(allIndicators, cfg) {
     var pool = allIndicators;
     if (global.FTN.FounderControls) {
       pool = pool.filter(function (ind) { return !global.FTN.FounderControls.isDisabled(ind.id); });
+    }
+    if (searchTerm) {
+      var term = searchTerm.toLowerCase();
+      pool = pool.filter(function (ind) { return ind.title.toLowerCase().indexOf(term) !== -1 || ind.category.toLowerCase().indexOf(term) !== -1; });
+      return pool; // search overrides count/category limits — show every match
     }
     if (cfg && cfg.categories) {
       pool = pool.filter(function (ind) { return cfg.categories.indexOf(ind.category) !== -1; });
     }
     if (!cfg || !cfg.indicatorCount || pool.length <= cfg.indicatorCount) return pool;
     return pool.slice(0, cfg.indicatorCount);
+  }
+
+  function initSearch(cfgGetter) {
+    var input = document.getElementById('indicator-search');
+    if (!input) return;
+    input.addEventListener('input', function () {
+      searchTerm = input.value.trim();
+      renderCategories(cfgGetter());
+      applyCategoryVisibility();
+    });
+  }
+
+  // ---- Discovery: Random Indicator / Random Relationship / Did You Know ----
+  function initDiscovery() {
+    var randomIndBtn = document.getElementById('discover-random-indicator');
+    var randomRelBtn = document.getElementById('discover-random-relationship');
+    var didYouKnowBtn = document.getElementById('discover-did-you-know');
+
+    if (randomIndBtn) {
+      randomIndBtn.addEventListener('click', function () {
+        var pool = global.FTN.indicators || [];
+        if (!pool.length) return;
+        var pick = pool[Math.floor(Math.random() * pool.length)];
+        global.FTN.TrustCard.open(pick.id);
+      });
+    }
+    if (randomRelBtn) {
+      randomRelBtn.addEventListener('click', function () {
+        if (!global.FTN.Relationships) return;
+        var pick = global.FTN.Relationships.random();
+        if (pick) global.FTN.TrustCard.open(pick);
+      });
+    }
+    if (didYouKnowBtn) {
+      didYouKnowBtn.addEventListener('click', function () {
+        var btn = document.getElementById('reality-insight-next');
+        if (btn) { btn.click(); document.getElementById('reality-insight').closest('.reality-insight').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      });
+    }
   }
 
   function renderCategories(cfg) {
@@ -189,6 +238,36 @@
     applyCategoryVisibility();
   }
 
+  // ---- "The Nation Is Speaking" — Reality Insights rotator ----
+  function initRealityInsights() {
+    var mount = document.getElementById('reality-insight');
+    if (!mount || !global.FTN.RealityInsights) return;
+    var pool = global.FTN.RealityInsights.generate();
+    if (!pool.length) { mount.hidden = true; return; }
+
+    var i = 0;
+    function show() {
+      var insight = pool[i % pool.length];
+      var link = insight.supportedBy && insight.supportedBy[0]
+        ? '<button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + insight.supportedBy[0] + '">View evidence</button>'
+        : '';
+      mount.innerHTML =
+        '<p class="reality-insight__eyebrow">' + insight.category + '</p>' +
+        '<p class="reality-insight__text">' + insight.text + '</p>' +
+        (link ? '<div class="u-mt-8">' + link + '</div>' : '');
+      i++;
+    }
+    show();
+
+    var reduceMotion = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+      setInterval(show, 8000);
+    }
+
+    var nextBtn = document.getElementById('reality-insight-next');
+    if (nextBtn) nextBtn.addEventListener('click', show);
+  }
+
   // Generic disclosure-panel toggle — used by Customize and Display Setup
   // alike, and reusable by any future panel of the same shape.
   function initPanelToggle(toggleId, panelId) {
@@ -306,6 +385,11 @@
   ready(function () {
     var cfg = global.FTN.DisplayConfig ? global.FTN.DisplayConfig.load() : null;
     applyDensityClass(cfg);
+    initRealityInsights();
+    if (global.FTN.TodayPanel) global.FTN.TodayPanel.render('today-panel-mount');
+    if (global.FTN.WhatChanged) global.FTN.WhatChanged.render('what-changed-mount');
+    initSearch(function () { return global.FTN.DisplayConfig ? global.FTN.DisplayConfig.load() : null; });
+    initDiscovery();
     renderCategoryChips();
     renderCategories(cfg);
     applyCategoryVisibility();

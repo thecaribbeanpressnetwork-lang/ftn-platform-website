@@ -85,6 +85,15 @@ body.trust-card-open {
   color: var(--color-graphite);
 }
 
+.trust-card__why {
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+  padding: var(--space-12) var(--space-16);
+  background: #FAFAFA;
+  border-radius: var(--radius-8);
+  margin-bottom: var(--space-16);
+}
+
 .trust-card__fields {
   border-top: 1px solid #ECECEC;
   padding-top: var(--space-16);
@@ -120,6 +129,58 @@ body.trust-card-open {
   font-size: var(--text-caption-size);
   color: var(--color-graphite);
   font-style: italic;
+}
+
+.trust-card__fields-heading {
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-graphite);
+  margin-top: var(--space-16);
+  margin-bottom: var(--space-8);
+}
+
+.trust-card__relationships {
+  border-top: 1px solid #ECECEC;
+  padding-top: var(--space-8);
+}
+
+.trust-card__relationships ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.trust-card__relationships li {
+  font-size: var(--text-small-size);
+}
+
+.trust-card__relationships .trust-trigger {
+  font-size: var(--text-small-size);
+  color: var(--color-red);
+}
+
+.trust-card__rel-meta {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+}
+
+.community-profile__block {
+  margin-top: var(--space-16);
+}
+
+.community-profile__block ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+}
+
+.community-profile__block li::before {
+  content: "— ";
+  color: var(--color-red);
 }
 
 /* Small inline trigger used on indicator cards / evidence rows */

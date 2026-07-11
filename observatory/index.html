@@ -266,10 +266,34 @@
             </div>
           </div>
         </div>
+
+        <div class="reality-insight">
+          <p class="reality-insight__title">The Nation Is Speaking</p>
+          <div id="reality-insight" role="status" aria-live="polite">
+            <p class="reality-insight__text">Loading&hellip;</p>
+          </div>
+          <button type="button" class="reality-insight__next" id="reality-insight-next">Next observation &rarr;</button>
+        </div>
       </div>
     </section>
 
     <div class="container">
+      <section class="section" id="today-in-tt">
+        <div class="section__header">
+          <span class="section__eyebrow">Right Now</span>
+          <h2>Today in Trinidad &amp; Tobago.</h2>
+        </div>
+        <div id="today-panel-mount" class="chart-card"></div>
+      </section>
+
+      <section class="section section--tint" id="what-changed">
+        <div class="section__header">
+          <span class="section__eyebrow">What Changed?</span>
+          <h2>The biggest movers, grouped by the comparison each indicator actually discloses.</h2>
+        </div>
+        <div id="what-changed-mount"></div>
+      </section>
+
       <div class="u-mt-24">
         <div class="methodology-banner">
           <span aria-hidden="true">&#9432;</span>
@@ -284,7 +308,17 @@
         </div>
       </div>
 
-      <div class="category-jump-row u-mt-24">
+      <div class="search-discover-row u-mt-24">
+        <label class="sr-only" for="indicator-search">Search indicators</label>
+        <input type="search" id="indicator-search" class="indicator-search" placeholder="Search indicators&hellip; (e.g. rainfall, debt, tourism)">
+        <div class="icon-row">
+          <button type="button" class="btn btn-outline btn-sm" id="discover-random-indicator">Random Indicator</button>
+          <button type="button" class="btn btn-outline btn-sm" id="discover-random-relationship">Random Relationship</button>
+          <button type="button" class="btn btn-outline btn-sm" id="discover-did-you-know">Did You Know?</button>
+        </div>
+      </div>
+
+      <div class="category-jump-row u-mt-16">
         <nav class="category-jump category-jump--inline" id="category-jump" aria-label="Jump to indicator category"></nav>
         <div class="icon-row">
           <div class="customize-panel-wrap">
@@ -420,6 +454,7 @@
   <script src="/js/nav.js"></script>
   <script src="/js/source-registry.js"></script>
   <script src="/js/indicators-data.js"></script>
+  <script src="/js/relationships-data.js"></script>
   <script src="/js/ads-data.js"></script>
   <script src="/js/ads.js"></script>
   <script src="/js/ad-packages-data.js"></script>
@@ -432,6 +467,12 @@
   <script src="/js/benchmarks-data.js"></script>
   <script src="/js/seasonal-profiles.js"></script>
   <script src="/js/founder-controls.js"></script>
+  <script src="/js/reality-insights.js"></script>
+  <script src="/js/today-panel.js"></script>
+  <script src="/js/what-changed.js"></script>
+  <script src="/js/national-memory.js"></script>
+  <script src="/js/community-profile-data.js"></script>
+  <script src="/js/community-profile.js"></script>
   <script src="/js/observatory.js"></script>
 </body>
 </html>
