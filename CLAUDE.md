@@ -93,12 +93,27 @@ Per the manifest's purpose statement, the sitemap (AEB-09), and the ecosystem/br
 - Explain Community Connect to prospective citizen users.
 - Support governments/agencies evaluating Mission Control.
 - Support media relations (press kit, media channels, brand assets).
-- Support investors (investor decks, pitch graphics, corporate/financial materials — per AEB-10's
-  "Investor & Corporate Assets" roadmap category).
+- Support governments, municipal corporations, NGOs, universities, and strategic partners through a
+  dedicated **Partnerships & Strategic Engagement** pathway (Founder Decision, 2026-07-11 — see
+  below).
 - Acquire users (app download CTAs are first-class UI throughout the boards).
 - Improve organic search visibility.
 - Become the single canonical public presence of the FTN Platform — the place all other channels
   point back to.
+
+**Founder Decision (2026-07-11) — no investor-facing content on the public website.** AEB-10's
+"Investor & Corporate Assets" roadmap category is **not** implemented as public website content.
+The website must never publish investment material, projections, financial claims, or fundraising
+language — that surface, if and when it's needed, lives behind a controlled process (private deck,
+data room, or a founder-controlled contact workflow), never as publicly indexed content. In its
+place: a **Partnerships & Strategic Engagement** pathway, which may eventually surface investors
+among the audiences it serves, but is scoped around governments, municipal corporations, NGOs,
+universities, and strategic partners — institutional relationships, not fundraising.
+
+**Founder Decision (2026-07-11) — Face The Nation stays out of navigation and the 404 page** until
+it is a real, live product within the FTN ecosystem. No placeholder page, no dead-end navigation
+entry, no premature mention. When it launches for real, it gets integrated naturally — not before.
+Until then, the 404 page directs visitors toward active products and active content only.
 
 ## 5. Brand Standards
 
@@ -175,49 +190,63 @@ a value goes into a shipped CSS token:
    file named `12_AEB_Platform_Ecosystem_Reference_v1.0.png.png`. Don't trust filenames over embedded
    board titles when extracting assets — verify against the board's own header stamp.
 
-**Founder decisions recorded (2026-07-10), scoped to this website build only:**
+**⚠️ SUPERSEDED 2026-07-11 — see the Version 1.1 Founder Decision immediately below.** The
+2026-07-10 record directly beneath this notice is kept for history; do not treat it as current for
+red or typography.
 
-- **FTN Red implementation token: `#E10613`** (the AEB-06/AEB-12/AEB-13 value). This is a founder
-  decision for website implementation purposes, not a retroactive edit to AEB-01 — the underlying
-  conflict in the asset library itself remains unresolved and will still be settled in Asset Library
-  v2.0.
-- **Primary typeface for the FTN Platform design system: Montserrat (headings) + Inter (body)** —
-  the founder confirmed the Montserrat variant over AEB-01/AEB-06's Manrope/Inter, for website
-  implementation purposes only. Same caveat: the library's own internal conflict is not retroactively
-  edited.
-- Success green hex (`#22C55E` vs `#16A34A`) and the file/board-number mismatch (§ item 4 above)
-  remain **open** — ask before any implementation touches either.
-- **RC1 update (see §7.5):** the shipped `#16A34A` "trend up" / "change up" green (used in
-  `indicator-card__change--up` and `mc-kpi-card__trend--up`) fails WCAG AA contrast (3.29:1) at
-  the small caption size it's used at, on white. This is now flagged as a known, unresolved
-  accessibility defect, not just a brand-consistency question — fixing it requires picking a
-  specific shade, which is exactly the reserved decision above. Do not silently lighten/darken it;
-  raise it with the founder alongside the rest of this conflict.
+**Founder Decision (2026-07-11) — FTN Red and typography are now PERMANENT platform identity,
+not website-scoped:**
 
-**Interim resolution (founder decision, in effect for the duration of website development):** the
-remaining conflicts above are **not to be resolved by AI judgment, ever** — they are explicitly
-reserved as founder decisions and will be settled later during the creation of **FTN Master Asset
-Library v2.0**, after the website is complete. `FTN_Master_Asset_Library_v1.0/` is **frozen** for the
-duration of this build: no substitutes, no reinterpretation, no "best guess" tokens beyond the two
-decisions explicitly recorded above. Until v2.0:
+- **Primary Brand Colour: FTN Red `#E10613`.** No longer a website-only implementation token —
+  this is now the locked baseline identity of the FTN Platform.
+- **Primary Typography: Montserrat (headings) + Inter (body).** Same status change — permanent,
+  not scoped to this repo.
+- **Primary Visual Direction: "dark-first institutional interface with restrained motion,
+  disciplined spacing, high contrast and professional presentation."** Recorded verbatim from the
+  Founder Decision — **resolved 2026-07-11: this describes the FTN Platform ecosystem as a whole
+  (Mission Control, Observatory, Executive Briefing, operational dashboards, analytics consoles,
+  future government-facing interfaces), not the public website.** "The website represents the
+  public entrance. Mission Control represents the operational control room. Do not collapse those
+  identities into one" — founder's words, verbatim, and now binding. The FTN Platform Website
+  (this repo) stays **light-first**, using dark sections deliberately (to showcase products and
+  create rhythm) exactly as it already does — not as a wholesale re-theme. See the per-surface
+  direction below, now confirmed rather than open.
+- **Asset Library v2.0's purpose is now narrower than originally planned:** it adds photography,
+  illustration, iconography, motion language, and print standards — it does **not** revisit FTN
+  Red or typography, which are closed. `FTN_Master_Asset_Library_v1.0/` remains frozen and
+  untouched regardless (§2) — this only changes what v2.0 is *for*.
+- **Still open, unaffected by this decision:** success green (`#22C55E` vs `#16A34A`) was not
+  addressed by the 2026-07-11 Founder Decision and remains reserved. This is the direct cause of
+  the one outstanding WCAG AA failure on the live site (`indicator-card__change--up` /
+  `mc-kpi-card__trend--up`, 3.29:1 against white, needs 4.5:1) — still do not silently pick a
+  shade; still raise it with the founder before touching it.
+- The 2026-07-10 record below predates this decision and is retained as history only.
+
+**2026-07-10 record (superseded for red/typography, retained for history — still governs
+everything else, including success green and any other not-yet-decided token):**
 
 - Use the approved branding **exactly as it currently exists** in the supplied assets.
 - Do not redesign logos. Do not recolor assets. Do not substitute typography. Do not regenerate
   branding.
 - Extract existing approved assets exactly as they appear — pixel/vector fidelity to the source,
   not a reinterpretation of it.
-- If any of the four conflicts would affect an implementation decision (e.g., which hex to write
-  into a CSS custom property, which typeface to load), **stop and ask before hardcoding the token.**
-  Do not average, guess, or pick a "majority" value — even where this charter notes one reading is
-  numerically more common across boards, that observation is not authorization to use it.
+- If a still-open conflict (success green; the "dark-first" scope question above) would affect an
+  implementation decision, **stop and ask before hardcoding the token.** Do not average, guess, or
+  pick a "majority" value — even where this charter notes one reading is numerically more common
+  across boards, that observation is not authorization to use it.
 
-### Per-surface style direction (no conflict — consistent across all boards)
+### Per-surface style direction (confirmed permanent, Founder Decision 2026-07-11)
 
-- **FTN Platform Website (this repo):** light, premium, modern SaaS, government-grade; black, white,
-  FTN red.
+- **FTN Platform Website (this repo):** light-first, premium, modern SaaS, government-grade; black,
+  white, FTN red — with disciplined, deliberate dark sections (bands, product-preview app-shells)
+  used to showcase products and create visual rhythm, never as the page default. This is
+  intentional and permanent, not a placeholder pending a future dark redesign.
 - **Community Connect app:** light theme, professional, fast, accessible.
-- **Mission Control:** dark operations-centre aesthetic. Never apply this styling to public website
-  pages.
+- **Mission Control, Observatory, Executive Briefing, operational dashboards, analytics consoles,
+  and future government-facing interfaces:** dark-first operations-centre aesthetic. Never apply
+  this as the default styling of public website pages — reuse it only in the same disciplined,
+  bounded way already established (e.g. the Observatory/Mission Control demo hero bands, the
+  executive-dashboard preview cards on the marketing pages).
 
 ### Photography & art direction (AEB-08)
 
@@ -800,6 +829,19 @@ without needing a framework's hydration budget.
   shows.
 - If a brand or architectural ambiguity gets resolved by the founder outside of this file (Slack,
   email, verbal), record the resolution here so it isn't re-litigated by a future session.
+
+**Founder Decision (2026-07-11) — this file's own scope is intentionally shrinking, not growing.**
+CLAUDE.md must not become the permanent repository for every founder decision, governance
+clarification, design rule, roadmap note, and historical discussion — that path makes the platform
+harder to understand as it grows, for humans and AI alike. The long-term intent is a proper
+documentation architecture (Constitution, Governance, Founder Decision Register, Master Reference
+Manual, Design Constitution, Brand Book, Engineering Standards, Developer Handbook, Release
+Standards, Platform Glossary, Knowledge Base, Product Specifications, Architecture, Roadmaps,
+Archive — one authoritative home per category, no document trying to be everything). This is
+recorded as a Website v1.1 objective (see the Version 1.1 Implementation Roadmap, Phase 11) —
+**not yet executed.** Until it's greenlit, keep using CLAUDE.md as today's working charter, but
+don't let that stop you from noticing when something being added here really belongs somewhere
+else once that structure exists.
 
 ## 15. Git Workflow
 
