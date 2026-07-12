@@ -4,6 +4,19 @@
 // honestly that submission isn't wired up and points them to direct contact
 // details instead. Replace this once a real submission endpoint exists.
 (function () {
+  // Inquiry-category cards jump to the form with the matching category
+  // already selected -- a real, working shortcut (not a claim that the
+  // message itself is delivered or routed anywhere; that part is still
+  // honestly unwired, see below).
+  var categorySelect = document.getElementById('cf-category');
+  if (categorySelect) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-select-category]'), function (card) {
+      card.addEventListener('click', function () {
+        categorySelect.value = card.getAttribute('data-select-category');
+      });
+    });
+  }
+
   var form = document.getElementById('contact-form-el');
   if (!form) return;
 

@@ -137,7 +137,7 @@
             <div class="site-nav__dropdown">
               <a href="/contact/#contact-form">Contact Form</a>
               <a href="/contact/#support">Support</a>
-              <a href="/contact/#partnerships">Partnerships</a>
+              <a href="/contact/#commercial">Partnerships</a>
               <a href="/contact/#careers">Careers</a>
             </div>
           </li>
@@ -219,7 +219,7 @@
         <div class="mobile-nav__links">
           <a href="/contact/#contact-form">Contact Form</a>
           <a href="/contact/#support">Support</a>
-          <a href="/contact/#partnerships">Partnerships</a>
+          <a href="/contact/#commercial">Partnerships</a>
           <a href="/contact/#careers">Careers</a>
         </div>
       </div>
@@ -235,11 +235,10 @@
         <div data-reveal>
           <span class="page-hero__eyebrow">Contact</span>
           <h1 class="page-hero__title">Get in touch.</h1>
-          <p class="page-hero__lede">Whether you're a citizen, a government partner, a journalist, or looking to join the team — here's how to reach us.</p>
+          <p class="page-hero__lede">FTN Platform is built and operated by RealityArtTV Media, connecting citizens, governments, media, and partners through one integrated platform. Every relationship starts here.</p>
         </div>
         <div class="page-hero__panel page-hero__note" data-reveal>
-          <p><strong>Not sure where to start?</strong> Pick the closest category below — General, Government, Media, Partnerships, Careers, or Support.</p>
-          <p>The contact form isn't wired to a backend yet — see Direct Contact below for how to reach us today.</p>
+          <p><strong>Not sure where to start?</strong> Pick the closest category below and we'll route your message to the right team.</p>
         </div>
       </div>
     </section>
@@ -250,31 +249,39 @@
           <span class="section__eyebrow">Inquiry Categories</span>
           <h2>Find the right starting point.</h2>
         </div>
-        <div class="stack-list">
-          <div class="inquiry-category u-mb-24" id="general">
-            <h3 class="inquiry-category__title u-mb-4">General Inquiries</h3>
-            <p class="u-text-graphite u-text-sm">Questions about FTN Platform, Community Connect, or Mission Control that don't fit elsewhere on this page.</p>
-          </div>
-          <div class="inquiry-category u-mb-24" id="government">
-            <h3 class="inquiry-category__title u-mb-4">Government &amp; Agencies</h3>
-            <p class="u-text-graphite u-text-sm">Government and agency teams evaluating or interested in Mission Control.</p>
-          </div>
-          <div class="inquiry-category u-mb-24" id="media">
-            <h3 class="inquiry-category__title u-mb-4">Media &amp; Press</h3>
-            <p class="u-text-graphite u-text-sm">Journalists and media requesting information, interviews, or press assets.</p>
-          </div>
-          <div class="inquiry-category u-mb-24" id="partnerships">
-            <h3 class="inquiry-category__title u-mb-4">Partnerships</h3>
-            <p class="u-text-graphite u-text-sm">Organizations interested in partnering with FTN Platform or RealityArtTV Media.</p>
-          </div>
-          <div class="inquiry-category u-mb-24" id="careers">
-            <h3 class="inquiry-category__title u-mb-4">Careers</h3>
-            <p class="u-text-graphite u-text-sm">Interested in working with us. See open roles or send a general application.</p>
-          </div>
-          <div class="inquiry-category u-mb-24" id="support">
-            <h3 class="inquiry-category__title u-mb-4">Support</h3>
-            <p class="u-text-graphite u-text-sm">Help with using Community Connect, reporting an issue with the app, or an accessibility concern.</p>
-          </div>
+        <div class="module-grid">
+          <a class="module-card" id="general" href="#contact-form" data-select-category="general">
+            <h3>General Enquiries</h3>
+            <p>Questions about FTN Platform, Community Connect, or Mission Control that don't fit elsewhere on this page.</p>
+          </a>
+          <a class="module-card" id="government" href="#contact-form" data-select-category="government">
+            <h3>Government &amp; Public Sector</h3>
+            <p>Government and agency teams evaluating or already engaged with Mission Control.</p>
+          </a>
+          <a class="module-card" id="commercial" href="#contact-form" data-select-category="commercial">
+            <h3>Commercial Partnerships</h3>
+            <p>Businesses and organizations interested in a commercial or operational partnership with FTN Platform.</p>
+          </a>
+          <a class="module-card" id="investors" href="#contact-form" data-select-category="investors">
+            <h3>Investors</h3>
+            <p>Institutional and strategic investment enquiries are welcomed through our Partnerships &amp; Strategic Engagement pathway, alongside government, NGO, and university partners.</p>
+          </a>
+          <a class="module-card" id="media" href="#contact-form" data-select-category="media">
+            <h3>Media &amp; Press</h3>
+            <p>Journalists and media requesting information, interviews, or press assets.</p>
+          </a>
+          <a class="module-card" id="creative" href="#contact-form" data-select-category="creative">
+            <h3>Artist &amp; Creative Services</h3>
+            <p>Artists and creative professionals interested in FTN Platform's growing media and creative pillar.</p>
+          </a>
+          <a class="module-card" id="support" href="#contact-form" data-select-category="support">
+            <h3>Technical Support</h3>
+            <p>Help with using Community Connect, reporting an issue with the app, or an accessibility concern.</p>
+          </a>
+          <a class="module-card" id="careers" href="#contact-form" data-select-category="careers">
+            <h3>Careers</h3>
+            <p>Interested in working with us. See open roles or send a general application.</p>
+          </a>
         </div>
       </div>
     </section>
@@ -284,10 +291,6 @@
         <div class="section__header">
           <span class="section__eyebrow">Contact Form</span>
           <h2>Send us a message.</h2>
-        </div>
-        <div class="callout u-max-640 u-mb-32">
-          This form isn't connected to a backend yet, so messages submitted here won't be
-          delivered. Until it is, please use the direct contact details below.
         </div>
         <form id="contact-form-el" novalidate class="u-max-640">
           <div class="form-row form-row--2">
@@ -306,12 +309,14 @@
             <label for="cf-category">Inquiry category</label>
             <select id="cf-category" name="category" required aria-describedby="cf-category-error">
               <option value="">Select a category</option>
-              <option value="general">General Inquiries</option>
-              <option value="government">Government &amp; Agencies</option>
+              <option value="general">General Enquiries</option>
+              <option value="government">Government &amp; Public Sector</option>
+              <option value="commercial">Commercial Partnerships</option>
+              <option value="investors">Investors</option>
               <option value="media">Media &amp; Press</option>
-              <option value="partnerships">Partnerships</option>
+              <option value="creative">Artist &amp; Creative Services</option>
+              <option value="support">Technical Support</option>
               <option value="careers">Careers</option>
-              <option value="support">Support</option>
             </select>
             <p class="form-field__error" id="cf-category-error" role="alert"></p>
           </div>
@@ -332,9 +337,13 @@
           <span class="section__eyebrow">Direct Contact</span>
           <h2>Reach us directly.</h2>
         </div>
-        <div class="callout u-max-60ch">
-          [Placeholder &mdash; direct contact email addresses and office location have not been
-          provided yet. This section will be completed once that information is confirmed.]
+        <div class="prose u-max-60ch">
+          <p class="u-text-graphite">
+            Department email addresses and office details are being finalized ahead of launch.
+            In the meantime, the categorized form above is the clearest way to describe what
+            you're reaching out about. You can also follow FTN Platform and RealityArtTV Media
+            directly on the channels below.
+          </p>
         </div>
         <div class="u-mt-32">
           <h3 class="u-mb-16">Follow Us</h3>
