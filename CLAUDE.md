@@ -307,10 +307,10 @@ structure as of Phase 3:
 ├── robots.txt                        # RC1, §7.5 — placeholder domain in its Sitemap: line
 ├── accessibility/index.html          # Genuine content — WCAG 2.2 AA target, not a legal placeholder
 ├── legal/
-│   ├── privacy-policy/index.html     # Structural placeholder — see §5 legal-wording rule
-│   ├── terms-of-service/index.html   # Structural placeholder
-│   ├── cookie-policy/index.html      # Structural placeholder
-│   └── data-retention/index.html     # Structural placeholder
+│   ├── privacy-policy/index.html     # Founder-drafted content, integrated 2026-07-12 (§7.9)
+│   ├── terms-of-service/index.html   # Founder-drafted content, integrated 2026-07-12 (§7.9)
+│   ├── cookie-policy/index.html      # Founder-drafted content, integrated 2026-07-12 (§7.9)
+│   └── data-retention/index.html     # Founder-drafted content, integrated 2026-07-12 (§7.9)
 ├── assets/
 │   ├── logos/                        # logo-ftn-platform-primary-{light,dark}.svg
 │   ├── icons/                        # favicon.svg + favicon-32.png + apple-touch-icon.png (RC1)
@@ -891,6 +891,57 @@ tier of data a page resolves through the seam below.
 correctly, ahead of Version 1.0 Release Candidate.** Two phases remain after it: final legal
 content integration, then an Executive Release Audit to determine public-deployment readiness. No
 further feature development is planned before the Release Candidate.
+
+## 7.9 Final Content Integration — Legal & Compliance
+
+Before this pass, all four legal pages (`legal/privacy-policy/`, `legal/terms-of-service/`,
+`legal/cookie-policy/`, `legal/data-retention/`) were structural placeholders — every section body
+read `[Placeholder — this section requires legal review and founder approval before publication.]`
+behind an on-page warning banner. This pass replaced that placeholder content with the founder's
+own drafted **FTN Platform Website Version 1.0 Governance and Legal Framework** (2026-07-12),
+preceded by a Claude-authored **Technical Compliance Audit** establishing the engineering ground
+truth (no cookies, seven `localStorage` keys — all UI preferences, zero PII — an inert Contact
+form, no analytics/tracking, fully static site) the legal content had to accurately reflect. Both
+source documents are preserved in full under `GOVERNANCE/` — `FTN_Platform_Website_v1.0_Technical_
+Compliance_Audit.md` and `FTN_Platform_Website_v1.0_Governance_and_Legal_Framework.md` — as the
+canonical reference; the site pages are a formatted, integrated view of that content, not a second
+independent source of truth.
+
+- **Sections 1–4** of the Framework (Privacy Policy, Terms of Service, Cookie Policy, Data
+  Retention Policy) are published verbatim on their matching pages, restructured into each
+  founder-numbered subsection as its own `<h2>` (e.g. "1.6 Presentation Mode and Live Mode"
+  becomes the heading "Presentation Mode and Live Mode") rather than force-fit into the old
+  10–16-heading placeholder skeleton, which didn't match the founder's actual section count or
+  order. The amber `.legal-banner` placeholder warning and `Status: Draft placeholder` line were
+  removed from all four pages per explicit founder instruction ("do not use placeholder language");
+  each page now reads `Effective date: July 12, 2026` instead. `css/components/legal.css` gained
+  `ul`/`li`/`a` styling it previously didn't need (the placeholder pages had no lists or links in
+  their body copy) and lost the now-dead `.legal-banner`/`.placeholder-text` rules.
+- **"Contact us" sections across all four pages now link to the real `/contact/#general` anchor**
+  (General Enquiries) rather than the Framework's literal "Privacy pathway" / "Legal pathway" /
+  "Accessibility pathway" phrasing — the Contact page has no such named categories (its eight are
+  General Enquiries, Government & Public Sector, Commercial Partnerships, Investors, Media & Press,
+  Artist & Creative Services, Technical Support, Careers), so the published wording was adjusted to
+  reference a pathway that actually exists rather than one that doesn't.
+- **Sections 5 (Platform Transparency Statement), 6 (Community and Public-Information Principles),
+  and 8 (Release and Version Governance) were deliberately not published as new site content.**
+  5 and 6 overlap thematically with About's existing "Founding Principles"/"Our Philosophy"
+  sections, but About is an already-accepted, Executive-Polish-locked page (§7.4) and editing it
+  wasn't requested — adding them there would be a structural change made without that explicit
+  instruction. 8's substance already exists on the live Terms of Service page (§2.4, "Presentation
+  Information," independently states the same rule in near-identical terms). All three are
+  preserved in full in the `GOVERNANCE/` source file, flagged for an explicit founder placement
+  decision rather than silently added or silently dropped.
+- **Section 7 (Accessibility Statement) was reconciled against, not used to overwrite, the existing
+  `/accessibility/` page** — that page already carries genuine content from Release Candidate 1's
+  real WCAG audit (§7.5) and states the same WCAG 2.2 AA target and contact-based reporting path in
+  more specific terms (it names the real Contact/Support category by name). Left unchanged.
+- **Section 9 (Required Review Before Publication) was never published** — it is an internal
+  checklist addressed to the Founder and counsel (attorney review, confirming RealityArtTV Media's
+  exact legal name, auditing Cloudflare account-level settings, a Google Fonts retain/self-host/
+  remove decision, separate Community Connect legal documents before its app-store release). It
+  lives only in the `GOVERNANCE/` source file and the corresponding Website Completion Program
+  report.
 
 ## 8. HTML Standards
 
