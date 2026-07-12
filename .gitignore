@@ -1,0 +1,15 @@
+# FTN Platform Website — repository hygiene.
+#
+# The public website repository contains only what's required to build, deploy, document, and
+# legally operate the public website (this repo has no build step and no Cloudflare Pages routing
+# config — anything tracked here is servable at its literal path). Internal strategy, governance,
+# and knowledge-base material that isn't part of the shipped site does not belong here.
+#
+# Removed from tracking 2026-07-12 (files preserved locally, moved to a private location for
+# internal use) — see the release closeout commit message for the full rationale.
+/DESIGN/
+/FOUNDATIONS/
+/KNOWLEDGE/
+/STANDARDS/
+/STRATEGY/
+/FTN_Strategic_Foundation_v1.0/

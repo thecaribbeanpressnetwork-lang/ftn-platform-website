@@ -369,10 +369,19 @@ structure as of Phase 3:
 ├── 00_Phase1_Discovery/              # Discovery Report (planning artifact, not shipped site)
 ├── FTN_Master_Asset_Library_v1.0/    # reference source boards — never referenced live, never edited
 ├── GOVERNANCE/                       # RC3, §7.7 — FTN_Platform_Constitution_v1.0.md is the real
-│                                      # content; the other 3 files here are unfilled templates
-├── FTN_Strategic_Foundation_v1.0/    # RC3, §7.7 — founder working-draft strategic reference only
+│                                      # content; the other 3 files here are unfilled templates;
+│                                      # v1.0 release closeout added the Technical Compliance Audit,
+│                                      # Governance and Legal Framework, and Engineering Release
+│                                      # Certification (§7.10)
 └── CLAUDE.md
 ```
+
+**Not in this repository, by design (§7.10):** `DESIGN/`, `FOUNDATIONS/`, `KNOWLEDGE/`, `STANDARDS/`,
+`STRATEGY/`, and `FTN_Strategic_Foundation_v1.0/` — internal strategy, commercial-model, revenue,
+IP, and knowledge-base material. This repo has no build step and no Cloudflare Pages routing
+config, so anything tracked here is directly servable at its literal path on the live public
+domain; internal/commercial material does not belong in a repo with that property. See `.gitignore`
+and §7.10 for the removal record.
 
 ## 7.1 The Indicator Engine (Phase 3)
 
@@ -942,6 +951,29 @@ independent source of truth.
   remove decision, separate Community Connect legal documents before its app-store release). It
   lives only in the `GOVERNANCE/` source file and the corresponding Website Completion Program
   report.
+
+## 7.10 Version 1.0 Release Closeout — repository hygiene fix
+
+Engineering Release Certification (§7.9's sibling pass) found this repo's engineering surface
+sound, but a final pre-push repository audit surfaced a real, already-live issue unrelated to any
+work done this program: six directories — `DESIGN/`, `FOUNDATIONS/`, `KNOWLEDGE/`, `STANDARDS/`,
+`STRATEGY/`, and `FTN_Strategic_Foundation_v1.0/` (32 + 7 files, added 2026-07-11 in commit
+`07d27ab`, well before this program began) — were committed to `origin/main` and, since this repo
+has no build step and no Cloudflare Pages routing config (no `_headers`/`_routes.json`), were
+directly servable at their literal public paths. Several of those files are exactly the category
+of content the standing Founder Decision (§4) says must never be public — `STRATEGY/
+FTN_REVENUE_CATALOGUE.md`, `STRATEGY/FTN_COMMERCIAL_MODEL.md`, `FTN_Strategic_Foundation_v1.0/
+FTN_REVENUE_MODEL.md`, `FTN_Strategic_Foundation_v1.0/FTN_COMPETITIVE_ADVANTAGE_REGISTER.md`, and
+`FTN_Strategic_Foundation_v1.0/FTN_INNOVATION_IP_OPPORTUNITY_REGISTER.md` among them. Nothing in
+the site's own pages linked to these paths, and they weren't in `sitemap.xml`, but `robots.txt`'s
+blanket `Allow: /` did nothing to stop a crawler or a direct link from reaching them.
+
+Founder-confirmed fix: `git rm -r --cached` on all six directories (files preserved on disk, moved
+to a private location for internal use — not deleted), plus a new root `.gitignore` so they can't
+be recommitted by accident. The public website repository now contains only what's required to
+build, deploy, document, and legally operate the public website — matching what this charter has
+always described it as containing (§2, §7). This was repository hygiene / information governance,
+not a website feature change; no page, component, or public content changed as a result.
 
 ## 8. HTML Standards
 
