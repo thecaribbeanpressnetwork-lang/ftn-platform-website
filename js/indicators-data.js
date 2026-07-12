@@ -108,23 +108,23 @@
   // ---------------------------------------------------------------- National Economy
   indicators.push(
     ind('gdp', 'National Economy', 'GDP (annual)', '28.4B', 'USD', {
-      trend: 'up', changeLabel: '+1.8% y/y (demo)', history: spark(28, 12, 0.4, 0.05),
+      trend: 'up', changeLabel: '+1.8% y/y', history: spark(28, 12, 0.4, 0.05),
       sourceId: 'worldbank-tt', secondarySourceId: 'tt-cso-main',
       methodology: 'Illustrative figure in the correct order of magnitude for a small energy-based economy — not the current published World Bank/CSO figure.',
     }),
     ind('gdp-per-capita', 'National Economy', 'GDP per Capita', '18,900', 'USD', {
-      trend: 'up', changeLabel: '+1.2% y/y (demo)', history: spark(19, 12, 0.2, 0.02),
+      trend: 'up', changeLabel: '+1.2% y/y', history: spark(19, 12, 0.2, 0.02),
       sourceId: 'worldbank-tt-gdp-capita',
     }),
     ind('debt-to-gdp', 'National Economy', 'Debt-to-GDP Ratio', '68.4', '%', {
-      trend: 'up', changeLabel: '+0.6pp vs last quarter (demo)', status: 'watch',
+      trend: 'up', changeLabel: '+0.6pp vs last quarter', status: 'watch',
       history: spark(67, 12, 0.3, 0.1), isLiveClock: true, clock: { kind: 'debt-to-gdp', baseValue: 68.4, ratePerSecond: 0.0000009 },
       sourceId: 'tt-mof-roe-2025', comparisonSourceId: 'worldbank-tt',
       methodology: 'FTN Modelled: demonstration ratio, interpolated between quarterly demo benchmarks using a constant assumed growth rate. Benchmark anchor and rate are illustrative pending an actual Review of the Economy figure.',
       classification: 'FTN Modelled',
     }),
     ind('national-debt', 'National Economy', 'National Debt', '19.4B', 'TTD', {
-      trend: 'up', changeLabel: 'rising (demo)', isLiveClock: true,
+      trend: 'up', changeLabel: 'rising', isLiveClock: true,
       clock: { kind: 'currency', baseValue: 19400000000, ratePerSecond: 620 },
       classification: 'FTN Modelled', sourceId: 'tt-mof-roe-2025',
       methodology: 'FTN Modelled: demonstration debt clock. Interpolates between a fixed benchmark and an assumed borrowing rate for visual effect — see Trust Card. Benchmark value is illustrative pending the actual published annual figure.',
@@ -139,7 +139,7 @@
     ind('food-inflation', 'National Economy', 'Food Inflation', '3.4', '%', { trend: 'up', status: 'watch', history: spark(3, 12, 0.2, 0.02), sourceId: 'tt-cso-rpi' }),
     ind('unemployment', 'National Economy', 'Unemployment Rate', '4.9', '%', { trend: 'down', history: spark(5, 12, 0.15, -0.02), sourceId: 'tt-cso-glance' }),
     ind('exchange-rate', 'National Economy', 'Exchange Rate (TTD/USD)', '6.79', 'TTD', { trend: 'flat', history: spark(6.8, 12, 0.02, 0), sourceId: 'tt-cbtt' }),
-    ind('foreign-reserves', 'National Economy', 'Foreign Reserves', '5.6B', 'USD', { trend: 'down', status: 'watch', changeLabel: '-2.1% q/q (demo)', sourceId: 'tt-cbtt-data' }),
+    ind('foreign-reserves', 'National Economy', 'Foreign Reserves', '5.6B', 'USD', { trend: 'down', status: 'watch', changeLabel: '-2.1% q/q', sourceId: 'tt-cbtt-data' }),
     ind('budget-progress', 'National Economy', 'Budget-Year Progress', '54', '%', {
       trend: 'up', isLiveClock: true, clock: { kind: 'fiscal-year-progress', fiscalYearStartMonth: 9 },
       classification: 'FTN Derived', sourceId: 'tt-mof',
@@ -160,7 +160,7 @@
     ind('lng-price', 'Energy & Commodities', 'LNG Price (illustrative)', '11.20', 'USD/MMBtu', { trend: 'up', sourceId: 'tt-meei-lng' }),
     ind('energy-production', 'Energy & Commodities', 'Energy Production Index', '96', 'index (2020=100)', { trend: 'down', status: 'watch', sourceId: 'tt-meei-production' }),
     ind('fuel-price', 'Energy & Commodities', 'Domestic Fuel Price (Super)', '4.13', 'TTD/L', { trend: 'flat', sourceId: 'tt-meei' }),
-    ind('renewable-share', 'Energy & Commodities', 'Renewable Energy Share', '2.6', '%', { trend: 'up', changeLabel: 'slowly rising (demo)', sourceId: 'worldbank-tt' })
+    ind('renewable-share', 'Energy & Commodities', 'Renewable Energy Share', '2.6', '%', { trend: 'up', changeLabel: 'slowly rising', sourceId: 'worldbank-tt' })
   );
 
   // ---------------------------------------------------------------- Population & Life
@@ -224,7 +224,7 @@
     ind('community-reports-verified', 'Community', 'Verified Reports', '1,275', 'reports', { trend: 'up' }),
     ind('community-reports-resolved', 'Community', 'Resolved Reports', '18,940', 'reports', { trend: 'up', changeLabel: '98% resolution rate' }),
     ind('community-participation', 'Community', 'Community Participation Index', '66', 'index (0-100)', { trend: 'up', classification: 'FTN Derived' }),
-    ind('most-active-community', 'Community', 'Most Active Community (demo)', 'San Fernando', '', { trend: 'flat', classification: 'Demonstration', communityProfileKey: 'san-fernando' }),
+    ind('most-active-community', 'Community', 'Most Active Community', 'San Fernando', '', { trend: 'flat', classification: 'Demonstration', communityProfileKey: 'san-fernando' }),
     ind('service-reliability', 'Community', 'Service Reliability Index', '71', 'index (0-100)', { trend: 'flat', classification: 'FTN Derived' })
   );
 
