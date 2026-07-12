@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  FTN Platform Website — XML sitemap.
-  PLACEHOLDER DOMAIN: https://www.ftnplatform.com is not a confirmed production domain — no
-  domain has been assigned to this build yet (see CLAUDE.md §7.5). Replace every <loc> host
-  below with the real production domain before this file is used by a live search engine.
--->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.ftnplatform.com/</loc></url>
-  <url><loc>https://www.ftnplatform.com/about/</loc></url>
-  <url><loc>https://www.ftnplatform.com/community-connect/</loc></url>
-  <url><loc>https://www.ftnplatform.com/mission-control/</loc></url>
-  <url><loc>https://www.ftnplatform.com/mission-control/demo/</loc></url>
-  <url><loc>https://www.ftnplatform.com/observatory/</loc></url>
-  <url><loc>https://www.ftnplatform.com/resources/</loc></url>
-  <url><loc>https://www.ftnplatform.com/contact/</loc></url>
-  <url><loc>https://www.ftnplatform.com/insights/</loc></url>
-  <url><loc>https://www.ftnplatform.com/news/</loc></url>
-  <url><loc>https://www.ftnplatform.com/sitemap/</loc></url>
-  <url><loc>https://www.ftnplatform.com/accessibility/</loc></url>
-  <url><loc>https://www.ftnplatform.com/legal/privacy-policy/</loc></url>
-  <url><loc>https://www.ftnplatform.com/legal/terms-of-service/</loc></url>
-  <url><loc>https://www.ftnplatform.com/legal/cookie-policy/</loc></url>
-  <url><loc>https://www.ftnplatform.com/legal/data-retention/</loc></url>
+  <url><loc>https://ftnplatform.org/</loc></url>
+  <url><loc>https://ftnplatform.org/about/</loc></url>
+  <url><loc>https://ftnplatform.org/community-connect/</loc></url>
+  <url><loc>https://ftnplatform.org/mission-control/</loc></url>
+  <url><loc>https://ftnplatform.org/mission-control/demo/</loc></url>
+  <url><loc>https://ftnplatform.org/observatory/</loc></url>
+  <url><loc>https://ftnplatform.org/resources/</loc></url>
+  <url><loc>https://ftnplatform.org/contact/</loc></url>
+  <url><loc>https://ftnplatform.org/insights/</loc></url>
+  <url><loc>https://ftnplatform.org/news/</loc></url>
+  <url><loc>https://ftnplatform.org/sitemap/</loc></url>
+  <url><loc>https://ftnplatform.org/accessibility/</loc></url>
+  <url><loc>https://ftnplatform.org/legal/privacy-policy/</loc></url>
+  <url><loc>https://ftnplatform.org/legal/terms-of-service/</loc></url>
+  <url><loc>https://ftnplatform.org/legal/cookie-policy/</loc></url>
+  <url><loc>https://ftnplatform.org/legal/data-retention/</loc></url>
 </urlset>

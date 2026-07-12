@@ -1,7 +1,6 @@
 # FTN Platform Website
-# PLACEHOLDER DOMAIN below (see CLAUDE.md §7.5) — update once a production domain is assigned.
 
 User-agent: *
 Allow: /
 
-Sitemap: https://www.ftnplatform.com/sitemap.xml
+Sitemap: https://ftnplatform.org/sitemap.xml
