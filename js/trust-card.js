@@ -121,6 +121,16 @@
   function open(dataOrId) {
     var data = typeof dataOrId === 'string' ? (global.FTN.getIndicator ? global.FTN.getIndicator(dataOrId) : null) : dataOrId;
     if (!data) return;
+    // Live-clock indicators store a static placeholder in .value (sometimes
+    // literally "—", since the real number only exists once computed) --
+    // the indicator wall ticks it live via data-live-clock bindings, but
+    // this modal never did, so opening a live-clock indicator's Trust Card
+    // showed a frozen or blank number instead of the same figure the card
+    // itself displays. Compute it the same way the wall does, on a copy so
+    // the shared indicator object itself is never mutated.
+    if (data.isLiveClock && global.FTN.LiveClocks) {
+      data = Object.assign({}, data, { value: global.FTN.LiveClocks.computeClockValue(data, new Date()) });
+    }
     render(data);
     lastFocused = document.activeElement;
     dialog.classList.add('is-open');

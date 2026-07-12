@@ -37,7 +37,7 @@
       secondarySourceId: null,
       comparisonSourceId: null,
       sourceName: 'FTN demonstration dataset',
-      updateFrequency: 'Static (demo)',
+      updateFrequency: 'Static',
       lastUpdated: '2026-07-01',
       methodology: 'Illustrative value chosen to be plausible in order of magnitude for Trinidad and Tobago; not derived from a live source.',
       confidence: 'Demonstration',
