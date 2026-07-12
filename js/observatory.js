@@ -360,6 +360,23 @@
     setInterval(update, 1000);
   }
 
+  // Hero "vitals" panel: real local Port of Spain time (same Intl-based
+  // approach as js/today-panel.js — not a hardcoded UTC offset) and a real
+  // count of the indicators this build actually tracks.
+  function initHeroVitals() {
+    var timeEl = document.getElementById('hero-local-time');
+    var countEl = document.getElementById('hero-indicator-count');
+    if (countEl && global.FTN.indicators) countEl.textContent = global.FTN.indicators.length;
+    if (!timeEl) return;
+    function update() {
+      timeEl.textContent = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Port_of_Spain', hour: '2-digit', minute: '2-digit', second: '2-digit',
+      }).format(new Date());
+    }
+    update();
+    setInterval(update, 1000);
+  }
+
   function ready(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
     else fn();
@@ -385,6 +402,7 @@
     initPanelToggle('display-config-toggle', 'display-config-panel');
     initKioskMode();
     initRefreshClock();
+    initHeroVitals();
     initPauseControl();
     if (global.FTN.DisplayConfig) global.FTN.DisplayConfig.init('display-config-panel');
     if (global.FTN.Ads) global.FTN.Ads.renderPlacement('ad-rail-mount', 'rail');

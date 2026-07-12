@@ -80,6 +80,23 @@
     }).format(date);
   }
 
+  // The three countdown indicators (Carnival, Independence Day, Republic Day)
+  // are day-counts to a fixed annual date, not naturally a 0-100 quantity —
+  // normalizing them into a ring would misrepresent them, so only the three
+  // genuine progress-through-a-known-period indicators get a ring gauge;
+  // the three countdowns get a plain big-number treatment instead. Forcing
+  // every metric into one visual would read as decoration, not clarity.
+  var RING_INDICATORS = [
+    ['hurricane-season-progress', 'Hurricane Season'],
+    ['school-term-progress', 'School Term'],
+    ['budget-progress', 'Fiscal Year'],
+  ];
+  var COUNTDOWN_INDICATORS = [
+    ['carnival-countdown', 'Carnival'],
+    ['independence-countdown', 'Independence Day'],
+    ['republic-day-countdown', 'Republic Day'],
+  ];
+
   function render(mountId) {
     var mount = document.getElementById(mountId);
     if (!mount) return;
@@ -89,36 +106,54 @@
       var sun = sunTimes(now);
       var moon = moonPhase(now);
 
-      var rows = [
-        ['Date', fmtDate(now)],
-        ['Local Time (Port of Spain)', fmtTime(now)],
+      var conditions = [
         ['Sunrise', fmtTime(sun.sunrise)],
         ['Sunset', fmtTime(sun.sunset)],
-        ['Moon Phase', moon.name + ' (' + moon.illumination + '% illuminated)'],
+        ['Moon Phase', moon.name],
         ['Season', seasonStatus(now)],
       ];
 
-      var clockIndicators = [
-        ['hurricane-season-progress', 'Hurricane Season'],
-        ['carnival-countdown', 'Carnival'],
-        ['independence-countdown', 'Independence Day'],
-        ['republic-day-countdown', 'Republic Day'],
-        ['school-term-progress', 'School Term'],
-        ['budget-progress', 'Fiscal Year'],
-      ];
+      var html = '<div class="today-snapshot">';
 
-      var html = '<dl class="today-panel__grid">' + rows.map(function (r) {
-        return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>';
-      }).join('') + '</dl>';
+      html += '<div class="today-snapshot__now">' +
+        '<p class="today-snapshot__label"><span class="today-snapshot__dot" aria-hidden="true"></span>Live</p>' +
+        '<p class="today-snapshot__time">' + fmtTime(now) + '</p>' +
+        '<p class="today-snapshot__date">' + fmtDate(now) + ' &middot; Port of Spain</p>' +
+      '</div>';
 
-      html += '<dl class="today-panel__grid today-panel__grid--calendar">' + clockIndicators.map(function (pair) {
+      html += '<div class="today-conditions">' + conditions.map(function (c) {
+        return '<div class="today-conditions__item"><p class="today-conditions__label">' + c[0] + '</p><p class="today-conditions__value">' + c[1] + '</p></div>';
+      }).join('') + '</div>';
+
+      html += '<div class="today-metrics">';
+
+      html += RING_INDICATORS.map(function (pair) {
         var ind = global.FTN.getIndicator ? global.FTN.getIndicator(pair[0]) : null;
         if (!ind) return '';
         var val = global.FTN.LiveClocks ? global.FTN.LiveClocks.computeClockValue(ind, now) : ind.value;
-        return '<div><dt>' + pair[1] + '</dt><dd data-live-clock="' + pair[0] + '" aria-live="off">' + val + '</dd><dd class="today-panel__unit">' + ind.units + '</dd></div>';
-      }).join('') + '</dl>';
+        var pct = parseFloat(val) || 0;
+        var ring = global.FTN.Charts ? global.FTN.Charts.gauge(pct, { size: 84, stroke: 7, ariaLabel: pair[1] + ': ' + val + '%' }).outerHTML : '';
+        return '<div class="today-ring">' +
+          '<div class="today-ring__graphic">' + ring + '<span class="today-ring__value" data-live-clock="' + pair[0] + '" aria-live="off">' + val + '</span></div>' +
+          '<p class="today-ring__label">' + pair[1] + '</p>' +
+        '</div>';
+      }).join('');
+
+      html += COUNTDOWN_INDICATORS.map(function (pair) {
+        var ind = global.FTN.getIndicator ? global.FTN.getIndicator(pair[0]) : null;
+        if (!ind) return '';
+        var val = global.FTN.LiveClocks ? global.FTN.LiveClocks.computeClockValue(ind, now) : ind.value;
+        return '<div class="today-countdown">' +
+          '<p class="today-countdown__value" data-live-clock="' + pair[0] + '" aria-live="off">' + val + '</p>' +
+          '<p class="today-countdown__label">' + ind.units + ' to ' + pair[1] + '</p>' +
+        '</div>';
+      }).join('');
+
+      html += '</div>';
 
       html += '<p class="today-panel__note">Sunrise, sunset, and moon phase are calculated for Port of Spain (10.65°N, 61.4°W) using standard solar/lunar position formulas — not a live feed. Season is a calendar-month convention from TT Met Service climate guidance.</p>';
+
+      html += '</div>';
 
       mount.innerHTML = html;
     }

@@ -5,12 +5,23 @@
   'use strict';
 
   function lockupSVG(headline) {
+    var upper = headline.toUpperCase();
+    // viewBox width is computed from the actual headline, not hardcoded —
+    // a fixed width clipped any campaign headline longer than "FACE THE
+    // NATION" (found via the Community Connect house-ad swap, which clipped
+    // to "COMMUNITY CONN"). Advance width is an estimate for Montserrat
+    // Bold at font-size 15 with 0.5 letter-spacing; generous enough that a
+    // real word never clips, at the cost of sometimes a little extra
+    // trailing space, which is the safe direction to be wrong in.
+    var textWidth = upper.length * 10.5;
+    var totalWidth = Math.max(220, 62 + textWidth + 10);
+    var displayWidth = Math.round(180 * (totalWidth / 220));
     return (
-      '<svg viewBox="0 0 220 40" width="180" height="33" role="img" aria-labelledby="adLogoTitle">' +
+      '<svg viewBox="0 0 ' + totalWidth + ' 40" width="' + displayWidth + '" height="33" role="img" aria-labelledby="adLogoTitle">' +
         '<title id="adLogoTitle">FTN Platform — ' + headline + '</title>' +
         '<text x="0" y="26" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="24" fill="#E10613">FTN</text>' +
         '<line x1="52" y1="6" x2="52" y2="32" stroke="#3A3A3A" stroke-width="1"></line>' +
-        '<text x="62" y="25" font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="15" letter-spacing="0.5" fill="#FFFFFF">' + headline.toUpperCase() + '</text>' +
+        '<text x="62" y="25" font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="15" letter-spacing="0.5" fill="#FFFFFF">' + upper + '</text>' +
       '</svg>'
     );
   }

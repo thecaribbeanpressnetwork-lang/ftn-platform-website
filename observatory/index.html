@@ -240,8 +240,8 @@
 
     <section class="observatory-hero">
       <div class="container">
-        <div class="observatory-hero__top">
-          <div>
+        <div class="observatory-hero__grid">
+          <div class="observatory-hero__main">
             <span class="page-hero__eyebrow">FTN Live</span>
             <h1 class="observatory-hero__title">Trinidad &amp; Tobago, live.</h1>
             <p class="observatory-hero__lede">
@@ -250,55 +250,65 @@
               on a reusable indicator architecture so real sources can replace demonstration data over
               time without changing how this page works.
             </p>
-          </div>
-          <div class="observatory-controls">
-            <button type="button" id="pause-toggle" class="btn btn-outline btn-outline--on-dark btn-sm" aria-pressed="false">Pause Live Updates</button>
-            <button type="button" id="kiosk-toggle" class="btn btn-outline btn-outline--on-dark" aria-pressed="false">Enter Kiosk Mode</button>
-            <span class="observatory-clock">Last refreshed <strong id="last-refresh">—</strong></span>
-          </div>
-        </div>
+            <div class="observatory-controls">
+              <button type="button" id="pause-toggle" class="btn btn-outline btn-outline--on-dark btn-sm" aria-pressed="false">Pause Live Updates</button>
+              <button type="button" id="kiosk-toggle" class="btn btn-outline btn-outline--on-dark" aria-pressed="false">Enter Kiosk Mode</button>
+            </div>
 
-        <div class="hero-clocks">
-          <div class="hero-clock">
-            <p class="hero-clock__label">National Debt</p>
-            <p class="hero-clock__value"><span data-live-clock="national-debt" aria-live="off">19,400,000,000</span> <span>TTD</span></p>
-            <div class="hero-clock__meta">
-              <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
-              <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="national-debt">Trust Card</button>
+            <div class="reality-insight">
+              <p class="reality-insight__title">The Nation Is Speaking</p>
+              <div id="reality-insight" role="status" aria-live="polite">
+                <p class="reality-insight__text">Loading&hellip;</p>
+              </div>
+              <button type="button" class="reality-insight__next" id="reality-insight-next">Next observation &rarr;</button>
             </div>
           </div>
-          <div class="hero-clock">
-            <p class="hero-clock__label">Debt-to-GDP Ratio</p>
-            <p class="hero-clock__value"><span data-live-clock="debt-to-gdp" aria-live="off">68.4</span> <span>%</span></p>
-            <div class="hero-clock__meta">
-              <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
-              <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="debt-to-gdp">Trust Card</button>
-            </div>
-          </div>
-          <div class="hero-clock">
-            <p class="hero-clock__label">Population</p>
-            <p class="hero-clock__value"><span data-live-clock="population" aria-live="off">1,531,000</span></p>
-            <div class="hero-clock__meta">
-              <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
-              <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="population">Trust Card</button>
-            </div>
-          </div>
-          <div class="hero-clock">
-            <p class="hero-clock__label">Budget-Year Progress</p>
-            <p class="hero-clock__value"><span data-live-clock="budget-progress" aria-live="off">54</span> <span>%</span></p>
-            <div class="hero-clock__meta">
-              <span class="trust-badge trust-badge--derived">FTN Derived</span>
-              <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="budget-progress">Trust Card</button>
-            </div>
-          </div>
-        </div>
 
-        <div class="reality-insight">
-          <p class="reality-insight__title">The Nation Is Speaking</p>
-          <div id="reality-insight" role="status" aria-live="polite">
-            <p class="reality-insight__text">Loading&hellip;</p>
+          <div class="observatory-hero__vitals">
+            <div class="live-status">
+              <div class="live-status__top">
+                <span class="live-status__badge"><span class="live-status__dot" aria-hidden="true"></span>Live</span>
+                <span class="observatory-clock">Refreshed <strong id="last-refresh">—</strong></span>
+              </div>
+              <p class="live-status__time" id="hero-local-time">—</p>
+              <p class="live-status__sub">Port of Spain &middot; <strong id="hero-indicator-count">—</strong> indicators tracked</p>
+            </div>
+
+            <div class="hero-clocks">
+              <div class="hero-clock">
+                <p class="hero-clock__label">National Debt</p>
+                <p class="hero-clock__value"><span data-live-clock="national-debt" aria-live="off">19,400,000,000</span> <span>TTD</span></p>
+                <div class="hero-clock__meta">
+                  <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
+                  <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="national-debt">Trust Card</button>
+                </div>
+              </div>
+              <div class="hero-clock">
+                <p class="hero-clock__label">Debt-to-GDP Ratio</p>
+                <p class="hero-clock__value"><span data-live-clock="debt-to-gdp" aria-live="off">68.4</span> <span>%</span></p>
+                <div class="hero-clock__meta">
+                  <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
+                  <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="debt-to-gdp">Trust Card</button>
+                </div>
+              </div>
+              <div class="hero-clock">
+                <p class="hero-clock__label">Population</p>
+                <p class="hero-clock__value"><span data-live-clock="population" aria-live="off">1,531,000</span></p>
+                <div class="hero-clock__meta">
+                  <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
+                  <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="population">Trust Card</button>
+                </div>
+              </div>
+              <div class="hero-clock">
+                <p class="hero-clock__label">Budget-Year Progress</p>
+                <p class="hero-clock__value"><span data-live-clock="budget-progress" aria-live="off">54</span> <span>%</span></p>
+                <div class="hero-clock__meta">
+                  <span class="trust-badge trust-badge--derived">FTN Derived</span>
+                  <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="budget-progress">Trust Card</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <button type="button" class="reality-insight__next" id="reality-insight-next">Next observation &rarr;</button>
         </div>
       </div>
     </section>

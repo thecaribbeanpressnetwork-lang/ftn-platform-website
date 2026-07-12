@@ -6,13 +6,21 @@
   padding-block: var(--space-48) var(--space-32);
 }
 
-.observatory-hero__top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-24);
+.observatory-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-32);
   margin-bottom: var(--space-32);
+}
+
+.observatory-hero__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.observatory-hero__vitals {
+  min-width: 0;
 }
 
 .observatory-hero__title {
@@ -32,6 +40,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-16);
+  margin-top: var(--space-24);
 }
 
 .observatory-clock {
@@ -44,17 +53,93 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Right-column "vitals" stack: live-status card + the four hero-clock stats,
+   composed as a self-contained control-room glance beside the editorial
+   headline — this is what fills the space the audit flagged as empty,
+   using only elements and data already on the page. */
+.observatory-hero__vitals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.live-status {
+  background: var(--color-charcoal);
+  border: 1px solid #2A2C2F;
+  border-radius: var(--radius-16);
+  padding: var(--space-20, var(--space-24));
+}
+
+.live-status__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.live-status__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-red-on-dark);
+}
+
+.live-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-red);
+  box-shadow: 0 0 0 0 rgba(225, 6, 19, 0.5);
+  animation: live-status-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes live-status-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(225, 6, 19, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(225, 6, 19, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(225, 6, 19, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-status__dot { animation: none; }
+}
+
+.live-status__time {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 2.75rem;
+  line-height: 1.05;
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--space-16);
+}
+
+.live-status__sub {
+  font-size: var(--text-small-size);
+  color: var(--color-silver);
+  margin-top: var(--space-4);
+}
+
+.live-status__sub strong {
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Hero clock widgets — Debt, Debt-to-GDP, Population, Budget progress */
 .hero-clocks {
   display: grid;
   gap: var(--space-16);
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .hero-clock {
   background: var(--color-charcoal);
   border-radius: var(--radius-16);
   padding: var(--space-24);
+  min-width: 0;
 }
 
 .hero-clock__label {
@@ -149,39 +234,150 @@
   text-decoration: underline;
 }
 
-/* Today in Trinidad & Tobago panel */
-.today-panel__grid {
-  display: grid;
-  gap: var(--space-16);
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  margin-bottom: var(--space-16);
+/* Today in Trinidad & Tobago — executive snapshot, not a raw stat grid.
+   Three tiers of visual weight: the current moment (biggest), ambient
+   conditions (small chips), then the national calendar (rings for genuine
+   0-100 progress, plain numbers for day-counts — forcing both into the same
+   ring shape would misrepresent the day-counts, not simplify them). */
+.today-snapshot__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-red);
 }
 
-.today-panel__grid dt {
+.today-snapshot__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-red);
+  animation: live-status-pulse 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today-snapshot__dot { animation: none; }
+}
+
+.today-snapshot__time {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 2.5rem;
+  line-height: 1.05;
+  color: var(--color-black);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--space-4);
+}
+
+.today-snapshot__date {
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+  margin-top: var(--space-4);
+}
+
+.today-conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-24);
+  margin-top: var(--space-24);
+  padding-top: var(--space-20, var(--space-24));
+  border-top: 1px solid #ECECEC;
+}
+
+.today-conditions__label {
   font-size: var(--text-caption-size);
   font-weight: 700;
   color: var(--color-graphite);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin-bottom: var(--space-4);
 }
 
-.today-panel__grid dd {
+.today-conditions__value {
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: var(--text-body-size);
+  margin-top: var(--space-4);
 }
 
-.today-panel__unit {
-  font-family: var(--font-body) !important;
-  font-weight: 400 !important;
-  font-size: var(--text-caption-size) !important;
-  color: var(--color-graphite);
-}
-
-.today-panel__grid--calendar {
+.today-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-24);
+  margin-top: var(--space-24);
+  padding-top: var(--space-20, var(--space-24));
   border-top: 1px solid #ECECEC;
-  padding-top: var(--space-16);
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .today-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .today-metrics {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.today-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.today-ring__graphic {
+  position: relative;
+  display: inline-flex;
+}
+
+.today-ring__value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: var(--text-body-size);
+  color: var(--color-black);
+  font-variant-numeric: tabular-nums;
+}
+
+.today-ring__label {
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  color: var(--color-graphite);
+  margin-top: var(--space-8);
+  max-width: 12ch;
+}
+
+.today-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.today-countdown__value {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--color-black);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.today-countdown__label {
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  color: var(--color-graphite);
+  margin-top: var(--space-8);
+  max-width: 14ch;
 }
 
 .today-panel__note {
@@ -189,6 +385,7 @@
   color: var(--color-graphite);
   border-top: 1px solid #ECECEC;
   padding-top: var(--space-12);
+  margin-top: var(--space-24);
 }
 
 /* What Changed? panel */
@@ -874,15 +1071,10 @@ body.kiosk-mode .search-discover-row {
   display: none;
 }
 
-@media (min-width: 640px) {
-  .hero-clocks {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (min-width: 1024px) {
-  .hero-clocks {
-    grid-template-columns: repeat(4, 1fr);
+  .observatory-hero__grid {
+    grid-template-columns: 1.4fr 1fr;
+    align-items: start;
   }
 
   .observatory-layout {
