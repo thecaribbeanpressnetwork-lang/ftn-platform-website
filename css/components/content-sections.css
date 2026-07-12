@@ -44,6 +44,155 @@
   margin-top: var(--space-32);
 }
 
+/* Page-hero variants (Website v1.2.1) — the single flat page-hero template left every
+   interior page with a large dead void at desktop widths and made every page open
+   identically. These variants share the page-hero's typographic DNA (eyebrow, title,
+   lede) but each gives the right column a distinct, functional job instead of empty
+   space or a copy of the homepage's own motif — different device per page family,
+   never the same composition twice. */
+.page-hero--split .container {
+  display: grid;
+  gap: var(--space-32);
+}
+
+.page-hero__panel {
+  margin-top: var(--space-32);
+}
+
+/* About — a real numbered index of the page's own sections (a genuine sequence,
+   not a decorative counter) */
+.page-hero__index {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #ECECEC;
+}
+
+.page-hero__index li {
+  border-bottom: 1px solid #ECECEC;
+}
+
+.page-hero__index a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-16);
+  padding-block: var(--space-16);
+  text-decoration: none;
+  color: var(--color-black);
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+.page-hero__index a:hover {
+  color: var(--color-red);
+}
+
+.page-hero__index-num {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+}
+
+/* Accessibility — quick facts, a credibility signal rather than a decoration */
+.page-hero__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-24);
+  background: #FAFAFA;
+  border-radius: var(--radius-16);
+}
+
+.page-hero__fact dt {
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-graphite);
+}
+
+.page-hero__fact dd {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-body-size);
+}
+
+/* Resources — quick links into the page's own sections */
+.page-hero__quicklinks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-24);
+  background: #FAFAFA;
+  border-radius: var(--radius-16);
+}
+
+.page-hero__quicklinks p {
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-graphite);
+  margin-bottom: var(--space-4);
+}
+
+.page-hero__quicklinks a {
+  color: var(--color-black);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: var(--text-small-size);
+}
+
+.page-hero__quicklinks a:hover {
+  color: var(--color-red);
+}
+
+/* Contact — how to expect a response, not a duplicate of the categories below */
+.page-hero__note {
+  padding: var(--space-24);
+  border-left: 3px solid var(--color-red);
+  background: #FAFAFA;
+  border-radius: var(--radius-8);
+}
+
+.page-hero__note p {
+  color: var(--color-graphite);
+  font-size: var(--text-small-size);
+}
+
+.page-hero__note p + p {
+  margin-top: var(--space-12);
+}
+
+/* Community Connect / Mission Control — a real product image where the homepage's
+   own hero used an abstract graphic, since these two pages have real product imagery
+   already extracted and approved (RC2) */
+.page-hero__media-frame {
+  border-radius: var(--radius-16);
+  overflow: hidden;
+  border: 1px solid #ECECEC;
+  box-shadow: 0 12px 32px rgba(11, 11, 11, 0.12);
+  line-height: 0;
+}
+
+.page-hero__media-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@media (min-width: 1024px) {
+  .page-hero--split .container {
+    grid-template-columns: 1.3fr 1fr;
+    align-items: start;
+  }
+
+  .page-hero__panel {
+    margin-top: 4px;
+  }
+}
+
 /* Alternating band background for long-form pages */
 .section--tint {
   background: #FAFAFA;
@@ -325,6 +474,173 @@
   }
 
   .module-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* "Coming Soon" redesign (Website v1.2.1) — replaces a callout box in a sea of white
+   with an honest, specific preview of what the section will contain, grounded only in
+   capabilities the platform's own architecture already has (never a fabricated screenshot
+   or a promised date). */
+.preview-grid {
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: 1fr;
+}
+
+.preview-card {
+  padding: var(--space-24);
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-16);
+  background: var(--color-white);
+}
+
+.preview-card__label {
+  display: inline-block;
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-red);
+  margin-bottom: var(--space-12);
+}
+
+.preview-card h3 {
+  margin-bottom: var(--space-8);
+}
+
+.preview-card p {
+  color: var(--color-graphite);
+  font-size: var(--text-small-size);
+}
+
+/* Platform ecosystem diagram (Website v1.2.1) — Platform > products relationship,
+   status-labelled honestly (Live vs. In Development). Deliberately limited to products
+   that already have a real, linkable page today; see CLAUDE.md §4 for the standing
+   Founder Decision keeping Face The Nation out of navigation/mentions until it's live. */
+.ecosystem {
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: 1fr;
+}
+
+.ecosystem__node {
+  display: block;
+  padding: var(--space-24);
+  border-radius: var(--radius-16);
+  border: 1px solid var(--color-charcoal);
+  background: var(--color-charcoal);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.ecosystem__node:hover {
+  border-color: var(--color-red-on-dark);
+}
+
+.ecosystem__node h3 {
+  color: var(--color-white);
+  margin-bottom: var(--space-8);
+}
+
+.ecosystem__node p {
+  color: var(--color-silver);
+  font-size: var(--text-small-size);
+}
+
+.ecosystem__status {
+  display: inline-block;
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-12);
+}
+
+.ecosystem__status--live {
+  background: rgba(233, 71, 80, 0.16);
+  color: var(--color-red-on-dark);
+}
+
+.ecosystem__status--dev {
+  background: rgba(161, 161, 161, 0.16);
+  color: var(--color-silver);
+}
+
+/* Sitemap redesign (Website v1.2.1) — categorized cards mirroring the footer's own
+   grouping, replacing a single flat link list */
+.sitemap-grid {
+  display: grid;
+  gap: var(--space-32);
+  grid-template-columns: 1fr;
+}
+
+.sitemap-group__heading {
+  font-weight: 700;
+  font-size: var(--text-caption-size);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-red);
+  margin-bottom: var(--space-16);
+}
+
+.sitemap-group__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.sitemap-group__links a {
+  font-size: var(--text-body-size);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.sitemap-group__links a:hover {
+  text-decoration-color: var(--color-red);
+}
+
+/* Legal in-page index (Website v1.2.1) — real wayfinding for long documents, not
+   decoration; matches the same "genuine sequence" logic as the About page index */
+.legal-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-bottom: var(--space-48);
+  padding-bottom: var(--space-32);
+  border-bottom: 1px solid #ECECEC;
+}
+
+.legal-index a {
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  color: var(--color-graphite);
+  text-decoration: none;
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid #ECECEC;
+  border-radius: var(--radius-full);
+}
+
+.legal-index a:hover {
+  color: var(--color-black);
+  border-color: var(--color-black);
+}
+
+@media (min-width: 768px) {
+  .preview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ecosystem {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .sitemap-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }

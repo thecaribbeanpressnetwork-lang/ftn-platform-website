@@ -230,11 +230,27 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="page-hero">
+    <section class="page-hero page-hero--split">
       <div class="container">
-        <span class="page-hero__eyebrow">Accessibility</span>
-        <h1 class="page-hero__title">Accessibility Statement</h1>
-        <p class="page-hero__lede">Our accessibility target for the FTN Platform website, and how to tell us when we fall short of it.</p>
+        <div data-reveal>
+          <span class="page-hero__eyebrow">Accessibility</span>
+          <h1 class="page-hero__title">Accessibility Statement</h1>
+          <p class="page-hero__lede">Our accessibility target for the FTN Platform website, and how to tell us when we fall short of it.</p>
+        </div>
+        <dl class="page-hero__panel page-hero__facts" data-reveal>
+          <div class="page-hero__fact">
+            <dt>Target</dt>
+            <dd>WCAG 2.2 Level AA</dd>
+          </div>
+          <div class="page-hero__fact">
+            <dt>Applies to</dt>
+            <dd>Every page on this website</dd>
+          </div>
+          <div class="page-hero__fact">
+            <dt>Found a gap?</dt>
+            <dd><a href="/contact/#support">Tell us what you found</a></dd>
+          </div>
+        </dl>
       </div>
     </section>
     <section class="section">
@@ -335,5 +351,6 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/reveal.js"></script>
 </body>
 </html>

@@ -230,19 +230,24 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="page-hero" id="overview">
+    <section class="page-hero page-hero--split" id="overview">
       <div class="container">
-        <span class="page-hero__eyebrow">Mission Control</span>
-        <h1 class="page-hero__title">A clearer picture for the people responsible for the response.</h1>
-        <p class="page-hero__lede">
-          Mission Control is the government-facing side of FTN Platform — a dashboard built to
-          help agencies see what communities are reporting through Community Connect, understand
-          where issues are concentrated, and track how they're being resolved.
-        </p>
-        <div class="callout u-mt-32 u-max-60ch">
-          The capabilities described on this page reflect Mission Control's current product
-          design. Availability and feature scope may vary by agency and deployment — contact our
-          government team for specifics relevant to your agency.
+        <div data-reveal>
+          <span class="page-hero__eyebrow">Mission Control</span>
+          <h1 class="page-hero__title">A clearer picture for the people responsible for the response.</h1>
+          <p class="page-hero__lede">
+            Mission Control is the government-facing side of FTN Platform — a dashboard built to
+            help agencies see what communities are reporting through Community Connect, understand
+            where issues are concentrated, and track how they're being resolved.
+          </p>
+          <div class="callout u-mt-32 u-max-60ch">
+            The capabilities described on this page reflect Mission Control's current product
+            design. Availability and feature scope may vary by agency and deployment — contact our
+            government team for specifics relevant to your agency.
+          </div>
+        </div>
+        <div class="page-hero__panel page-hero__media-frame" data-reveal>
+          <img src="/assets/mission-control/executive-dashboard-preview.webp" alt="Mission Control Executive Dashboard showing indicators for infrastructure pressure, household pressure, service reliability, agency workload, and improving vs. deteriorating indicator counts" width="1400" height="320">
         </div>
       </div>
     </section>
@@ -421,5 +426,6 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/reveal.js"></script>
 </body>
 </html>

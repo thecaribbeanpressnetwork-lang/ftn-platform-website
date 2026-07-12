@@ -230,14 +230,22 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="page-hero">
+    <section class="page-hero page-hero--split">
       <div class="container">
-        <span class="page-hero__eyebrow">Resources</span>
-        <h1 class="page-hero__title">Help Center</h1>
-        <p class="page-hero__lede">
-          Answers to common questions, documentation status, and media resources for FTN
-          Platform, Community Connect, and Mission Control.
-        </p>
+        <div data-reveal>
+          <span class="page-hero__eyebrow">Resources</span>
+          <h1 class="page-hero__title">Help Center</h1>
+          <p class="page-hero__lede">
+            Answers to common questions, documentation status, and media resources for FTN
+            Platform, Community Connect, and Mission Control.
+          </p>
+        </div>
+        <div class="page-hero__panel page-hero__quicklinks" data-reveal>
+          <p>Jump to</p>
+          <a href="#faq">Frequently Asked Questions</a>
+          <a href="#documentation">Guides &amp; API Access</a>
+          <a href="#media-kit">Media Kit</a>
+        </div>
       </div>
     </section>
 
@@ -383,5 +391,6 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/reveal.js"></script>
 </body>
 </html>

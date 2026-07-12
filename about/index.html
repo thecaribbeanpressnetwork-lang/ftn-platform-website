@@ -230,14 +230,26 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="page-hero">
+    <section class="page-hero page-hero--split">
       <div class="container">
-        <span class="page-hero__eyebrow">About FTN Platform</span>
-        <h1 class="page-hero__title">Built to last. Built to be trusted.</h1>
-        <p class="page-hero__lede">
-          FTN Platform is civic infrastructure, not a campaign. Here's what we're building,
-          why we're building it, and the principles we hold ourselves to along the way.
-        </p>
+        <div data-reveal>
+          <span class="page-hero__eyebrow">About FTN Platform</span>
+          <h1 class="page-hero__title">Built to last. Built to be trusted.</h1>
+          <p class="page-hero__lede">
+            FTN Platform is civic infrastructure, not a campaign. Here's what we're building,
+            why we're building it, and the principles we hold ourselves to along the way.
+          </p>
+        </div>
+        <div class="page-hero__panel" data-reveal>
+          <ol class="page-hero__index">
+            <li><a href="#our-mission"><span class="page-hero__index-num">01</span> Our Mission</a></li>
+            <li><a href="#our-vision"><span class="page-hero__index-num">02</span> Our Vision</a></li>
+            <li><a href="#founding-principles"><span class="page-hero__index-num">03</span> Founding Principles</a></li>
+            <li><a href="#our-philosophy"><span class="page-hero__index-num">04</span> Our Philosophy</a></li>
+            <li><a href="#why-we-built-ftn"><span class="page-hero__index-num">05</span> Why We Built FTN</a></li>
+            <li><a href="#long-term-vision"><span class="page-hero__index-num">06</span> Long-term Vision</a></li>
+          </ol>
+        </div>
       </div>
     </section>
 
@@ -282,6 +294,38 @@
             Our vision is a single connective platform — <em>connecting communities, empowering
             governments, and building a smarter, more transparent nation.</em>
           </p>
+        </div>
+        <div class="ecosystem u-mt-32" data-reveal>
+          <a class="ecosystem__node" href="/community-connect/">
+            <span class="ecosystem__status ecosystem__status--live">Live</span>
+            <h3>Community Connect</h3>
+            <p>The citizen-facing app — report issues, follow their progress, see your community.</p>
+          </a>
+          <a class="ecosystem__node" href="/mission-control/">
+            <span class="ecosystem__status ecosystem__status--live">Live</span>
+            <h3>Mission Control</h3>
+            <p>The government-facing dashboard — the same reports, structured for a response.</p>
+          </a>
+          <a class="ecosystem__node" href="/observatory/">
+            <span class="ecosystem__status ecosystem__status--live">Live</span>
+            <h3>FTN Live</h3>
+            <p>The public Observatory — national indicators, sourced and explained.</p>
+          </a>
+          <a class="ecosystem__node" href="/insights/">
+            <span class="ecosystem__status ecosystem__status--dev">In Development</span>
+            <h3>Insights</h3>
+            <p>Community reports and trend data, aggregated and explained.</p>
+          </a>
+          <a class="ecosystem__node" href="/news/">
+            <span class="ecosystem__status ecosystem__status--dev">In Development</span>
+            <h3>News &amp; Stories</h3>
+            <p>The platform's own story, told as it happens.</p>
+          </a>
+          <a class="ecosystem__node" href="/mission-control/#future-modules">
+            <span class="ecosystem__status ecosystem__status--dev">Exploring</span>
+            <h3>Future Modules</h3>
+            <p>Additional directions under exploration — see our long-term vision below.</p>
+          </a>
         </div>
       </div>
     </section>
@@ -460,5 +504,6 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/reveal.js"></script>
 </body>
 </html>

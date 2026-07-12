@@ -231,30 +231,45 @@
 
   <main id="main" tabindex="-1">
     <section class="page-hero">
-      <div class="container">
+      <div class="container" data-reveal>
         <span class="page-hero__eyebrow">Sitemap</span>
         <h1 class="page-hero__title">Every page on this site.</h1>
       </div>
     </section>
     <section class="section">
       <div class="container">
-        <ul class="plain-list">
-          <li><a href="/">Homepage</a></li>
-          <li><a href="/about/">About FTN</a></li>
-          <li><a href="/community-connect/">Community Connect</a></li>
-          <li><a href="/mission-control/">Mission Control</a></li>
-          <li><a href="/mission-control/demo/">Mission Control — Interactive Demonstration</a></li>
-          <li><a href="/observatory/">FTN Live — National Observatory</a></li>
-          <li><a href="/insights/">Insights</a></li>
-          <li><a href="/news/">News &amp; Stories</a></li>
-          <li><a href="/resources/">Resources</a></li>
-          <li><a href="/contact/">Contact</a></li>
-          <li><a href="/legal/privacy-policy/">Privacy Policy</a></li>
-          <li><a href="/legal/terms-of-service/">Terms of Service</a></li>
-          <li><a href="/legal/cookie-policy/">Cookie Policy</a></li>
-          <li><a href="/legal/data-retention/">Data Retention</a></li>
-          <li><a href="/accessibility/">Accessibility Statement</a></li>
-        </ul>
+        <div class="sitemap-grid" data-reveal>
+          <div class="sitemap-group">
+            <p class="sitemap-group__heading">Platform</p>
+            <div class="sitemap-group__links">
+              <a href="/">Homepage</a>
+              <a href="/about/">About FTN</a>
+              <a href="/community-connect/">Community Connect</a>
+              <a href="/mission-control/">Mission Control</a>
+              <a href="/mission-control/demo/">Mission Control — Interactive Demonstration</a>
+              <a href="/observatory/">FTN Live — National Observatory</a>
+              <a href="/insights/">Insights</a>
+              <a href="/news/">News &amp; Stories</a>
+            </div>
+          </div>
+          <div class="sitemap-group">
+            <p class="sitemap-group__heading">Resources</p>
+            <div class="sitemap-group__links">
+              <a href="/resources/">Resources</a>
+              <a href="/contact/">Contact</a>
+              <a href="/accessibility/">Accessibility Statement</a>
+            </div>
+          </div>
+          <div class="sitemap-group">
+            <p class="sitemap-group__heading">Legal</p>
+            <div class="sitemap-group__links">
+              <a href="/legal/privacy-policy/">Privacy Policy</a>
+              <a href="/legal/terms-of-service/">Terms of Service</a>
+              <a href="/legal/cookie-policy/">Cookie Policy</a>
+              <a href="/legal/data-retention/">Data Retention</a>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -324,5 +339,6 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/reveal.js"></script>
 </body>
 </html>

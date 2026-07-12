@@ -230,18 +230,25 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="page-hero" id="overview">
+    <section class="page-hero page-hero--split" id="overview">
       <div class="container">
-        <span class="page-hero__eyebrow">Community Connect</span>
-        <h1 class="page-hero__title">Report. Connect. Improve.</h1>
-        <p class="page-hero__lede">
-          Your voice. Your community. Your future. Community Connect is the free, citizen-facing
-          side of FTN Platform — a direct way to report issues, follow their progress, and see
-          what's happening across the places you live.
-        </p>
-        <div class="page-hero__actions">
-          <a class="btn btn-primary btn-lg" href="#download">Get Community Connect</a>
-          <a class="btn btn-outline btn-lg" href="#reporting-workflow">See How It Works</a>
+        <div data-reveal>
+          <span class="page-hero__eyebrow">Community Connect</span>
+          <h1 class="page-hero__title">Report. Connect. Improve.</h1>
+          <p class="page-hero__lede">
+            Your voice. Your community. Your future. Community Connect is the free, citizen-facing
+            side of FTN Platform — a direct way to report issues, follow their progress, and see
+            what's happening across the places you live.
+          </p>
+          <div class="page-hero__actions">
+            <a class="btn btn-primary btn-lg" href="#download">Get Community Connect</a>
+            <a class="btn btn-outline btn-lg" href="#reporting-workflow">See How It Works</a>
+          </div>
+        </div>
+        <div class="page-hero__panel phone-strip" data-reveal role="img" aria-label="Community Connect report form, activity feed, and dashboard screens">
+          <img src="/assets/community/community-connect-screen-report-form.webp" alt="" width="282" height="504">
+          <img src="/assets/community/community-connect-screen-activity-feed.webp" alt="" width="282" height="504">
+          <img src="/assets/community/community-connect-screen-dashboard-mobile.webp" alt="" width="282" height="504">
         </div>
       </div>
     </section>
@@ -515,5 +522,6 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/reveal.js"></script>
 </body>
 </html>

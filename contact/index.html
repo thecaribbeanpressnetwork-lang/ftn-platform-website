@@ -230,11 +230,17 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="page-hero">
+    <section class="page-hero page-hero--split">
       <div class="container">
-        <span class="page-hero__eyebrow">Contact</span>
-        <h1 class="page-hero__title">Get in touch.</h1>
-        <p class="page-hero__lede">Whether you're a citizen, a government partner, a journalist, or looking to join the team — here's how to reach us.</p>
+        <div data-reveal>
+          <span class="page-hero__eyebrow">Contact</span>
+          <h1 class="page-hero__title">Get in touch.</h1>
+          <p class="page-hero__lede">Whether you're a citizen, a government partner, a journalist, or looking to join the team — here's how to reach us.</p>
+        </div>
+        <div class="page-hero__panel page-hero__note" data-reveal>
+          <p><strong>Not sure where to start?</strong> Pick the closest category below — General, Government, Media, Partnerships, Careers, or Support.</p>
+          <p>The contact form isn't wired to a backend yet — see Direct Contact below for how to reach us today.</p>
+        </div>
       </div>
     </section>
 
@@ -410,5 +416,6 @@
 
   <script src="/js/nav.js"></script>
   <script src="/js/contact-form.js"></script>
+  <script src="/js/reveal.js"></script>
 </body>
 </html>

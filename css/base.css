@@ -112,6 +112,22 @@ select:focus-visible {
   top: var(--space-16);
 }
 
+/* Scroll-reveal (progressive enhancement — see js/reveal.js). Content is fully visible
+   without JS or with prefers-reduced-motion; .reveal-init/.reveal-in are only ever added
+   by the script itself, so there is no hidden-content-without-JS risk. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].reveal-init {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  [data-reveal].reveal-init.reveal-in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Layout container (AEB-06 grid: 12 columns, 24px gutter/margin, 1260px max) */
 .container {
   width: 100%;
