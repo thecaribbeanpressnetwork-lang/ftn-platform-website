@@ -294,6 +294,17 @@
   margin-top: var(--space-8);
 }
 
+/* Light-background variant -- the homepage's own stat block is white-on-dark
+   by default; reused here (News, and anywhere else a stat needs to sit on a
+   white card) rather than duplicating the component or overriding it with
+   inline styles per instance. */
+.stats-grid--light .stat__value { color: var(--color-black); }
+.stats-grid--light .stat__label { color: var(--color-graphite); }
+
+/* .stat__value's display-scale font-size fits a short number; a place name
+   or other short text string is wider and wraps awkwardly at that size. */
+.stat__value--text { font-size: var(--text-h2-size); }
+
 /* CTA block */
 .cta {
   background: var(--color-red);

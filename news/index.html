@@ -230,14 +230,23 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="page-hero">
-      <div class="container" data-reveal>
-        <span class="page-hero__eyebrow">News &amp; Stories</span>
-        <h1 class="page-hero__title">The platform's own story, as it happens.</h1>
-        <p class="page-hero__lede">
-          What's actually moving across Community Connect, Mission Control, and FTN Live —
-          platform milestones and community impact, not a marketing feed.
-        </p>
+    <section class="page-hero page-hero--split">
+      <div class="container">
+        <div data-reveal>
+          <span class="page-hero__eyebrow">News &amp; Stories</span>
+          <h1 class="page-hero__title">The platform's own story, as it happens.</h1>
+          <p class="page-hero__lede">
+            What's actually moving across Community Connect, Mission Control, and FTN Live —
+            platform milestones and community impact, not a marketing feed.
+          </p>
+        </div>
+        <div class="page-hero__panel page-hero__quicklinks" data-reveal>
+          <p>Jump to</p>
+          <a href="#latest">Latest</a>
+          <a href="#platform-news">Platform News</a>
+          <a href="#community-impact">Community Impact</a>
+          <a href="#ecosystem">Explore the Ecosystem</a>
+        </div>
       </div>
     </section>
 
@@ -297,25 +306,24 @@
           <h2>What the ecosystem is already carrying.</h2>
         </div>
         <div class="chart-card">
-          <div class="module-grid">
-            <div>
-              <p class="u-text-sm u-text-graphite">Resolved Reports</p>
-              <p class="hero-clock__value" style="color:var(--color-black); font-size:2rem;">18,940</p>
-              <p class="u-text-sm u-mb-16">98% resolution rate</p>
-              <button type="button" class="trust-trigger" data-trust-card="community-reports-resolved">Trust Card</button>
+          <div class="stats-grid stats-grid--light" style="text-align:left;">
+            <div class="stat">
+              <p class="stat__value">18,940</p>
+              <p class="stat__label">Resolved Reports &middot; 98% resolution rate</p>
+              <p class="u-mt-8"><button type="button" class="trust-trigger" data-trust-card="community-reports-resolved">Trust Card</button></p>
             </div>
-            <div>
-              <p class="u-text-sm u-text-graphite">Community Participation Index</p>
-              <p class="hero-clock__value" style="color:var(--color-black); font-size:2rem;">66 <span class="u-text-sm u-text-graphite">/ 100</span></p>
-              <span class="trust-badge trust-badge--derived u-mb-16" style="display:inline-block;">FTN Derived</span>
-              <button type="button" class="trust-trigger" data-trust-card="community-participation">Trust Card</button>
-            </div>
-            <div>
-              <p class="u-text-sm u-text-graphite">Most Active Community</p>
-              <p class="hero-clock__value" style="color:var(--color-black); font-size:2rem;">
-                <button type="button" class="trust-trigger" data-community-profile="san-fernando" style="font:inherit; color:inherit;">San Fernando</button>
+            <div class="stat">
+              <p class="stat__value">66 <span class="u-text-sm u-text-graphite">/ 100</span></p>
+              <p class="stat__label">Community Participation Index</p>
+              <p class="u-mt-8">
+                <span class="trust-badge trust-badge--derived">FTN Derived</span>
+                <button type="button" class="trust-trigger" data-trust-card="community-participation">Trust Card</button>
               </p>
-              <span class="trust-badge trust-badge--demo u-mb-16" style="display:inline-block;">Demonstration</span>
+            </div>
+            <div class="stat">
+              <p class="stat__value stat__value--text"><button type="button" class="trust-trigger" data-community-profile="san-fernando" style="font:inherit; color:inherit;">San Fernando</button></p>
+              <p class="stat__label">Most Active Community</p>
+              <p class="u-mt-8"><span class="trust-badge trust-badge--demo">Demonstration</span></p>
             </div>
           </div>
           <p class="u-text-sm u-text-graphite u-mt-24">

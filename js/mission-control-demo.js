@@ -65,7 +65,7 @@
       '<div class="mc-kpi-card' + (kpi.status === 'watch' ? ' mc-kpi-card--watch' : '') + '">' +
         '<p class="mc-kpi-card__title">' + kpi.title + '</p>' +
         '<p class="mc-kpi-card__value">' + value + ' <span>' + kpi.units + '</span></p>' +
-        '<p class="mc-kpi-card__trend mc-kpi-card__trend--' + kpi.trend + '">' + glyph + ' vs. prior period (demo)</p>' +
+        '<p class="mc-kpi-card__trend mc-kpi-card__trend--' + kpi.trend + '">' + glyph + ' vs. prior period</p>' +
       '</div>'
     );
   }
