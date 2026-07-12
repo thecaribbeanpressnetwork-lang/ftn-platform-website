@@ -331,9 +331,12 @@ structure as of Phase 3:
 │   │                                  # every component file directly — see §7.5 — not this file)
 │   └── components/                   # nav, footer, buttons, blocks, accordion,
 │                                      # content-sections, form, legal, trust-card, charts,
-│                                      # observatory, mission-control-demo
+│                                      # observatory, mission-control-demo, presentation-control
 ├── js/
 │   ├── nav.js                        # mobile menu + dropdown behavior (progressive enhancement)
+│   ├── platform-mode.js              # global Presentation/Live Mode flag, loads first (v1.3, §7.8)
+│   ├── data-source.js                # datasource seam a future production engine plugs into (v1.3, §7.8)
+│   ├── presentation-control.js       # floating Presentation Mode control (v1.3, §7.8)
 │   ├── storage.js                    # RC3, §7.7 — shared localStorage JSON get/set/remove helper
 │   ├── contact-form.js               # client-side validation; honest no-backend status message
 │   ├── indicators-data.js            # FTN Live indicator registry (~70 demo indicators, see below)
@@ -824,6 +827,70 @@ open/close rhythm. v1.2.1 extends the language across all 17 pages without dilut
 - **Mission Control Demo and Observatory deliberately untouched** — already carry custom visual
   systems, scored well in the independent creative review that motivated this release, and were
   judged a worse risk/reward ratio than the pages actually needing the work.
+
+**Executive Polish pass (2026-07-12) locked the visual experience.** A full-journey consistency
+review (typography, spacing, hierarchy, component reuse, responsive behavior) across every page
+found and fixed three real defects (News/Insights hero pattern, the Community Impact panel's ad
+hoc styling instead of the real `.stat` component, Mission Control Demo's repeated "(demo)" KPI
+suffix) and confirmed two suspected issues were test-methodology false positives, not product
+bugs. From this point forward, changes to this repository are architectural, not cosmetic, unless
+a verified defect is found — do not re-open visual polish without a new founder directive.
+
+## 7.8 Version 1.3 — Presentation Mode / Live Mode Infrastructure
+
+Platform infrastructure, not a UI feature: a single global mode every flagship platform reads the
+same way, so a future production engine can replace what today is demonstration data without the
+interface ever needing a redesign. Presentation Mode and Live Mode are required to share identical
+layouts, navigation, workflows and interactions — the only thing ever allowed to differ is which
+tier of data a page resolves through the seam below.
+
+- **`js/platform-mode.js` — the one global mode flag.** Loads first, before every other script, on
+  all 17 pages. `FTN.PlatformMode.get()`/`set(mode)`/`isPresentation()`/`isLive()`, persisted to
+  `localStorage` (`ftn-platform-mode`, default `'live'`), broadcasting `ftn:platform-mode-changed`
+  on change. Deliberate entry is a `?mode=presentation` (or `?mode=live`) URL parameter, consumed
+  once and stripped via `history.replaceState` so it never gets bookmarked as if permanent — this
+  is the "intentional action through the normal interface" a mode switch requires. There is no
+  UI control anywhere that switches Live Mode into Presentation Mode; only the reverse direction
+  (Presentation → Live) has an interface affordance, in the floating control below. A mode change
+  takes effect on next navigation/reload, not live mid-page — consistent with every dataset below
+  being resolved once, at page load.
+- **`js/data-source.js` — the datasource seam.** `FTN.DataSource.register(key, tier, data)` /
+  `resolve(key)`. `js/indicators-data.js`, `js/relationships-data.js`, and
+  `js/mission-control-data.js` each register their dataset under a `'presentation'` tier and then
+  resolve that same key straight back into `global.FTN.indicators` / `global.FTN.Relationships` /
+  `global.FTN.MC` exactly as before — no rendering code anywhere changes shape. When a real
+  production engine exists, it registers a `'live'` tier under the same key; Live Mode then
+  resolves to it automatically while Presentation Mode continues resolving to the presentation
+  tier. **No `'live'` tier is registered today** — do not fabricate one. Both modes correctly
+  resolve to the same presentation data right now; that is the honest starting state, not a
+  simulated live feed. Verified by an identity check across all four data-driven pages (Observatory,
+  News, Insights, Mission Control Demo): indicator/relationship/KPI counts are provably equal
+  between Live and Presentation Mode today.
+- **`js/presentation-control.js` + `css/components/presentation-control.css` — the floating
+  control.** Renders only while `FTN.PlatformMode.isPresentation()` is true, on every page. Movable
+  (pointer-drag on its handle, position persisted via `FTN.storage` to `localStorage` so it stays
+  put across navigation), dismissible (hides for the current page view only — it reappears on the
+  next page navigated to, since "available from every page" while the mode is active is the
+  founder-locked requirement, not "permanently gone once closed"), and carries the one deliberate
+  "Exit to Live Mode" action, which sets the mode and reloads. Respects
+  `prefers-reduced-motion` on its status-dot pulse; becomes a full-width bottom bar under 768px
+  rather than a corner pill.
+- **`js/storage.js` is now loaded on all 17 pages** (previously Observatory-only), since the
+  floating control's position-persistence needs it everywhere Presentation Mode can be active —
+  not just on Observatory.
+- **What this deliberately does not do:** no production engine was built (none was asked for —
+  see the Founder Decision below); no page gained a mode-specific visual theme (Presentation Mode
+  and Live Mode render pixel-identical except for the floating control itself, per the founder's
+  explicit "only the datasource differs" rule); Mission Control's own demo-specific datasets
+  (scenario studio inputs, evidence chains, timeline events — content that isn't part of the
+  shared Indicator/Relationship Engine) were not individually wired through the seam beyond the
+  top-level `MC` object registration, since nothing downstream of them needs to diverge by tier
+  yet.
+
+**Founder Decision (2026-07-12) — Presentation Mode is platform infrastructure, to be built once,
+correctly, ahead of Version 1.0 Release Candidate.** Two phases remain after it: final legal
+content integration, then an Executive Release Audit to determine public-deployment readiness. No
+further feature development is planned before the Release Candidate.
 
 ## 8. HTML Standards
 

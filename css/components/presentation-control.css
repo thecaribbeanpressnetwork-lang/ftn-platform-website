@@ -1,0 +1,132 @@
+/*
+  FTN Platform Website — floating Presentation Mode control (js/presentation-control.js).
+  Elegant, unobtrusive, movable, dismissible. Visible only while Presentation Mode is active.
+*/
+
+.presentation-control {
+  position: fixed;
+  right: var(--space-24);
+  bottom: var(--space-24);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-8) var(--space-8) var(--space-12);
+  background: var(--color-charcoal);
+  color: var(--color-white);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-body);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  user-select: none;
+}
+
+.presentation-control--dragging {
+  box-shadow: var(--shadow-xl);
+  opacity: 0.92;
+}
+
+.presentation-control__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: grab;
+  touch-action: none;
+}
+
+.presentation-control--dragging .presentation-control__handle {
+  cursor: grabbing;
+}
+
+.presentation-control__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-red-on-dark);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .presentation-control__dot {
+    animation: presentation-control-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes presentation-control-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.presentation-control__label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.presentation-control__exit {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.presentation-control__exit:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.presentation-control__exit:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.presentation-control__exit:focus-visible,
+.presentation-control__dismiss:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+.presentation-control__dismiss {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--color-silver);
+  font-size: 1.1rem;
+  line-height: 1;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.presentation-control__dismiss:hover {
+  color: var(--color-white);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 767px) {
+  .presentation-control {
+    right: var(--space-16);
+    bottom: var(--space-16);
+    left: var(--space-16);
+    justify-content: space-between;
+  }
+
+  .presentation-control__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

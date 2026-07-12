@@ -28,12 +28,12 @@
       population: 48000,
       reportsTotal: 4210,
       reportsResolved: 3940,
-      positiveStories: ['Community-led cleanup of the San Fernando Hill recreation area (demo)', 'Local drainage report led to a culvert repair within 3 weeks (demo)'],
-      improvements: ['Repaved sections of Coffee Street (demo)', 'New streetlighting on Harris Promenade (demo)'],
+      positiveStories: ['Community-led cleanup of the San Fernando Hill recreation area', 'Local drainage report led to a culvert repair within 3 weeks'],
+      improvements: ['Repaved sections of Coffee Street', 'New streetlighting on Harris Promenade'],
       landmarks: ['San Fernando Hill', 'Harris Promenade', 'King’s Wharf'],
-      schools: ['Naparima College (demo listing)', 'St. Joseph’s Convent (demo listing)'],
-      facilities: ['San Fernando General Hospital (demo listing)'],
-      businesses: ['Central Market (demo listing)'],
+      schools: ['Naparima College', 'St. Joseph’s Convent'],
+      facilities: ['San Fernando General Hospital'],
+      businesses: ['Central Market'],
     }),
   };
 

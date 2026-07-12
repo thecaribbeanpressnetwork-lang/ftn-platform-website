@@ -321,7 +321,8 @@
 
   global.FTN = global.FTN || {};
   global.FTN.CATEGORIES = CATEGORIES;
-  global.FTN.indicators = indicators;
+  if (global.FTN.DataSource) global.FTN.DataSource.register('indicators', 'presentation', indicators);
+  global.FTN.indicators = global.FTN.DataSource ? global.FTN.DataSource.resolve('indicators') : indicators;
   global.FTN.getIndicator = function (id) {
     for (var i = 0; i < indicators.length; i++) {
       if (indicators[i].id === id) return indicators[i];

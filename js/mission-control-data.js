@@ -225,5 +225,6 @@
   ];
 
   global.FTN = global.FTN || {};
-  global.FTN.MC = MC;
+  if (global.FTN.DataSource) global.FTN.DataSource.register('mission-control', 'presentation', MC);
+  global.FTN.MC = global.FTN.DataSource ? global.FTN.DataSource.resolve('mission-control') : MC;
 })(window);

@@ -25,8 +25,8 @@
       '<h2 id="communityProfileTitle" class="trust-card__title">' + p.name + '</h2>' +
       '<p class="trust-card__why">' + p.overview + '</p>' +
       '<dl class="trust-card__fields">' +
-        (p.population ? '<div class="trust-card__row"><dt>Population</dt><dd>' + p.population.toLocaleString('en-US') + ' (demo)</dd></div>' : '') +
-        (p.reportsTotal ? '<div class="trust-card__row"><dt>Community Reports</dt><dd>' + p.reportsTotal.toLocaleString('en-US') + ' total, ' + p.reportsResolved.toLocaleString('en-US') + ' resolved (demo)</dd></div>' : '') +
+        (p.population ? '<div class="trust-card__row"><dt>Population</dt><dd>' + p.population.toLocaleString('en-US') + '</dd></div>' : '') +
+        (p.reportsTotal ? '<div class="trust-card__row"><dt>Community Reports</dt><dd>' + p.reportsTotal.toLocaleString('en-US') + ' total, ' + p.reportsResolved.toLocaleString('en-US') + ' resolved</dd></div>' : '') +
         '<div class="trust-card__row"><dt>History</dt><dd>' + p.history + '</dd></div>' +
       '</dl>' +
       listBlock('Positive Stories', p.positiveStories) +
