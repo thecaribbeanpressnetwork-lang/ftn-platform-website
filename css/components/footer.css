@@ -3,6 +3,7 @@
 .site-footer {
   background: var(--color-black);
   color: var(--color-white);
+  border-top: 2px solid var(--color-red);
   padding-block: var(--space-64) var(--space-32);
 }
 
@@ -14,15 +15,18 @@
 }
 
 .site-footer__brand img {
-  height: 28px;
+  height: 34px;
   width: auto;
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-24);
 }
 
 .site-footer__tagline {
-  color: var(--color-silver);
-  font-size: var(--text-small-size);
-  max-width: 32ch;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--color-white);
+  font-size: var(--text-body-size);
+  line-height: var(--text-h3-line);
+  max-width: 30ch;
 }
 
 .site-footer__social {
@@ -58,10 +62,12 @@
 }
 
 .site-footer__heading {
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-weight: 700;
-  font-size: var(--text-small-size);
-  color: var(--color-white);
+  font-size: var(--text-caption-size);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-silver);
   margin-bottom: var(--space-16);
 }
 

@@ -8,21 +8,22 @@ consistency, per the FTN Release Procedure (first applied 2026-07-11).
 
 | Field | Value |
 |---|---|
-| Platform version | 1.0.0 |
-| Canonical release marker | git tag `v1.0.0` — authoritative; resolve it (`git rev-parse v1.0.0`) rather than trusting a hardcoded hash in this file, which necessarily can't name its own commit |
-| Last functional (code) commit | `97d091d` — RC3, Architecture & Excellence Pass |
+| Platform version | 1.2.0 |
+| Canonical release marker | git tag `v1.2.0` — authoritative; resolve it (`git rev-parse v1.2.0`) rather than trusting a hardcoded hash in this file, which necessarily can't name its own commit |
 | Release date | 2026-07-11 |
 | Branch | `main` |
-| Remote / deployment | None configured at this release — see release report |
+| Remote / deployment | `origin` = `https://github.com/thecaribbeanpressnetwork-lang/ftn-platform-website.git`; Cloudflare Pages, custom domain `ftnplatform.org` |
 
 Note on build number: a commit-count "build number" was considered and dropped from this table —
 it can't stay accurate inside the file whose own commit it would need to count, and a wrong number
-here is worse than no number. Use `git rev-list --count v1.0.0` if a build number is needed.
+here is worse than no number. Use `git rev-list --count v1.2.0` if a build number is needed.
 
 ## History
 
 | Version | Date | Tag | Notes |
 |---|---|---|---|
+| 1.2.0 | 2026-07-11 | `v1.2.0` | Institutional Identity Release — first major creative release. FTN design language established (hero-scale type, node-motif hero, scale-band narrative device, editorial split); homepage narrative and hero fully redesigned (no placeholder); 404 and footer redesigned; nav hover treatment refined; homepage brand-hierarchy fix (h1 no longer borrows Community Connect's tagline); domain/robots.txt/sitemap housekeeping. See §7.4 of CLAUDE.md. |
+| 1.1 (unreleased/no tag) | 2026-07-11 | — | Governance Baseline v1.0 (`07d27ab`) and documentation-architecture lock (`cbdc6d0`) — founder decisions, Design Constitution, and Implementation Roadmap recorded. Explicitly not tagged or deployed as its own release per founder instruction; folded into the 1.2.0 release. |
 | 1.0.0 | 2026-07-11 | `v1.0.0` | First official release. Includes Phases 1–4, RC1 (cleanup/deployment readiness), RC2 (product journey/real screenshots), RC3 (Reality Engine consolidation/Presentation Engine groundwork), plus this version record. |
 
 ## Versioning policy

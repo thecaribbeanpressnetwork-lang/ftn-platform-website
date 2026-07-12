@@ -740,6 +740,54 @@ venues this project doesn't have yet. The architecturally honest move was to mak
 system's extension points genuine (the enum above) rather than add speculative config fields or
 CSS that nothing reads yet.
 
+## 7.4 Version 1.2 — Institutional Identity Release (Design Language)
+
+Version 1.2 was the site's first major *creative* release, following the founder's "Institutional
+Identity Release" directive: the engineering/infrastructure phase was declared complete, and the
+brief was to establish a permanent FTN design language and re-express the site through it — not to
+add features. Nothing here changes a locked Founder Decision (§5); it's new vocabulary built inside
+those constraints.
+
+- **Hero-scale type token (`--text-hero-size`/`--text-hero-line`, `css/tokens.css`).** A fluid
+  (`clamp()`-based), intentionally oversized outlier reserved for exactly one declarative moment per
+  page — the homepage hero headline. Not part of the documented AEB-06 scale and never used for a
+  running heading; using it a second time on the same page would dilute the one thing it's for.
+- **The hero motif (`index.html` `.hero__motif`, styled in `blocks.css`).** The homepage hero was a
+  placeholder box before this release ("Hero photography pending"). With no approved photography
+  available, the resolution is a typography-led hero plus a restrained, hand-authored inline SVG of
+  connected nodes — derived from the platform's own Relationship Engine concept (scattered
+  observations connecting into one picture), not stock imagery or invented iconography. One node is
+  rendered in FTN Red as a single accent, consistent with AEB-08's "red reserved for CTAs" spirit —
+  restraint, not decoration. Hidden below 768px by design: at narrow widths there's no room for it to
+  sit clear of the hero text, and the typography alone already carries the hero.
+- **The scale-band device (`.scale-band`, `blocks.css`).** Replaces the old flat "narrative-band"
+  paragraph. Visualizes the founder's own framing — citizens/councillors/mayors/ministers/national
+  leadership each seeing a different, partial slice of reality — as an escalating typographic list
+  where each line is physically larger than the last, enacting the "zooming out" the copy describes.
+  Marked up as a real `<ul>`/`<li>` list (not `<p>` tags) so it still reads as a list to assistive
+  technology despite the visual escalation.
+- **Editorial split (`.editorial-split`, `blocks.css`).** A two-column "big statement + supporting
+  prose" layout used once, immediately after the hero/scale-band, so the homepage doesn't fall into
+  a repeating eyebrow → h2 → paragraph → card-grid rhythm for its entire length.
+- **404 page and footer.** The 404 page now uses the same `module-card` vocabulary already used
+  elsewhere (composed from existing blocks, per §8's "prefer composing before inventing" rule)
+  instead of a single generic "back to homepage" link. The footer gained a red top border, an
+  elevated (Montserrat, larger) tagline treatment, and eyebrow-style uppercase/tracked column
+  headings — bringing it into the same visual language as the rest of the site rather than reading
+  as a plain utility block.
+- **Nav hover treatment (`nav.css`).** Desktop nav triggers now reveal a thin red underline on
+  hover/open instead of a flat grey background fill — a more editorial, less generic-SaaS affordance,
+  consistent with the red accent's use throughout.
+- **Homepage brand-hierarchy fix.** The homepage `<h1>` previously read "Report. Connect. Improve." —
+  Community Connect's own tagline (§1), not the platform's. It now leads with the platform's own
+  narrative thesis ("No one sees the whole picture.") with FTN Platform's actual tagline
+  ("Connecting Communities. Empowering Governments. Building a Smarter Nation.", §1) as a supporting
+  line, so the homepage speaks as the platform rather than borrowing a sub-product's voice. The
+  `<title>`/`og:title`/`twitter:title` changed to "FTN Platform — The Operating System for Community
+  Intelligence" for the same reason.
+- **Not touched:** the success-green conflict (§5) remains untouched and out of scope — it's a
+  founder-reserved decision, not a creative one.
+
 ## 8. HTML Standards
 
 - Semantic HTML5 landmarks (`header`, `nav`, `main`, `footer`, `section`, `article`) on every page —

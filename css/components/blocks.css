@@ -1,39 +1,99 @@
 /* FTN Platform Website — homepage content blocks (AEB-09 §7) */
 
 .hero {
+  position: relative;
   padding-block: var(--space-64) var(--space-96);
   background: var(--color-white);
+  overflow: hidden;
+}
+
+/* Restrained graphic motif — thin connecting lines and nodes, evoking the
+   Relationship Engine's own idea (scattered fragments becoming one legible
+   picture). Derived from the FTN identity's own conceptual language rather
+   than stock imagery or invented iconography (CLAUDE.md Version 1.2 brief).
+   Purely decorative: aria-hidden, never carries content. */
+.hero__motif {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(56vw, 900px);
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+/* Hidden below tablet — at narrow widths the motif has no room to sit clear of
+   the hero text without overlapping it, and the typography alone already
+   carries the hero. Institutional restraint over forcing it to fit. */
+@media (min-width: 768px) {
+  .hero__motif {
+    display: block;
+  }
+}
+
+.hero__motif svg {
+  width: 100%;
+  height: 100%;
 }
 
 .hero__grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: var(--space-32);
-  align-items: center;
+  align-items: start;
 }
 
 .hero__eyebrow {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
   font-family: var(--font-body);
   font-weight: 700;
   font-size: var(--text-caption-size);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-red);
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-24);
+}
+
+.hero__eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 28px;
+  height: 2px;
+  background: var(--color-red);
 }
 
 .hero__title {
-  font-size: var(--text-display-size);
-  line-height: var(--text-display-line);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: var(--text-hero-size);
+  line-height: var(--text-hero-line);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  max-width: 16ch;
+  margin-bottom: var(--space-32);
+}
+
+.hero__tagline {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  color: var(--color-black);
+  max-width: 34ch;
   margin-bottom: var(--space-16);
 }
 
 .hero__lede {
-  font-size: var(--text-h3-size);
-  line-height: var(--text-h3-line);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
   color: var(--color-graphite);
   margin-bottom: var(--space-32);
-  max-width: 48ch;
+  max-width: 52ch;
 }
 
 .hero__actions {
@@ -42,40 +102,100 @@
   gap: var(--space-16);
 }
 
-.hero__media {
-  border-radius: var(--radius-24);
-  overflow: hidden;
-  background: var(--color-charcoal);
-  aspect-ratio: 4 / 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-silver);
-  font-size: var(--text-small-size);
-  text-align: center;
-  padding: var(--space-24);
-}
-
-/* Narrative band — restrained institutional storytelling, used sparingly */
-.narrative-band {
-  text-align: center;
+/* Narrative band → "Scale" device: an escalating typographic composition
+   directly visualizing the founder's own framing (no one sees the whole
+   picture — every vantage point is real, and partial). Each line reads at
+   a different size to physically enact "zooming out." Dark, deliberate,
+   used exactly once. */
+.scale-band {
+  background: var(--color-black);
+  color: var(--color-white);
   padding-block: var(--space-96);
 }
 
-.narrative-band__lead {
-  font-family: var(--font-heading);
+.scale-band__intro {
+  font-family: var(--font-body);
   font-weight: 700;
-  font-size: var(--text-h1-size);
-  line-height: var(--text-h1-line);
-  margin-bottom: var(--space-24);
+  font-size: var(--text-caption-size);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-red-on-dark);
+  margin-bottom: var(--space-32);
 }
 
-.narrative-band__body {
+.scale-band__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  border-top: 1px solid var(--color-charcoal);
+}
+
+.scale-band__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-16);
+  padding-block: var(--space-12);
+  border-bottom: 1px solid var(--color-charcoal);
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+}
+
+.scale-band__item span:first-child {
+  color: var(--color-silver);
+  font-weight: 600;
+  font-size: var(--text-small-size);
+  min-width: 8ch;
+}
+
+.scale-band__item--1 { font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem); font-weight: 500; }
+.scale-band__item--2 { font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.875rem); font-weight: 600; }
+.scale-band__item--3 { font-size: clamp(1.375rem, 1.1rem + 1.3vw, 2.25rem); font-weight: 600; }
+.scale-band__item--4 { font-size: clamp(1.5rem, 1.15rem + 1.7vw, 2.75rem); font-weight: 700; }
+.scale-band__item--5 { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3.5rem); font-weight: 800; color: var(--color-white); }
+
+.scale-band__resolve {
+  margin-top: var(--space-48);
   max-width: 62ch;
-  margin-inline: auto;
-  color: var(--color-graphite);
   font-size: var(--text-h3-size);
   line-height: var(--text-h3-line);
+  color: var(--color-silver);
+}
+
+.scale-band__resolve strong {
+  color: var(--color-white);
+}
+
+/* Editorial split — a large statement paired with supporting prose, used for
+   the single "why FTN exists" beat immediately after the hero/scale-band so
+   the page doesn't fall into a repeating eyebrow/h2/paragraph rhythm. */
+.editorial-split {
+  display: grid;
+  gap: var(--space-32);
+}
+
+.editorial-split__statement {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 1.2rem + 1.3vw, 2.25rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.editorial-split__body {
+  max-width: 52ch;
+}
+
+@media (min-width: 1024px) {
+  .editorial-split {
+    grid-template-columns: 5fr 6fr;
+    gap: var(--space-64);
+  }
+
+  .editorial-split__statement {
+    position: sticky;
+    top: calc(var(--space-96) + 65px);
+  }
 }
 
 /* Feature block */
@@ -306,8 +426,12 @@
 }
 
 @media (min-width: 1024px) {
-  .hero__grid {
-    grid-template-columns: 1.1fr 1fr;
+  .hero {
+    padding-block: var(--space-128) var(--space-128);
+  }
+
+  .scale-band__item span:first-child {
+    min-width: 10ch;
   }
 
   .feature-grid {
