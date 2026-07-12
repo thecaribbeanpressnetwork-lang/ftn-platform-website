@@ -334,6 +334,21 @@
   background: #F0F0F0;
 }
 
+.cta .module-card__status--live {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--color-white);
+}
+
+.cta .btn-outline {
+  border-color: var(--color-white);
+  color: var(--color-white);
+}
+
+.cta .btn-outline:hover {
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
 /* Section media — real product screenshot showcase (RC2) */
 .section-media {
   border-radius: var(--radius-16);

@@ -407,9 +407,28 @@
   color: var(--color-graphite);
 }
 
+.module-card__status--live {
+  background: rgba(225, 6, 19, 0.08);
+  color: var(--color-red);
+}
+
 .module-card p {
   color: var(--color-graphite);
   font-size: var(--text-small-size);
+}
+
+/* Applications hub (v1.4) — "Coming Soon" products aren't links; no hover affordance */
+.module-card--unavailable {
+  cursor: default;
+}
+
+.module-card--unavailable:hover {
+  border-color: #ECECEC;
+  box-shadow: none;
+}
+
+.module-card--unavailable h3 {
+  text-decoration: none;
 }
 
 /* Screenshot gallery — reference device mockups (RC2, assets/community/) */

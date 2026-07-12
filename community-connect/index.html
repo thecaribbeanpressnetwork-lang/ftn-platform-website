@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Connect — Report. Connect. Improve.</title>
-  <meta name="description" content="Community Connect is the citizen-facing app of FTN Platform — report community issues, track their progress, and see what's happening around you.">
+  <title>Community Connect — Public Beta | FTN Platform</title>
+  <meta name="description" content="Community Connect is the citizen-facing app of FTN Platform — report community issues, track their progress, and see what's happening around you. Public Beta now open.">
   <link rel="canonical" href="/community-connect/">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
   <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="FTN Platform">
-  <meta property="og:title" content="Community Connect — Report. Connect. Improve.">
-  <meta property="og:description" content="Community Connect is the citizen-facing app of FTN Platform — report community issues, track their progress, and see what's happening around you.">
+  <meta property="og:title" content="Community Connect — Public Beta | FTN Platform">
+  <meta property="og:description" content="Community Connect is the citizen-facing app of FTN Platform — report community issues, track their progress, and see what's happening around you. Public Beta now open.">
   <meta property="og:url" content="https://ftnplatform.org/community-connect/">
   <meta property="og:image" content="https://ftnplatform.org/assets/social/og-image-default.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Community Connect — Report. Connect. Improve.">
-  <meta name="twitter:description" content="Community Connect is the citizen-facing app of FTN Platform — report community issues, track their progress, and see what's happening around you.">
+  <meta name="twitter:title" content="Community Connect — Public Beta | FTN Platform">
+  <meta name="twitter:description" content="Community Connect is the citizen-facing app of FTN Platform — report community issues, track their progress, and see what's happening around you. Public Beta now open.">
   <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-image-default.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,6 +66,9 @@
               <a href="/about/#our-philosophy">Our Philosophy</a>
             </div>
           </li>
+          <li class="site-nav__item">
+            <a class="site-nav__trigger site-nav__trigger--link" href="/applications/">Applications</a>
+          </li>
           <li class="site-nav__item" data-nav-item>
             <button type="button" class="site-nav__trigger" data-nav-trigger aria-expanded="false">
               Community Connect
@@ -75,7 +78,7 @@
               <a href="/community-connect/#overview">Overview</a>
               <a href="/community-connect/#reporting-workflow">How It Works</a>
               <a href="/community-connect/#features">Features</a>
-              <a href="/community-connect/#download">Download App</a>
+              <a href="/community-connect/#launch">Launch App</a>
             </div>
           </li>
           <li class="site-nav__item" data-nav-item>
@@ -146,7 +149,7 @@
       </nav>
 
       <div class="site-header__actions">
-        <a class="btn btn-primary btn-sm" href="/community-connect/#download">Download App</a>
+        <a class="btn btn-primary btn-sm" href="/community-connect/#launch">Launch App</a>
         <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
           <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
           <img class="icon-close" src="/assets/icons/icon-close.svg" alt="" width="20" height="20">
@@ -165,12 +168,17 @@
         </div>
       </div>
       <div class="mobile-nav__section">
+        <div class="mobile-nav__links">
+          <a href="/applications/" class="mobile-nav__link--top">Applications</a>
+        </div>
+      </div>
+      <div class="mobile-nav__section">
         <p class="mobile-nav__heading">Community Connect</p>
         <div class="mobile-nav__links">
           <a href="/community-connect/#overview">Overview</a>
           <a href="/community-connect/#reporting-workflow">How It Works</a>
           <a href="/community-connect/#features">Features</a>
-          <a href="/community-connect/#download">Download App</a>
+          <a href="/community-connect/#launch">Launch App</a>
         </div>
       </div>
       <div class="mobile-nav__section">
@@ -225,7 +233,7 @@
         </div>
       </div>
       <div class="mobile-nav__actions">
-        <a class="btn btn-primary" href="/community-connect/#download">Download App</a>
+        <a class="btn btn-primary" href="/community-connect/#launch">Launch App</a>
       </div>
     </div>
   </header>
@@ -234,6 +242,7 @@
     <section class="page-hero page-hero--split" id="overview">
       <div class="container">
         <div data-reveal>
+          <div><span class="module-card__status module-card__status--live">Public Beta</span></div>
           <span class="page-hero__eyebrow">Community Connect</span>
           <h1 class="page-hero__title">Report. Connect. Improve.</h1>
           <p class="page-hero__lede">
@@ -242,7 +251,7 @@
             what's happening across the places you live.
           </p>
           <div class="page-hero__actions">
-            <a class="btn btn-primary btn-lg" href="#download">Get Community Connect</a>
+            <a class="btn btn-primary btn-lg" href="#launch">Launch Community Connect</a>
             <a class="btn btn-outline btn-lg" href="#reporting-workflow">See How It Works</a>
           </div>
         </div>
@@ -369,7 +378,10 @@
           </div>
         </div>
         <p class="u-mt-24 u-text-silver u-text-sm">
-          Full details will be published in our <a class="u-link-on-dark" href="/legal/privacy-policy/">Privacy Policy</a> once finalized.
+          Community Connect has its own in-app privacy notice, shown the first time you open it —
+          it covers exactly what the app collects and how it's used. The FTN Platform website's
+          <a class="u-link-on-dark" href="/legal/privacy-policy/">Privacy Policy</a> covers this
+          website only and does not describe Community Connect's own data handling.
         </p>
       </div>
     </section>
@@ -430,7 +442,7 @@
           <details class="faq-item">
             <summary>Is my data safe?</summary>
             <div class="faq-item__answer">
-              <p>Report data is encrypted in transit, and you're never required to share more personal information than a report needs. See the Privacy section above for details, and our Privacy Policy for the full picture once it's published.</p>
+              <p>Report data is encrypted in transit, and you're never required to share more personal information than a report needs. See the Privacy section above, and the app's own in-app privacy notice (shown the first time you open it) for the full picture.</p>
             </div>
           </details>
           <details class="faq-item">
@@ -443,16 +455,30 @@
       </div>
     </section>
 
-    <section class="section" id="download">
+    <section class="section" id="launch">
       <div class="container">
         <div class="cta">
-          <h2>Get Community Connect</h2>
-          <p>Community Connect is currently in active development. App store availability will be announced here and through our official channels.</p>
+          <span class="module-card__status module-card__status--live">Public Beta &middot; Version 1.0.1 (RC1)</span>
+          <h2>Launch Community Connect.</h2>
+          <p>
+            Community Connect is in public beta ahead of its official launch. You're using a
+            release candidate — you may run into rough edges, and that's exactly what this beta is
+            for. Every bug report and piece of feedback shapes the final release.
+          </p>
           <div class="icon-row icon-row--center">
-            <span class="btn btn-secondary btn--unavailable" aria-disabled="true">Coming Soon — Google Play</span>
-            <span class="btn btn-secondary btn--unavailable" aria-disabled="true">Coming Soon — App Store</span>
+            <a class="btn btn-secondary btn-lg" href="https://community.ftnplatform.org">Launch Community Connect</a>
+            <a class="btn btn-outline btn-lg" href="/contact/#beta-feedback">Beta Feedback</a>
           </div>
-          <p class="u-text-sm">Want early access or updates? <a class="u-link-on-dark" href="/contact/#general">Get in touch</a>.</p>
+          <p class="u-text-sm u-mt-24">
+            Works in any modern browser on desktop, tablet, or mobile — no install required. A
+            native Android app is in preparation for Google Play; iOS is planned for the App
+            Store. Until then, this is the real, complete application.
+          </p>
+          <p class="u-text-sm">
+            Community Connect has its own in-app privacy notice, shown the first time you open it
+            — reports are stored securely and are not linked to your identity unless you choose to
+            share contact details.
+          </p>
         </div>
       </div>
     </section>
@@ -482,6 +508,7 @@
             <p class="site-footer__heading">Platform</p>
             <div class="site-footer__links">
               <a href="/about/">About Us</a>
+              <a href="/applications/">Applications</a>
               <a href="/community-connect/">Community Connect</a>
               <a href="/mission-control/">Mission Control</a>
               <a href="/mission-control/demo/">Mission Control Demo</a>

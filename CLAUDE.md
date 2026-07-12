@@ -291,7 +291,9 @@ structure as of Phase 3:
 /
 ├── index.html                        # Homepage
 ├── about/index.html                  # Mission, Vision, Founding Principles, Philosophy, Vision
-├── community-connect/index.html      # Overview, Features, Workflow, Benefits, Privacy, FAQ
+├── applications/index.html           # v1.4, §7.11 — permanent home for FTN software products
+├── community-connect/index.html      # Official product page — Overview, Features, Workflow,
+│                                      # Benefits, Privacy, FAQ, Public Beta Launch (§7.11)
 ├── mission-control/
 │   ├── index.html                    # Government Dashboard, Analytics, Security, Future Modules (marketing)
 │   └── demo/index.html               # Interactive Demonstration — public preview, not the secure product
@@ -974,6 +976,68 @@ be recommitted by accident. The public website repository now contains only what
 build, deploy, document, and legally operate the public website — matching what this charter has
 always described it as containing (§2, §7). This was repository hygiene / information governance,
 not a website feature change; no page, component, or public content changed as a result.
+
+## 7.11 Operational Phase 1 — Community Connect Public Beta Integration
+
+FTN Platform's flagship policy of never touching Community Connect's source code (§2) held exactly
+as designed once a real integration was needed: Community Connect turned out to already exist as a
+mature, separate application — `github.com/thecaribbeanpressnetwork-lang/ftn-platform` (a
+different repository from this one, same GitHub org), vanilla HTML/CSS/JS + Supabase + PWA +
+Capacitor (Android), at "v1.0.6 Build 7 — Release Candidate Final." This pass integrated it into
+the website as an external application the site links to, never a merge — no Community Connect
+source file was touched except the one field its own code was explicitly built to receive.
+
+- **Deployment architecture: `community.ftnplatform.org`, a dedicated subdomain, not a path under
+  this site.** Community Connect is a Capacitor-wrapped PWA with its own service worker and
+  offline storage scope; a path-based URL risks service-worker scope collisions with this site's
+  own scripts, and a subdomain matches how native app deep-linking (`com.ftn.platform.
+  communityconnect`) and any future FTN product (Mission Control included) should be deployed —
+  this is the precedent-setting pattern, not a one-off choice.
+- **The one sanctioned edit to Community Connect's own repository:** `config.js`'s
+  `WEBSITE_URL` field (both the root copy and its `www/` build-output mirror — the two are kept
+  byte-identical by convention, confirmed diff-clean before and after) was set to
+  `https://ftnplatform.org`. The app's own source comments already named this "the one place a
+  future production website URL will be set... no other file needs to change" — `share.js` and
+  five other files read this single value to build every "download" line in share text. No other
+  line in that repository was touched. Committed locally in that repository; **not pushed** —
+  that repository's push authorization is theirs, not this program's.
+- **`/applications/` — the permanent home for FTN software products** (new page, added to nav and
+  footer on all 18 pages). Community Connect is the only "Live Now" tile with a Public Beta badge;
+  Mission Control and FTN Live are presented alongside it as live ecosystem platforms; Display
+  Network and Media Network are honest "Coming Soon" tiles — rendered as non-interactive `<div>`s
+  (a new `.module-card--unavailable` modifier removes the hover/link affordance), never as dead
+  links, consistent with the site's standing rule against implying availability that doesn't exist.
+- **`/community-connect/` became the one required stop before leaving the site.** Every sitewide
+  CTA that used to read "Download App"/"Download the App"/"Download Now" (header, mobile nav,
+  homepage hero, homepage closing CTA — batch-verified across all pages) now reads "Launch App" /
+  "Launch Community Connect" and points at `/community-connect/#launch`, never directly at the
+  external app. The page's former `#download` section (which said "currently in active
+  development... App store availability will be announced") is now `#launch`: a Public Beta badge,
+  version, an honest beta disclaimer, supported-device notes, a privacy reminder, a "Launch
+  Community Connect" button to the real external URL, and a "Beta Feedback" button — the only two
+  external-facing exits on the entire page. "Return to FTN Platform" is deliberately *not* a
+  separate UI element: the page keeps full site header/footer chrome (never stripped for a
+  "landing page" feel), and returning is the ordinary browser back button once a visitor leaves for
+  `community.ftnplatform.org` — Community Connect's own UI was not modified to add a link back,
+  since nothing beyond `WEBSITE_URL` was authorized there.
+- **A real accuracy fix, not a redesign:** the Privacy section's "Full details will be published in
+  our Privacy Policy once finalized" was stale twice over — the website's Privacy Policy is now
+  published, but it explicitly scopes itself to the website only and does not cover Community
+  Connect (§1.7 of the Legal Framework, `GOVERNANCE/...Governance_and_Legal_Framework.md`).
+  Pointing a beta tester at that document as if it covered the app would have been actively
+  misleading. Fixed to correctly describe Community Connect's own in-app privacy notice (verified
+  directly — the first-launch consent screen was screenshotted during testing) as the governing
+  document for the app, not this site's policy.
+- **Contact's ninth category:** "Community Connect Beta Feedback," reusing the existing
+  category-card-plus-select pattern exactly (no second feedback system) — placed next to Technical
+  Support, whose own description was narrowed to avoid overlapping it.
+- **Verified, not assumed:** Community Connect was actually run from its own repository via a local
+  static server and driven with Playwright — zero console errors, service worker registers
+  correctly, `WEBSITE_URL` confirmed live at the configured value. The website side was re-verified
+  in full after every change: 0 broken links/hashes/assets across all 18 pages (exhaustive, not
+  sampled), 0 overflow/console errors across 90 page×breakpoint combinations, byte-identical
+  header/footer across all 18 pages, and a fresh Presentation Mode lifecycle re-check to confirm
+  nothing in this pass regressed §7.8's infrastructure.
 
 ## 8. HTML Standards
 
