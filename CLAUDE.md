@@ -788,6 +788,43 @@ those constraints.
 - **Not touched:** the success-green conflict (§5) remains untouched and out of scope — it's a
   founder-reserved decision, not a creative one.
 
+### Version 1.2.1 — Design Language Completion
+
+v1.2.0 established the FTN design language on the homepage only; every interior page still used
+one flat `.page-hero` template with large dead whitespace at desktop widths and an identical
+open/close rhythm. v1.2.1 extends the language across all 17 pages without diluting the homepage.
+
+- **Page-hero panel family (`content-sections.css`, `.page-hero--split` + `.page-hero__panel`
+  modifiers).** A shared two-column grid whose right-side panel does a different, genuine job per
+  page family instead of repeating one composition: `.page-hero__index` (a real numbered section
+  index — About), `.page-hero__media-frame` (real product imagery reusing already-approved
+  RC2 assets — Community Connect, Mission Control), `.page-hero__quicklinks` (Resources),
+  `.page-hero__note` (Contact), `.page-hero__facts` (Accessibility). Same FTN typographic DNA,
+  different device each time — the point of "consistency without repetition."
+- **Platform ecosystem diagram (`about/index.html` Our Vision, `.ecosystem` in
+  `content-sections.css`).** Community Connect / Mission Control / FTN Live shown status-labelled
+  "Live"; Insights / News & Stories "In Development"; a generic "Future Modules" node "Exploring."
+  Face The Nation is deliberately absent — the standing Founder Decision (§4) keeping it out of
+  navigation and mentions until it's a real live product governs this too, not just the nav/404.
+- **Coming Soon pages redesigned** (`insights/`, `news/`) — specific headlines plus a 3-card
+  preview of what each will contain, grounded only in capabilities the platform's existing
+  architecture (Indicator Engine, Relationship Engine) already has. No fabricated screenshot,
+  date, or feature promise.
+- **Sitemap rebuilt** as a categorized card grid mirroring the footer's own Platform/Resources/
+  Legal grouping. **All four legal pages** gained a real in-page index anchored to their own
+  `<h2>` sequence (`.legal-index`) — genuine wayfinding for a long document, not decoration.
+- **One motion moment (`js/reveal.js` + `base.css`).** A fade/rise reveal on hero content and a
+  handful of key blocks (the scale-band, the ecosystem diagram, preview grids). Progressive
+  enhancement throughout: content is fully visible with JS disabled, with
+  `prefers-reduced-motion`, or if `IntersectionObserver` is unsupported. Carries a bounded
+  per-element fallback timer (1.2s) — testing surfaced that relying solely on the observer left a
+  theoretical path for content to stay invisible if it never fired for a given element; the
+  fallback guarantees nothing can stay hidden waiting on JS. This is the site's only motion
+  anywhere — deliberately singular, not a pattern to scatter onto every element.
+- **Mission Control Demo and Observatory deliberately untouched** — already carry custom visual
+  systems, scored well in the independent creative review that motivated this release, and were
+  judged a worse risk/reward ratio than the pages actually needing the work.
+
 ## 8. HTML Standards
 
 - Semantic HTML5 landmarks (`header`, `nav`, `main`, `footer`, `section`, `article`) on every page —
