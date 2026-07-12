@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Insights — Coming Soon | FTN Platform</title>
-  <meta name="description" content="Community reports, trends, and data-driven insights from FTN Platform — coming soon.">
+  <title>Insights | FTN Platform</title>
+  <meta name="description" content="Why it matters — patterns, trends, and connections behind FTN Platform's national indicators and community reports.">
   <link rel="canonical" href="/insights/">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
   <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="FTN Platform">
-  <meta property="og:title" content="Insights — Coming Soon | FTN Platform">
-  <meta property="og:description" content="Community reports, trends, and data-driven insights from FTN Platform — coming soon.">
+  <meta property="og:title" content="Insights | FTN Platform">
+  <meta property="og:description" content="Why it matters — patterns, trends, and connections behind FTN Platform's national indicators and community reports.">
   <meta property="og:url" content="https://ftnplatform.org/insights/">
   <meta property="og:image" content="https://ftnplatform.org/assets/social/og-image-default.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Insights — Coming Soon | FTN Platform">
-  <meta name="twitter:description" content="Community reports, trends, and data-driven insights from FTN Platform — coming soon.">
+  <meta name="twitter:title" content="Insights | FTN Platform">
+  <meta name="twitter:description" content="Why it matters — patterns, trends, and connections behind FTN Platform's national indicators and community reports.">
   <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-image-default.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,10 +99,10 @@
               <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
             </button>
             <div class="site-nav__dropdown">
-              <a href="/insights/">Community Reports</a>
-              <a href="/insights/">Trends Dashboard</a>
-              <a href="/insights/">Data in Action</a>
-              <a href="/insights/">Mayor's Briefing</a>
+              <a href="/insights/#what-changed">What Changed</a>
+              <a href="/insights/#patterns">Patterns</a>
+              <a href="/insights/#connections">How Things Connect</a>
+              <a href="/insights/#community-reports">Community Reports</a>
             </div>
           </li>
           <li class="site-nav__item" data-nav-item>
@@ -111,10 +111,10 @@
               <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
             </button>
             <div class="site-nav__dropdown">
-              <a href="/news/">News</a>
-              <a href="/news/">Success Stories</a>
-              <a href="/news/">Events</a>
-              <a href="/news/">Press Releases</a>
+              <a href="/news/#latest">Latest</a>
+              <a href="/news/#platform-news">Platform News</a>
+              <a href="/news/#community-impact">Community Impact</a>
+              <a href="/news/#ecosystem">Ecosystem</a>
             </div>
           </li>
           <li class="site-nav__item" data-nav-item>
@@ -190,19 +190,19 @@
       <div class="mobile-nav__section">
         <p class="mobile-nav__heading">Insights</p>
         <div class="mobile-nav__links">
-          <a href="/insights/">Community Reports</a>
-          <a href="/insights/">Trends Dashboard</a>
-          <a href="/insights/">Data in Action</a>
-          <a href="/insights/">Mayor's Briefing</a>
+          <a href="/insights/#what-changed">What Changed</a>
+          <a href="/insights/#patterns">Patterns</a>
+          <a href="/insights/#connections">How Things Connect</a>
+          <a href="/insights/#community-reports">Community Reports</a>
         </div>
       </div>
       <div class="mobile-nav__section">
         <p class="mobile-nav__heading">News &amp; Stories</p>
         <div class="mobile-nav__links">
-          <a href="/news/">News</a>
-          <a href="/news/">Success Stories</a>
-          <a href="/news/">Events</a>
-          <a href="/news/">Press Releases</a>
+          <a href="/news/#latest">Latest</a>
+          <a href="/news/#platform-news">Platform News</a>
+          <a href="/news/#community-impact">Community Impact</a>
+          <a href="/news/#ecosystem">Ecosystem</a>
         </div>
       </div>
       <div class="mobile-nav__section">
@@ -232,41 +232,87 @@
   <main id="main" tabindex="-1">
     <section class="page-hero">
       <div class="container" data-reveal>
-        <span class="page-hero__eyebrow">Insights &middot; In Development</span>
-        <h1 class="page-hero__title">The evidence behind every report, in one place.</h1>
+        <span class="page-hero__eyebrow">Insights</span>
+        <h1 class="page-hero__title">Why it matters.</h1>
         <p class="page-hero__lede">
-          Insights is where community reports become patterns — the same Indicator Engine and
-          Relationship Engine already powering FTN Live, applied to what citizens are reporting
-          through Community Connect. It isn't live yet. Here's what it will contain.
+          FTN Live tracks what's happening right now. Insights explains why — the patterns,
+          trends, and connections behind the same Indicator Engine and Relationship Engine,
+          read for context instead of a live glance.
         </p>
       </div>
     </section>
+
+    <section class="section" id="what-changed">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">What Changed</span>
+          <h2>The biggest movers, and what they're measured against.</h2>
+        </div>
+        <div class="chart-card" id="what-changed-mount"></div>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="patterns">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">Patterns</span>
+          <h2>What the data is showing, in plain language.</h2>
+        </div>
+        <div id="patterns-mount" class="module-grid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="connections">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">How Things Connect</span>
+          <h2>Indicators rarely move alone.</h2>
+        </div>
+        <div id="connections-mount" class="module-grid"></div>
+        <p class="u-text-sm u-text-graphite u-mt-16 u-max-60ch">
+          Correlation, not causation — each connection above discloses its own confidence,
+          sample, and limitations in its Trust Card.
+        </p>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="community-reports">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">Community Reports</span>
+          <h2>The same reports Mission Control acts on, made legible to the public.</h2>
+        </div>
+        <div class="chart-card u-max-68ch">
+          <p>
+            Community participation is trending up — a signal that more residents are engaging
+            with the reporting process, not just that more issues exist. Read alongside the
+            resolution rate, that's the pairing worth watching: participation and resolution
+            rising together is what a healthy reporting loop looks like.
+          </p>
+          <p class="u-mt-16"><a href="/news/#community-impact">See the current numbers on News &amp; Stories &rarr;</a></p>
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="container">
         <div class="section__header">
-          <span class="section__eyebrow">What's Coming</span>
-          <h2>Three things Insights will contain.</h2>
+          <span class="section__eyebrow">Go Deeper</span>
+          <h2>Explore the full picture.</h2>
         </div>
-        <div class="preview-grid" data-reveal>
-          <div class="preview-card">
-            <span class="preview-card__label">Planned</span>
-            <h3>Community Reports</h3>
-            <p>Aggregated views of what's being reported, grouped by category and area — the same underlying reports Mission Control acts on, made legible to the public.</p>
-          </div>
-          <div class="preview-card">
-            <span class="preview-card__label">Planned</span>
-            <h3>Trends Dashboard</h3>
-            <p>Report volume and category trends over time, built on the same indicator architecture that already drives FTN Live's live wall.</p>
-          </div>
-          <div class="preview-card">
-            <span class="preview-card__label">Planned</span>
-            <h3>Mayor's Briefing</h3>
-            <p>A regular structured summary for local leadership — what changed, where, and what it connects to.</p>
-          </div>
-        </div>
-        <div class="callout u-max-60ch u-mt-32">
-          In the meantime, explore <a href="/observatory/">FTN Live</a>, which already runs on the
-          engine Insights will extend, or <a href="/contact/#general">get in touch</a> with questions.
+        <div class="module-grid">
+          <a class="module-card" href="/observatory/">
+            <h3>FTN Live</h3>
+            <p>The full national indicator wall — search, filter, and every Trust Card, live.</p>
+          </a>
+          <a class="module-card" href="/mission-control/demo/">
+            <h3>Mission Control</h3>
+            <p>The Correlation Engine and Reality Graph, explored interactively.</p>
+          </a>
+          <a class="module-card" href="/news/">
+            <h3>News &amp; Stories</h3>
+            <p>What's happening — platform milestones and community impact.</p>
+          </a>
         </div>
       </div>
     </section>
@@ -337,6 +383,14 @@
   </footer>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/source-registry.js"></script>
+  <script src="/js/indicators-data.js"></script>
+  <script src="/js/relationships-data.js"></script>
+  <script src="/js/charts.js"></script>
+  <script src="/js/trust-card.js"></script>
+  <script src="/js/reality-insights.js"></script>
+  <script src="/js/what-changed.js"></script>
+  <script src="/js/insights-page.js"></script>
   <script src="/js/reveal.js"></script>
 </body>
 </html>
