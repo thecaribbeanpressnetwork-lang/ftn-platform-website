@@ -137,9 +137,11 @@
 
 .hero-clock {
   background: var(--color-charcoal);
+  border: 1px solid #2A2C2F;
   border-radius: var(--radius-16);
   padding: var(--space-24);
   min-width: 0;
+  box-shadow: var(--shadow-md);
 }
 
 .hero-clock__label {
