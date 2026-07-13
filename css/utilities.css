@@ -26,13 +26,16 @@
 
 .u-icon-invert { filter: invert(1); }
 
+/* Reconciled to match nav.css/footer.css's own logo sizing (v1.5 pass) — not currently
+   applied in markup (the header/footer logos are sized via element selectors instead) but
+   kept consistent for any future use. */
 .logo-mark {
-  height: 32px;
+  height: 36px;
   width: auto;
 }
 
 .logo-mark--footer {
-  height: 28px;
+  height: 40px;
   width: auto;
 }
 

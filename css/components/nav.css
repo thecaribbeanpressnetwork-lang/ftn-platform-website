@@ -21,7 +21,10 @@
 }
 
 .site-header__logo img {
-  height: 32px;
+  /* Executive Design System pass: the wordmark is the strongest anchor on every page --
+     reconciled from three inconsistent values (32px header / 34px footer / an unused 28px
+     utility) into one deliberate hierarchy. See footer.css for the footer's own (larger) size. */
+  height: 36px;
   width: auto;
 }
 
@@ -50,11 +53,12 @@
   background: none;
   border: none;
   font-family: var(--font-body);
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--text-small-size);
   color: var(--color-black);
   border-radius: var(--radius-8);
   cursor: pointer;
+  transition: color 0.15s ease;
 }
 
 .site-nav__trigger::after {
@@ -147,12 +151,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: none;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-8);
   cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.nav-toggle:hover {
+  border-color: var(--color-black);
+  background: var(--color-tint);
 }
 
 .nav-toggle svg {
@@ -177,7 +187,10 @@
   display: none;
   position: fixed;
   inset: 0;
-  top: 65px;
+  /* Header height grew from 65px to 77px (44px nav-toggle touch target + 16px/16px bar
+     padding + 1px border) when the nav-toggle was enlarged in the v1.5 pass -- kept in sync
+     here since this is a fixed offset, not something the flexbox layout resolves for us. */
+  top: 77px;
   z-index: 40;
   background: var(--color-white);
   overflow-y: auto;

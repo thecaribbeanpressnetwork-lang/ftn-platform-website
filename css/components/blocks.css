@@ -194,7 +194,8 @@
 
   .editorial-split__statement {
     position: sticky;
-    top: calc(var(--space-96) + 65px);
+    /* 69px = real desktop header height (v1.5: logo 32px -> 36px, nav.css) */
+    top: calc(var(--space-96) + 69px);
   }
 }
 

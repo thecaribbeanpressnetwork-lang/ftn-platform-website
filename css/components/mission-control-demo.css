@@ -63,7 +63,8 @@
   gap: var(--space-8);
   padding-block: var(--space-16);
   position: sticky;
-  top: 65px;
+  /* Kept in sync with the header's real desktop height (v1.5: 65px -> 69px, nav.css) */
+  top: 69px;
   background: var(--color-white);
   border-bottom: 1px solid var(--color-border);
   z-index: 10;

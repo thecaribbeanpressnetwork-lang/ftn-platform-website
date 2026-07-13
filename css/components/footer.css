@@ -7,6 +7,12 @@
   padding-block: var(--space-64) var(--space-32);
 }
 
+@media (min-width: 1024px) {
+  .site-footer {
+    padding-block: var(--space-96) var(--space-32);
+  }
+}
+
 .site-footer__top {
   display: grid;
   grid-template-columns: 1fr;
@@ -15,7 +21,9 @@
 }
 
 .site-footer__brand img {
-  height: 34px;
+  /* Reconciled from three inconsistent logo sizes into one deliberate hierarchy — see
+     nav.css's header logo (36px) for the other half of this fix. */
+  height: 40px;
   width: auto;
   margin-bottom: var(--space-24);
 }
@@ -39,15 +47,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   border: 1px solid var(--color-charcoal);
   color: var(--color-white);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .site-footer__social a:hover {
   background: var(--color-charcoal);
+  border-color: var(--color-red-on-dark);
 }
 
 .site-footer__social svg {
