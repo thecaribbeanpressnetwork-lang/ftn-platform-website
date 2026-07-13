@@ -113,6 +113,14 @@
   --grid-gutter: 1.5rem; /* 24px */
   --grid-margin: 1.5rem; /* 24px */
   --container-max: 1260px;
+
+  /* Heritage Layer System (v1.6 Caribbean Executive Identity pass) — near-invisible
+     technical-diagram backgrounds (bathymetry, compass roses, survey/radar/waveform lines)
+     scoped to css/components/heritage-layer.css. Opacity intentionally low and fixed to a
+     narrow band — these are discovered over time, never a focal graphic. Two variants:
+     default for line work on a light surface, --on-dark for line work on black/charcoal. */
+  --heritage-opacity: 0.05;
+  --heritage-opacity-on-dark: 0.08;
 }
 
 /* Breakpoints (AEB-06 §3) — documented here for reference; media queries use literal px values

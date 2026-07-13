@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="/css/components/footer.css">
   <link rel="stylesheet" href="/css/components/blocks.css">
   <link rel="stylesheet" href="/css/components/content-sections.css">
+  <link rel="stylesheet" href="/css/components/heritage-layer.css">
   <link rel="stylesheet" href="/css/components/accordion.css">
   <link rel="stylesheet" href="/css/components/form.css">
   <link rel="stylesheet" href="/css/components/legal.css">
@@ -248,6 +249,26 @@
 
   <main id="main" tabindex="-1">
     <section class="page-hero page-hero--split" id="overview">
+      <div class="heritage-layer heritage-layer--mission-control" aria-hidden="true">
+        <svg viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <!-- Satellite geometry and radar sweep rings — an operations-centre instrument,
+               not a decoration. -->
+          <g stroke="currentColor" stroke-width="1" transform="translate(1080,250)">
+            <circle r="220" />
+            <circle r="160" />
+            <circle r="100" />
+            <circle r="40" />
+            <line x1="-220" y1="0" x2="220" y2="0" />
+            <line x1="0" y1="-220" x2="0" y2="220" />
+          </g>
+          <g stroke="currentColor" stroke-width="1">
+            <path d="M760,120 C820,60 900,50 950,90" stroke-dasharray="3 5" />
+            <circle cx="950" cy="90" r="4" fill="currentColor" stroke="none" />
+            <path d="M700,420 C780,460 880,455 940,410" stroke-dasharray="3 5" />
+            <circle cx="700" cy="420" r="4" fill="currentColor" stroke="none" />
+          </g>
+        </svg>
+      </div>
       <div class="container">
         <div data-reveal>
           <span class="page-hero__eyebrow">Mission Control</span>

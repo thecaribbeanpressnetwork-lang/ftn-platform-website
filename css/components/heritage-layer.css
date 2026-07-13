@@ -1,0 +1,52 @@
+/*
+  FTN Platform Website — Heritage Layer System (v1.6 Caribbean Executive Identity pass).
+
+  Near-invisible technical-diagram backgrounds — bathymetry, compass roses, survey marks,
+  radar/satellite geometry, isobars, broadcast waveforms, editorial grids, guilloché engraving.
+  These are not illustrations or hero graphics — they are discovered over time, not advertised.
+  One shared mechanism, many page-specific SVGs (authored inline per page, matching the
+  homepage's existing hand-drawn motif pattern rather than a new asset-loading approach).
+
+  Every heritage layer is purely decorative: aria-hidden, never carries content, never
+  intercepts pointer events, never affects layout (absolutely positioned within a container
+  the page already establishes as position:relative + overflow:hidden).
+*/
+
+.heritage-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: var(--heritage-opacity);
+}
+
+.heritage-layer--on-dark {
+  opacity: var(--heritage-opacity-on-dark);
+}
+
+.heritage-layer svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Line color: inherits from context. Light surfaces draw in black/graphite; dark surfaces
+   draw in white/silver. Each page's inline SVG sets stroke="currentColor" and the container
+   sets `color`, so one shared rule works everywhere rather than per-page overrides. */
+.heritage-layer {
+  color: var(--color-black);
+}
+
+.heritage-layer--on-dark {
+  color: var(--color-white);
+}
+
+/* Reduced-motion respecting: any animated heritage layer (radar sweep, drifting current lines,
+   constellation drift, waveform breathing) is opted into motion only when the visitor hasn't
+   asked for less of it. Individual page CSS defines the @keyframes; this just gates them. */
+@media (prefers-reduced-motion: reduce) {
+  .heritage-layer * {
+    animation: none !important;
+  }
+}

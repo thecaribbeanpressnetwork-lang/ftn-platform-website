@@ -1,9 +1,16 @@
 /* FTN Platform Website — Mission Control Interactive Demonstration */
 
 .mc-demo-hero {
+  position: relative;
+  overflow: hidden;
   background: var(--color-black);
   color: var(--color-white);
   padding-block: var(--space-48) var(--space-32);
+}
+
+.mc-demo-hero > .container {
+  position: relative;
+  z-index: 1;
 }
 
 .mc-demo-hero__title {

@@ -19,8 +19,15 @@
 
 /* Simple page hero — interior pages that don't need the homepage's split-media hero */
 .page-hero {
+  position: relative;
+  overflow: hidden;
   padding-block: var(--space-64) var(--space-48);
   border-bottom: 1px solid var(--color-border);
+}
+
+.page-hero > .container {
+  position: relative;
+  z-index: 1;
 }
 
 @media (min-width: 1024px) {

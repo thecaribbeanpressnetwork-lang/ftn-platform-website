@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="/css/components/footer.css">
   <link rel="stylesheet" href="/css/components/blocks.css">
   <link rel="stylesheet" href="/css/components/content-sections.css">
+  <link rel="stylesheet" href="/css/components/heritage-layer.css">
   <link rel="stylesheet" href="/css/components/accordion.css">
   <link rel="stylesheet" href="/css/components/form.css">
   <link rel="stylesheet" href="/css/components/legal.css">
@@ -248,6 +249,30 @@
 
   <main id="main" tabindex="-1">
     <section class="hero">
+      <div class="heritage-layer heritage-layer--home" aria-hidden="true">
+        <svg viewBox="0 0 1400 700" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <!-- Caribbean Sea bathymetry — depth contours and current lines, drawn as an
+               Admiralty-chart survey would render them. Purely atmospheric: aria-hidden,
+               opacity governed by --heritage-opacity (heritage-layer.css), never advertised. -->
+          <g stroke="currentColor" stroke-width="1" fill="none">
+            <path d="M-50,120 C250,90 500,150 800,110 C1050,80 1250,140 1450,100" />
+            <path d="M-50,210 C300,180 550,240 850,200 C1100,170 1300,230 1450,190" />
+            <path d="M-50,300 C280,340 520,270 780,320 C1050,360 1280,290 1450,330" />
+            <path d="M-50,400 C320,370 560,420 840,380 C1090,350 1300,410 1450,375" />
+            <path d="M-50,490 C260,530 540,460 820,510 C1080,545 1290,480 1450,515" />
+            <path d="M-50,580 C300,555 560,600 830,565 C1080,540 1300,590 1450,560" />
+          </g>
+          <g stroke="currentColor" stroke-width="0.75" stroke-dasharray="2 6">
+            <path d="M-50,155 C260,130 520,180 820,150 C1070,125 1270,175 1450,145" />
+            <path d="M-50,345 C300,310 550,365 830,335 C1080,310 1300,355 1450,320" />
+          </g>
+          <g stroke="currentColor" stroke-width="1">
+            <circle cx="1120" cy="240" r="2.5" fill="currentColor" />
+            <circle cx="1120" cy="240" r="14" />
+            <circle cx="1120" cy="240" r="26" />
+          </g>
+        </svg>
+      </div>
       <div class="hero__motif" aria-hidden="true">
         <svg viewBox="0 0 600 700" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g stroke="#A1A1A1" stroke-width="1" opacity="0.45">
