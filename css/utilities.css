@@ -98,6 +98,23 @@
   border-color: var(--color-red);
 }
 
+/* On a dark section, the icon-circle border/hover flip to a dark-appropriate treatment. The
+   icon itself is an <img>-referenced SVG (not inline), so "color" doesn't reach it -- the same
+   filter:invert(1) trick already used for .ftn-social-card__icon img applies here. */
+.section--dark .icon-circle--light {
+  border-color: var(--color-charcoal);
+  color: var(--color-white);
+}
+
+.section--dark .icon-circle--light img {
+  filter: invert(1);
+}
+
+.section--dark .icon-circle--light:hover {
+  background: var(--color-charcoal);
+  border-color: var(--color-red-on-dark);
+}
+
 .inquiry-category__title {
   font-size: var(--text-body-size);
 }
