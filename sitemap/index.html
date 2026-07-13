@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="/css/components/blocks.css">
   <link rel="stylesheet" href="/css/components/content-sections.css">
   <link rel="stylesheet" href="/css/components/heritage-layer.css">
+  <link rel="stylesheet" href="/css/components/country-switcher.css">
   <link rel="stylesheet" href="/css/components/accordion.css">
   <link rel="stylesheet" href="/css/components/form.css">
   <link rel="stylesheet" href="/css/components/legal.css">
@@ -151,6 +152,7 @@
       </nav>
 
       <div class="site-header__actions">
+        <button type="button" class="country-switcher-trigger" data-country-trigger aria-haspopup="dialog"><span class="country-switcher-trigger__pin" aria-hidden="true"></span><span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></button>
         <a class="btn btn-primary btn-sm" href="/community-connect/#launch">Launch App</a>
         <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
           <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
@@ -238,6 +240,7 @@
         </div>
       </div>
       <div class="mobile-nav__actions">
+        <button type="button" class="mobile-nav__country-switcher" data-country-trigger aria-haspopup="dialog"><span><span class="country-switcher-trigger__pin" aria-hidden="true"></span> <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></span><span aria-hidden="true">&rsaquo;</span></button>
         <a class="btn btn-primary" href="/community-connect/#launch">Launch App</a>
       </div>
     </div>
@@ -372,7 +375,9 @@
 
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
+  <script src="/js/country.js"></script>
   <script src="/js/nav.js"></script>
+  <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
 </body>
