@@ -551,6 +551,12 @@
   .module-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  /* Applications' "Live Now" grid holds exactly 4 cards — 3 columns leaves the 4th stranded
+     alone in its own row. 2x2 reads as a complete, balanced set instead. */
+  #live .module-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* "Coming Soon" redesign (Website v1.2.1) — replaces a callout box in a sea of white
