@@ -18,6 +18,16 @@
 
 .site-header__logo {
   display: inline-flex;
+  /* v1.6 pass: the wordmark is the institutional flag, not just a link -- deliberate
+     clearance from the nav beside it so it never feels crowded. Only applied at >=1260px,
+     the same budget-conscious threshold used for the container gutter increase, so it
+     doesn't compete with the documented 1024px nav-wrap limitation. */
+}
+
+@media (min-width: 1260px) {
+  .site-header__logo {
+    margin-right: var(--space-24);
+  }
 }
 
 .site-header__logo img {

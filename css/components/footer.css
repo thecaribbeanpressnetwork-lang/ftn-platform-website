@@ -22,10 +22,11 @@
 
 .site-footer__brand img {
   /* Reconciled from three inconsistent logo sizes into one deliberate hierarchy — see
-     nav.css's header logo (36px) for the other half of this fix. */
+     nav.css's header logo (36px) for the other half of this fix. v1.6: more clearance
+     below it too -- the institutional flag, not a small utility mark. */
   height: 40px;
   width: auto;
-  margin-bottom: var(--space-24);
+  margin-bottom: var(--space-32);
 }
 
 .site-footer__tagline {
