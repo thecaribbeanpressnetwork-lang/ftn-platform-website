@@ -367,13 +367,13 @@
 /* Phone strip — small device-mockup row (RC2), used where a quick visual beats more text */
 .phone-strip {
   display: flex;
-  gap: var(--space-16);
+  gap: var(--space-24);
   align-items: flex-end;
   flex-wrap: wrap;
 }
 
 .phone-strip img {
-  width: 92px;
+  width: 104px;
   height: auto;
   border-radius: var(--radius-12);
   box-shadow: var(--shadow-gallery);

@@ -372,6 +372,7 @@
   font-weight: 700;
   font-size: var(--text-small-size);
   margin-bottom: var(--space-12);
+  box-shadow: var(--shadow-sm);
 }
 
 .workflow-step h3 {
@@ -465,6 +466,7 @@
 .module-card--unavailable:hover {
   border-color: var(--color-border);
   box-shadow: none;
+  transform: none;
 }
 
 .module-card--unavailable h3 {
@@ -491,6 +493,18 @@
   border-radius: var(--radius-16);
   box-shadow: var(--shadow-gallery);
   margin-bottom: var(--space-12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.screenshot-figure:hover img {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screenshot-figure:hover img {
+    transform: none;
+  }
 }
 
 .screenshot-figure figcaption {
