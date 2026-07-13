@@ -27,6 +27,10 @@
   color: var(--color-red-on-dark);
 }
 
+.ftn-show .founding-statement__mark {
+  background: var(--color-red-on-dark);
+}
+
 .ftn-show .section--tint {
   background: var(--color-charcoal);
 }

@@ -721,3 +721,35 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Founding statement (v1.6 Caribbean Executive Identity pass) — one memorable purpose-line
+   per flagship page, not a marketing pull-quote. Plain, unbordered, declarative -- a museum
+   wall plaque, not a testimonial card. Reserved for exactly one use per page. */
+.founding-statement {
+  padding-block: var(--space-64);
+  text-align: center;
+}
+
+.founding-statement__mark {
+  display: block;
+  width: 32px;
+  height: 2px;
+  background: var(--color-red);
+  margin-inline: auto;
+  margin-bottom: var(--space-24);
+}
+
+.section--dark .founding-statement__mark {
+  background: var(--color-red-on-dark);
+}
+
+.founding-statement p {
+  max-width: 26ch;
+  margin-inline: auto;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.75rem, 1.4rem + 2vw, 2.75rem);
+  line-height: 1.2;
+  text-wrap: balance;
+}
