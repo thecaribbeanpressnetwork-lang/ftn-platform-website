@@ -3,25 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FTN Live — National Observatory | FTN Platform</title>
-  <meta name="description" content="FTN Live is a real-time-feeling wall of national indicators for Trinidad and Tobago — economy, energy, population, infrastructure, community, weather, tourism, and international context.">
-  <link rel="canonical" href="/observatory/">
+  <title>Face the Nation — FTN Platform's Flagship Public Affairs Programme</title>
+  <meta name="description" content="Face the Nation is FTN Platform's flagship public affairs programme — turning community intelligence into national conversation. Every constituency. Every candidate. Every voice.">
+  <link rel="canonical" href="/facethenation">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
   <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="FTN Platform">
-  <meta property="og:title" content="FTN Live — National Observatory | FTN Platform">
-  <meta property="og:description" content="FTN Live is a real-time-feeling wall of national indicators for Trinidad and Tobago — economy, energy, population, infrastructure, community, weather, tourism, and international context.">
-  <meta property="og:url" content="https://ftnplatform.org/observatory/">
-  <meta property="og:image" content="https://ftnplatform.org/assets/social/og-image-default.png">
+  <meta property="og:title" content="Face the Nation — FTN Platform's Flagship Public Affairs Programme">
+  <meta property="og:description" content="Turning community intelligence into national conversation. Every constituency. Every candidate. Every voice. Truth.">
+  <meta property="og:url" content="https://ftnplatform.org/facethenation">
+  <meta property="og:image" content="https://ftnplatform.org/assets/social/og-face-the-nation.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="FTN Live — National Observatory | FTN Platform">
-  <meta name="twitter:description" content="FTN Live is a real-time-feeling wall of national indicators for Trinidad and Tobago — economy, energy, population, infrastructure, community, weather, tourism, and international context.">
-  <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-image-default.png">
+  <meta name="twitter:title" content="Face the Nation — FTN Platform's Flagship Public Affairs Programme">
+  <meta name="twitter:description" content="Turning community intelligence into national conversation. Every constituency. Every candidate. Every voice. Truth.">
+  <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-face-the-nation.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@600;700;800&amp;family=Bebas+Neue&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/components/buttons.css">
@@ -37,6 +39,7 @@
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
+  <link rel="stylesheet" href="/css/components/face-the-nation.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -246,189 +249,216 @@
     </div>
   </header>
 
-  <main id="main" tabindex="-1">
-    <div class="display-mode-bar">
-      <span>FTN Live &mdash; <strong id="display-mode-screen-name">FTN Live Display</strong></span>
-      <span id="display-mode-config-id">custom</span>
-      <span id="display-mode-clock">&mdash;</span>
-      <button type="button" class="btn btn-outline btn-outline--on-dark btn-sm" id="display-mode-exit">Exit Display Mode</button>
-    </div>
-    <div class="bg-promotion" id="bg-promotion" aria-hidden="true"></div>
+  <main id="main" tabindex="-1" class="ftn-show">
+    <section class="ftn-hero">
+      <div class="container ftn-hero__content" data-reveal>
+        <span class="ftn-hero__eyebrow">FTN Platform Presents</span>
+        <h1 class="ftn-hero__title">FACE THE<span>NATION</span></h1>
+        <p class="ftn-hero__byline">with Ricardo Antoine</p>
+        <p class="ftn-hero__tagline">Every constituency. Every candidate. <em>Every voice. Truth.</em></p>
+        <p class="ftn-hero__lede">
+          FTN's flagship public affairs programme, bringing citizens, leaders and decision-makers
+          together for real conversations about the issues that shape Trinidad &amp; Tobago.
+        </p>
+        <div class="ftn-hero__actions">
+          <a class="btn btn-primary btn-lg" href="#follow">Follow Face the Nation</a>
+          <a class="btn btn-outline btn-lg" href="#programming">Season One Coming Soon</a>
+        </div>
+      </div>
+    </section>
 
-    <section class="observatory-hero">
+    <section class="section">
       <div class="container">
-        <div class="observatory-hero__grid">
-          <div class="observatory-hero__main">
-            <span class="page-hero__eyebrow">FTN Live</span>
-            <h1 class="observatory-hero__title">Trinidad &amp; Tobago, live.</h1>
-            <p class="observatory-hero__lede">
-              A live-feeling wall of national indicators — economy, energy, population, infrastructure,
-              community, weather, tourism, and the international context that shapes all of it. Built
-              on a reusable indicator architecture so real sources can replace demonstration data over
-              time without changing how this page works.
-            </p>
-            <div class="observatory-controls">
-              <button type="button" id="pause-toggle" class="btn btn-outline btn-outline--on-dark btn-sm" aria-pressed="false">Pause Live Updates</button>
-              <button type="button" id="kiosk-toggle" class="btn btn-outline btn-outline--on-dark" aria-pressed="false">Enter Kiosk Mode</button>
-            </div>
-
-            <div class="reality-insight">
-              <p class="reality-insight__title">The Nation Is Speaking</p>
-              <div id="reality-insight" role="status" aria-live="polite">
-                <p class="reality-insight__text">Loading&hellip;</p>
-              </div>
-              <button type="button" class="reality-insight__next" id="reality-insight-next">Next observation &rarr;</button>
-            </div>
+        <span class="section__eyebrow">More Than a Podcast</span>
+        <h2 class="u-mt-8">Turning community intelligence into national conversation.</h2>
+        <p class="u-mt-16 u-max-60ch">
+          Community Connect helps communities report what they see. Face the Nation brings those
+          issues to the table — connecting the dots between citizens, leaders, experts and
+          decision-makers so informed decisions can create better communities.
+        </p>
+        <div class="ftn-flow" data-reveal>
+          <div class="ftn-flow__node">
+            <img src="/assets/icons/icon-community.svg" alt="">
+            <span>Citizens</span>
           </div>
-
-          <div class="observatory-hero__vitals">
-            <div class="live-status">
-              <div class="live-status__top">
-                <span class="live-status__badge"><span class="live-status__dot" aria-hidden="true"></span>Live</span>
-                <span class="observatory-clock">Refreshed <strong id="last-refresh">—</strong></span>
-              </div>
-              <p class="live-status__time" id="hero-local-time">—</p>
-              <p class="live-status__sub">Port of Spain &middot; <strong id="hero-indicator-count">—</strong> indicators tracked</p>
-            </div>
-
-            <div class="hero-clocks">
-              <div class="hero-clock">
-                <p class="hero-clock__label">National Debt</p>
-                <p class="hero-clock__value"><span data-live-clock="national-debt" aria-live="off">19,400,000,000</span> <span>TTD</span></p>
-                <div class="hero-clock__meta">
-                  <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
-                  <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="national-debt">Trust Card</button>
-                </div>
-              </div>
-              <div class="hero-clock">
-                <p class="hero-clock__label">Debt-to-GDP Ratio</p>
-                <p class="hero-clock__value"><span data-live-clock="debt-to-gdp" aria-live="off">68.4</span> <span>%</span></p>
-                <div class="hero-clock__meta">
-                  <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
-                  <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="debt-to-gdp">Trust Card</button>
-                </div>
-              </div>
-              <div class="hero-clock">
-                <p class="hero-clock__label">Population</p>
-                <p class="hero-clock__value"><span data-live-clock="population" aria-live="off">1,531,000</span></p>
-                <div class="hero-clock__meta">
-                  <span class="trust-badge trust-badge--modelled">FTN Modelled</span>
-                  <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="population">Trust Card</button>
-                </div>
-              </div>
-              <div class="hero-clock">
-                <p class="hero-clock__label">Budget-Year Progress</p>
-                <p class="hero-clock__value"><span data-live-clock="budget-progress" aria-live="off">54</span> <span>%</span></p>
-                <div class="hero-clock__meta">
-                  <span class="trust-badge trust-badge--derived">FTN Derived</span>
-                  <button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="budget-progress">Trust Card</button>
-                </div>
-              </div>
-            </div>
+          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node">
+            <img src="/assets/icons/icon-report.svg" alt="">
+            <span>Communities</span>
+          </div>
+          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node">
+            <img src="/assets/icons/icon-progress.svg" alt="">
+            <span>Intelligence</span>
+          </div>
+          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node">
+            <img src="/assets/icons/icon-share.svg" alt="">
+            <span>Discussion</span>
+          </div>
+          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node">
+            <img src="/assets/icons/icon-shield.svg" alt="">
+            <span>Decisions</span>
+          </div>
+          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node">
+            <img src="/assets/icons/icon-community.svg" alt="">
+            <span>Better Communities</span>
           </div>
         </div>
       </div>
     </section>
 
-    <div class="container">
-      <section class="section" id="today-in-tt">
-        <div class="section__header">
-          <span class="section__eyebrow">Right Now</span>
-          <h2>Today in Trinidad &amp; Tobago.</h2>
-        </div>
-        <div id="today-panel-mount" class="chart-card"></div>
-      </section>
-
-      <section class="section section--tint" id="what-changed">
-        <div class="section__header">
-          <span class="section__eyebrow">What Changed?</span>
-          <h2>The biggest movers, grouped by the comparison each indicator actually discloses.</h2>
-        </div>
-        <div id="what-changed-mount"></div>
-        <p class="u-mt-16">
-          <a class="jump-to-indicators" href="#indicator-search">Explore the full indicator wall &darr;</a>
-        </p>
-      </section>
-
-      <div class="u-mt-24">
-        <div class="methodology-banner">
-          <span aria-hidden="true">&#9432;</span>
-          <p>
-            Animated counters are calculated from the latest available annual, quarterly, monthly
-            or daily benchmark figures. Sources, benchmark dates and methods are available in each
-            card's Trust Card. Classifications range from Official benchmark and Published source
-            through to FTN calculated counter, FTN derived indicator, and Demonstration scenario —
-            this build has no live external feeds yet, so nothing here is currently classified
-            Official.
+    <section class="section section--tint">
+      <div class="container">
+        <div class="ftn-coming-soon-panel">
+          <span class="ftn-coming-soon-panel__eyebrow">Season One</span>
+          <h2>Coming soon.</h2>
+          <p class="u-max-60ch">
+            Interviews. Debates. Real conversations about the issues that matter most to Trinidad
+            &amp; Tobago. Face the Nation's first season is in production — follow along below to
+            be first to know when it airs.
           </p>
         </div>
       </div>
+    </section>
 
-      <div class="search-discover-row u-mt-24">
-        <label class="sr-only" for="indicator-search">Search indicators</label>
-        <input type="search" id="indicator-search" class="indicator-search" placeholder="Search indicators&hellip; (e.g. rainfall, debt, tourism)">
-        <div class="icon-row">
-          <button type="button" class="btn btn-outline btn-sm" id="discover-random-indicator">Random Indicator</button>
-          <button type="button" class="btn btn-outline btn-sm" id="discover-random-relationship">Random Relationship</button>
-          <button type="button" class="btn btn-outline btn-sm" id="discover-did-you-know">Did You Know?</button>
-        </div>
-      </div>
-
-      <div class="category-jump-row u-mt-16">
-        <nav class="category-jump category-jump--inline" id="category-jump" aria-label="Jump to indicator category"></nav>
-        <div class="icon-row">
-          <div class="customize-panel-wrap">
-            <button type="button" id="customize-toggle" class="btn btn-outline btn-sm" aria-expanded="false" aria-controls="customize-panel">Customize</button>
-            <div class="customize-panel" id="customize-panel"></div>
-          </div>
-          <div class="customize-panel-wrap">
-            <button type="button" id="display-config-toggle" class="btn btn-outline btn-sm" aria-expanded="false" aria-controls="display-config-panel">Display Setup</button>
-            <div class="customize-panel customize-panel--wide" id="display-config-panel"></div>
-          </div>
-          <button type="button" id="fullscreen-toggle" class="btn btn-primary btn-sm">Launch Fullscreen Display</button>
-        </div>
-      </div>
-
-      <div class="observatory-layout u-mt-24">
-        <div id="indicator-wall" aria-live="off"></div>
-
-        <aside>
-          <div id="ad-rail-mount"></div>
-
-          <div class="chart-card u-mt-24">
-            <p class="chart-card__title">Related News</p>
-            <div class="news-sample u-mt-16">
-              <div class="news-sample__item">
-                <p class="news-sample__tag">Infrastructure</p>
-                <p class="u-text-sm">Drainage upgrade programme expands to three more communities.</p>
-              </div>
-              <div class="news-sample__item">
-                <p class="news-sample__tag">Economy</p>
-                <p class="u-text-sm">Central Bank holds policy rate steady amid regional pressures.</p>
-              </div>
-              <div class="news-sample__item">
-                <p class="news-sample__tag">Weather</p>
-                <p class="u-text-sm">Met Service monitors tropical system east of the Windward Islands.</p>
-              </div>
-            </div>
-            <p class="u-text-sm u-text-graphite u-mt-16">See Resources for how this connects to Evidence Explorer in Mission Control.</p>
-          </div>
-        </aside>
-      </div>
-
-      <section class="section section--tint" id="commercial-packages">
+    <section class="section" id="follow">
+      <div class="container">
         <div class="section__header">
-          <span class="section__eyebrow">FTN Display Network</span>
-          <h2>Commercial display packages.</h2>
-          <p class="u-text-graphite u-mt-16 u-max-60ch">
-            Capability structures for how a managed screen could be deployed — banks, offices,
-            universities, waiting rooms. No prices are set here; this demonstrates what each tier
-            includes.
+          <span class="section__eyebrow">Follow the Conversation</span>
+          <h2>@FaceTheNationTT</h2>
+          <p class="u-mt-16 u-max-60ch">
+            Follow Face the Nation across our platforms and be the first to know when new episodes
+            drop.
           </p>
         </div>
-        <div class="module-grid" id="ad-packages-grid"></div>
-      </section>
-    </div>
+        <div class="ftn-social-grid" data-reveal>
+          <span class="ftn-social-card">
+            <span class="ftn-social-card__icon"><img src="/assets/icons/social-youtube.svg" alt=""></span>
+            <span class="ftn-social-card__text">
+              <span class="ftn-social-card__label">YouTube</span>
+              <span class="ftn-social-card__handle">@FaceTheNationTT</span>
+            </span>
+            <span class="ftn-social-card__status">Coming Soon</span>
+          </span>
+          <span class="ftn-social-card">
+            <span class="ftn-social-card__icon"><img src="/assets/icons/social-facebook.svg" alt=""></span>
+            <span class="ftn-social-card__text">
+              <span class="ftn-social-card__label">Facebook</span>
+              <span class="ftn-social-card__handle">@FaceTheNationTT</span>
+            </span>
+            <span class="ftn-social-card__status">Coming Soon</span>
+          </span>
+          <span class="ftn-social-card">
+            <span class="ftn-social-card__icon"><img src="/assets/icons/social-instagram.svg" alt=""></span>
+            <span class="ftn-social-card__text">
+              <span class="ftn-social-card__label">Instagram</span>
+              <span class="ftn-social-card__handle">@FaceTheNationTT</span>
+            </span>
+            <span class="ftn-social-card__status">Coming Soon</span>
+          </span>
+          <span class="ftn-social-card">
+            <span class="ftn-social-card__icon"><img src="/assets/icons/social-tiktok.svg" alt=""></span>
+            <span class="ftn-social-card__text">
+              <span class="ftn-social-card__label">TikTok</span>
+              <span class="ftn-social-card__handle">@FaceTheNationTT</span>
+            </span>
+            <span class="ftn-social-card__status">Coming Soon</span>
+          </span>
+          <span class="ftn-social-card">
+            <span class="ftn-social-card__icon"><img src="/assets/icons/social-x.svg" alt=""></span>
+            <span class="ftn-social-card__text">
+              <span class="ftn-social-card__label">X</span>
+              <span class="ftn-social-card__handle">@FaceTheNationTT</span>
+            </span>
+            <span class="ftn-social-card__status">Coming Soon</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tint">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">Be Part of the Conversation</span>
+          <h2>This show starts with you.</h2>
+        </div>
+        <div class="module-grid">
+          <div class="ftn-card">
+            <h3>Suggest a Topic</h3>
+            <p>Is there an issue your community wants to see discussed on the show? Tell us about it.</p>
+            <a class="btn btn-outline" href="/contact/#general">Submit a Topic</a>
+          </div>
+          <div class="ftn-card">
+            <h3>Become a Guest</h3>
+            <p>Nominate a community leader, expert, or public official — or put yourself forward — for the show.</p>
+            <a class="btn btn-outline" href="/contact/#general">Recommend a Guest</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="programming">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">Programming</span>
+          <h2>What Face the Nation will cover.</h2>
+          <p class="u-mt-16 u-max-60ch">
+            Season One is in production. Here's the programming it's being built around.
+          </p>
+        </div>
+        <div class="ftn-programming-grid" data-reveal>
+          <div class="ftn-programming-card">
+            <span class="ftn-programming-card__status">Planned</span>
+            <h3>Community Issues</h3>
+            <p>The problems citizens are reporting, brought to the table for real discussion.</p>
+          </div>
+          <div class="ftn-programming-card">
+            <span class="ftn-programming-card__status">Planned</span>
+            <h3>Candidate Interviews</h3>
+            <p>Every constituency, every candidate — direct, accountable conversation.</p>
+          </div>
+          <div class="ftn-programming-card">
+            <span class="ftn-programming-card__status">Planned</span>
+            <h3>Community Leaders</h3>
+            <p>The people already doing the work of holding their communities together.</p>
+          </div>
+          <div class="ftn-programming-card">
+            <span class="ftn-programming-card__status">Planned</span>
+            <h3>National Policy</h3>
+            <p>From local community issues to the national decisions that shape them.</p>
+          </div>
+          <div class="ftn-programming-card">
+            <span class="ftn-programming-card__status">Planned</span>
+            <h3>Special Discussions</h3>
+            <p>Focused conversations on the moments that call for more than a headline.</p>
+          </div>
+          <div class="ftn-programming-card">
+            <span class="ftn-programming-card__status">Planned</span>
+            <h3>Live Audience Programmes</h3>
+            <p>Real people, real voices, real impact — the audience is part of the conversation.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="ftn-cc-band">
+          <div>
+            <h2>The conversation starts with the community.</h2>
+            <p>
+              Community Connect gathers community intelligence — the reports, the patterns, the
+              issues that matter. Face the Nation helps the nation discuss what those reports
+              reveal.
+            </p>
+          </div>
+          <a class="btn btn-secondary btn-lg" href="/community-connect/#launch">Launch Community Connect</a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -498,31 +528,9 @@
   </footer>
 
   <script src="/js/platform-mode.js"></script>
-  <script src="/js/nav.js"></script>
   <script src="/js/storage.js"></script>
-  <script src="/js/source-registry.js"></script>
-  <script src="/js/data-source.js"></script>
-  <script src="/js/indicators-data.js"></script>
-  <script src="/js/relationships-data.js"></script>
-  <script src="/js/ads-data.js"></script>
-  <script src="/js/ads.js"></script>
-  <script src="/js/ad-packages-data.js"></script>
-  <script src="/js/charts.js"></script>
-  <script src="/js/trust-card.js"></script>
-  <script src="/js/live-clocks.js"></script>
-  <script src="/js/display-config-data.js"></script>
-  <script src="/js/display-config.js"></script>
-  <script src="/js/display-mode.js"></script>
-  <script src="/js/benchmarks-data.js"></script>
-  <script src="/js/seasonal-profiles.js"></script>
-  <script src="/js/founder-controls.js"></script>
-  <script src="/js/reality-insights.js"></script>
-  <script src="/js/today-panel.js"></script>
-  <script src="/js/what-changed.js"></script>
-  <script src="/js/national-memory.js"></script>
-  <script src="/js/community-profile-data.js"></script>
-  <script src="/js/community-profile.js"></script>
-  <script src="/js/observatory.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
 </body>
 </html>

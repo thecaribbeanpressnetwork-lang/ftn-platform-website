@@ -115,6 +115,13 @@ it is a real, live product within the FTN ecosystem. No placeholder page, no dea
 entry, no premature mention. When it launches for real, it gets integrated naturally — not before.
 Until then, the 404 page directs visitors toward active products and active content only.
 
+**⚠️ SUPERSEDED 2026-07-12 — see §7.12.** Face the Nation is now a real, live platform within the
+FTN ecosystem (its public home, production season in progress) and is fully integrated into
+navigation, the footer, and the Platforms hub. The reasoning above is preserved for history and
+still governs how any *future* not-yet-live product should be treated (Display Network, Media
+Network remain out of navigation as live links today, exactly per this rule) — it just no longer
+applies to Face the Nation specifically.
+
 ## 5. Brand Standards
 
 ### Authority hierarchy (source: AEB-10 Master Manifest table)
@@ -291,9 +298,11 @@ structure as of Phase 3:
 /
 ├── index.html                        # Homepage
 ├── about/index.html                  # Mission, Vision, Founding Principles, Philosophy, Vision
-├── applications/index.html           # v1.4, §7.11 — permanent home for FTN software products
+├── applications/index.html           # v1.4, §7.11 — "Platforms" nav label since §7.12
 ├── community-connect/index.html      # Official product page — Overview, Features, Workflow,
 │                                      # Benefits, Privacy, FAQ, Public Beta Launch (§7.11)
+├── facethenation                     # v1.4, §7.12 — Face the Nation's public home. No trailing
+│   └── index.html                    # slash by design; served as facethenation/index.html
 ├── mission-control/
 │   ├── index.html                    # Government Dashboard, Analytics, Security, Future Modules (marketing)
 │   └── demo/index.html               # Interactive Demonstration — public preview, not the secure product
@@ -1038,6 +1047,69 @@ source file was touched except the one field its own code was explicitly built t
   sampled), 0 overflow/console errors across 90 page×breakpoint combinations, byte-identical
   header/footer across all 18 pages, and a fresh Presentation Mode lifecycle re-check to confirm
   nothing in this pass regressed §7.8's infrastructure.
+
+## 7.12 Operational Phase 1B — Face the Nation Platform Integration
+
+**Founder Decision (2026-07-12) — supersedes the 2026-07-11 "stays out of navigation" decision
+(§4) for Face the Nation specifically.** Face the Nation — FTN's flagship public affairs
+programme, hosted by Ricardo Antoine — is now treated as a real, live platform: a public home at
+`/facethenation`, integrated into primary navigation, the footer, and the Platforms hub, exactly
+like Community Connect. The §4 decision's underlying principle (no live nav entry for a product
+that isn't real yet) is not repealed — it's why Display Network and Media Network still render as
+non-clickable "Coming Soon" tiles rather than nav links. It just no longer applies to Face the
+Nation, which the Founder confirmed is real: a production season in progress, with real approved
+brand assets and production photography.
+
+- **Applications renamed to Platforms sitewide** (nav label, footer column heading link, page
+  title/meta on `/applications/` itself) — the Founder's own judgment that this better reflects
+  the long-term ecosystem (Community Connect, Mission Control, FTN Live, Face the Nation, Display
+  Network, Media Network) than the narrower "Applications." The URL (`/applications/`) was not
+  changed — renaming the path would break the existing Community Connect integration's links and
+  bookmarks for zero benefit; only the human-facing label changed.
+- **`/facethenation`** — deliberately the one page on this site without a trailing slash, matching
+  the Founder's explicit, repeated instruction. Verified this resolves correctly as a "clean URL"
+  the same way Cloudflare Pages serves any `directory/index.html` at both `/directory` and
+  `/directory/` — confirmed by fixing the local test server's naive trailing-slash-only logic to
+  replicate that actual behavior, then testing both forms. Every internal link to the page (nav,
+  footer, Platforms hub, `sitemap.xml`) consistently uses the no-slash form to avoid canonical
+  drift.
+- **A bounded dark treatment, not a site-wide theme change.** The approved concept
+  (`ftn podcast (1).png`, reviewed alongside the full asset library) is fully dark; this site's own
+  design system is light-first with *deliberate, bounded* dark sections (§5) — exactly the pattern
+  already established by Observatory and Mission Control Demo, which keep the standard light
+  header/footer but give their own `<main>` a bespoke dark identity. Face the Nation follows the
+  same precedent: `<main class="ftn-show">` (new `css/components/face-the-nation.css`) carries the
+  show's own approved black/white/red identity and **Bebas Neue** headline typeface (confirmed from
+  the show's own brand-guide asset, alongside Montserrat/Inter for body text) — the site-wide
+  header, footer, and nav are completely unchanged.
+- **Real production assets only.** Reviewed the full `FTN editing assets` library (24 images) before
+  building anything. Used: the clean, watermark-free master production photograph (a separate
+  watermarked proof of the same shot was found and deliberately not used) as the hero background,
+  resized/re-encoded locally (no image-optimization tool was available in this environment, so this
+  was done via .NET `System.Drawing` through PowerShell — 3.2MB → 384KB) and copied into
+  `assets/face-the-nation/`, per the standing rule that shared assets are always copied into the
+  repo, never referenced from the source library; and the approved circular badge logo, similarly
+  resized. No new photography or logo art was generated. One real bug found and fixed after
+  building: the source photo's own embedded "Face the Nation" signboard visually collided with the
+  foreground headline repeating the same wordmark — fixed with a left-weighted gradient (text sits
+  on a clean dark field; the photo's detail remains visible on the right) rather than by discarding
+  the photo or the headline.
+- **A new hand-authored `assets/icons/social-tiktok.svg`**, matching the exact minimal-line-icon
+  convention already used for the other five social platforms (`viewBox="0 0 24 24"`, 2px stroke,
+  `currentColor`) — TikTok was the one platform in this brief's required list without an existing
+  icon on the site.
+- **Every social link is honestly "Coming Soon."** No real, confirmed URL was supplied for any of
+  Face the Nation's five platforms (YouTube/Facebook/Instagram/TikTok/X) — all five render as
+  non-clickable status cards with the `@FaceTheNationTT` handle shown, never as a fabricated or
+  broken link, per the same standing rule already applied everywhere else on this site.
+- **"Suggest a Topic" and "Become a Guest" both route to `/contact/#general`** — reusing the
+  existing Contact mechanism exactly as instructed, rather than adding two more Contact categories
+  for what's fundamentally the same General Enquiries intent in show-specific language.
+- **A composed, production-quality Open Graph image** (`assets/social/og-face-the-nation.jpg`,
+  1200×630) — the same real hero photograph, cropped and overlaid with the wordmark and tagline via
+  the same PowerShell/`System.Drawing` pipeline used for the hero image, consistent with how the
+  site's existing default OG image was built (§7.5: "generated... composed from the approved
+  wordmark + tagline"). No AI-generated or invented imagery anywhere on this page.
 
 ## 8. HTML Standards
 

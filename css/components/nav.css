@@ -33,7 +33,7 @@
 .site-nav__list {
   display: flex;
   align-items: stretch;
-  gap: var(--space-8);
+  gap: var(--space-4);
 }
 
 .site-nav__item {
@@ -46,7 +46,7 @@
   align-items: center;
   gap: var(--space-4);
   height: 100%;
-  padding: var(--space-8) var(--space-12);
+  padding: var(--space-8);
   background: none;
   border: none;
   font-family: var(--font-body);
