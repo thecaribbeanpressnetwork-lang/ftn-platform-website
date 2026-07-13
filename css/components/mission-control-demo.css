@@ -65,7 +65,7 @@
   position: sticky;
   top: 65px;
   background: var(--color-white);
-  border-bottom: 1px solid #ECECEC;
+  border-bottom: 1px solid var(--color-border);
   z-index: 10;
 }
 
@@ -78,7 +78,7 @@ body:not(.mc-tabs-active) .mc-tablist {
   font-weight: 700;
   padding: var(--space-8) var(--space-16);
   border-radius: var(--radius-full);
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   background: var(--color-white);
   color: var(--color-graphite);
   cursor: pointer;
@@ -92,7 +92,7 @@ body:not(.mc-tabs-active) .mc-tablist {
 
 .mc-panel {
   padding-block: var(--space-48);
-  border-bottom: 1px solid #ECECEC;
+  border-bottom: 1px solid var(--color-border);
 }
 
 body.mc-tabs-active .mc-panel {
@@ -123,7 +123,7 @@ body.mc-tabs-active .mc-panel {
   font-weight: 600;
   padding: var(--space-4) var(--space-12);
   border-radius: var(--radius-full);
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   background: var(--color-white);
   cursor: pointer;
 }
@@ -141,8 +141,8 @@ body.mc-tabs-active .mc-panel {
 }
 
 .mc-kpi-card {
-  border: 1px solid #ECECEC;
-  border-left: 3px solid #ECECEC;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-border);
   border-radius: var(--radius-12);
   padding: var(--space-16);
 }
@@ -184,7 +184,7 @@ body.mc-tabs-active .mc-panel {
   gap: var(--space-12);
   align-items: center;
   padding: var(--space-16);
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-12);
   margin-bottom: var(--space-12);
 }
@@ -220,7 +220,7 @@ body.mc-tabs-active .mc-panel {
 
 /* Reality Graph */
 .reality-graph-wrap {
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-16);
   padding: var(--space-16);
 }
@@ -276,8 +276,8 @@ body.mc-tabs-active .mc-panel {
 .scenario-output {
   padding: var(--space-16);
   border-radius: var(--radius-12);
-  border: 1px solid #ECECEC;
-  border-left: 3px solid #ECECEC;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-border);
 }
 
 .scenario-output--positive { border-left-color: #16A34A; }
@@ -301,7 +301,7 @@ body.mc-tabs-active .mc-panel {
 
 .evidence-chain__step {
   padding: var(--space-12) var(--space-16);
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-8);
 }
 
@@ -329,7 +329,7 @@ body.mc-tabs-active .mc-panel {
 
 .advisor-option {
   padding: var(--space-16);
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-12);
 }
 
@@ -344,7 +344,7 @@ body.mc-tabs-active .mc-panel {
   grid-template-columns: 1fr;
   gap: var(--space-8);
   padding-block: var(--space-24);
-  border-bottom: 1px solid #ECECEC;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .timeline-item__date {

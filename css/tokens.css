@@ -22,6 +22,15 @@
   --color-charcoal: #1A1A1A;
   --color-graphite: #4D4D4D;
   --color-silver: #A1A1A1;
+  /* Promoted from a hardcoded #ECECEC literal repeated 50+ times across component CSS
+     (v1.5 Executive Design System pass) — same value, now a single source of truth.
+     Not a new color decision. */
+  --color-border: #ECECEC;
+
+  /* Red interaction states — promoted from hardcoded hex values already used identically
+     across every .btn-primary hover/active rule (v1.5 pass). Same colors, now tokenized. */
+  --color-red-hover: #B80510;
+  --color-red-active: #9A040E;
 
   /* Color — accent (AEB-01 §1.5; consistent across boards, no conflict) */
   --color-info: #2563EB;

@@ -10,7 +10,7 @@
 }
 
 .faq-item {
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-12);
   padding: var(--space-16) var(--space-24);
 }

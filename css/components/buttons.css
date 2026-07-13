@@ -1,4 +1,8 @@
-/* FTN Platform Website — button component (AEB-02 §2.1, AEB-06 §7) */
+/* FTN Platform Website — button component (AEB-02 §2.1, AEB-06 §7)
+   v1.5 Executive Design System pass: one button system, one hover system, one interaction
+   system — tokenized colors (no hardcoded hex), a consistent hover "lift" (transform + shadow)
+   across all three variants, and a real .btn-outline--on-dark modifier replacing the old
+   per-container overrides (.cta .btn-outline etc.) that used to live in blocks.css. */
 
 .btn {
   display: inline-flex;
@@ -8,33 +12,48 @@
   font-family: var(--font-body);
   font-weight: 600;
   font-size: var(--text-body-size);
+  letter-spacing: 0.01em;
   line-height: 1;
-  padding: var(--space-12) var(--space-24);
+  padding: var(--space-16) var(--space-24);
   border-radius: var(--radius-8);
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
 }
 
 /* Primary */
 .btn-primary {
   background: var(--color-red);
   color: var(--color-white);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-  background: #b80510;
+  background: var(--color-red-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-primary:active {
-  background: #9a040e;
+  background: var(--color-red-active);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:disabled {
   background: var(--color-silver);
   color: var(--color-white);
+  box-shadow: none;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* Secondary */
@@ -45,15 +64,18 @@
 
 .btn-secondary:hover {
   background: var(--color-charcoal);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-secondary:active {
   background: var(--color-black);
+  box-shadow: none;
 }
 
 .btn-secondary:disabled {
   background: var(--color-silver);
   cursor: not-allowed;
+  transform: none;
 }
 
 /* Outline */
@@ -78,6 +100,48 @@
   color: var(--color-silver);
   border-color: var(--color-silver);
   cursor: not-allowed;
+  transform: none;
+}
+
+/* Outline, on a dark/red surface (.cta, .section--dark, the Face the Nation broadcast theme).
+   Replaces the old ad hoc per-container overrides — one source of truth for "button on dark." */
+.btn-outline--on-dark {
+  color: var(--color-white);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.btn-outline--on-dark:hover {
+  background: var(--color-white);
+  color: var(--color-black);
+  border-color: var(--color-white);
+}
+
+.btn-outline--on-dark:active {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: var(--color-white);
+  color: var(--color-black);
+}
+
+.btn-outline--on-dark:disabled {
+  color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Secondary, on a dark/red surface — same surfaces as .btn-outline--on-dark above. Replaces
+   the old .cta .btn-secondary / .ftn-cc-band .btn-secondary overrides. */
+.btn-secondary--on-dark {
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+.btn-secondary--on-dark:hover {
+  background: #F0F0F0;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary--on-dark:active {
+  background: var(--color-white);
+  box-shadow: none;
 }
 
 .btn-sm {
@@ -88,4 +152,13 @@
 .btn-lg {
   padding: var(--space-16) var(--space-32);
   font-size: var(--text-h3-size);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn:hover,
+  .btn:active {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    transform: none;
+  }
 }

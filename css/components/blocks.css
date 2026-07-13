@@ -228,11 +228,7 @@
   grid-template-columns: 1fr;
 }
 
-.feature-card {
-  padding: var(--space-24);
-  border: 1px solid #ECECEC;
-  border-radius: var(--radius-16);
-}
+/* Box treatment (padding/radius/border) comes from the shared card rule in content-sections.css. */
 
 .feature-card__icon {
   display: inline-flex;
@@ -325,35 +321,16 @@
   margin-bottom: var(--space-24);
 }
 
-.cta .btn-secondary {
-  background: var(--color-white);
-  color: var(--color-black);
-}
-
-.cta .btn-secondary:hover {
-  background: #F0F0F0;
-}
-
 .cta .module-card__status--live {
   background: rgba(255, 255, 255, 0.2);
   color: var(--color-white);
-}
-
-.cta .btn-outline {
-  border-color: var(--color-white);
-  color: var(--color-white);
-}
-
-.cta .btn-outline:hover {
-  background: var(--color-white);
-  color: var(--color-black);
 }
 
 /* Section media — real product screenshot showcase (RC2) */
 .section-media {
   border-radius: var(--radius-16);
   overflow: hidden;
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   box-shadow: 0 12px 32px rgba(11, 11, 11, 0.12);
   line-height: 0;
 }
@@ -402,11 +379,8 @@
 }
 
 .platform-flow__node {
-  padding: var(--space-24);
-  border: 1px solid #ECECEC;
-  border-radius: var(--radius-16);
+  /* Base radius/border/background/padding come from the shared card rule in content-sections.css. */
   text-align: center;
-  background: var(--color-white);
 }
 
 .platform-flow__node h3 {

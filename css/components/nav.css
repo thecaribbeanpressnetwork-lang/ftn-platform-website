@@ -5,7 +5,7 @@
   top: 0;
   z-index: 50;
   background: var(--color-white);
-  border-bottom: 1px solid #ECECEC;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .site-header__bar {
@@ -110,7 +110,7 @@
   left: 0;
   min-width: 220px;
   background: var(--color-white);
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-12);
   box-shadow: var(--shadow-lg);
   padding: var(--space-8);
@@ -150,7 +150,7 @@
   width: 40px;
   height: 40px;
   background: none;
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-8);
   cursor: pointer;
 }
@@ -191,7 +191,7 @@
 .mobile-nav__section + .mobile-nav__section {
   margin-top: var(--space-24);
   padding-top: var(--space-24);
-  border-top: 1px solid #ECECEC;
+  border-top: 1px solid var(--color-border);
 }
 
 .mobile-nav__heading {

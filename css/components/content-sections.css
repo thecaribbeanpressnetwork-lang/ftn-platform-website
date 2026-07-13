@@ -1,9 +1,26 @@
 /* FTN Platform Website — shared content-page building blocks (interior pages) */
 
+/* Shared card box treatment (v1.5 Executive Design System pass) — .feature-card (blocks.css),
+   .platform-flow__node (blocks.css), .principle-card, .module-card, .workflow-step, and
+   .preview-card all independently duplicated this identical box. Declared once here; each
+   individual rule below keeps only its unique deltas (icons, counters, status pills, hover
+   states). Zero markup/class-name changes. */
+.feature-card,
+.platform-flow__node,
+.principle-card,
+.module-card,
+.workflow-step,
+.preview-card {
+  padding: var(--space-24);
+  border-radius: var(--radius-16);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+}
+
 /* Simple page hero — interior pages that don't need the homepage's split-media hero */
 .page-hero {
   padding-block: var(--space-64) var(--space-48);
-  border-bottom: 1px solid #ECECEC;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .page-hero__eyebrow {
@@ -64,11 +81,11 @@
 .page-hero__index {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid #ECECEC;
+  border-top: 1px solid var(--color-border);
 }
 
 .page-hero__index li {
-  border-bottom: 1px solid #ECECEC;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .page-hero__index a {
@@ -171,7 +188,7 @@
 .page-hero__media-frame {
   border-radius: var(--radius-16);
   overflow: hidden;
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   box-shadow: 0 12px 32px rgba(11, 11, 11, 0.12);
   line-height: 0;
 }
@@ -239,12 +256,7 @@
   grid-template-columns: 1fr;
 }
 
-.principle-card {
-  padding: var(--space-24);
-  border-radius: var(--radius-16);
-  background: var(--color-white);
-  border: 1px solid #ECECEC;
-}
+/* Box treatment (padding/radius/background/border) comes from the shared card rule above. */
 
 .principle-card__index,
 .principle-card__icon {
@@ -285,7 +297,7 @@
 .benefit-column {
   padding: var(--space-32);
   border-radius: var(--radius-16);
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
 }
 
 .benefit-column h3 {
@@ -324,10 +336,10 @@
 }
 
 .workflow-step {
+  /* Base radius/border/background come from the shared card rule above; padding is
+     overridden here since this card needs a tighter top edge for its number badge. */
   position: relative;
   padding: var(--space-24) var(--space-16) var(--space-16);
-  border: 1px solid #ECECEC;
-  border-radius: var(--radius-16);
   counter-increment: workflow-step;
 }
 
@@ -365,19 +377,23 @@
 }
 
 .module-card {
+  /* Base radius/border/background/padding come from the shared card rule above. */
   display: block;
-  padding: var(--space-24);
-  border-radius: var(--radius-16);
-  border: 1px solid #ECECEC;
-  background: var(--color-white);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .module-card:hover {
   border-color: var(--color-red);
-  box-shadow: 0 8px 20px rgba(11, 11, 11, 0.08);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-card:hover {
+    transform: none;
+  }
 }
 
 .module-card h3 {
@@ -423,7 +439,7 @@
 }
 
 .module-card--unavailable:hover {
-  border-color: #ECECEC;
+  border-color: var(--color-border);
   box-shadow: none;
 }
 
@@ -507,12 +523,7 @@
   grid-template-columns: 1fr;
 }
 
-.preview-card {
-  padding: var(--space-24);
-  border: 1px solid #ECECEC;
-  border-radius: var(--radius-16);
-  background: var(--color-white);
-}
+/* Box treatment (padding/radius/background/border) comes from the shared card rule above. */
 
 .preview-card__label {
   display: inline-block;
@@ -632,7 +643,7 @@
   gap: var(--space-8);
   margin-bottom: var(--space-48);
   padding-bottom: var(--space-32);
-  border-bottom: 1px solid #ECECEC;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .legal-index a {
@@ -641,7 +652,7 @@
   color: var(--color-graphite);
   text-decoration: none;
   padding: var(--space-8) var(--space-12);
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
 }
 

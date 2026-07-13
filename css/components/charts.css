@@ -6,7 +6,7 @@
 }
 
 .chart-card {
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-16);
   padding: var(--space-24);
   background: var(--color-white);

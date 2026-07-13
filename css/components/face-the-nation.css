@@ -35,35 +35,8 @@
   max-width: 32ch;
 }
 
-/* Button contrast on dark/red backgrounds — same pattern as .cta's own overrides */
-.ftn-show .btn-outline {
-  border-color: var(--color-white);
-  color: var(--color-white);
-}
-
-.ftn-show .btn-outline:hover {
-  background: var(--color-white);
-  color: var(--color-black);
-}
-
-.ftn-cc-band .btn-secondary {
-  background: var(--color-white);
-  color: var(--color-black);
-}
-
-.ftn-cc-band .btn-secondary:hover {
-  background: #F0F0F0;
-}
-
-.ftn-cc-band .btn-outline {
-  border-color: var(--color-white);
-  color: var(--color-white);
-}
-
-.ftn-cc-band .btn-outline:hover {
-  background: var(--color-white);
-  color: var(--color-black);
-}
+/* Button contrast on dark/red backgrounds is handled by the shared .btn-outline--on-dark /
+   .btn-secondary--on-dark modifiers (buttons.css) — applied directly in the markup here. */
 
 /* ---------------------------------------------------------------- Hero */
 .ftn-hero {

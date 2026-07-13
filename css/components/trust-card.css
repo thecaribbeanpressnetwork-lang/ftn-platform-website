@@ -44,7 +44,7 @@ body.trust-card-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #ECECEC;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   background: var(--color-white);
   cursor: pointer;
@@ -95,7 +95,7 @@ body.trust-card-open {
 }
 
 .trust-card__fields {
-  border-top: 1px solid #ECECEC;
+  border-top: 1px solid var(--color-border);
   padding-top: var(--space-16);
 }
 
@@ -142,7 +142,7 @@ body.trust-card-open {
 }
 
 .trust-card__relationships {
-  border-top: 1px solid #ECECEC;
+  border-top: 1px solid var(--color-border);
   padding-top: var(--space-8);
 }
 
