@@ -443,6 +443,15 @@
   color: var(--color-red);
 }
 
+/* Distinct from --live: an outlined treatment (not filled) so "Public Beta" reads as its
+   own real status, not a same-looking restatement of "Live" (v1.5 pass — product
+   differentiation on /applications/). */
+.module-card__status--beta {
+  background: transparent;
+  color: var(--color-red);
+  border: 1px solid var(--color-red);
+}
+
 .module-card p {
   color: var(--color-graphite);
   font-size: var(--text-small-size);
