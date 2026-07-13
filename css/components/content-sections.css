@@ -36,6 +36,16 @@
   }
 }
 
+/* Community Connect's own icon mark (v1.6, extracted from the AEB-13 reference board) --
+   a small institutional badge above the eyebrow, same supporting role as the Face the
+   Nation badge on its own hero. */
+.cc-icon-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-12);
+  margin-bottom: var(--space-16);
+}
+
 .page-hero__eyebrow {
   display: inline-block;
   font-weight: 700;
