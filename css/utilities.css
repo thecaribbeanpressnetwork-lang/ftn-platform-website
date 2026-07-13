@@ -41,6 +41,14 @@
   width: auto;
 }
 
+/* Official FTN wordmark treatment (AEB-01 Brand Foundation): F and N stay the surrounding
+   fill color, T is always FTN Red. #E10613 on both white (header) and --color-black (footer)
+   clears the WCAG large-text 3:1 threshold (3.97:1 and 4.96:1 respectively) at this glyph's
+   40px size, so one shared rule covers both placements. */
+.logo-mark__t {
+  fill: var(--color-red);
+}
+
 /* Card/section modifiers used on dark bands */
 .principle-card--on-dark {
   background: var(--color-charcoal);
