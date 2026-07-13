@@ -525,6 +525,11 @@
   color: var(--color-graphite);
 }
 
+.callout--on-dark {
+  background: var(--color-charcoal);
+  color: var(--color-silver);
+}
+
 @media (min-width: 768px) {
   .principle-grid {
     grid-template-columns: repeat(2, 1fr);
