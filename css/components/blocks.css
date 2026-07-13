@@ -339,7 +339,10 @@
 }
 
 .cta .module-card__status--live {
-  background: rgba(255, 255, 255, 0.2);
+  /* 0.2 white overlay on the CTA's solid red measured at 4.16:1 -- fails 4.5:1. A lighter
+     overlay keeps the background closer to solid red, which has better contrast with white
+     text; 0.1 measures 4.64:1. */
+  background: rgba(255, 255, 255, 0.1);
   color: var(--color-white);
 }
 

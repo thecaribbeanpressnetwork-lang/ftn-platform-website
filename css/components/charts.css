@@ -12,6 +12,16 @@
   background: var(--color-white);
 }
 
+/* .chart-card always has a white background regardless of the section it sits in, but
+   `.section--dark p { color: var(--color-silver) }` outranks a plain `.u-text-graphite` utility
+   class on specificity alone (class+element beats a single class), so a chart-card dropped into
+   a dark section silently rendered silver-on-white (2.58:1, fails AA) instead of the intended
+   graphite-on-white. This rule's specificity (two classes + element) wins cleanly and cascades
+   to child links via the existing `a { color: inherit }` base rule. */
+.section--dark .chart-card p {
+  color: var(--color-graphite);
+}
+
 .chart-card__title {
   font-family: var(--font-heading);
   font-weight: 700;

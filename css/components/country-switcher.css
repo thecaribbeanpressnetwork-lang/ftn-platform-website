@@ -29,6 +29,15 @@
   white-space: nowrap;
 }
 
+/* Base state: hidden everywhere the label could show it (mobile nav gets its own always-visible
+   override below). Must come before the 1260px media query below it in source order -- an
+   unscoped rule appearing AFTER a media-query rule of equal specificity wins the cascade
+   regardless of the media query, which previously made this permanently display:none at every
+   viewport width including >=1260px (a real bug: fixed here, engineering pass). */
+.country-switcher-trigger__label {
+  display: none;
+}
+
 @media (min-width: 1024px) {
   .country-switcher-trigger {
     display: inline-flex;
@@ -47,10 +56,6 @@
   }
 }
 
-.country-switcher-trigger__label {
-  display: none;
-}
-
 .mobile-nav__country-switcher {
   display: flex;
   align-items: center;
@@ -65,6 +70,12 @@
   font-weight: 600;
   color: var(--color-black);
   cursor: pointer;
+}
+
+/* The mobile nav panel is a full-width list, not a compact header pill -- there's always room
+   for the label here, unlike the header trigger's viewport-gated version above. */
+.mobile-nav__country-switcher .country-switcher-trigger__label {
+  display: inline;
 }
 
 @media (min-width: 1024px) {

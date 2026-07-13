@@ -457,7 +457,9 @@
 }
 
 .module-card__status--live {
-  background: rgba(225, 6, 19, 0.08);
+  /* 0.08 measured at 4.31:1 against white -- fails 4.5:1. Lighter tint gives the red text more
+     room; 0.03 measures 4.72:1. */
+  background: rgba(225, 6, 19, 0.03);
   color: var(--color-red);
 }
 
@@ -649,8 +651,12 @@
 }
 
 .ecosystem__status--live {
-  background: rgba(233, 71, 80, 0.16);
-  color: var(--color-red-on-dark);
+  /* Solid, not tinted: a semi-transparent red-on-dark badge here composites to a background
+     that fails 4.5:1 no matter how the opacity is tuned (--color-red-on-dark's contrast margin
+     against pure --color-charcoal is only 4.54:1, so any red tint pushes it under). Solid
+     --color-red + white text clears 4.96:1 with real margin instead. */
+  background: var(--color-red);
+  color: var(--color-white);
 }
 
 .ecosystem__status--dev {
