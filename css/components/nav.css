@@ -77,7 +77,7 @@
 
 .site-nav__trigger:hover,
 .site-nav__item.is-open .site-nav__trigger {
-  background: #FAFAFA;
+  background: var(--color-tint);
 }
 
 .site-nav__trigger--link {
@@ -90,7 +90,7 @@
 }
 
 .site-nav__trigger--link:hover {
-  background: #FAFAFA;
+  background: var(--color-tint);
 }
 
 .site-nav__trigger .chevron {

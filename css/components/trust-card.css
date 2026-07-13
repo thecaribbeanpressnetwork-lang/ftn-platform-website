@@ -89,7 +89,7 @@ body.trust-card-open {
   font-size: var(--text-small-size);
   color: var(--color-graphite);
   padding: var(--space-12) var(--space-16);
-  background: #FAFAFA;
+  background: var(--color-tint);
   border-radius: var(--radius-8);
   margin-bottom: var(--space-16);
 }

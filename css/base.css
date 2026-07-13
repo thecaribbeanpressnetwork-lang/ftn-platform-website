@@ -37,6 +37,9 @@ h4 {
   font-family: var(--font-heading);
   font-weight: 700;
   line-height: 1.2;
+  /* A restrained negative tracking on display type reads more considered/editorial —
+     Executive Design System pass — never applied to body copy. */
+  letter-spacing: -0.01em;
   overflow-wrap: break-word;
 }
 
@@ -57,6 +60,7 @@ h3 {
 
 p {
   max-width: 65ch;
+  line-height: var(--text-body-line);
 }
 
 a {
@@ -134,6 +138,15 @@ select:focus-visible {
   max-width: var(--container-max);
   margin-inline: auto;
   padding-inline: var(--grid-margin);
+}
+
+@media (min-width: 1260px) {
+  .container {
+    /* A slightly more generous edge margin at desktop+ — the documented 24px AEB-06 grid
+       margin is preserved as the floor for mobile/tablet; this is an additive breathing-room
+       increase for wider viewports (Executive Design System pass), not a grid redefinition. */
+    padding-inline: var(--space-48);
+  }
 }
 
 @media (min-width: 1820px) {

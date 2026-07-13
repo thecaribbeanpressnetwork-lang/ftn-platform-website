@@ -26,6 +26,9 @@
      (v1.5 Executive Design System pass) — same value, now a single source of truth.
      Not a new color decision. */
   --color-border: #ECECEC;
+  /* Same promotion for the site's off-white tint surface (#FAFAFA), used for .section--tint,
+     callouts, and page-hero side panels. */
+  --color-tint: #FAFAFA;
 
   /* Red interaction states — promoted from hardcoded hex values already used identically
      across every .btn-primary hover/active rule (v1.5 pass). Same colors, now tokenized. */
@@ -93,6 +96,13 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.16);
+  /* Promoted from two hand-rolled rgba(11,11,11,x) values duplicated across blocks.css and
+     content-sections.css for product-screenshot frames and phone/screenshot galleries
+     (v1.5 pass) — same values, now named. Kept distinct from the sm/md/lg/xl scale above
+     since their exact numbers predate it and changing them is a value decision, not a
+     tokenization one. */
+  --shadow-media: 0 12px 32px rgba(11, 11, 11, 0.12);
+  --shadow-gallery: 0 8px 20px rgba(11, 11, 11, 0.15);
 
   /* Grid (AEB-06 §3) */
   --grid-columns: 12;

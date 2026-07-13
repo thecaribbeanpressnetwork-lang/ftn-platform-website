@@ -74,7 +74,7 @@
   display: none;
   padding: var(--space-16) var(--space-24);
   border-radius: var(--radius-8);
-  background: #FAFAFA;
+  background: var(--color-tint);
   border-left: 3px solid var(--color-red);
   font-size: var(--text-small-size);
   margin-top: var(--space-24);
