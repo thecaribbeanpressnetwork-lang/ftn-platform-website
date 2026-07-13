@@ -8,12 +8,12 @@ consistency, per the FTN Release Procedure (first applied 2026-07-11).
 
 | Field | Value |
 |---|---|
-| Platform version | 1.4.0 |
-| Program milestone name | "Operational Phase 1" — Community Connect Public Beta Integration (1B: Face the Nation Platform Integration) — the first two operational platforms added on top of the "Website Version 1.0" baseline (v1.3.0) |
-| Canonical release marker | git tag `v1.4.0` — authoritative; resolve it (`git rev-parse v1.4.0`) rather than trusting a hardcoded hash in this file, which necessarily can't name its own commit |
+| Platform version | 1.5.0-rc1 |
+| Program milestone name | "Executive Design System" — a complete visual-presentation redesign (no architecture/routing/content changes) layered on top of the "Operational Phase 1" baseline (v1.4.0) |
+| Canonical release marker | git tag `v1.5.0-rc1` — authoritative; resolve it (`git rev-parse v1.5.0-rc1`) rather than trusting a hardcoded hash in this file, which necessarily can't name its own commit |
 | Release date | 2026-07-13 |
 | Branch | `main` |
-| Remote / deployment | `origin` = `https://github.com/thecaribbeanpressnetwork-lang/ftn-platform-website.git`; Cloudflare Pages, custom domain `ftnplatform.org` |
+| Remote / deployment | **Not pushed.** This is a release candidate pending founder review before promotion to production — `origin/main` still points at `v1.4.0`. `origin` = `https://github.com/thecaribbeanpressnetwork-lang/ftn-platform-website.git`; Cloudflare Pages, custom domain `ftnplatform.org` |
 
 Note on build number: a commit-count "build number" was considered and dropped from this table —
 it can't stay accurate inside the file whose own commit it would need to count, and a wrong number
@@ -23,6 +23,7 @@ here is worse than no number. Use `git rev-list --count v1.2.1` if a build numbe
 
 | Version | Date | Tag | Notes |
 |---|---|---|---|
+| 1.5.0-rc1 | 2026-07-13 | `v1.5.0-rc1` | **Pending founder review — not pushed to origin.** Executive Design System pass: a complete visual redesign (tokens, buttons, cards, typography, spacing, nav/footer chrome, all 8 bespoke pages) with zero architecture, routing, or content changes. Six sequential phases, each independently verified (0 console errors, 0 overflow across all 20 pages × 5 breakpoints, 0 id changes, header/footer byte-identical across all pages, all JS hooks intact). See `RELEASE_NOTES_v1.5.md` and `GOVERNANCE/FTN_Platform_Website_v1.5.0-rc1_Design_Release_Report.md`. |
 | 1.4.0 | 2026-07-13 | `v1.4.0` | Operational Phase 1 — the first two live operational platforms beyond the website itself. **1A, Community Connect Public Beta Integration:** the real, existing Community Connect application (separate repository) integrated as an external application — new `/applications/` Platforms hub, upgraded `/community-connect/` product page with Public Beta badge/launch flow, every sitewide CTA unified to one journey, Contact's ninth "Beta Feedback" category, deployment architecture recommendation (`community.ftnplatform.org`, a dedicated subdomain). **1B, Face the Nation Platform Integration:** supersedes the 2026-07-11 Founder Decision keeping Face the Nation out of navigation — it's now a real, live platform. New `/facethenation` (no trailing slash, by design) built from the approved visual concept and real production photography/branding reviewed from the full asset library; Applications renamed to Platforms sitewide; a bounded dark "broadcast" treatment scoped to this one page only (same pattern as Observatory/Mission Control Demo), never a site-wide theme change. See `CLAUDE.md` §7.11–§7.12 and `RELEASE_NOTES_v1.4.md`. |
 | 1.3.0 | 2026-07-12 | `v1.3.0` | Website Completion Program ("Website Version 1.0") — FTN Live/Contact/News/Insights product journeys, Executive Polish (visual experience locked), Presentation Mode / Live Mode global infrastructure, complete legal content across all four legal pages, an independent Engineering Release Certification (zero release blockers found), and a release-closeout repository-hygiene fix (internal strategy/governance material removed from the public repo — see `CLAUDE.md` §7.10). See `RELEASE_NOTES_v1.0.md` and `GOVERNANCE/FTN_Platform_Website_v1.0_Engineering_Release_Certification.md`. |
 | 1.2.1 | 2026-07-12 | `v1.2.1` | Design Language Completion — extends the v1.2.0 design language to every interior page (new page-hero panel family, platform ecosystem diagram, redesigned Coming Soon pages, categorized sitemap, legal-page in-page indexes) and adds one restrained, fully progressive scroll-reveal moment. Mission Control Demo and Observatory deliberately left unchanged. See commit `60bed92` and the CLAUDE.md notes it added. |
