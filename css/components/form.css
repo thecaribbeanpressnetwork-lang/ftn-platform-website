@@ -26,6 +26,13 @@
   border-radius: var(--radius-8);
   background: var(--color-white);
   color: var(--color-black);
+  transition: border-color 0.15s ease;
+}
+
+.form-field input:hover,
+.form-field select:hover,
+.form-field textarea:hover {
+  border-color: var(--color-silver);
 }
 
 .form-field input:focus-visible,

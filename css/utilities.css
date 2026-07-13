@@ -90,10 +90,12 @@
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
   color: var(--color-black);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .icon-circle--light:hover {
-  background: #F5F5F5;
+  background: var(--color-tint);
+  border-color: var(--color-red);
 }
 
 .inquiry-category__title {
