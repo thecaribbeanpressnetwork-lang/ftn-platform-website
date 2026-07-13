@@ -7,6 +7,14 @@
   overflow: hidden;
 }
 
+@media (min-width: 1024px) {
+  .hero {
+    /* More cinematic scale at desktop -- the single declarative moment on the site's most
+       important page deserves more room than the mobile-first floor. */
+    padding-block: var(--space-96) var(--space-128);
+  }
+}
+
 /* Restrained graphic motif — thin connecting lines and nodes, evoking the
    Relationship Engine's own idea (scattered fragments becoming one legible
    picture). Derived from the FTN identity's own conceptual language rather

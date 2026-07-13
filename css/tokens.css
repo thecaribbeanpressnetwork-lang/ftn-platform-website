@@ -51,7 +51,11 @@
      an intentional oversized outlier used exactly once per page, never for running
      headings. Fluid via clamp() so it scales smoothly rather than jumping at a
      breakpoint. */
-  --text-hero-size: clamp(2.75rem, 2.1rem + 3vw, 5.5rem);
+  /* v1.5 pass: raised ceiling (5.5rem -> 6rem) and re-tuned the fluid curve so the homepage
+     hero actually approaches its maximum size at ordinary desktop widths (~1440px+) instead
+     of only at ultra-wide -- the original curve didn't reach 5.5rem until ~1813px, which
+     undersold "maximum impact" on the desktop-primary experience the brief calls for. */
+  --text-hero-size: clamp(2.75rem, 2.2rem + 3.5vw, 6rem);
   --text-hero-line: 1.04;
   --text-display-size: 3rem;      /* 48px */
   --text-display-line: 3.5rem;    /* 56px */
