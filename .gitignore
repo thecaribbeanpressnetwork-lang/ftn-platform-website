@@ -13,3 +13,6 @@
 /STANDARDS/
 /STRATEGY/
 /FTN_Strategic_Foundation_v1.0/
+
+# Local Claude Code tooling state (settings, session lock files) — not part of the shipped site.
+/.claude/

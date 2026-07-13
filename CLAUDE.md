@@ -349,6 +349,12 @@ structure as of Phase 3:
 │   ├── data-source.js                # datasource seam a future production engine plugs into (v1.3, §7.8)
 │   ├── presentation-control.js       # floating Presentation Mode control (v1.3, §7.8)
 │   ├── storage.js                    # RC3, §7.7 — shared localStorage JSON get/set/remove helper
+│   ├── country.js                    # persisted country selection + data-country attribute +
+│   │                                  # ftn:country-changed event, scaffold only (v1.6, §7.13)
+│   ├── country-switcher.js           # first-visit modal + header/mobile-nav control for country.js
+│   │                                  # (v1.6, §7.13), reuses trust-card.js's dialog shell
+│   ├── country-scope-notice.js       # real honest behavior on top of country.js — "FTN is
+│   │                                  # expanding to X" on Community Connect/FTN Live (v1.7, §7.14)
 │   ├── contact-form.js               # client-side validation; honest no-backend status message
 │   ├── indicators-data.js            # FTN Live indicator registry (~70 demo indicators, see below)
 │   ├── ads-data.js / ads.js          # advertisement campaign registry + generic panel renderer
@@ -1110,6 +1116,89 @@ brand assets and production photography.
   the same PowerShell/`System.Drawing` pipeline used for the hero image, consistent with how the
   site's existing default OG image was built (§7.5: "generated... composed from the approved
   wordmark + tagline"). No AI-generated or invented imagery anywhere on this page.
+
+## 7.13 Version 1.6.0 — Caribbean Executive Identity Pass
+
+A creative/institutional-identity pass layered entirely on 1.5.0, per the founder's brief that
+engineering was "done" and the goal was to make the site feel like "the digital headquarters of an
+institution," not to add features. Eight sequential phases, each independently committed and
+verified (0 console errors/overflow across all pages × breakpoints, header/footer byte-identical,
+all JS hooks intact).
+
+- **Heritage Layer System** (`css/components/heritage-layer.css`, new `--heritage-opacity` /
+  `--heritage-opacity-on-dark` tokens) — one shared, reusable pattern for restrained, hand-authored
+  per-page SVG line-work (bathymetry contours, compass rose, road-grid/GPS marks, radar sweep,
+  isobars, waveform, etc.) at 2–8% opacity behind each page's hero, `aria-hidden`, contrast-checked
+  against body text, never a decorative illustration.
+- **Founding statements** — one large, memorable purpose-line per major page (Community Connect,
+  Mission Control, Face the Nation, Observatory, Applications), reusing the existing hero-scale type
+  token rather than a new outlier.
+- **Atmosphere equalization** — Applications, Resources, Insights, News, and Contact each gained a
+  genuine `.section--dark` band plus a heritage layer, closing the two-tier "some pages feel flat"
+  gap a Founder Review screenshot audit had identified.
+- **Subtle motion** — CSS-only, slow (15–40s), low-amplitude loops (drifting current lines, radar
+  sweep, constellation drift, waveform), all gated behind
+  `@media (prefers-reduced-motion: no-preference)`.
+- **Nav/logo breathing room + content refinements** — Display Network/Media Network became
+  permanent institutional mission statements (no card grid, no dates); Face the Nation's five social
+  cards collapsed into one institutional statement; About's stale "In Development" badges on
+  Insights/News fixed to "Live."
+- **Community Connect icon mark extracted** (`assets/community/community-connect-icon-mark.png` +
+  `-96.png`) from AEB-13's "Product Logo Suite" — a clean crop only, no redesign. The wordmark
+  portion of that same board was deliberately not extracted (documented raster-quality concern) —
+  Community Connect's page uses the extracted icon mark, not a full logo lockup.
+- **Country-switcher architecture built as a scaffold, no localized content** (`js/country.js`,
+  `js/country-switcher.js`, `css/components/country-switcher.css`) — a persisted `data-country`
+  attribute on `<html>`, a `ftn:country-changed` event, and a first-visit welcome modal + header
+  control listing Trinidad & Tobago, Jamaica, Barbados, Guyana, Saint Lucia, and "Rest of the
+  Caribbean." Explicitly did not change any page content per country at this stage — see §7.14 for
+  where that scaffold gets real (messaging-only) behavior.
+
+## 7.14 Version 1.7.0 — Executive Visual Polish & Caribbean Localization Pass
+
+A founder-directed brand-accuracy and refinement pass, built directly on 1.6.0. Two corrections
+made mid-pass are recorded here because they're easy for a future session to get wrong by trusting
+either the brief's own claims or an earlier misreading in this same session's history:
+
+- **The FTN Platform wordmark's F and N stay the surrounding fill color; the T is always FTN Red
+  (`#E10613`) — confirmed against the official AEB-01 Brand Foundation board.** This is a real,
+  intentional brand detail, not a typo or an unauthorized redesign: verified directly against two
+  copies of the AEB-01 board in `FTN editing assets/` after an initial misreading in this same
+  session incorrectly concluded the wordmark was uniformly one color. If you see the red-T
+  treatment on the header/footer logo, the favicon-adjacent standalone SVGs
+  (`assets/logos/logo-ftn-platform-primary-{light,dark}.svg`), or anywhere else "FTN" is set as a
+  wordmark, **that is correct — do not "fix" it back to a solid color.** Implementation: the "FTN"
+  glyph is native SVG `<text>`, not `<path>` letterforms, so the T is split into its own `<tspan
+  class="logo-mark__t">` and colored via `css/utilities.css`'s `.logo-mark__t` rule (`fill:
+  var(--color-red)`) rather than a hardcoded hex repeated per occurrence. Contrast-verified: 3.97:1
+  on white (header), 4.96:1 on `--color-black` (footer) — both clear the WCAG large-text 3:1
+  threshold at the wordmark's 40px glyph size (logos are exempt from 1.4.3 regardless, but this was
+  checked rather than assumed).
+- **The "Community Photography (Trinidad & Tobago)" grid on `FTN editing assets/` board 41 is
+  AI-generated concept imagery, not real photography — do not extract or ship it as real.** Tells:
+  identical HDR sky/color grade across all 10 "different" shots regardless of implied time of day,
+  a suspiciously staged/glossy garbage pile, generic non-Trinidad-specific architecture. No real,
+  non-AI-generated Trinidad & Tobago (or any other Caribbean country's) street/community photography
+  exists in either reference asset library as of this pass — genuine per-country visual
+  localization needs commissioned or sourced real photography before it can be built honestly, per
+  the platform's own standing "real photography, not AI-generated" rule (§5 Photography &
+  direction, AEB-08).
+- **`js/country-scope-notice.js`** (new, loads after `js/country.js` on Community Connect and FTN
+  Live only) gives the 1.6.0 country-switcher scaffold its first real, honest behavior: when a
+  visitor explicitly selects a country other than Trinidad & Tobago, a `[data-country-scope-notice]`
+  element (a `.callout` / `.callout--on-dark`, new dark variant added this pass) reads "FTN is
+  expanding to `<Country>`. Trinidad & Tobago is live today." Trinidad & Tobago (the default) is
+  unaffected. Deliberately messaging-only — no fabricated per-country imagery, per the finding
+  above.
+- **Applications' "Live Now" grid rebalanced from 3+1 to 2×2** (`#live .module-grid`,
+  `content-sections.css`) — a genuine layout gap a fresh visual audit found (4 cards in a 3-column
+  grid stranded the 4th alone); the only atmosphere/spacing issue the audit surfaced, since 1.6.0
+  had already closed the larger two-tier gap.
+- **Four new product names from the founder's brief — ibis.ai, FTN Riddim, FTN Kaiso, FTN Love —
+  were deliberately not built this pass.** None exist on any reviewed board or in the asset
+  manifest, and building them would have both invented unapproved branding and reversed an explicit
+  "do not build new products, dedicated releases later" instruction from earlier in the same
+  session. Revisit only once each has an approved brand board and its own dedicated brief.
 
 ## 8. HTML Standards
 
