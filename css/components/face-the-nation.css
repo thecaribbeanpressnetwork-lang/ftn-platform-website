@@ -48,6 +48,14 @@
   background: var(--color-black) url('/assets/face-the-nation/ftn-hero-master-shot.jpg') center 15% / cover no-repeat;
 }
 
+@media (min-width: 1024px) {
+  .ftn-hero {
+    /* More cinematic scale at desktop, where there's room for it without pushing the
+       "Coming Soon" content below the fold on a typical viewport. */
+    min-height: 760px;
+  }
+}
+
 /* The source photo carries its own "Face the Nation" signboard — left-weighted so the
    foreground headline (which repeats that same wordmark) sits on a clean, legible field
    instead of visually colliding with the sign baked into the photo. */
@@ -225,7 +233,7 @@
   background: var(--color-charcoal);
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
 .ftn-social-card__text {
@@ -242,6 +250,13 @@
 
 .ftn-social-card:hover {
   border-color: var(--color-red-on-dark);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ftn-social-card:hover {
+    transform: none;
+  }
 }
 
 .ftn-social-card__icon {
@@ -410,4 +425,7 @@
   border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
+  margin-bottom: var(--space-24);
+  border: 2px solid var(--color-red-on-dark);
+  box-shadow: var(--shadow-xl);
 }
