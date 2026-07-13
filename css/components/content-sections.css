@@ -99,14 +99,23 @@
   align-items: baseline;
   gap: var(--space-16);
   padding-block: var(--space-16);
+  padding-inline-start: 0;
   text-decoration: none;
   color: var(--color-black);
   font-family: var(--font-heading);
   font-weight: 600;
+  transition: color 0.15s ease, padding-inline-start 0.15s ease;
 }
 
 .page-hero__index a:hover {
   color: var(--color-red);
+  padding-inline-start: var(--space-8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-hero__index a:hover {
+    padding-inline-start: 0;
+  }
 }
 
 .page-hero__index-num {
@@ -568,11 +577,18 @@
   background: var(--color-charcoal);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
 .ecosystem__node:hover {
   border-color: var(--color-red-on-dark);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecosystem__node:hover {
+    transform: none;
+  }
 }
 
 .ecosystem__node h3 {

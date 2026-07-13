@@ -26,9 +26,11 @@
 
 .u-icon-invert { filter: invert(1); }
 
-/* Reconciled to match nav.css/footer.css's own logo sizing (v1.5 pass) — not currently
-   applied in markup (the header/footer logos are sized via element selectors instead) but
-   kept consistent for any future use. */
+/* These are the classes actually applied to the inline header/footer logo SVGs (v1.5 pass:
+   32px -> 36px / 34px -> 40px). nav.css's ".site-header__logo img" and footer.css's
+   ".site-footer__brand img" target an <img> tag that doesn't exist here — the logos are
+   inline <svg class="logo-mark">/<svg class="logo-mark--footer">, so those two rules are
+   dead code kept in sync but never actually applied; this file is the real source of truth. */
 .logo-mark {
   height: 36px;
   width: auto;
