@@ -465,21 +465,6 @@
   font-size: var(--text-small-size);
 }
 
-/* Applications hub (v1.4) — "Coming Soon" products aren't links; no hover affordance */
-.module-card--unavailable {
-  cursor: default;
-}
-
-.module-card--unavailable:hover {
-  border-color: var(--color-border);
-  box-shadow: none;
-  transform: none;
-}
-
-.module-card--unavailable h3 {
-  text-decoration: none;
-}
-
 /* Screenshot gallery — reference device mockups (RC2, assets/community/) */
 .screenshot-row {
   display: flex;
