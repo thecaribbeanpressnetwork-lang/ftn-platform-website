@@ -56,104 +56,22 @@
 
       <nav class="site-nav" aria-label="Primary">
         <ul class="site-nav__list">
-          <li class="site-nav__item" data-nav-item>
-            <button type="button" class="site-nav__trigger" data-nav-trigger aria-expanded="false">
-              About
-              <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
-            </button>
-            <div class="site-nav__dropdown">
-              <a href="/about/#our-mission">Our Mission</a>
-              <a href="/about/#our-vision">Our Vision</a>
-              <a href="/about/#founding-principles">Founding Principles</a>
-              <a href="/about/#our-philosophy">Our Philosophy</a>
-            </div>
-          </li>
-          <li class="site-nav__item">
-            <a class="site-nav__trigger site-nav__trigger--link" href="/applications/">Platforms</a>
-          </li>
-          <li class="site-nav__item" data-nav-item>
-            <button type="button" class="site-nav__trigger" data-nav-trigger aria-expanded="false">
-              Community Connect
-              <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
-            </button>
-            <div class="site-nav__dropdown">
-              <a href="/community-connect/#overview">Overview</a>
-              <a href="/community-connect/#reporting-workflow">How It Works</a>
-              <a href="/community-connect/#features">Features</a>
-              <a href="/community-connect/#launch">Launch App</a>
-            </div>
-          </li>
-          <li class="site-nav__item" data-nav-item>
-            <button type="button" class="site-nav__trigger" data-nav-trigger aria-expanded="false">
-              Mission Control
-              <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
-            </button>
-            <div class="site-nav__dropdown">
-              <a href="/mission-control/#overview">Overview</a>
-              <a href="/mission-control/#government-dashboard">Capabilities</a>
-              <a href="/mission-control/#platform-security">Platform Security</a>
-              <a href="/mission-control/demo/">Interactive Demonstration</a>
-            </div>
-          </li>
-          <li class="site-nav__item">
-            <a class="site-nav__trigger site-nav__trigger--link" href="/observatory/">FTN Live</a>
-          </li>
-          <li class="site-nav__item">
-            <a class="site-nav__trigger site-nav__trigger--link" href="/facethenation">Face the Nation</a>
-          </li>
-          <li class="site-nav__item" data-nav-item>
-            <button type="button" class="site-nav__trigger" data-nav-trigger aria-expanded="false">
-              Insights
-              <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
-            </button>
-            <div class="site-nav__dropdown">
-              <a href="/insights/#what-changed">What Changed</a>
-              <a href="/insights/#patterns">Patterns</a>
-              <a href="/insights/#connections">How Things Connect</a>
-              <a href="/insights/#community-reports">Community Reports</a>
-            </div>
-          </li>
-          <li class="site-nav__item" data-nav-item>
-            <button type="button" class="site-nav__trigger" data-nav-trigger aria-expanded="false">
-              News &amp; Stories
-              <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
-            </button>
-            <div class="site-nav__dropdown">
-              <a href="/news/#latest">Latest</a>
-              <a href="/news/#platform-news">Platform News</a>
-              <a href="/news/#community-impact">Community Impact</a>
-              <a href="/news/#ecosystem">Ecosystem</a>
-            </div>
-          </li>
-          <li class="site-nav__item" data-nav-item>
-            <button type="button" class="site-nav__trigger" data-nav-trigger aria-expanded="false">
-              Resources
-              <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
-            </button>
-            <div class="site-nav__dropdown">
-              <a href="/resources/#faq">Help Center</a>
-              <a href="/resources/#documentation">Guides &amp; API Access</a>
-              <a href="/resources/#media-kit">Media Kit</a>
-            </div>
-          </li>
-          <li class="site-nav__item" data-nav-item>
-            <button type="button" class="site-nav__trigger" data-nav-trigger aria-expanded="false">
-              Contact
-              <img class="chevron" src="/assets/icons/icon-chevron-down.svg" alt="" width="12" height="12">
-            </button>
-            <div class="site-nav__dropdown">
-              <a href="/contact/#contact-form">Contact Form</a>
-              <a href="/contact/#support">Support</a>
-              <a href="/contact/#commercial">Partnerships</a>
-              <a href="/contact/#careers">Careers</a>
-            </div>
-          </li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/">Home</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/about/">About FTN</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/news/">News</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/#commercial">Partners</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/#investors">Investors</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/">Contact</a></li>
         </ul>
       </nav>
 
       <div class="site-header__actions">
         <button type="button" class="country-switcher-trigger" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span class="country-switcher-trigger__pin" aria-hidden="true"></span><span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></button>
-        <a class="btn btn-primary btn-sm" href="/community-connect/#launch">Launch App</a>
+        <!-- Sign In: routes to Community Connect's launch flow today, the only FTN product with
+             real user accounts. data-sign-in-entry marks this as the future unified FTN
+             Account/SSO integration point -- swap the href when a real identity service exists,
+             no nav restructure needed. -->
+        <a class="btn btn-primary btn-sm" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
         <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
           <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
           <img class="icon-close" src="/assets/icons/icon-close.svg" alt="" width="20" height="20">
@@ -163,85 +81,18 @@
 
     <div class="mobile-nav" id="mobile-nav">
       <div class="mobile-nav__section">
-        <p class="mobile-nav__heading">About</p>
         <div class="mobile-nav__links">
-          <a href="/about/#our-mission">Our Mission</a>
-          <a href="/about/#our-vision">Our Vision</a>
-          <a href="/about/#founding-principles">Founding Principles</a>
-          <a href="/about/#our-philosophy">Our Philosophy</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <div class="mobile-nav__links">
-          <a href="/applications/" class="mobile-nav__link--top">Platforms</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <p class="mobile-nav__heading">Community Connect</p>
-        <div class="mobile-nav__links">
-          <a href="/community-connect/#overview">Overview</a>
-          <a href="/community-connect/#reporting-workflow">How It Works</a>
-          <a href="/community-connect/#features">Features</a>
-          <a href="/community-connect/#launch">Launch App</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <p class="mobile-nav__heading">Mission Control</p>
-        <div class="mobile-nav__links">
-          <a href="/mission-control/#overview">Overview</a>
-          <a href="/mission-control/#government-dashboard">Capabilities</a>
-          <a href="/mission-control/#platform-security">Platform Security</a>
-          <a href="/mission-control/demo/">Interactive Demonstration</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <div class="mobile-nav__links">
-          <a href="/observatory/" class="mobile-nav__link--top">FTN Live</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <div class="mobile-nav__links">
-          <a href="/facethenation" class="mobile-nav__link--top">Face the Nation</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <p class="mobile-nav__heading">Insights</p>
-        <div class="mobile-nav__links">
-          <a href="/insights/#what-changed">What Changed</a>
-          <a href="/insights/#patterns">Patterns</a>
-          <a href="/insights/#connections">How Things Connect</a>
-          <a href="/insights/#community-reports">Community Reports</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <p class="mobile-nav__heading">News &amp; Stories</p>
-        <div class="mobile-nav__links">
-          <a href="/news/#latest">Latest</a>
-          <a href="/news/#platform-news">Platform News</a>
-          <a href="/news/#community-impact">Community Impact</a>
-          <a href="/news/#ecosystem">Ecosystem</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <p class="mobile-nav__heading">Resources</p>
-        <div class="mobile-nav__links">
-          <a href="/resources/#faq">Help Center</a>
-          <a href="/resources/#documentation">Guides &amp; API Access</a>
-          <a href="/resources/#media-kit">Media Kit</a>
-        </div>
-      </div>
-      <div class="mobile-nav__section">
-        <p class="mobile-nav__heading">Contact</p>
-        <div class="mobile-nav__links">
-          <a href="/contact/#contact-form">Contact Form</a>
-          <a href="/contact/#support">Support</a>
-          <a href="/contact/#commercial">Partnerships</a>
-          <a href="/contact/#careers">Careers</a>
+          <a href="/" class="mobile-nav__link--top">Home</a>
+          <a href="/about/" class="mobile-nav__link--top">About FTN</a>
+          <a href="/news/" class="mobile-nav__link--top">News</a>
+          <a href="/contact/#commercial" class="mobile-nav__link--top">Partners</a>
+          <a href="/contact/#investors" class="mobile-nav__link--top">Investors</a>
+          <a href="/contact/" class="mobile-nav__link--top">Contact</a>
         </div>
       </div>
       <div class="mobile-nav__actions">
         <button type="button" class="mobile-nav__country-switcher" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span><span class="country-switcher-trigger__pin" aria-hidden="true"></span> <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></span><span aria-hidden="true">&rsaquo;</span></button>
-        <a class="btn btn-primary" href="/community-connect/#launch">Launch App</a>
+        <a class="btn btn-primary" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
       </div>
     </div>
   </header>
@@ -317,7 +168,7 @@
             <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#FFFFFF">F<tspan class="logo-mark__t">T</tspan>N</text>
             <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#FFFFFF">PLATFORM</text>
           </svg>
-          <p class="site-footer__tagline">Connecting Communities. Empowering Governments. Building a Smarter Nation.</p>
+<p class="site-footer__tagline">One Ecosystem. One Mission. Built for the Caribbean.</p>
           <div class="site-footer__social">
             <a href="https://x.com/realityarttv" aria-label="FTN Platform on X"><img src="/assets/icons/social-x.svg" alt="" width="16" height="16"></a>
             <a href="https://facebook.com/realityarttv" aria-label="FTN Platform on Facebook"><img src="/assets/icons/social-facebook.svg" alt="" width="16" height="16"></a>
@@ -331,23 +182,31 @@
           <div>
             <p class="site-footer__heading">Platform</p>
             <div class="site-footer__links">
-              <a href="/about/">About Us</a>
-              <a href="/applications/">Platforms</a>
+              <a href="/about/">About FTN</a>
               <a href="/community-connect/">Community Connect</a>
               <a href="/mission-control/">Mission Control</a>
-              <a href="/mission-control/demo/">Mission Control Demo</a>
+              <a href="/events/">FTN Events</a>
+              <a href="/facethenation">Face The Nation</a>
+              <a href="/ibis-ai/">ibis.ai</a>
+              <a href="/riddim/">FTN Riddim</a>
+              <a href="/kaiso/">FTN Kaiso</a>
+              <a href="/radio/">FTN Radio</a>
+              <a href="/screen/">FTN Screen</a>
+              <a href="/opportunities/">FTN Opportunities</a>
+              <a href="/love/">FTN Love</a>
+              <a href="/display-network/">Display Network</a>
               <a href="/observatory/">FTN Live</a>
-              <a href="/facethenation">Face the Nation</a>
-              <a href="/insights/">Insights</a>
-              <a href="/news/">News &amp; Stories</a>
             </div>
           </div>
           <div>
             <p class="site-footer__heading">Resources</p>
             <div class="site-footer__links">
+              <a href="/insights/">Insights</a>
+              <a href="/news/">News &amp; Stories</a>
               <a href="/resources/#faq">Help Center</a>
               <a href="/resources/#documentation">Guides &amp; API Access</a>
               <a href="/resources/#media-kit">Media Kit</a>
+              <a href="/mission-control/demo/">Mission Control Demo</a>
             </div>
           </div>
           <div>
@@ -364,9 +223,10 @@
 
       <div class="site-footer__bottom">
         <p>&copy; 2026 RealityArtTV Media. All Rights Reserved.</p>
-        <div class="site-footer__bottom-links">
+<div class="site-footer__bottom-links">
           <a href="/sitemap/">Sitemap</a>
           <a href="/accessibility/">Accessibility</a>
+          <a href="/applications/">All Platforms</a>
           <a href="/">English</a>
         </div>
       </div>
