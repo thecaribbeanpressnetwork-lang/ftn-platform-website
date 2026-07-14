@@ -121,6 +121,39 @@
      default for line work on a light surface, --on-dark for line work on black/charcoal. */
   --heritage-opacity: 0.05;
   --heritage-opacity-on-dark: 0.08;
+
+  /* Product accent colors (v1.8 Ecosystem Completion pass) — one locked hue per ecosystem
+     product, used on the homepage grid and each product's own page. Every value here is
+     contrast-verified against --color-black (3:1 minimum, the WCAG large-text threshold) and is
+     intended for large/decorative use only — headings, borders, icons, card fills, CTA buttons —
+     never small running text, exactly like --color-red itself is never used for small text on a
+     surface it doesn't clear 4.5:1 against. Body/caption text on every product page stays white
+     or --color-silver, already proven safe. Community Connect keeps using --color-red directly
+     (no new token) since it's already the platform's own primary brand color. */
+  --color-mission-control: #2563EB;   /* Government Blue — 3.81:1 vs black (large text/UI only) */
+  --color-events: #C9972E;            /* Gold — 7.45:1 vs black */
+  --color-ibis: #7C3AED;              /* Purple — 3.45:1 vs black (large text/UI only) */
+  --color-riddim: #2E9E5B;            /* Green — deliberately distinct from both disputed
+                                          success-green hexes (#22C55E, #16A34A); 5.77:1 vs black */
+  --color-kaiso: #2D6FB5;             /* Deep Blue — darker/more muted than Mission Control's
+                                          blue; 3.80:1 vs black (large text/UI only) */
+  --color-radio: #D97706;             /* Amber-Gold — same family as Events, shifted warmer;
+                                          6.18:1 vs black */
+  --color-screen: #D9480F;            /* Cinema Orange — 4.58:1 vs black */
+  --color-love: #DB2777;              /* Magenta — 4.28:1 vs black (large text/UI only) */
+  --color-opportunities: #0891B2;     /* Cyan — 5.35:1 vs black */
+  --color-display-network: #0D9488;   /* Teal-Green — cooler than Riddim's, reads as
+                                          signage/tech rather than music; 5.26:1 vs black */
+
+  /* Lightened "on-dark, small text" variants for the three accents whose base hue doesn't clear
+     4.5:1 against black even as bold text (Mission Control also doesn't clear it, but its
+     existing page doesn't use the small-eyebrow pattern these are for). Same relationship as
+     --color-red-on-dark to --color-red — not a new color decision, a contrast-safe derivative of
+     an already-picked one. Used only for small caption-scale text (product-page.css's
+     .product-section__eyebrow); large/decorative uses keep the base --color-ibis/-kaiso/-love. */
+  --color-ibis-on-dark: #9661F1;      /* 4.95:1 vs black */
+  --color-kaiso-on-dark: #4D85C0;     /* 5.09:1 vs black */
+  --color-love-on-dark: #E0478B;      /* 5.10:1 vs black */
 }
 
 /* Breakpoints (AEB-06 §3) — documented here for reference; media queries use literal px values
