@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
-  <link rel="stylesheet" href="/css/components/product-page.css">
+  <link rel="stylesheet" href="/css/components/workspace-shell.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -98,66 +98,8 @@
     </div>
   </header>
 
-  <main id="main" tabindex="-1" class="">
-    <section class="product-hero" style="--product-accent: var(--color-kaiso); --product-accent-small: var(--color-kaiso-on-dark);">
-      <div class="heritage-layer heritage-layer--on-dark" aria-hidden="true">
-        <svg viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <g stroke="currentColor" stroke-width="0.75">
-            <line x1="920" y1="100" x2="920" y2="400" /><line x1="1040" y1="100" x2="1040" y2="400" />
-            <line x1="1160" y1="100" x2="1160" y2="400" /><line x1="1280" y1="100" x2="1280" y2="400" />
-            <line x1="900" y1="150" x2="1300" y2="150" /><line x1="900" y1="250" x2="1300" y2="250" /><line x1="900" y1="350" x2="1300" y2="350" />
-          </g>
-        </svg>
-      </div>
-      <div class="container">
-        <span class="product-hero__eyebrow">FTN Kaiso</span>
-        <h1 class="product-hero__title">The Caribbean Newsroom.</h1>
-        <p class="product-hero__tagline">News. Investigations. Analysis.</p>
-        <p class="product-hero__lede">FTN Kaiso is being built as the ecosystem’s investigative and editorial home — turning the same community intelligence gathered through Community Connect and tracked through Mission Control into public-interest journalism.</p>
-        <div class="product-hero__actions">
-          <a class="btn-product" href="/contact/#general">Register Interest</a>
-          <a class="btn-product-outline" href="/">Back to FTN Platform</a>
-        </div>
-        <div class="product-hero__tags">
-          <span>News</span>
-          <span>Investigations</span>
-          <span>Analysis</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section" style="--product-accent: var(--color-kaiso); --product-accent-small: var(--color-kaiso-on-dark);">
-      <div class="container">
-        <span class="product-section__eyebrow">What FTN Kaiso Will Do</span>
-        <h2>Public-interest journalism, grounded in real data.</h2>
-        <p class="u-max-60ch">Where Face the Nation is broadcast conversation, FTN Kaiso is the written newsroom — reporting and investigations that can point back to the same evidence base the rest of the platform already tracks.</p>
-        <div class="product-feature-grid">
-          <div class="product-feature-card">
-            <h3>News</h3>
-            <p>Timely, factual coverage of the issues Caribbean communities are actually reporting and living through.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Investigations</h3>
-            <p>Longer-form, evidence-based reporting in the public interest.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Analysis</h3>
-            <p>Context and explanation, connecting today’s story to the data and trends behind it.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section product-section--alt">
-      <div class="container">
-        <div class="product-cta">
-          <span class="product-status" style="--product-accent: var(--color-kaiso); --product-accent-small: var(--color-kaiso-on-dark);">In Development</span>
-          <h2>Journalism built on evidence, not just opinion.</h2>
-          <p>FTN Kaiso is in active development. If you’re a Caribbean journalist or investigator, we’d like to hear from you.</p>
-          <a class="product-back-link" href="/">&larr; Explore the full FTN Platform ecosystem</a>
-        </div>
-      </div>
-    </section>
+  <main id="main" tabindex="-1">
+    <div id="workspace-root"></div>
   </main>
 
   <footer class="site-footer">
@@ -234,6 +176,7 @@
     </div>
   </footer>
 
+  <script src="/js/persisted-flag.js"></script>
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
   <script src="/js/country.js"></script>
@@ -241,5 +184,10 @@
   <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
+  <script src="/js/product-registry-data.js"></script>
+  <script src="/js/product-registry.js"></script>
+  <script src="/js/workspace-shell.js"></script>
+  <script src="/js/search-foundation.js"></script>
+  <script src="/js/kaiso-workspace.js"></script>
 </body>
 </html>

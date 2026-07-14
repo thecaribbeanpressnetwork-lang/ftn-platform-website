@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
-  <link rel="stylesheet" href="/css/components/product-page.css">
+  <link rel="stylesheet" href="/css/components/workspace-shell.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -98,67 +98,8 @@
     </div>
   </header>
 
-  <main id="main" tabindex="-1" class="product-hero--text-dark">
-    <section class="product-hero" style="--product-accent: var(--color-riddim);">
-      <div class="heritage-layer heritage-layer--on-dark" aria-hidden="true">
-        <svg viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <g stroke="currentColor" stroke-width="1.5">
-            <path class="hl-drift" d="M900,250 L920,250 L930,180 L945,320 L960,150 L975,350 L990,220 L1005,280 L1020,250 L1300,250" />
-          </g>
-          <g stroke="currentColor" stroke-width="0.75" stroke-dasharray="2 6">
-            <path d="M900,150 L1300,150" /><path d="M900,350 L1300,350" />
-          </g>
-        </svg>
-      </div>
-      <div class="container">
-        <span class="product-hero__eyebrow">FTN Riddim</span>
-        <h1 class="product-hero__title">Powering Caribbean Music.</h1>
-        <p class="product-hero__tagline">The Caribbean Music Operating System.</p>
-        <p class="product-hero__lede">Not a distributor. FTN Riddim is being built as a full workflow for Caribbean artists and producers — from audio analysis and metadata through publishing, artwork, and distribution preparation — with Boss Distribution as the premium human layer every workflow can lead to.</p>
-        <div class="product-hero__actions">
-          <a class="btn-product product-hero--text-dark" href="/contact/#general">Register Interest</a>
-          <a class="btn-product-outline" href="/">Back to FTN Platform</a>
-        </div>
-        <div class="product-hero__tags">
-          <span>Artists</span>
-          <span>Producers</span>
-          <span>Labels</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section" style="--product-accent: var(--color-riddim);">
-      <div class="container">
-        <span class="product-section__eyebrow">What FTN Riddim Will Do</span>
-        <h2>From the studio to the world, one workflow.</h2>
-        <p class="u-max-60ch">FTN Riddim is designed around the real steps a release actually needs — metadata, split sheets, an EPK, a press kit, radio and playlist packages — plus discovery: artists, producers, studios, and music lawyers, all in one directory.</p>
-        <div class="product-feature-grid">
-          <div class="product-feature-card">
-            <h3>Production & Rights</h3>
-            <p>Audio analysis, metadata, publishing, lyrics, credits, and split sheets, handled in one place.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Packaging & Promotion</h3>
-            <p>Artwork, EPK, press kit, radio package, playlist package, and marketing materials.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Career & Community</h3>
-            <p>Sync licensing, festival and grant opportunities, and a directory of artists, producers, and studios.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section product-section--alt">
-      <div class="container">
-        <div class="product-cta">
-          <span class="product-status" style="--product-accent: var(--color-riddim);">In Development</span>
-          <h2>Need professional help right now?</h2>
-          <p>FTN Riddim is in active development. For release support today, every workflow here is designed to lead to Boss Distribution’s premium human layer.</p>
-          <a class="product-back-link" href="/">&larr; Explore the full FTN Platform ecosystem</a>
-        </div>
-      </div>
-    </section>
+  <main id="main" tabindex="-1">
+    <div id="workspace-root"></div>
   </main>
 
   <footer class="site-footer">
@@ -235,6 +176,7 @@
     </div>
   </footer>
 
+  <script src="/js/persisted-flag.js"></script>
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
   <script src="/js/country.js"></script>
@@ -242,5 +184,13 @@
   <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
+  <script src="/js/product-registry-data.js"></script>
+  <script src="/js/product-registry.js"></script>
+  <script src="/js/workspace-shell.js"></script>
+  <script src="/js/entity-metadata-engine.js"></script>
+  <script src="/js/export-framework.js"></script>
+  <script src="/js/media-intake.js"></script>
+  <script src="/js/integration-adapter.js"></script>
+  <script src="/js/riddim-workspace.js"></script>
 </body>
 </html>

@@ -135,174 +135,77 @@
         <span class="eco-hero__eyebrow">FTN Platform</span>
         <h1 class="eco-hero__title">One Ecosystem. <span class="eco-hero__title-accent">One Mission.</span></h1>
         <p class="eco-hero__subtitle">Built for the Caribbean. Designed for tomorrow.</p>
-        <p class="eco-hero__lede">
-          The Caribbean's Intelligence &amp; Opportunity Platform — one connected ecosystem for
-          governments, communities, businesses, creators, and citizens. Every product below draws
-          from the same shared intelligence layer, so nothing you build here stands alone.
-        </p>
       </div>
     </section>
 
+    <!-- The panel grid below is the Product Registry (js/product-registry-data.js) expressed as
+         markup -- the same hand-kept-in-sync convention already used for nav/footer sitewide
+         (CLAUDE.md §7.2). Route, panel image, and status label per product must match the
+         Registry entry exactly. Real founder-approved artwork (assets/panels/), not recreated
+         HTML cards: each panel is a single clickable image, grouped into the three rows the
+         source artwork was produced in (portrait / near-square / wide). -->
     <section class="eco-grid-section">
       <div class="container">
         <div class="eco-grid" data-reveal>
 
-          <a class="eco-card eco-card--photo" href="/community-connect/" style="--card-accent: var(--color-red);">
-            <span class="eco-card__badge"><img src="/assets/community/community-connect-icon-mark.png" alt="" width="56" height="56"></span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Community Connect</h3>
-            <p class="eco-card__tagline">See It. Report It. Improve It.</p>
-            <p class="eco-card__desc">Helping communities turn local observations into visible progress.</p>
-            <p class="eco-card__tags">Community &bull; Evidence &bull; Progress</p>
-            <span class="eco-card__cta">Explore Community Connect <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
+          <div class="eco-grid__row eco-grid__row--1">
+            <a class="eco-panel" href="/community-connect/" style="--panel-accent: var(--color-red);">
+              <img src="/assets/panels/01-community-connect.png" width="286" height="321" alt="Community Connect — See It. Report It. Improve It. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+            <a class="eco-panel" href="/mission-control/" style="--panel-accent: var(--color-mission-control);">
+              <img src="/assets/panels/02-mission-control.png" width="292" height="321" alt="Mission Control — Helping Caribbean Governments See the Bigger Picture. (Interactive Demonstration)" loading="eager">
+              <span class="eco-panel__status" data-status="demo" aria-hidden="true">Demonstration</span>
+            </a>
+            <a class="eco-panel" href="/events/" style="--panel-accent: var(--color-events);">
+              <img src="/assets/panels/03-ftn-events.png" width="280" height="321" alt="FTN Events — Every Event Starts Here. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+            <a class="eco-panel" href="/facethenation" style="--panel-accent: var(--color-red-on-dark);">
+              <img src="/assets/panels/04-face-the-nation.png" width="284" height="321" alt="Face The Nation — Every Voice. Every Constituency. Every Truth. (Live)" loading="eager">
+              <span class="eco-panel__status" data-status="live" aria-hidden="true">Live</span>
+            </a>
+            <a class="eco-panel" href="/ibis-ai/" style="--panel-accent: var(--color-ibis);">
+              <img src="/assets/panels/05-ibis-ai.png" width="309" height="321" alt="ibis.ai — Built for the Caribbean. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+          </div>
 
-          <a class="eco-card" href="/mission-control/" style="--card-accent: var(--color-mission-control);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Mission Control</h3>
-            <p class="eco-card__tagline">Helping Caribbean Governments See the Bigger Picture.</p>
-            <p class="eco-card__desc">Evidence-based decision support built on the same reports citizens submit.</p>
-            <p class="eco-card__tags">Government &bull; Analytics &bull; Decision Support</p>
-            <span class="eco-card__cta">Explore Mission Control <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
+          <div class="eco-grid__row eco-grid__row--2">
+            <a class="eco-panel" href="/riddim/" style="--panel-accent: var(--color-riddim);">
+              <img src="/assets/panels/06-ftn-riddim.png" width="286" height="253" alt="FTN Riddim — Powering Caribbean Music. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+            <a class="eco-panel" href="/kaiso/" style="--panel-accent: var(--color-kaiso);">
+              <img src="/assets/panels/07-ftn-kaiso.png" width="292" height="253" alt="FTN Kaiso — The Caribbean Newsroom. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+            <a class="eco-panel" href="/radio/" style="--panel-accent: var(--color-radio);">
+              <img src="/assets/panels/08-ftn-radio.png" width="280" height="253" alt="FTN Radio — The Soundtrack of the Caribbean. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+            <a class="eco-panel" href="/screen/" style="--panel-accent: var(--color-screen);">
+              <img src="/assets/panels/09-ftn-screen.png" width="284" height="253" alt="FTN Screen — Where Caribbean Stories Come Alive. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+            <a class="eco-panel" href="/opportunities/" style="--panel-accent: var(--color-opportunities);">
+              <img src="/assets/panels/10-ftn-opportunities.png" width="309" height="253" alt="FTN Opportunities — Jobs. Business. Opportunity. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+          </div>
 
-          <a class="eco-card" href="/events/" style="--card-accent: var(--color-events);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Events</h3>
-            <p class="eco-card__tagline">Every Event Starts Here.</p>
-            <p class="eco-card__desc">One prompt. One complete event plan.</p>
-            <p class="eco-card__tags">Concerts &bull; Festivals &bull; Conferences</p>
-            <span class="eco-card__cta">Explore FTN Events <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card eco-card--photo" href="/facethenation" style="--card-accent: var(--color-red-on-dark);">
-            <span class="eco-card__badge"><img src="/assets/face-the-nation/ftn-badge-logo.jpg" alt="" width="56" height="56"></span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN Presents</span>Face The Nation</h3>
-            <p class="eco-card__tagline">Every Voice. Every Constituency. Every Truth.</p>
-            <p class="eco-card__desc">FTN's flagship public affairs programme, hosted by Ricardo Antoine.</p>
-            <p class="eco-card__tags">Interviews &bull; Debates &bull; Public Affairs</p>
-            <span class="eco-card__cta">Explore Face The Nation <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card" href="/ibis-ai/" style="--card-accent: var(--color-ibis);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M12 22v-6M2 12h6M22 12h-6"/><circle cx="12" cy="12" r="3"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>ibis.ai</h3>
-            <p class="eco-card__tagline">Built for the Caribbean.</p>
-            <p class="eco-card__desc">Understands our people. Understands our communities. Understands our region.</p>
-            <p class="eco-card__tags">Intelligence &bull; Automation &bull; Insights</p>
-            <span class="eco-card__cta">Explore ibis.ai <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card" href="/riddim/" style="--card-accent: var(--color-riddim);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h2l2-7 3 14 3-11 2 4h5"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Riddim</h3>
-            <p class="eco-card__tagline">Powering Caribbean Music.</p>
-            <p class="eco-card__desc">Production, rights, and distribution built for Caribbean artists.</p>
-            <p class="eco-card__tags">Artists &bull; Producers &bull; Labels</p>
-            <span class="eco-card__cta">Explore FTN Riddim <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card" href="/kaiso/" style="--card-accent: var(--color-kaiso);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/><line x1="7" y1="17" x2="13" y2="17"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Kaiso</h3>
-            <p class="eco-card__tagline">The Caribbean Newsroom.</p>
-            <p class="eco-card__desc">News, investigations, and analysis in the public interest.</p>
-            <p class="eco-card__tags">News &bull; Investigations &bull; Analysis</p>
-            <span class="eco-card__cta">Explore FTN Kaiso <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card" href="/radio/" style="--card-accent: var(--color-radio);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18v-6a4 4 0 118 0"/><rect x="2" y="14" width="6" height="6" rx="1"/><path d="M5 14V9a7 7 0 0114 0v1"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Radio</h3>
-            <p class="eco-card__tagline">The Soundtrack of the Caribbean.</p>
-            <p class="eco-card__desc">Music, talk, and culture, broadcasting across the region.</p>
-            <p class="eco-card__tags">Music &bull; News &bull; Talk &bull; Culture</p>
-            <span class="eco-card__cta">Explore FTN Radio <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card" href="/screen/" style="--card-accent: var(--color-screen);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><circle cx="12" cy="13" r="3"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Screen</h3>
-            <p class="eco-card__tagline">Where Caribbean Stories Come Alive.</p>
-            <p class="eco-card__desc">Local films, Caribbean series, and original programming.</p>
-            <p class="eco-card__tags">Imagine &bull; Produce &bull; Publish &bull; Prosper</p>
-            <span class="eco-card__cta">Explore FTN Screen <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card" href="/opportunities/" style="--card-accent: var(--color-opportunities);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Opportunities</h3>
-            <p class="eco-card__tagline">Jobs. Business. Opportunity.</p>
-            <p class="eco-card__desc">Jobs, grants, procurement, and business opportunities in one place.</p>
-            <p class="eco-card__tags">Access &bull; Growth &bull; Success</p>
-            <span class="eco-card__cta">Explore FTN Opportunities <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card" href="/love/" style="--card-accent: var(--color-love);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Love</h3>
-            <p class="eco-card__tagline">Connecting Hearts Across the Caribbean.</p>
-            <p class="eco-card__desc">Meaningful connections, built on values, built for us.</p>
-            <p class="eco-card__tags">Values &bull; Trust &bull; Connection</p>
-            <span class="eco-card__cta">Explore FTN Love <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
-
-          <a class="eco-card" href="/display-network/" style="--card-accent: var(--color-display-network);">
-            <span class="eco-card__badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="12" rx="1"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="12" y1="16" x2="12" y2="20"/></svg>
-            </span>
-            <h3 class="eco-card__title"><span class="eco-card__title-sub">FTN</span>Display Network</h3>
-            <p class="eco-card__tagline">The Caribbean's Digital Media Network.</p>
-            <p class="eco-card__desc">Digital displays, public information, and community messaging.</p>
-            <p class="eco-card__tags">Reach &bull; Information &bull; Impact</p>
-            <span class="eco-card__cta">Explore Display Network <span class="eco-card__cta-arrow" aria-hidden="true">&rarr;</span></span>
-          </a>
+          <div class="eco-grid__row eco-grid__row--3">
+            <a class="eco-panel eco-panel--wide" href="/love/" style="--panel-accent: var(--color-love);">
+              <img src="/assets/panels/11-ftn-love.png" width="737" height="164" alt="FTN Love — Connecting Hearts Across the Caribbean. (Public Beta)" loading="eager">
+              <span class="eco-panel__status" data-status="beta" aria-hidden="true">Public Beta</span>
+            </a>
+            <a class="eco-panel eco-panel--wide" href="/display-network/" style="--panel-accent: var(--color-display-network);">
+              <img src="/assets/panels/12-display-network.png" width="749" height="164" alt="Display Network — The Caribbean's Digital Media Network. (Long-Term Initiative)" loading="eager">
+              <span class="eco-panel__status" data-status="long-term-initiative" aria-hidden="true">Long-Term Initiative</span>
+            </a>
+          </div>
 
         </div>
-      </div>
-    </section>
-
-    <section class="eco-principles">
-      <div class="container">
-        <ul class="eco-principles__list">
-          <li class="eco-principles__item">
-            <img src="/assets/icons/icon-pin.svg" alt="" width="28" height="28">
-            Built in the Caribbean
-          </li>
-          <li class="eco-principles__item">
-            <img src="/assets/icons/icon-progress.svg" alt="" width="28" height="28">
-            Powered by Intelligence
-          </li>
-          <li class="eco-principles__item">
-            <img src="/assets/icons/icon-community.svg" alt="" width="28" height="28">
-            Driven by People
-          </li>
-          <li class="eco-principles__item">
-            <img src="/assets/icons/icon-shield.svg" alt="" width="28" height="28">
-            Focused on Impact
-          </li>
-          <li class="eco-principles__item">
-            <img src="/assets/icons/icon-share.svg" alt="" width="28" height="28">
-            Designed for the Future
-          </li>
-        </ul>
       </div>
     </section>
   </main>
@@ -381,6 +284,7 @@
     </div>
   </footer>
 
+  <script src="/js/persisted-flag.js"></script>
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
   <script src="/js/country.js"></script>

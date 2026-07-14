@@ -1,18 +1,18 @@
-// FTN Platform Website — Country scaffold (v1.6 Caribbean Executive Identity pass).
+// FTN Platform Website — Country Registry (v1.6 scaffold, Sprint 1 Wave 3 rebuild on the shared
+// Persisted Flag factory).
 //
-// Architecture only, per the founder's explicit instruction: persist a visitor's selected
-// country and expose it via a data attribute + event, exactly like js/platform-mode.js does
-// for Presentation/Live Mode. No page on the site currently reads FTN.Country to change its
-// content -- every page today is Trinidad & Tobago-specific regardless of selection. This is
-// intentional groundwork for a future pass that localizes news/weather/legal/emergency
-// content per country, not a feature that does anything yet beyond remembering a preference
-// and showing it back to the visitor.
+// Persists a visitor's selected country and exposes it via a data attribute + event, the same
+// pattern js/platform-mode.js uses for Presentation/Live Mode -- now sharing that pattern's
+// actual code via js/persisted-flag.js instead of independently reimplementing it. No page on
+// the site currently reads FTN.Country to change its content -- every page today is Trinidad &
+// Tobago-specific regardless of selection. This is intentional groundwork for a future pass that
+// localizes news/weather/legal/emergency content per country, not a feature that does anything
+// yet beyond remembering a preference and showing it back to the visitor.
 //
-// Loads after js/storage.js (the shared localStorage helper) and before nav.js.
+// Loads after js/storage.js (the shared localStorage helper) and js/persisted-flag.js, before
+// nav.js.
 (function (global) {
   'use strict';
-
-  var STORAGE_KEY = 'ftn-country';
 
   var COUNTRIES = [
     { code: 'TT', name: 'Trinidad & Tobago' },
@@ -27,52 +27,23 @@
   var byCode = {};
   COUNTRIES.forEach(function (c) { byCode[c.code] = c; });
 
-  function storage() {
-    return (global.FTN && global.FTN.storage) || null;
-  }
+  var flag = global.FTN.PersistedFlag.create({
+    storageKey: 'ftn-country',
+    validate: function (code) { return !!byCode[code]; },
+    defaultValue: DEFAULT_CODE,
+    attribute: 'data-country',
+    eventName: 'ftn:country-changed',
+    detailKey: 'code',
+    // Preserves the exact { code: 'TT' } envelope this module stored before the shared factory
+    // existed, so a returning visitor's already-persisted selection keeps reading correctly.
+    storageValueKey: 'code',
+    useRawStorage: false,
+  });
 
-  function readStored() {
-    var s = storage();
-    if (!s) return null;
-    var saved = s.getJSON(STORAGE_KEY, null);
-    return saved && byCode[saved.code] ? saved.code : null;
-  }
-
-  var current = readStored() || DEFAULT_CODE;
-  var hasChosen = readStored() !== null;
-
-  function applyToDocument(code) {
-    if (global.document && global.document.documentElement) {
-      global.document.documentElement.setAttribute('data-country', code);
-    }
-  }
-
-  function get() {
-    return byCode[current];
-  }
-
-  function hasExplicitSelection() {
-    return hasChosen;
-  }
-
-  function set(code) {
-    if (!byCode[code]) return get();
-    current = code;
-    hasChosen = true;
-    var s = storage();
-    if (s) s.setJSON(STORAGE_KEY, { code: code });
-    applyToDocument(current);
-    try {
-      global.dispatchEvent(new CustomEvent('ftn:country-changed', { detail: { code: current } }));
-    } catch (e) { /* CustomEvent unsupported — selection still changed, just not broadcast */ }
-    return get();
-  }
-
-  function list() {
-    return COUNTRIES.slice();
-  }
-
-  applyToDocument(current);
+  function get() { return byCode[flag.get()]; }
+  function set(code) { flag.set(code); return get(); }
+  function list() { return COUNTRIES.slice(); }
+  function hasExplicitSelection() { return flag.hasStoredValue(); }
 
   global.FTN = global.FTN || {};
   global.FTN.Country = {

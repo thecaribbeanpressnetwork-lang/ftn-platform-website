@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
-  <link rel="stylesheet" href="/css/components/product-page.css">
+  <link rel="stylesheet" href="/css/components/workspace-shell.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -98,68 +98,8 @@
     </div>
   </header>
 
-  <main id="main" tabindex="-1" class="product-hero--text-dark">
-    <section class="product-hero" style="--product-accent: var(--color-display-network);">
-      <div class="heritage-layer heritage-layer--on-dark" aria-hidden="true">
-        <svg viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <g stroke="currentColor" stroke-width="1">
-            <rect x="950" y="140" width="300" height="180" rx="4" />
-            <line x1="1080" y1="320" x2="1080" y2="360" /><line x1="1030" y1="360" x2="1130" y2="360" />
-          </g>
-          <g stroke="currentColor" stroke-width="0.5" stroke-dasharray="2 6">
-            <line x1="980" y1="180" x2="1220" y2="180" /><line x1="980" y1="220" x2="1220" y2="220" />
-          </g>
-        </svg>
-      </div>
-      <div class="container">
-        <span class="product-hero__eyebrow">Display Network</span>
-        <h1 class="product-hero__title">The Caribbean’s Digital Media Network.</h1>
-        <p class="product-hero__tagline">Reach. Information. Impact.</p>
-        <p class="product-hero__lede">A long-term FTN initiative to connect businesses, institutions, and communities through a trusted Caribbean-wide public information display network — built on the same real-time indicator infrastructure as FTN Live.</p>
-        <div class="product-hero__actions">
-          <a class="btn-product product-hero--text-dark" href="/contact/#commercial">Discuss a Deployment</a>
-          <a class="btn-product-outline" href="/">Back to FTN Platform</a>
-        </div>
-        <div class="product-hero__tags">
-          <span>Reach</span>
-          <span>Information</span>
-          <span>Impact</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section" style="--product-accent: var(--color-display-network);">
-      <div class="container">
-        <span class="product-section__eyebrow">What Display Network Does</span>
-        <h2>Public information, wherever people already are.</h2>
-        <p class="u-max-60ch">Display Network turns FTN Live’s real-time indicator wall into a physical presence — banks, offices, waiting rooms, and public spaces — with tiered packages from free public-interest displays to fully sponsored, ad-supported deployments.</p>
-        <div class="product-feature-grid">
-          <div class="product-feature-card">
-            <h3>Public Information</h3>
-            <p>National indicators, community reports, and public-interest content, always current.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Community Messaging</h3>
-            <p>A trusted channel for institutions to reach the communities they serve.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Advertising & Sponsorship</h3>
-            <p>Tiered commercial packages, from free public displays to fully sponsored placements.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section product-section--alt">
-      <div class="container">
-        <div class="product-cta">
-          <span class="product-status" style="--product-accent: var(--color-display-network);">Long-Term Initiative</span>
-          <h2>A permanent area of institutional focus.</h2>
-          <p>Display Network is a long-term FTN initiative, built on the same infrastructure as FTN Live. Artist & Creative Services enquiries are welcomed today.</p>
-          <a class="product-back-link" href="/">&larr; Explore the full FTN Platform ecosystem</a>
-        </div>
-      </div>
-    </section>
+  <main id="main" tabindex="-1">
+    <div id="workspace-root"></div>
   </main>
 
   <footer class="site-footer">
@@ -236,6 +176,7 @@
     </div>
   </footer>
 
+  <script src="/js/persisted-flag.js"></script>
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
   <script src="/js/country.js"></script>
@@ -243,5 +184,10 @@
   <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
+  <script src="/js/product-registry-data.js"></script>
+  <script src="/js/product-registry.js"></script>
+  <script src="/js/workspace-shell.js"></script>
+  <script src="/js/integration-adapter.js"></script>
+  <script src="/js/display-network-workspace.js"></script>
 </body>
 </html>

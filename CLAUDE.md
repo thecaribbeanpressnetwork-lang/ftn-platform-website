@@ -1316,6 +1316,142 @@ broken images, exact nav/footer link counts) and a full axe-core WCAG 2.2 AA swe
 content pages, both run clean before this shipped — including catching and fixing the three
 small-text contrast gaps above before they ever reached production.
 
+## 7.16 Version 1.9.0 — Sprint 0 (Architecture Review) + Sprint 1 (Shared Platform Architecture)
+
+Sprint 0 was a read-only architecture review, not an implementation pass — full record in
+`GOVERNANCE/FTN_Platform_Sprint0_Architecture_Review.md`. It concluded this repository's own real,
+measurable duplication is a 30–40% reduction opportunity ("Track A"); the founder's 40–60% figure
+is the target for the FTN *ecosystem* as a whole once every pillar shares one engine instead of
+each independently building its own ("Track B") — both readings correct, describing different
+scopes. It also authorized a narrow, permanent exception to the vanilla-only mandate (§3): a
+hand-run, output-committed Node generator script is allowed when it produces static committed
+output, introduces no runtime dependency, requires no production build step, and its output is
+committed to the repo.
+
+Sprint 1 executed on that review with a mandate the founder stated directly: stop shipping
+documentation or brochure pages — every sprint designs, builds, *and integrates* a real, working,
+honest capability into real products in the same sprint ("the first implementation becomes the
+first consumer"). Three waves, one milestone.
+
+**Wave 1 — nine shared capabilities, each built with the homepage or a Wave 2 product as its
+first real consumer, never speculatively:**
+
+- **Product Registry** (`js/product-registry-data.js` + `js/product-registry.js`) — the single
+  source of truth per FTN product: id, name, tagline, description, route, status, panel asset,
+  atmosphere config, keywords, capabilities. `homepagePanels()` feeds the homepage; `search()`
+  powers the Intent Router (below).
+- **Workspace Shell** (`css/components/workspace-shell.css` + `js/workspace-shell.js`) — the
+  standard chrome every one of the 9 flagship product workspaces is built on: atmosphere-styled
+  header/identity/notification region, optional toolbar, a content slot the product's own script
+  fills, and a shared footer back into the ecosystem. Atmosphere (accent, background treatment,
+  motion profile) is data on the Product Registry, applied automatically — never hand-styled per
+  page. Reuses the existing heritage-layer motion vocabulary (`css/components/heritage-layer.css`)
+  for its 7 motion profiles rather than inventing new decorative SVG.
+- **Generator Engine** (`js/generator-engine.js`) — deliberately small: `run(generatorDef, input)`
+  calls `validate()` then `generate()`. No orchestration, no multi-step coordination — that's
+  future scope if a product ever needs it, not claimed here.
+- **Entity Metadata Engine** (`js/entity-metadata-engine.js`) — a reusable schema/record
+  architecture, but only two real schemas registered (`music-release` for Riddim, `screen-
+  submission` for Screen) — the founder's explicit refinement. Five more entity types (`event`,
+  `news-story`, `opportunity`, `community-report`, `radio-segment`) are documented as extension
+  points in the file itself, not pre-built with fake fields.
+- **Export Framework** (`js/export-framework.js`) — a registered-handler map (`txt`, `json`,
+  `print` today; a future format plugs in without touching any consumer).
+- **Search Foundation** (`js/search-foundation.js`) — `query(items, {filters, textQuery, groupBy,
+  sortBy, limit})` → `{results, groups, total}`. Sprint 1 consumers only exercise filtering, but
+  the shape doesn't need to change when a future consumer needs more.
+- **Media Intake/Playback** (`js/media-intake.js`) — real, client-side-only file attach + HTML5
+  preview. Every mount renders the same honest label: the file never leaves the browser.
+- **Integration Adapter Layer** (`js/integration-adapter.js`) — one convention every intake tool's
+  submit action calls: save locally via `js/storage.js`, return an honest confirmation. The one
+  place a real backend swaps in later, for every tool at once.
+- **Intent Router** (`js/intent-router.js`) — ibis.ai's real capability: real, transparent,
+  keyword-based matching against the Product Registry, with the matched keywords shown back to
+  the user. Never an LLM call. **Found and fixed a real bug in `ProductRegistry.search()` while
+  building this**: the original implementation matched short/common words as substrings ("to"
+  inside "story", "a" inside "article"), producing noisy false-positive results (13 matches for a
+  pothole-report query, including products with no real relevance). Fixed to stopword-filtered,
+  whole-word matching — the same query now returns one precise, honestly-explained match.
+
+**Homepage rebuilt on real panel artwork, not recreated HTML cards** — the founder-approved PNG
+panels (`assets/panels/`, 12 files extracted from the supplied asset zip) are the actual clickable
+buttons. The panel grid is hand-authored static HTML kept in sync with `product-registry-data.js`
+(the same convention already used for nav/footer sitewide, §7.2) rather than JS-rendered, so the
+homepage's core navigation still works with JS disabled per the site's progressive-enhancement
+mandate (§3/§10). Layout tuned (header/hero compression, row-locked image heights, a `max-height:
+800px` compact mode) to fit the full 12-panel ecosystem board on one screen at both 1440×900 and
+1920×1080 without scrolling — verified by measuring the grid's actual bounding box against the
+viewport, not eyeballed.
+
+**Wave 2 — all 9 flagship product workspaces rebuilt from static "in development" brochure pages
+into real, working, honest first experiences**, each verified end-to-end with real Playwright
+interaction (fill a form, submit, download an export, confirm a save), not just a visual check:
+
+- **FTN Events** — Generator Engine + Export Framework. A deterministic event-planning checklist
+  (6 sections) that genuinely varies by input: venue type, guest count, budget tier, event type.
+- **FTN Riddim** / **FTN Screen** — Entity Metadata (`music-release` / `screen-submission`) +
+  Media Intake/Playback (audio / video) + Export.
+- **ibis.ai** — the Intent Router, described above.
+- **FTN Kaiso** — Search Foundation over a real, honestly-static coverage-beats list (14 real
+  categories) — not fabricated news articles, since no real newsroom content exists yet — plus tip
+  intake via the existing `/contact/#general` pathway (same precedent as Face the Nation's Suggest
+  a Topic/Become a Guest, §7.12).
+- **FTN Opportunities** — Search Foundation over a real static category list (6 categories) plus a
+  real preference-save (Integration Adapter), honestly framed as shaping future work, not a live
+  job-alert subscription that doesn't exist.
+- **FTN Radio** — Media Intake/Playback + a plain-fields segment-idea intake (Integration Adapter
+  — deliberately not an Entity Metadata schema; `radio-segment` stays an unregistered extension
+  point).
+- **FTN Love** — Shell + a real values/goal preference intake (Integration Adapter), capped at 3
+  selected values by real UI logic. No matching engine or messaging system simulated, since
+  neither exists yet.
+- **Display Network** — a real deployment-interest intake (Integration Adapter) plus the existing
+  `/contact/#commercial` pathway, framed honestly against its Long-Term Initiative status — no
+  fabricated venue list or deployment count.
+
+**Wave 3 — platform integration:**
+
+- **`js/persisted-flag.js`** (new) — `js/platform-mode.js` and `js/country.js` were independently
+  built as two structurally identical implementations of "read a validated value from storage,
+  fall back to a default, reflect it as a `data-*` attribute on `<html>`, expose `get()`/`set()`,
+  broadcast a custom event on change." That plumbing is now one factory; each module is a thin
+  wrapper owning only its own domain logic (valid modes vs. the country list, the `?mode=`
+  deliberate-entry URL parameter, the exact public API/event-detail shape every existing consumer
+  already depends on). Verified via Playwright that `presentation-control.js`'s live event
+  listener still fires correctly through the new factory, not just that the flags still persist.
+  The new script tag was added to all 28 pages that load `platform-mode.js`.
+- **Card consolidation — investigated, found already complete.** `content-sections.css` already
+  unifies `.feature-card`, `.principle-card`, `.module-card`, `.workflow-step`, `.preview-card`,
+  and `.platform-flow__node` into one shared base-box rule (done in the v1.5.0 Executive Design
+  System pass, before this sprint) — confirmed by reading each variant's own rule, which carries
+  only its deltas. Building a second consolidation layer over already-consolidated CSS would have
+  been pure churn. What Wave 2 *did* leave genuinely dead: `css/components/product-page.css` (the
+  old shared template for the 9 product pages) — zero HTML files reference it once every dynamic
+  product page moved to `workspace-shell.css`. Verified unreferenced, deleted.
+- **Generator tooling formalization — deliberately not built.** The Sprint 0 plan scoped
+  `/tools/generate-product-page.js` to formalize the one-off script that stamped out 9 *static,
+  templated* pages in v1.8.0. Wave 2 changed what those pages are — each is now a bespoke
+  interactive workspace with its own generator/search/intake logic, not shared template content —
+  so the batch-templating problem the tool existed to solve no longer exists. Building it anyway
+  would have been speculative tooling for a use case this sprint eliminated.
+- **Community Connect / Mission Control / Face the Nation / FTN Live reconciliation** — verified,
+  not rebuilt, per the founder's explicit scope. Nav (6 items) and footer (14 Platform-column
+  links) confirmed byte-consistent with every other page; zero broken internal links found in a
+  full-site crawl (27 unique link targets, all resolve 200).
+
+**Verification**: 26/26 pages load clean (0 console errors, 0 failed requests, 0 horizontal
+overflow); a full-site internal link crawl found 0 broken links; axe-core WCAG 2.2 AA sweep across
+all 26 pages found exactly 2 violations, both the pre-existing, founder-reserved success-green
+contrast gap already on record in §5 (`indicator-card__change--up` / `mc-kpi-card__trend--up`) —
+zero new violations anywhere in Sprint 1's 9 rebuilt product workspaces or the rebuilt homepage.
+10 pages (homepage + 9 workspaces) re-verified clean across all 5 standard breakpoints (375/768/
+1024/1440/1920 — 50 combinations). Shared-capability consumer counts checked explicitly, not
+assumed: Export Framework 3 (Events/Riddim/Screen), Search Foundation 2 (Kaiso/Opportunities),
+Media Intake/Playback 3 (Riddim/Screen/Radio), Entity Metadata Engine 2 (Riddim/Screen),
+Integration Adapter Layer 7 (every workspace with a real save action — ibis.ai and Kaiso correctly
+have none, since neither has anything to save locally), Workspace Shell 9 (all flagship product
+workspaces), Product Registry 10 (9 JS consumers + the homepage's hand-synced static markup).
+
 ## 8. HTML Standards
 
 - Semantic HTML5 landmarks (`header`, `nav`, `main`, `footer`, `section`, `article`) on every page —

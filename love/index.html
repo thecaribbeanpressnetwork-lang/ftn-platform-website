@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
-  <link rel="stylesheet" href="/css/components/product-page.css">
+  <link rel="stylesheet" href="/css/components/workspace-shell.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -98,64 +98,8 @@
     </div>
   </header>
 
-  <main id="main" tabindex="-1" class="">
-    <section class="product-hero" style="--product-accent: var(--color-love); --product-accent-small: var(--color-love-on-dark);">
-      <div class="heritage-layer heritage-layer--on-dark" aria-hidden="true">
-        <svg viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <g stroke="currentColor" stroke-width="1" class="hl-pulse">
-            <path d="M1150,180 C1130,150 1080,150 1070,190 C1060,150 1010,150 990,180 C970,215 990,250 1070,320 C1150,250 1170,215 1150,180 Z" />
-          </g>
-        </svg>
-      </div>
-      <div class="container">
-        <span class="product-hero__eyebrow">FTN Love</span>
-        <h1 class="product-hero__title">Connecting Hearts Across the Caribbean.</h1>
-        <p class="product-hero__tagline">Meaningful connections. Built on values.</p>
-        <p class="product-hero__lede">FTN Love is being built around compatibility and real connection, not a swipe feed. There’s no internal messaging — a mutual match reveals the contact method each person actually chooses, from WhatsApp to email.</p>
-        <div class="product-hero__actions">
-          <a class="btn-product" href="/contact/#general">Register Interest</a>
-          <a class="btn-product-outline" href="/">Back to FTN Platform</a>
-        </div>
-        <div class="product-hero__tags">
-          <span>Values</span>
-          <span>Trust</span>
-          <span>Connection</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section" style="--product-accent: var(--color-love); --product-accent-small: var(--color-love-on-dark);">
-      <div class="container">
-        <span class="product-section__eyebrow">What FTN Love Will Do</span>
-        <h2>Compatibility first, built for how the Caribbean actually connects.</h2>
-        <p class="u-max-60ch">FTN Love is designed around advanced search and real compatibility — including the lifestyle preferences that matter to people here — then gets out of the way once a match is mutual.</p>
-        <div class="product-feature-grid">
-          <div class="product-feature-card">
-            <h3>Advanced Search</h3>
-            <p>Find people based on real compatibility factors, not just proximity.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Your Way to Connect</h3>
-            <p>Mutual matches reveal the contact method you choose — WhatsApp, Signal, Telegram, Instagram, Facebook, X, or email.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Built on Values</h3>
-            <p>Meaningful connection over volume, with lifestyle preferences that reflect real Caribbean life.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section product-section--alt">
-      <div class="container">
-        <div class="product-cta">
-          <span class="product-status" style="--product-accent: var(--color-love); --product-accent-small: var(--color-love-on-dark);">In Development</span>
-          <h2>Built for meaningful connection.</h2>
-          <p>FTN Love is in active development as part of the FTN Platform ecosystem.</p>
-          <a class="product-back-link" href="/">&larr; Explore the full FTN Platform ecosystem</a>
-        </div>
-      </div>
-    </section>
+  <main id="main" tabindex="-1">
+    <div id="workspace-root"></div>
   </main>
 
   <footer class="site-footer">
@@ -232,6 +176,7 @@
     </div>
   </footer>
 
+  <script src="/js/persisted-flag.js"></script>
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
   <script src="/js/country.js"></script>
@@ -239,5 +184,10 @@
   <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
+  <script src="/js/product-registry-data.js"></script>
+  <script src="/js/product-registry.js"></script>
+  <script src="/js/workspace-shell.js"></script>
+  <script src="/js/integration-adapter.js"></script>
+  <script src="/js/love-workspace.js"></script>
 </body>
 </html>

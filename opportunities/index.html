@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
-  <link rel="stylesheet" href="/css/components/product-page.css">
+  <link rel="stylesheet" href="/css/components/workspace-shell.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -98,68 +98,8 @@
     </div>
   </header>
 
-  <main id="main" tabindex="-1" class="product-hero--text-dark">
-    <section class="product-hero" style="--product-accent: var(--color-opportunities);">
-      <div class="heritage-layer heritage-layer--on-dark" aria-hidden="true">
-        <svg viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <g stroke="currentColor" stroke-width="1.5">
-            <path d="M930,370 L1010,300 L1070,340 L1180,220 L1270,140" />
-            <path d="M1210,140 L1270,140 L1270,200" />
-          </g>
-          <g stroke="currentColor" stroke-width="0.5" stroke-dasharray="2 6">
-            <line x1="930" y1="180" x2="1300" y2="180" /><line x1="930" y1="270" x2="1300" y2="270" /><line x1="930" y1="370" x2="1300" y2="370" />
-          </g>
-        </svg>
-      </div>
-      <div class="container">
-        <span class="product-hero__eyebrow">FTN Opportunities</span>
-        <h1 class="product-hero__title">Jobs. Business. Opportunity.</h1>
-        <p class="product-hero__tagline">Access. Growth. Success.</p>
-        <p class="product-hero__lede">FTN Opportunities is being built with one goal: help Caribbean people earn more money, legally. Jobs, contracts, procurement, investment, and grants, surfaced in one place instead of scattered across a dozen sites and mailing lists.</p>
-        <div class="product-hero__actions">
-          <a class="btn-product product-hero--text-dark" href="/contact/#general">Register Interest</a>
-          <a class="btn-product-outline" href="/">Back to FTN Platform</a>
-        </div>
-        <div class="product-hero__tags">
-          <span>Access</span>
-          <span>Growth</span>
-          <span>Success</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section" style="--product-accent: var(--color-opportunities);">
-      <div class="container">
-        <span class="product-section__eyebrow">What FTN Opportunities Will Do</span>
-        <h2>Every legal way to earn, in one place.</h2>
-        <p class="u-max-60ch">FTN Opportunities is designed to surface relevant jobs, contracts, grants, and business openings based on who you are and what you’re looking for — not a static job board, a living one.</p>
-        <div class="product-feature-grid">
-          <div class="product-feature-card">
-            <h3>Jobs & Contracts</h3>
-            <p>Employment and contract opportunities across the Caribbean, in one searchable place.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Grants & Investment</h3>
-            <p>Funding opportunities for businesses, creators, and community initiatives.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Procurement & Business</h3>
-            <p>Government and private procurement opportunities, surfaced for the businesses that qualify.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section product-section--alt">
-      <div class="container">
-        <div class="product-cta">
-          <span class="product-status" style="--product-accent: var(--color-opportunities);">In Development</span>
-          <h2>Built to help you earn more, legally.</h2>
-          <p>FTN Opportunities is in active development as part of the FTN Platform ecosystem.</p>
-          <a class="product-back-link" href="/">&larr; Explore the full FTN Platform ecosystem</a>
-        </div>
-      </div>
-    </section>
+  <main id="main" tabindex="-1">
+    <div id="workspace-root"></div>
   </main>
 
   <footer class="site-footer">
@@ -236,6 +176,7 @@
     </div>
   </footer>
 
+  <script src="/js/persisted-flag.js"></script>
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
   <script src="/js/country.js"></script>
@@ -243,5 +184,11 @@
   <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
+  <script src="/js/product-registry-data.js"></script>
+  <script src="/js/product-registry.js"></script>
+  <script src="/js/workspace-shell.js"></script>
+  <script src="/js/search-foundation.js"></script>
+  <script src="/js/integration-adapter.js"></script>
+  <script src="/js/opportunities-workspace.js"></script>
 </body>
 </html>

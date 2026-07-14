@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
-  <link rel="stylesheet" href="/css/components/product-page.css">
+  <link rel="stylesheet" href="/css/components/workspace-shell.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -98,70 +98,8 @@
     </div>
   </header>
 
-  <main id="main" tabindex="-1" class="">
-    <section class="product-hero" style="--product-accent: var(--color-ibis); --product-accent-small: var(--color-ibis-on-dark);">
-      <div class="heritage-layer heritage-layer--on-dark" aria-hidden="true">
-        <svg viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <g stroke="currentColor" stroke-width="1">
-            <line x1="950" y1="150" x2="1050" y2="250" /><line x1="1050" y1="250" x2="950" y2="350" />
-            <line x1="1050" y1="250" x2="1200" y2="200" /><line x1="1050" y1="250" x2="1200" y2="300" />
-            <line x1="1200" y1="200" x2="1300" y2="150" /><line x1="1200" y1="300" x2="1300" y2="350" />
-          </g>
-          <g fill="currentColor">
-            <circle cx="950" cy="150" r="3" /><circle cx="1050" cy="250" r="4" /><circle cx="950" cy="350" r="3" />
-            <circle cx="1200" cy="200" r="3" /><circle cx="1200" cy="300" r="3" /><circle cx="1300" cy="150" r="2.5" /><circle cx="1300" cy="350" r="2.5" />
-          </g>
-        </svg>
-      </div>
-      <div class="container">
-        <span class="product-hero__eyebrow">ibis.ai</span>
-        <h1 class="product-hero__title">Built for the Caribbean.</h1>
-        <p class="product-hero__tagline">The intelligence layer behind FTN Platform.</p>
-        <p class="product-hero__lede">ibis.ai is not a chatbot bolted onto a product. It is the shared intelligence layer being built to connect every FTN product — so a report to Community Connect, a question to Mission Control, and a search on FTN Live all draw on the same understanding of the region.</p>
-        <div class="product-hero__actions">
-          <a class="btn-product" href="/contact/#general">Register Interest</a>
-          <a class="btn-product-outline" href="/">Back to FTN Platform</a>
-        </div>
-        <div class="product-hero__tags">
-          <span>Intelligence</span>
-          <span>Automation</span>
-          <span>Insights</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section" style="--product-accent: var(--color-ibis); --product-accent-small: var(--color-ibis-on-dark);">
-      <div class="container">
-        <span class="product-section__eyebrow">What ibis.ai Will Do</span>
-        <h2>One intelligence layer. Every FTN product.</h2>
-        <p class="u-max-60ch">ibis.ai is being built to understand intention, not just commands — connecting the dots between what a citizen reports, what a government tracks, and what an opportunity requires, using specialist agents internally that the user never has to see or manage.</p>
-        <div class="product-feature-grid">
-          <div class="product-feature-card">
-            <h3>Understands Our People</h3>
-            <p>Built around real Caribbean context — language, geography, and the way things actually get done here.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Understands Our Communities</h3>
-            <p>Connects to the same reports and data already flowing through Community Connect and Mission Control.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Understands Our Region</h3>
-            <p>One shared intelligence layer, not a separate AI bolted onto each product in isolation.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section product-section--alt">
-      <div class="container">
-        <div class="product-cta">
-          <span class="product-status" style="--product-accent: var(--color-ibis); --product-accent-small: var(--color-ibis-on-dark);">In Development</span>
-          <h2>The intelligence layer is still being built.</h2>
-          <p>ibis.ai is in active development as the connective layer across FTN Platform. Nothing here is live yet — this page will grow as the capability does.</p>
-          <a class="product-back-link" href="/">&larr; Explore the full FTN Platform ecosystem</a>
-        </div>
-      </div>
-    </section>
+  <main id="main" tabindex="-1">
+    <div id="workspace-root"></div>
   </main>
 
   <footer class="site-footer">
@@ -238,6 +176,7 @@
     </div>
   </footer>
 
+  <script src="/js/persisted-flag.js"></script>
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
   <script src="/js/country.js"></script>
@@ -245,5 +184,10 @@
   <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
+  <script src="/js/product-registry-data.js"></script>
+  <script src="/js/product-registry.js"></script>
+  <script src="/js/workspace-shell.js"></script>
+  <script src="/js/intent-router.js"></script>
+  <script src="/js/ibis-ai-workspace.js"></script>
 </body>
 </html>

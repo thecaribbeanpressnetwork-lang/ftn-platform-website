@@ -1,0 +1,387 @@
+/* FTN Platform Website — Workspace Shell (Sprint 1, Wave 1).
+   The standard structure every FTN product workspace is built on: atmosphere-styled header,
+   optional toolbar, a notification region, a content container each product fills with its own
+   unique functionality, and a shared footer back into the ecosystem. Atmosphere (palette,
+   background treatment, motion profile) is data, not code -- each product declares it in
+   js/product-registry-data.js and the Shell applies it automatically (see js/workspace-shell.js).
+   This is a bounded-dark treatment following the same precedent as Observatory/Mission Control
+   Demo/Face the Nation -- the site-wide header/footer chrome is unaffected. */
+
+/* Reserves space for the JS-rendered workspace before js/workspace-shell.js mounts anything into
+   it, so the footer below doesn't visibly jump when content is injected on DOMContentLoaded --
+   found as a real Cumulative Layout Shift defect during Founder Certification (CLS 0.46-0.72,
+   "poor", on every workspace page). #workspace-root is empty at first paint by design (the mount
+   point), so without this the browser has nothing to reserve space for. min-height, not height,
+   so pages whose real content exceeds one viewport still grow naturally. */
+#workspace-root:empty {
+  display: block;
+  min-height: 100vh;
+  background: var(--color-black);
+}
+
+.workspace {
+  --workspace-accent: var(--color-red-on-dark);
+  position: relative;
+  background: var(--color-black);
+  color: var(--color-white);
+  overflow: hidden;
+}
+
+.workspace__atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: var(--heritage-opacity-on-dark);
+  color: var(--color-white);
+}
+
+.workspace__atmosphere svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Motion for .hl-drift/.hl-pulse/.hl-sweep/.hl-twinkle is already defined globally in
+   heritage-layer.css (gated behind prefers-reduced-motion there) -- reused here, not redeclared,
+   so every page's reduced-motion behavior stays governed by one file. */
+
+/* Background treatment variants -- data-driven via [data-workspace-bg] rather than one class per
+   product, so a new product only needs to pick an existing treatment or add one new variant here,
+   never write bespoke CSS per page. */
+.workspace[data-workspace-bg="dark-studio"],
+.workspace[data-workspace-bg="dark-editorial"],
+.workspace[data-workspace-bg="dark-warm"],
+.workspace[data-workspace-bg="dark-cinematic"],
+.workspace[data-workspace-bg="dark-growth"],
+.workspace[data-workspace-bg="dark-infrastructure"],
+.workspace[data-workspace-bg="dark-grid"],
+.workspace[data-workspace-bg="dark-stage"],
+.workspace[data-workspace-bg="dark-minimal"] {
+  background: radial-gradient(ellipse at 80% 0%, rgba(255, 255, 255, 0.06), transparent 60%), var(--color-black);
+}
+
+.workspace[data-workspace-bg="warm"] {
+  background: radial-gradient(ellipse at 80% 0%, color-mix(in srgb, var(--workspace-accent) 18%, transparent), transparent 60%), var(--color-black);
+}
+
+.workspace__header {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-32) 0 var(--space-24);
+}
+
+.workspace__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-24);
+  margin-bottom: var(--space-32);
+}
+
+.workspace__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-silver);
+  text-decoration: none;
+  font-size: var(--text-small-size);
+  font-weight: 700;
+}
+
+.workspace__back:hover {
+  color: var(--color-white);
+}
+
+.workspace__identity {
+  padding: 0 var(--space-24);
+  max-width: 900px;
+}
+
+.workspace__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-small-size);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--workspace-accent-small, var(--workspace-accent));
+}
+
+.workspace__title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-size: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+  line-height: 1.05;
+  margin: var(--space-12) 0 var(--space-8);
+}
+
+.workspace__tagline {
+  font-size: 1.0625rem;
+  color: var(--color-silver);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.workspace__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: var(--space-16);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--workspace-accent);
+  color: var(--workspace-accent-small, var(--workspace-accent));
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.workspace__notification {
+  margin: var(--space-16) var(--space-24) 0;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-silver);
+  font-size: var(--text-small-size);
+  max-width: 900px;
+}
+
+.workspace__notification[data-tone="success"] {
+  border-color: var(--exists, #0F766E);
+  color: var(--color-white);
+}
+
+.workspace__toolbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-8);
+  padding: 0 var(--space-24) var(--space-16);
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.workspace__toolbar-item {
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-8);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--color-silver);
+  font-size: var(--text-small-size);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.workspace__toolbar-item[aria-current="true"] {
+  border-color: var(--workspace-accent);
+  color: var(--color-white);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.workspace__content {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-32) var(--space-24) var(--space-64);
+  max-width: 1000px;
+}
+
+.workspace__footer {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-24);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-silver);
+  font-size: var(--text-small-size);
+}
+
+.workspace__footer a {
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+/* Shared building blocks every product's content area reuses */
+.workspace-field {
+  margin-bottom: var(--space-20);
+}
+
+.workspace-field label {
+  display: block;
+  font-size: var(--text-small-size);
+  font-weight: 700;
+  color: var(--color-white);
+  margin-bottom: var(--space-8);
+}
+
+.workspace-field input,
+.workspace-field select,
+.workspace-field textarea {
+  width: 100%;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+}
+
+.workspace-field input:focus,
+.workspace-field select:focus,
+.workspace-field textarea:focus {
+  outline: 2px solid var(--workspace-accent);
+  outline-offset: 1px;
+}
+
+.workspace-field__hint {
+  font-size: var(--text-caption-size);
+  color: var(--ink-faint, var(--color-silver));
+  margin-top: var(--space-4);
+}
+
+.workspace-output {
+  margin-top: var(--space-24);
+  padding: var(--space-20);
+  border-radius: var(--radius-16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.workspace-output h3 {
+  font-family: var(--font-heading);
+  margin: 0 0 var(--space-12);
+  color: var(--color-white);
+}
+
+.workspace-output h4 {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--workspace-accent-small, var(--workspace-accent));
+  margin: var(--space-20) 0 var(--space-8);
+}
+
+.workspace-output h4:first-of-type {
+  margin-top: 0;
+}
+
+.workspace-output ul {
+  margin: 0 0 var(--space-8);
+  padding-left: var(--space-20);
+  color: var(--color-silver);
+}
+
+.workspace-output li {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-small-size);
+}
+
+.workspace-output pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 13px;
+  color: var(--color-silver);
+  background: rgba(0, 0, 0, 0.3);
+  padding: var(--space-16);
+  border-radius: var(--radius-8);
+  max-height: 400px;
+  overflow: auto;
+}
+
+.workspace-export-row {
+  display: flex;
+  gap: var(--space-8);
+  margin-top: var(--space-16);
+  flex-wrap: wrap;
+}
+
+.workspace-checkbox-label {
+  display: block;
+  font-weight: 400;
+  color: var(--color-silver);
+  margin-bottom: var(--space-8);
+}
+
+.workspace-checkbox-label input {
+  margin-right: var(--space-8);
+}
+
+/* A grid of small filterable result cards -- used by Search Foundation consumers (e.g. FTN
+   Kaiso's coverage-beat search, FTN Opportunities' listing search) that need more than a plain
+   list but don't need a full .workspace-output panel. */
+.workspace-beat-list {
+  list-style: none;
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-16);
+}
+
+.workspace-beat-list li {
+  padding: var(--space-16);
+  border-radius: var(--radius-12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-silver);
+  font-size: var(--text-small-size);
+}
+
+.workspace-beat-list li strong {
+  display: block;
+  color: var(--color-white);
+  font-family: var(--font-heading);
+  margin-bottom: var(--space-4);
+}
+
+/* Media Intake (js/media-intake.js) */
+.media-intake {
+  margin-bottom: var(--space-20);
+}
+
+.media-intake__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.media-intake__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-20);
+  border-radius: var(--radius-8);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  color: var(--color-white);
+  font-weight: 700;
+  font-size: var(--text-small-size);
+  cursor: pointer;
+}
+
+.media-intake__label:hover {
+  border-color: var(--workspace-accent);
+}
+
+.media-intake__input:focus-visible + .media-intake__label,
+.media-intake__label:has(+ .media-intake__input:focus-visible) {
+  outline: 2px solid var(--workspace-accent);
+  outline-offset: 2px;
+}
+
+.media-intake__preview {
+  margin-top: var(--space-16);
+}
+
+.media-intake__preview audio,
+.media-intake__preview video {
+  width: 100%;
+}

@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
-  <link rel="stylesheet" href="/css/components/product-page.css">
+  <link rel="stylesheet" href="/css/components/workspace-shell.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -98,72 +98,8 @@
     </div>
   </header>
 
-  <main id="main" tabindex="-1" class="product-hero--text-dark">
-    <section class="product-hero" style="--product-accent: var(--color-events);">
-      <div class="heritage-layer heritage-layer--on-dark" aria-hidden="true">
-        <svg viewBox="0 0 1400 500" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <g stroke="currentColor" stroke-width="1">
-            <rect x="950" y="120" width="320" height="260" rx="4" />
-            <line x1="950" y1="180" x2="1270" y2="180" />
-            <line x1="1010" y1="90" x2="1010" y2="150" /><line x1="1210" y1="90" x2="1210" y2="150" />
-            <line x1="1010" y1="220" x2="1050" y2="220" /><line x1="1090" y1="220" x2="1130" y2="220" /><line x1="1170" y1="220" x2="1210" y2="220" />
-            <line x1="1010" y1="270" x2="1050" y2="270" /><line x1="1090" y1="270" x2="1130" y2="270" /><line x1="1170" y1="270" x2="1210" y2="270" />
-            <line x1="1010" y1="320" x2="1050" y2="320" /><line x1="1090" y1="320" x2="1130" y2="320" />
-          </g>
-        </svg>
-      </div>
-      <div class="container">
-        <span class="product-hero__eyebrow">FTN Events</span>
-        <h1 class="product-hero__title">Every Event Starts Here.</h1>
-        <p class="product-hero__tagline">The Caribbean Event Operating System.</p>
-        <p class="product-hero__lede">One prompt. One complete event plan. FTN Events is being built to carry an idea from concept through execution — venues, permits, security, entertainment, promotion, and everything between — as one connected workflow instead of a dozen disconnected spreadsheets.</p>
-        <div class="product-hero__actions">
-          <a class="btn-product product-hero--text-dark" href="/contact/#general">Register Interest</a>
-          <a class="btn-product-outline" href="/">Back to FTN Platform</a>
-        </div>
-        <div class="product-hero__tags">
-          <span>Concerts</span>
-          <span>Festivals</span>
-          <span>Conferences</span>
-          <span>Weddings</span>
-          <span>Corporate</span>
-          <span>Community</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section" style="--product-accent: var(--color-events);">
-      <div class="container">
-        <span class="product-section__eyebrow">What FTN Events Will Do</span>
-        <h2>From concept to execution, in one workflow.</h2>
-        <p class="u-max-60ch">Not a calendar. FTN Events is being designed to plan a Caribbean event end to end — recommending venues, suppliers, artists, and services by drawing on public information and verified FTN business profiles as they come online.</p>
-        <div class="product-feature-grid">
-          <div class="product-feature-card">
-            <h3>Planning & Permits</h3>
-            <p>Venue discovery, government permits, police, fire, and EMA coordination, mapped into one timeline.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Talent & Production</h3>
-            <p>Opening acts, live bands, steelbands, solo pan players, DJs, MCs, photography, lighting, and sound.</p>
-          </div>
-          <div class="product-feature-card">
-            <h3>Operations & Promotion</h3>
-            <p>Generators, waste management, security, promotion, sponsors, media, budgeting, and a master event binder.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="product-section product-section--alt">
-      <div class="container">
-        <div class="product-cta">
-          <span class="product-status" style="--product-accent: var(--color-events);">In Development</span>
-          <h2>Built for the people who make the Caribbean move.</h2>
-          <p>FTN Events is in active development. If you plan concerts, festivals, conferences, or community gatherings, we want to build this with your workflow in mind.</p>
-          <a class="product-back-link" href="/">&larr; Explore the full FTN Platform ecosystem</a>
-        </div>
-      </div>
-    </section>
+  <main id="main" tabindex="-1">
+    <div id="workspace-root"></div>
   </main>
 
   <footer class="site-footer">
@@ -240,6 +176,7 @@
     </div>
   </footer>
 
+  <script src="/js/persisted-flag.js"></script>
   <script src="/js/platform-mode.js"></script>
   <script src="/js/storage.js"></script>
   <script src="/js/country.js"></script>
@@ -247,5 +184,13 @@
   <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
+  <script src="/js/product-registry-data.js"></script>
+  <script src="/js/product-registry.js"></script>
+  <script src="/js/workspace-shell.js"></script>
+  <script src="/js/generator-engine.js"></script>
+  <script src="/js/export-framework.js"></script>
+  <script src="/js/integration-adapter.js"></script>
+  <script src="/js/events-generator.js"></script>
+  <script src="/js/events-workspace.js"></script>
 </body>
 </html>

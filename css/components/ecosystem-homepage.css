@@ -1,14 +1,22 @@
-/* FTN Platform Website — Ecosystem homepage (v1.8 Ecosystem Completion pass).
+/* FTN Platform Website — Ecosystem homepage (Sprint 1, Wave 1 rebuild).
    A bounded dark treatment for the homepage only, following the same precedent already
    established by Observatory, Mission Control Demo, and Face the Nation: the site-wide
    header/footer chrome stays as-is, only <main> adopts its own identity. This is the one
-   homepage-specific stylesheet; product pages reuse .product-hero (product-page.css). */
+   homepage-specific stylesheet; the 9 flagship product pages reuse .workspace (workspace-shell.css).
+
+   Rebuilt on the real founder-approved panel artwork (assets/panels/) rather than recreated
+   HTML cards -- each panel is a single clickable image. Layout is tuned, in the founder's
+   specified order (header height, hero height, vertical spacing, row gaps, typography,
+   proportional image scaling, compact mode only where still needed), to fit one screen at
+   1440x900 and 1920x1080 without scrolling. Below 1024px the row-locked height layout gives
+   way to a natural wrapping grid -- the one-screen requirement is a desktop constraint, not a
+   mobile one; normal responsive scrolling is expected and fine on small screens. */
 
 .eco-hero {
   position: relative;
   background: var(--color-black);
   color: var(--color-white);
-  padding-block: var(--space-64) var(--space-48);
+  padding-block: var(--space-32) var(--space-16);
   overflow: hidden;
 }
 
@@ -24,7 +32,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
-  font-size: var(--text-small-size);
+  font-size: var(--text-caption-size);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -35,9 +43,9 @@
   font-family: var(--font-heading);
   font-weight: 800;
   letter-spacing: -0.01em;
-  font-size: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
-  line-height: 1.05;
-  margin: var(--space-16) 0 var(--space-8);
+  font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.25rem);
+  line-height: 1.1;
+  margin: var(--space-8) 0 var(--space-4);
 }
 
 .eco-hero__title .eco-hero__title-accent {
@@ -45,243 +53,133 @@
 }
 
 .eco-hero__subtitle {
-  font-size: var(--text-body-size);
+  font-size: var(--text-small-size);
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-red-on-dark);
-  margin: 0 0 var(--space-16);
+  margin: 0;
 }
 
-.eco-hero__lede {
-  font-size: 1.125rem;
-  color: var(--color-silver);
-  max-width: 60ch;
-  margin-inline: auto;
-}
-
-/* Card grid */
+/* Panel grid */
 .eco-grid-section {
   background: var(--color-black);
-  padding-block: 0 var(--space-64);
+  padding-block: var(--space-8) var(--space-24);
 }
 
 .eco-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: var(--space-16);
 }
 
-@media (min-width: 640px) {
-  .eco-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .eco-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1260px) {
-  .eco-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.eco-card {
-  --card-accent: var(--color-red-on-dark);
-  position: relative;
+.eco-grid__row {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  padding: var(--space-24);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-16);
+  width: 100%;
+}
+
+.eco-panel {
+  --panel-accent: var(--color-red-on-dark);
+  position: relative;
+  display: block;
+  line-height: 0;
   border-radius: var(--radius-16);
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 60%),
-    var(--color-charcoal);
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
   transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.eco-card:hover {
-  border-color: var(--card-accent);
+.eco-panel img {
+  display: block;
+  height: 170px;
+  width: auto;
+  max-width: 100%;
+}
+
+.eco-grid__row--2 .eco-panel img {
+  height: 134px;
+}
+
+.eco-grid__row--3 .eco-panel img {
+  height: 82px;
+}
+
+.eco-panel:hover {
+  border-color: var(--panel-accent);
   transform: translateY(-3px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
-.eco-card:hover .eco-card__badge {
-  transform: scale(1.04);
-}
-
-.eco-card:active {
+.eco-panel:active {
   transform: translateY(-1px) scale(0.98);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition-duration: 0.12s;
 }
 
-.eco-card:focus-visible {
-  outline: 2px solid var(--card-accent);
+.eco-panel:focus-visible {
+  outline: 2px solid var(--panel-accent);
   outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .eco-card,
-  .eco-card__badge {
+  .eco-panel {
     transition: border-color 0.15s ease;
   }
-  .eco-card:hover,
-  .eco-card:active {
+  .eco-panel:hover,
+  .eco-panel:active {
     transform: none;
   }
 }
 
-.eco-card__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-8);
-  background: var(--card-accent);
-  color: var(--color-white);
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 0.8rem;
-  letter-spacing: -0.02em;
-  transition: transform 0.15s ease;
-  overflow: hidden;
-}
-
-.eco-card__badge img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.eco-card__title {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  font-size: 1.15rem;
-  color: var(--color-white);
-  margin: var(--space-8) 0 0;
-}
-
-.eco-card__title .eco-card__title-sub {
-  display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--card-accent);
-  margin-bottom: 2px;
-}
-
-.eco-card__tagline {
-  font-weight: 600;
-  color: var(--color-silver);
-  margin: 0;
-  font-size: var(--text-small-size);
-}
-
-.eco-card__desc {
-  color: var(--color-silver);
-  font-size: var(--text-small-size);
-  margin: 0;
-  flex-grow: 1;
-}
-
-.eco-card__tags {
-  color: var(--card-accent);
-  font-size: var(--text-caption-size);
-  font-weight: 600;
-  margin: 0;
-}
-
-.eco-card__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-8);
-  margin-top: var(--space-12);
-  padding-top: var(--space-12);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: var(--text-small-size);
-  font-weight: 700;
-  color: var(--color-white);
-}
-
-.eco-card__cta-arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
+.eco-panel__status {
+  position: absolute;
+  top: var(--space-8);
+  left: var(--space-8);
+  padding: 2px var(--space-8);
   border-radius: var(--radius-full);
-  border: 1px solid var(--card-accent);
-  color: var(--card-accent);
-  flex-shrink: 0;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.eco-card:hover .eco-card__cta-arrow {
-  background: var(--card-accent);
-  color: var(--color-black);
-}
-
-/* Community Connect and Face the Nation reuse real approved photography/logos, not a flat
-   color badge -- their card gets a slightly larger badge to hold the real asset legibly. */
-.eco-card--photo .eco-card__badge {
-  width: 56px;
-  height: 56px;
-}
-
-/* Ecosystem principles strip */
-.eco-principles {
-  background: var(--color-black);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-block: var(--space-32);
-}
-
-.eco-principles__list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-24);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  text-align: center;
-}
-
-@media (min-width: 768px) {
-  .eco-principles__list {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .eco-principles__list {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-.eco-principles__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-8);
-  color: var(--color-silver);
+  background: rgba(11, 11, 11, 0.72);
+  border: 1px solid var(--panel-accent);
+  color: var(--color-white);
+  font-size: 10px;
   font-weight: 700;
-  font-size: var(--text-small-size);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(2px);
 }
 
-.eco-principles__item img {
-  width: 28px;
-  height: 28px;
-  filter: invert(1);
-  opacity: 0.85;
+/* Laptop+ only: lock each row to a fixed image height so all three rows of real artwork fit
+   one screen without scrolling. Below this, panels wrap naturally at whatever size fits --
+   the one-screen constraint is a desktop reference-size requirement, not a mobile one. */
+@media (min-width: 1024px) {
+  .eco-panel img {
+    height: 230px;
+  }
+  .eco-grid__row--2 .eco-panel img {
+    height: 180px;
+  }
+  .eco-grid__row--3 .eco-panel img {
+    height: 110px;
+  }
+}
+
+/* Compact mode: shorter laptop displays (e.g. 1366x768 with browser chrome) where the
+   1024px+ sizing above would still require scrolling. Verified still needed after testing at
+   the 1440x900 reference size with realistic browser chrome deducted. */
+@media (min-width: 1024px) and (max-height: 800px) {
+  .eco-hero {
+    padding-block: var(--space-16) var(--space-8);
+  }
+  .eco-panel img {
+    height: 190px;
+  }
+  .eco-grid__row--2 .eco-panel img {
+    height: 148px;
+  }
+  .eco-grid__row--3 .eco-panel img {
+    height: 90px;
+  }
 }
