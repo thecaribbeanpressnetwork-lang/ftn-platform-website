@@ -110,6 +110,13 @@ place: a **Partnerships & Strategic Engagement** pathway, which may eventually s
 among the audiences it serves, but is scoped around governments, municipal corporations, NGOs,
 universities, and strategic partners — institutional relationships, not fundraising.
 
+**⚠️ PARTIALLY SUPERSEDED 2026-07-13 — see §7.15.** The blanket ban on having an "Investors" nav
+destination at all was lifted — the top nav now includes one, routed to Contact's existing
+`#investors` category. The underlying substance of this decision — no investment material,
+projections, financial claims, or fundraising language anywhere on the site — is unchanged and
+still binding; only the "never even have a nav entry" part was relaxed, and only because the
+destination it points to was already written to satisfy the rule.
+
 **Founder Decision (2026-07-11) — Face The Nation stays out of navigation and the 404 page** until
 it is a real, live product within the FTN ecosystem. No placeholder page, no dead-end navigation
 entry, no premature mention. When it launches for real, it gets integrated naturally — not before.
@@ -244,6 +251,15 @@ everything else, including success green and any other not-yet-decided token):**
 
 ### Per-surface style direction (confirmed permanent, Founder Decision 2026-07-11)
 
+**⚠️ PARTIALLY SUPERSEDED 2026-07-13 — see §7.15.** The homepage and the nine new ecosystem
+product pages (Events, ibis.ai, Riddim, Kaiso, Radio, Screen, Opportunities, Love, Display
+Network) are now a deliberate dark "Ecosystem Board" treatment, explicitly authorized by the
+founder as an extension — not a repeal — of the "bounded dark treatment" precedent already
+established below for Observatory/Mission Control Demo/Face the Nation. Every other page (About,
+Contact, legal, Resources, Insights, News, Community Connect, Mission Control's own page) is
+unchanged and stays light-first. Read the paragraph below as "light-first is still the default for
+most of the site," not "light-first everywhere" — that stronger claim no longer holds.
+
 - **FTN Platform Website (this repo):** light-first, premium, modern SaaS, government-grade; black,
   white, FTN red — with disciplined, deliberate dark sections (bands, product-preview app-shells)
   used to showcase products and create visual rhythm, never as the page default. This is
@@ -306,7 +322,17 @@ structure as of Phase 3:
 ├── mission-control/
 │   ├── index.html                    # Government Dashboard, Analytics, Security, Future Modules (marketing)
 │   └── demo/index.html               # Interactive Demonstration — public preview, not the secure product
-├── observatory/index.html            # FTN Live — National Observatory (indicator wall, live clocks)
+├── observatory/index.html            # FTN Live — National Observatory (indicator wall, live clocks) —
+│                                      # v1.8, §7.15: fully live, just not a homepage grid card
+├── events/index.html                 # v1.8, §7.15 — FTN Events, "In Development"
+├── ibis-ai/index.html                # v1.8, §7.15 — ibis.ai, "In Development"
+├── riddim/index.html                 # v1.8, §7.15 — FTN Riddim, "In Development"
+├── kaiso/index.html                  # v1.8, §7.15 — FTN Kaiso, "In Development"
+├── radio/index.html                  # v1.8, §7.15 — FTN Radio, "In Development"
+├── screen/index.html                 # v1.8, §7.15 — FTN Screen, "In Development"
+├── opportunities/index.html          # v1.8, §7.15 — FTN Opportunities, "In Development"
+├── love/index.html                   # v1.8, §7.15 — FTN Love, "In Development"
+├── display-network/index.html        # v1.8, §7.15 — Display Network, "Long-Term Initiative"
 ├── resources/index.html              # FAQ, Documentation status, Media Kit
 ├── contact/index.html                # Inquiry categories, contact form, direct contact (placeholder)
 ├── insights/index.html               # Coming Soon (AEB-09 page-type 12)
@@ -1199,6 +1225,96 @@ either the brief's own claims or an earlier misreading in this same session's hi
   manifest, and building them would have both invented unapproved branding and reversed an explicit
   "do not build new products, dedicated releases later" instruction from earlier in the same
   session. Revisit only once each has an approved brand board and its own dedicated brief.
+  **⚠️ SUPERSEDED in v1.8.0 (§7.15) — see below.** The founder issued an explicit, deliberate
+  authorization one pass later that overrides this note specifically for these four products
+  (plus five more). Do not use this paragraph as a reason to decline building or extending them.
+
+## 7.15 Version 1.8.0 — Ecosystem Completion Pass
+
+A founder-authorized pass that explicitly supersedes several standing decisions recorded earlier
+in this document — recorded here exactly as instructed by CLAUDE.md's own §14 policy ("if a brand
+or architectural ambiguity gets resolved by the founder outside of this file, record the
+resolution here so it isn't re-litigated by a future session"). Before executing anything, the
+brief was checked against a real risk this session had already seen once before in the same
+conversation: a near-identical "ecosystem" document had been pasted into this engineering
+conversation by mistake one turn earlier and explicitly retracted. The founder was asked directly
+whether this second, similar-looking brief was the same mix-up; they confirmed it was not — it is
+a deliberate, explicit override, reproduced below so a future session doesn't need to re-ask.
+
+**What's now permanently different from what §4/§5 previously said:**
+
+- **"No new products yet" is no longer a blanket rule.** Nine ecosystem products —
+  **FTN Events, ibis.ai, FTN Riddim, FTN Kaiso, FTN Radio, FTN Screen, FTN Opportunities, FTN
+  Love, and Display Network** — are now approved, real, first-class pages
+  (`/events/`, `/ibis-ai/`, `/riddim/`, `/kaiso/`, `/radio/`, `/screen/`, `/opportunities/`,
+  `/love/`, `/display-network/`). None of them have real functionality, screenshots, or metrics
+  yet — every page is honestly labeled "In Development" (Display Network: "Long-Term Initiative")
+  — but the pages themselves, their names, their taglines, and their locked accent colors are now
+  approved platform identity, not something to re-litigate. A future product beyond these nine
+  still needs its own approval before a page gets built for it — this override is scoped to the
+  nine named products, not a blanket "build whatever."
+- **The light-first mandate (§5) is superseded for the homepage and these nine new product pages
+  specifically — not sitewide.** The homepage is now a full dark "Ecosystem Board" (12-card
+  product grid on `--color-black`), and each new product page uses the same bounded-dark pattern.
+  Every *other* existing page (About, Contact, legal, Resources, Insights, News, Community
+  Connect, Mission Control, Observatory's light chrome, etc.) is untouched and stays light-first —
+  this is an extension of the already-established "bounded dark treatment" precedent (Observatory,
+  Mission Control Demo, Face the Nation), just a larger bounded area than before, not a reversal
+  of the underlying principle that dark is deliberate and scoped, never the site default.
+- **Investor-facing content is no longer banned outright — now "restrained, professional, no
+  fundraising language."** The top nav includes an "Investors" entry, routed to Contact's
+  pre-existing `#investors` category (already written to satisfy the no-fundraising-language
+  rule — nothing new was invented). The core prohibition on projections, financial claims, and
+  fundraising language stands; only the blanket "never" on having an Investors entry at all was
+  lifted.
+
+**What's unchanged, confirmed explicitly rather than assumed:**
+
+- **FTN Live / Observatory was not retired.** It simply isn't one of the 12 primary homepage cards
+  anymore — it's ~2,500 lines of real, working functionality (indicators, live clocks, kiosk mode,
+  relationship graph) and stays fully live, linked from the footer's Platform column with equal
+  weight to any other product. FTN Events is a genuinely separate new product, not a rename of
+  Observatory.
+- **Community Connect and Mission Control are unchanged.** Their own pages, content, and (for
+  Community Connect) the external launch flow to `community.ftnplatform.org` are untouched — the
+  homepage card links to the existing page, same as before.
+
+**New mechanisms introduced this pass:**
+
+- **`css/components/ecosystem-homepage.css`** — the homepage's 12-card grid (`.eco-card`), each
+  card a fully-clickable link carrying its own `--card-accent` custom property. Hover/press
+  interaction (lift, border brighten, scale-down on `:active`) is gated behind
+  `@media (prefers-reduced-motion: no-preference)` matching the sitewide discipline.
+- **`css/components/product-page.css`** — one shared dark product-page template (hero + content
+  sections + CTA) reused by all nine new pages via a `--product-accent` custom property, rather
+  than eight-plus bespoke stylesheets. `--product-accent-small` is a second, separate custom
+  property for small (caption/eyebrow-scale) text specifically — several accents clear the 3:1
+  large-text threshold but not 4.5:1 at small sizes; see the lightened `--color-*-on-dark` tokens
+  in `tokens.css` for the three that needed one (ibis.ai, Kaiso, Love).
+- **Ten product accent tokens in `css/tokens.css`** (`--color-mission-control`, `--color-events`,
+  `--color-ibis`, `--color-riddim`, `--color-kaiso`, `--color-radio`, `--color-screen`,
+  `--color-love`, `--color-opportunities`, `--color-display-network`) plus three `-on-dark` small-
+  text variants — every value contrast-verified against `--color-black` via the WCAG relative-
+  luminance formula (documented inline as a code comment, not eyeballed). `--color-riddim` and
+  `--color-display-network` are both "green" per the brief but deliberately distinct hex values
+  from each other and from both disputed success-green hexes already on record in §5 — picking a
+  product accent doesn't resolve that still-open conflict, and wasn't intended to.
+- **`data-sign-in-entry`** — the header's new "Sign In" button (replacing the old "Launch App"
+  button sitewide) routes to Community Connect's launch flow today, the only FTN product with real
+  user accounts. The attribute marks this as the future unified FTN Account/SSO integration point,
+  documented inline, so a future session can find and swap the one `href` without a nav
+  restructure.
+- **Simplified top nav sitewide**: Home / About FTN / News / Partners / Investors / Contact,
+  replacing the old 10-item mega-menu (About, Platforms, Community Connect, Mission Control, FTN
+  Live, Face the Nation, Insights, News & Stories, Resources, Contact). The homepage's own 12-card
+  grid now serves the product-discovery role the old "Platforms" dropdown and per-product nav
+  entries used to serve. Insights and News & Stories moved to the footer's Resources column;
+  nothing reachable before this pass became unreachable.
+
+**Verification**: 140/140 regression checks (28 pages × 5 breakpoints: console errors, overflow,
+broken images, exact nav/footer link counts) and a full axe-core WCAG 2.2 AA sweep across all 26
+content pages, both run clean before this shipped — including catching and fixing the three
+small-text contrast gaps above before they ever reached production.
 
 ## 8. HTML Standards
 
