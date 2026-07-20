@@ -1,8 +1,10 @@
 // FTN Platform Website — contact form handling.
 // There is no backend to submit to yet, so this deliberately does not fake a
-// "message sent" confirmation. It validates client-side, then tells the user
-// honestly that submission isn't wired up and points them to direct contact
-// details instead. Replace this once a real submission endpoint exists.
+// "message sent" confirmation. It validates client-side, saves the message locally via the
+// Integration Adapter Layer (the same convention every product workspace's intake tools already
+// use, Sprint 1 Wave 1/2), and tells the user honestly that a real pipeline isn't wired up yet --
+// consistent with every other "no backend yet" moment on the site, instead of silently discarding
+// the message the visitor just wrote. Replace this once a real submission endpoint exists.
 (function () {
   // Inquiry-category cards jump to the form with the matching category
   // already selected -- a real, working shortcut (not a claim that the
@@ -53,7 +55,24 @@
       return;
     }
 
-    status.textContent = 'This form is not yet connected to a backend, so this message was not sent. Please use the direct contact details below instead.';
-    status.classList.add('is-visible');
+    var payload = {
+      name: form.name.value.trim(),
+      email: form.email.value.trim(),
+      category: form.category.value,
+      message: form.message.value.trim(),
+    };
+
+    function showSaved(message) {
+      status.textContent = message;
+      status.classList.add('is-visible');
+    }
+
+    if (window.FTN && window.FTN.IntegrationAdapter) {
+      window.FTN.IntegrationAdapter.submit('contact', payload).then(function () {
+        showSaved('Saved in this browser -- this form is not yet connected to a real submission pipeline, so nothing was sent. For a response now, please use the direct contact details below instead.');
+      });
+    } else {
+      showSaved('This form is not yet connected to a backend, so this message was not sent. Please use the direct contact details below instead.');
+    }
   });
 })();

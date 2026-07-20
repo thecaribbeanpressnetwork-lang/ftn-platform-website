@@ -141,20 +141,41 @@
   text-transform: uppercase;
 }
 
+/* Fixed, not in-flow: found during the Founder Certification follow-up review that a save
+   confirmation rendered in the header was scrolling entirely out of view (as far as -289px above
+   the viewport) whenever the triggering button sat below the fold -- which is most of the time,
+   since every save action is at the bottom of its form/output. A fixed toast is visible
+   regardless of scroll position, for every one of the 7 workspaces that call notify(). */
 .workspace__notification {
-  margin: var(--space-16) var(--space-24) 0;
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-24);
+  transform: translateX(-50%);
+  z-index: 30;
+  margin: 0;
   padding: var(--space-12) var(--space-16);
   border-radius: var(--radius-8);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-charcoal);
   color: var(--color-silver);
   font-size: var(--text-small-size);
-  max-width: 900px;
+  max-width: min(90vw, 520px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .workspace__notification[data-tone="success"] {
   border-color: var(--exists, #0F766E);
   color: var(--color-white);
+}
+
+@media (max-width: 640px) {
+  .workspace__notification {
+    left: var(--space-16);
+    right: var(--space-16);
+    bottom: var(--space-16);
+    transform: none;
+    max-width: none;
+  }
 }
 
 .workspace__toolbar {
@@ -210,7 +231,11 @@
   margin-bottom: var(--space-20);
 }
 
-.workspace-field label {
+/* :not(.workspace-checkbox-label) -- this general label rule (bold, white, block) was also
+   matching each individual checkbox's own <label>, silently overriding its intended lighter
+   silver/400-weight styling (font-weight/color both lost the specificity fight, same root
+   incident as the input-width fix above). */
+.workspace-field label:not(.workspace-checkbox-label) {
   display: block;
   font-size: var(--text-small-size);
   font-weight: 700;
@@ -218,7 +243,12 @@
   margin-bottom: var(--space-8);
 }
 
-.workspace-field input,
+/* :not([type="checkbox"]):not([type="radio"]) -- found during the Founder Certification follow-up
+   review that this rule was also matching checkbox/radio inputs, stretching them to width:100%
+   with full text-field padding/border. The checkbox glyph rendered at a native fixed size deep
+   inside that oversized box, visually disconnected from its own label text. Affected every
+   checkbox on Opportunities (6) and Love (9). */
+.workspace-field input:not([type="checkbox"]):not([type="radio"]),
 .workspace-field select,
 .workspace-field textarea {
   width: 100%;
@@ -231,7 +261,7 @@
   font-size: var(--text-body-size);
 }
 
-.workspace-field input:focus,
+.workspace-field input:not([type="checkbox"]):not([type="radio"]):focus,
 .workspace-field select:focus,
 .workspace-field textarea:focus {
   outline: 2px solid var(--workspace-accent);

@@ -281,6 +281,58 @@
   color: var(--color-graphite);
 }
 
+/* Media kit downloads (Resources) -- real, direct downloads of the two approved logo files,
+   not just a "contact us" placeholder. Reuses the shared card box (.feature-card etc., declared
+   once above) rather than inventing new card styling. */
+.media-kit-downloads {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-16);
+  margin-top: var(--space-24);
+  max-width: 560px;
+}
+
+.media-kit-downloads__item {
+  padding: var(--space-16);
+  border-radius: var(--radius-16);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.media-kit-downloads__item:hover,
+.media-kit-downloads__item:focus-visible {
+  border-color: var(--color-red);
+  box-shadow: var(--shadow-md);
+}
+
+.media-kit-downloads__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-20) var(--space-12);
+  border-radius: var(--radius-8);
+}
+
+.media-kit-downloads__preview--light {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+}
+
+.media-kit-downloads__preview--dark {
+  background: var(--color-black);
+}
+
+.media-kit-downloads__label {
+  font-weight: 600;
+  font-size: var(--text-small-size);
+}
+
 /* Principle / pillar cards (About: Founding Principles) */
 .principle-grid {
   display: grid;
@@ -660,6 +712,27 @@
 }
 
 .ecosystem__status--dev {
+  background: rgba(161, 161, 161, 0.16);
+  color: var(--color-silver);
+}
+
+/* Added when the ecosystem diagram was corrected to reflect the platform's actual status
+   vocabulary (Public Beta / Interactive Demonstration / Long-Term Initiative), matching what
+   every homepage panel and product workspace already uses -- this diagram had drifted to a flat
+   Live/Exploring binary that misrepresented several real products' actual status. */
+.ecosystem__status--beta {
+  background: transparent;
+  border: 1px solid var(--color-red-on-dark);
+  color: var(--color-red-on-dark);
+}
+
+.ecosystem__status--demo {
+  background: transparent;
+  border: 1px solid var(--color-silver);
+  color: var(--color-silver);
+}
+
+.ecosystem__status--long-term {
   background: rgba(161, 161, 161, 0.16);
   color: var(--color-silver);
 }
