@@ -1,0 +1,8 @@
+{
+  "mixNow": true,
+  "analysis": ["bpm", "key", "energy", "phrase", "vocal-density"],
+  "transition": ["clean-blend", "bass-swap", "filter", "echo-out", "drop", "vocal-safe"],
+  "tempo": {"rangePercent": 16, "keyLock": true},
+  "djDrops": {"phraseAligned": true, "beatAligned": true, "duckMusic": true, "userOwnedOnly": true},
+  "discovery": {"excludeLikelyDjMixes": true, "avoidRehosting": true}
+}
