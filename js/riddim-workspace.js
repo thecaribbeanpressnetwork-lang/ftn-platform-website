@@ -1,103 +1,27 @@
-// FTN Platform Website — FTN Riddim workspace (Sprint 1, Wave 2).
-// Entity Metadata Engine's 'music-release' schema, Media Intake/Playback (attach and preview a
-// track locally), and Export Framework, wired into js/workspace-shell.js.
+// FTN Platform Website — FDM Rhythm role launcher.
 (function (global) {
   'use strict';
-
-  // Shared implementation lives in js/workspace-shell.js -- consolidated during Founder
-  // Certification (was independently copy-pasted into all 9 workspace scripts).
   var escapeHtml = global.FTN.WorkspaceShell.escapeHtml;
 
-  function fieldInputHTML(f) {
-    var id = 'rd-' + f.key;
-    var req = f.required ? ' required' : '';
-    if (f.type === 'textarea') return '<textarea id="' + id + '" name="' + f.key + '"' + req + '></textarea>';
-    if (f.type === 'date') return '<input type="date" id="' + id + '" name="' + f.key + '"' + req + '>';
-    return '<input type="text" id="' + id + '" name="' + f.key + '"' + req + '>';
+  function producerWorkspace(content, api) {
+    var fields = global.FTN.EntityMetadataEngine.fieldsFor('music-release');
+    var attachedFile = null;
+    function fieldInputHTML(f) {
+      var id='rd-'+f.key, req=f.required?' required':'';
+      if(f.type==='textarea') return '<textarea id="'+id+'" name="'+f.key+'"'+req+'></textarea>';
+      if(f.type==='date') return '<input type="date" id="'+id+'" name="'+f.key+'"'+req+'>';
+      return '<input type="text" id="'+id+'" name="'+f.key+'"'+req+'>';
+    }
+    content.innerHTML='<div class="workspace-card"><span class="workspace-eyebrow">PRODUCER / DISTRIBUTOR</span><h2>FDM Producer</h2><p class="u-max-60ch">Producer tools are being built as the second FDM Rhythm workspace. Your existing release-sheet workflow remains available below while the new production environment is developed.</p><form id="riddim-form" novalidate>'+fields.map(function(f){return '<div class="workspace-field"><label for="rd-'+f.key+'">'+escapeHtml(f.label)+(f.required?'':' (optional)')+'</label>'+fieldInputHTML(f)+'</div>';}).join('')+'<div class="workspace-field"><label>Attach a track (optional preview)</label><div id="riddim-media-intake"></div></div><button type="submit" class="btn btn-primary">Generate release sheet</button></form><div id="riddim-output"></div></div>';
+    global.FTN.MediaIntake.mount(document.getElementById('riddim-media-intake'),{accept:'audio/*',kind:'audio',id:'riddim-track-input',label:'Choose an audio file',onSelect:function(file){attachedFile=file;}});
+    var form=document.getElementById('riddim-form'),output=document.getElementById('riddim-output');
+    form.addEventListener('submit',function(e){e.preventDefault();var input={};fields.forEach(function(f){input[f.key]=form[f.key].value;});var result=global.FTN.EntityMetadataEngine.createRecord('music-release',input);if(!result.valid){output.innerHTML=global.FTN.WorkspaceShell.renderErrorsHTML(result.errors);return;}var record=result.record;var html='<div class="workspace-output"><h3>'+escapeHtml(record.fields.trackTitle)+' — Release Sheet</h3><ul>';fields.forEach(function(f){html+='<li><strong>'+escapeHtml(f.label)+':</strong> '+escapeHtml(record.fields[f.key]||'(not provided)')+'</li>';});html+='<li><strong>Attached track:</strong> '+escapeHtml(attachedFile?attachedFile.name:'(none attached)')+'</li></ul>'+global.FTN.WorkspaceShell.exportRowHTML('riddim-save','Save this release sheet')+'</div>';output.innerHTML=html;global.FTN.WorkspaceShell.wireExportButtons(output,{title:record.fields.trackTitle+' — Release Sheet',txtBody:function(){return record.fields.trackTitle+' — Release Sheet\n\n'+fields.map(function(f){return f.label+': '+(record.fields[f.key]||'(not provided)');}).join('\n');},richBody:record});document.getElementById('riddim-save').addEventListener('click',function(){global.FTN.IntegrationAdapter.submit('riddim',record).then(function(res){api.notify(res.message,'success');});});});
   }
 
-  function recordToText(product, record, attachedFileName) {
-    var lines = [product.name + ' — Release Sheet', ''];
-    var fieldDefs = global.FTN.EntityMetadataEngine.fieldsFor(record.entityType);
-    fieldDefs.forEach(function (f) {
-      lines.push(f.label + ': ' + (record.fields[f.key] || '(not provided)'));
-    });
-    lines.push('');
-    lines.push('Attached track: ' + (attachedFileName || '(none attached)'));
-    lines.push('Generated: ' + record.generatedAt);
-    return lines.join('\n');
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    global.FTN.WorkspaceShell.init({
-      productId: 'riddim',
-      mountId: 'workspace-root',
-      accentSmallVar: '--color-riddim',
-      build: function (content, api) {
-        var fields = global.FTN.EntityMetadataEngine.fieldsFor('music-release');
-        var attachedFile = null;
-
-        content.innerHTML =
-          '<p class="u-max-60ch">Build a real release sheet for your track: fill in the metadata, ' +
-          'attach a local audio file to preview alongside it, and export a clean record you can ' +
-          'hand to a distributor, playlist curator, or press contact.</p>' +
-          '<form id="riddim-form" novalidate>' +
-          fields.map(function (f) {
-            return '<div class="workspace-field"><label for="rd-' + f.key + '">' + escapeHtml(f.label) +
-              (f.required ? '' : ' (optional)') + '</label>' + fieldInputHTML(f) + '</div>';
-          }).join('') +
-          '<div class="workspace-field"><label>Attach a track (optional preview)</label>' +
-          '<div id="riddim-media-intake"></div></div>' +
-          '<button type="submit" class="btn btn-primary">Generate release sheet</button>' +
-          '</form>' +
-          '<div id="riddim-output"></div>';
-
-        global.FTN.MediaIntake.mount(document.getElementById('riddim-media-intake'), {
-          accept: 'audio/*',
-          kind: 'audio',
-          id: 'riddim-track-input',
-          label: 'Choose an audio file',
-          onSelect: function (file) { attachedFile = file; },
-        });
-
-        var form = document.getElementById('riddim-form');
-        var output = document.getElementById('riddim-output');
-
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          var input = {};
-          fields.forEach(function (f) { input[f.key] = form[f.key].value; });
-          var result = global.FTN.EntityMetadataEngine.createRecord('music-release', input);
-          if (!result.valid) {
-            output.innerHTML = global.FTN.WorkspaceShell.renderErrorsHTML(result.errors);
-            return;
-          }
-          renderSheet(result.record, api, output, fields, attachedFile);
-        });
-      },
-    });
+  document.addEventListener('DOMContentLoaded',function(){
+    global.FTN.WorkspaceShell.init({productId:'riddim',mountId:'workspace-root',accentSmallVar:'--color-riddim',build:function(content,api){
+      content.innerHTML='<section class="fdm-role-launcher"><div class="fdm-role-head"><span class="workspace-eyebrow">FDM RHYTHM</span><h1>Choose your workspace</h1><p>FDM Rhythm now opens with a role choice. DJs get DJ Tube; producers/distributors get the music-release workspace. You can switch roles later.</p></div><div class="fdm-role-grid"><a class="fdm-role-card fdm-role-card--dj" href="/riddim/dj/"><div class="fdm-role-icon">DJ</div><h2>DJ</h2><p>Open FDM DJ — the intelligent Caribbean DJ workstation with decks, beat matching, stems, AI mixing, cue points, drops, discovery and controller support.</p><span>Open FDM DJ →</span></a><button class="fdm-role-card" id="fdm-producer-choice" type="button"><div class="fdm-role-icon">P</div><h2>Producer / Distributor</h2><p>Build releases, metadata and distribution-ready records. Producer tools will expand in the next phase.</p><span>Enter Producer workspace →</span></button></div></section><div id="fdm-producer-mount" hidden></div>';
+      document.getElementById('fdm-producer-choice').addEventListener('click',function(){document.querySelector('.fdm-role-launcher').hidden=true;var mount=document.getElementById('fdm-producer-mount');mount.hidden=false;producerWorkspace(mount,api);});
+    }});
   });
-
-  function renderSheet(record, api, output, fields, attachedFile) {
-    var attachedName = attachedFile ? attachedFile.name : null;
-    var html = '<div class="workspace-output"><h3>' + escapeHtml(record.fields.trackTitle) + ' — Release Sheet</h3><ul>';
-    fields.forEach(function (f) {
-      html += '<li><strong>' + escapeHtml(f.label) + ':</strong> ' + escapeHtml(record.fields[f.key] || '(not provided)') + '</li>';
-    });
-    html += '<li><strong>Attached track:</strong> ' + escapeHtml(attachedName || '(none attached)') + '</li>';
-    html += '</ul>' + global.FTN.WorkspaceShell.exportRowHTML('riddim-save', 'Save this release sheet') + '</div>';
-    output.innerHTML = html;
-
-    global.FTN.WorkspaceShell.wireExportButtons(output, {
-      title: record.fields.trackTitle + ' — Release Sheet',
-      txtBody: function () { return recordToText(api.product, record, attachedName); },
-      richBody: record,
-    });
-
-    document.getElementById('riddim-save').addEventListener('click', function () {
-      global.FTN.IntegrationAdapter.submit('riddim', record).then(function (res) {
-        api.notify(res.message, 'success');
-      });
-    });
-  }
 })(window);
