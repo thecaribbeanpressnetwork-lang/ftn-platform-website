@@ -1,230 +1,26 @@
 (() => {
-  'use strict';
-
-  const DEFAULT_VIDEOS = [
-    { id: 'JZ4h_ldPUgk', title: 'Soca 2026 Mix — Soca Spark 26', creator: 'DJ Ana & Ultra Simmo', genre: 'Soca', region: 'Trinidad & Tobago' },
-    { id: 'svCJ3C5LviI', title: 'Trinidad Carnival 2026 Road Power Soca DJ Mix', creator: 'Sir Trey Benjamin', genre: 'Soca', region: 'Trinidad & Tobago' },
-    { id: 'VG-NhYHjPrE', title: 'Dancehall Mix 2026 — 50 Best Dancehall Songs', creator: 'DJ Treasure', genre: 'Dancehall', region: 'Jamaica' },
-    { id: 'eKIOU9X0MxI', title: 'Dancehall Mix 2026 Vol. 4 — Raw & Clean', creator: 'ZJ Liquid Music', genre: 'Dancehall', region: 'Jamaica' }
-  ];
-
-  const state = {
-    decks: [null, null],
-    activeDeck: 0,
-    queue: [],
-    crossfade: 50,
-    masterVolume: 80,
-    playing: false,
-    ready: false
-  };
-
-  const els = {
-    player: document.querySelector('#dj-deck-player'),
-    deckA: document.querySelector('#dj-deck-a'),
-    deckB: document.querySelector('#dj-deck-b'),
-    queue: document.querySelector('#dj-queue'),
-    now: document.querySelector('#dj-now-playing'),
-    status: document.querySelector('#dj-player-status'),
-    crossfade: document.querySelector('#dj-crossfade'),
-    volume: document.querySelector('#dj-master-volume'),
-    play: document.querySelector('#dj-play'),
-    next: document.querySelector('#dj-next'),
-    prev: document.querySelector('#dj-prev'),
-    loadA: document.querySelector('#dj-load-a'),
-    loadB: document.querySelector('#dj-load-b'),
-    clear: document.querySelector('#dj-clear-queue')
-  };
-
-  if (!els.player) return;
-
-  const ytApi = new Promise(resolve => {
-    if (window.YT?.Player) return resolve(window.YT);
-    const previous = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      previous?.();
-      resolve(window.YT);
-    };
-    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://www.youtube.com/iframe_api';
-      document.head.appendChild(script);
-    }
-  });
-
-  function esc(value) {
-    return String(value).replace(/[&<>'"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[c]));
-  }
-
-  function videoFromCard(card) {
-    return {
-      id: card.dataset.videoId,
-      title: card.dataset.title || 'DJ Tube Mix',
-      creator: card.dataset.creator || 'DJ Tube',
-      genre: card.dataset.genre || 'Caribbean',
-      region: card.dataset.region || 'Caribbean'
-    };
-  }
-
-  function setStatus(text) {
-    if (els.status) els.status.textContent = text;
-  }
-
-  function setDeckMeta(index, video) {
-    const root = index === 0 ? els.deckA : els.deckB;
-    if (!root) return;
-    root.querySelector('[data-deck-title]').textContent = video?.title || 'Load a mix';
-    root.querySelector('[data-deck-creator]').textContent = video ? `${video.creator} · ${video.genre}` : 'Choose a video from the queue';
-    root.dataset.loaded = video ? 'true' : 'false';
-  }
-
-  function createPlayer(index) {
-    return ytApi.then(YT => new Promise(resolve => {
-      const host = document.querySelector(index === 0 ? '#dj-youtube-a' : '#dj-youtube-b');
-      if (!host) return resolve(null);
-      const player = new YT.Player(host, {
-        width: '100%', height: '100%', videoId: '', playerVars: { autoplay: 0, controls: 1, rel: 0, playsinline: 1, modestbranding: 1 },
-        events: {
-          onReady: () => resolve(player),
-          onStateChange: event => {
-            if (event.data === YT.PlayerState.PLAYING) {
-              state.playing = true;
-              state.activeDeck = index;
-              updateUi();
-            }
-            if (event.data === YT.PlayerState.ENDED && state.activeDeck === index) next();
-          },
-          onError: () => setStatus(`YouTube could not play Deck ${index === 0 ? 'A' : 'B'} — the video may be unavailable for embedding.`)
-        }
-      });
-    }));
-  }
-
-  async function ensurePlayers() {
-    if (state.ready) return;
-    setStatus('Connecting to YouTube…');
-    state.decks[0] = await createPlayer(0);
-    state.decks[1] = await createPlayer(1);
-    state.ready = Boolean(state.decks[0] && state.decks[1]);
-    setStatus(state.ready ? 'YouTube connected · 2-deck mode ready' : 'Player connection incomplete');
-    updateUi();
-  }
-
-  function load(index, video, autoplay = false) {
-    if (!video) return;
-    state.decks[index]?.cueVideoById(video.id);
-    setDeckMeta(index, video);
-    state.activeDeck = index;
-    if (autoplay) {
-      state.decks[index]?.playVideo();
-      state.playing = true;
-    }
-    updateUi();
-  }
-
-  function addToQueue(video) {
-    if (!video?.id) return;
-    state.queue.push(video);
-    renderQueue();
-    if (!state.decks[0]) return;
-    if (!els.deckA.dataset.loaded) load(0, video, false);
-    else if (!els.deckB.dataset.loaded) load(1, video, false);
-  }
-
-  function renderQueue() {
-    if (!els.queue) return;
-    els.queue.innerHTML = state.queue.length ? state.queue.map((video, i) => `
-      <button type="button" class="dj-queue-item" data-index="${i}">
-        <span class="dj-queue-item__number">${i + 1}</span><span><strong>${esc(video.title)}</strong><small>${esc(video.creator)} · ${esc(video.genre)}</small></span>
-      </button>`).join('') : '<p class="dj-queue-empty">Your queue is empty. Add a mix above.</p>';
-    els.queue.querySelectorAll('[data-index]').forEach(button => button.addEventListener('click', () => {
-      const video = state.queue[Number(button.dataset.index)];
-      load(state.activeDeck, video, true);
-    }));
-  }
-
-  function currentVideo() {
-    const deck = state.activeDeck;
-    const root = deck === 0 ? els.deckA : els.deckB;
-    return root?.dataset.videoId ? state.queue.find(v => v.id === root.dataset.videoId) : null;
-  }
-
-  function setVolume() {
-    const normalized = state.masterVolume / 100;
-    state.decks.forEach(player => player?.setVolume?.(Math.round(normalized * 100)));
-    const other = 1 - state.crossfade / 100;
-    state.decks[0]?.setVolume?.(Math.round(state.masterVolume * (state.crossfade <= 50 ? 1 : 2 * other)));
-    state.decks[1]?.setVolume?.(Math.round(state.masterVolume * (state.crossfade >= 50 ? 1 : 2 * (state.crossfade / 100))));
-  }
-
-  function mixTo(value) {
-    state.crossfade = Number(value);
-    setVolume();
-    updateUi();
-  }
-
-  function togglePlay() {
-    ensurePlayers().then(() => {
-      const player = state.decks[state.activeDeck];
-      if (!player) return;
-      const YT = window.YT;
-      if (state.playing) { player.pauseVideo(); state.playing = false; }
-      else { player.playVideo(); state.playing = true; }
-      if (YT) setStatus(state.playing ? 'Playing' : 'Paused');
-      updateUi();
-    });
-  }
-
-  function next() {
-    if (!state.queue.length) return;
-    const current = currentVideo();
-    const index = current ? state.queue.findIndex(v => v.id === current.id) : -1;
-    const video = state.queue[(index + 1 + state.queue.length) % state.queue.length];
-    const target = state.activeDeck === 0 ? 1 : 0;
-    load(target, video, true);
-  }
-
-  function prev() {
-    if (!state.queue.length) return;
-    const current = currentVideo();
-    const index = current ? state.queue.findIndex(v => v.id === current.id) : 0;
-    const video = state.queue[(index - 1 + state.queue.length) % state.queue.length];
-    load(state.activeDeck, video, true);
-  }
-
-  function updateUi() {
-    const video = currentVideo();
-    if (els.now) els.now.textContent = video ? `${video.title} · ${video.creator}` : 'Nothing playing';
-    if (els.play) els.play.textContent = state.playing ? 'Pause' : 'Play';
-    if (els.crossfade) els.crossfade.value = state.crossfade;
-    if (els.volume) els.volume.value = state.masterVolume;
-    [els.deckA, els.deckB].forEach((root, i) => root?.classList.toggle('is-active', i === state.activeDeck));
-  }
-
-  [els.loadA, els.loadB].forEach((button, index) => button?.addEventListener('click', () => {
-    const id = button.dataset.videoId;
-    const video = state.queue.find(v => v.id === id);
-    if (video) load(index, video, false);
-  }));
-  els.play?.addEventListener('click', togglePlay);
-  els.next?.addEventListener('click', next);
-  els.prev?.addEventListener('click', prev);
-  els.crossfade?.addEventListener('input', event => mixTo(event.target.value));
-  els.volume?.addEventListener('input', event => { state.masterVolume = Number(event.target.value); setVolume(); updateUi(); });
-  els.clear?.addEventListener('click', () => { state.queue = []; renderQueue(); setDeckMeta(0, null); setDeckMeta(1, null); });
-
-  document.addEventListener('click', event => {
-    const card = event.target.closest('[data-dj-queue-add]');
-    if (!card) return;
-    event.preventDefault();
-    addToQueue(videoFromCard(card));
-    document.querySelector('#dj-deck-player')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    ensurePlayers();
-  });
-
-  ensurePlayers();
-  DEFAULT_VIDEOS.forEach(video => state.queue.push(video));
-  renderQueue();
-  load(0, DEFAULT_VIDEOS[0], false);
-  load(1, DEFAULT_VIDEOS[1], false);
-  updateUi();
+'use strict';
+const DEFAULT_VIDEOS=[{id:'JZ4h_ldPUgk',title:'Soca 2026 Mix — Soca Spark 26',creator:'DJ Ana & Ultra Simmo',genre:'Soca',region:'Trinidad & Tobago'},{id:'svCJ3C5LviI',title:'Trinidad Carnival 2026 Road Power Soca DJ Mix',creator:'Sir Trey Benjamin',genre:'Soca',region:'Trinidad & Tobago'},{id:'VG-NhYHjPrE',title:'Dancehall Mix 2026 — 50 Best Dancehall Songs',creator:'DJ Treasure',genre:'Dancehall',region:'Jamaica'},{id:'eKIOU9X0MxI',title:'Dancehall Mix 2026 Vol. 4 — Raw & Clean',creator:'ZJ Liquid Music',genre:'Dancehall',region:'Jamaica'}];
+const state={decks:[null,null],activeDeck:0,queue:[],crossfade:50,masterVolume:80,playing:false,ready:false};
+const els={player:document.querySelector('#dj-deck-player'),deckA:document.querySelector('#dj-deck-a'),deckB:document.querySelector('#dj-deck-b'),queue:document.querySelector('#dj-queue'),now:document.querySelector('#dj-now-playing'),status:document.querySelector('#dj-player-status'),crossfade:document.querySelector('#dj-crossfade'),volume:document.querySelector('#dj-master-volume'),play:document.querySelector('#dj-play'),next:document.querySelector('#dj-next'),prev:document.querySelector('#dj-prev'),loadA:document.querySelector('#dj-load-a'),loadB:document.querySelector('#dj-load-b'),clear:document.querySelector('#dj-clear-queue')};
+if(!els.player)return;
+const ytApi=new Promise(resolve=>{if(window.YT?.Player)return resolve(window.YT);const old=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{old?.();resolve(window.YT)};if(!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')){const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)}});
+const esc=v=>String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const setStatus=t=>{if(els.status)els.status.textContent=t};
+function setDeckMeta(i,v){const r=i?els.deckB:els.deckA;if(!r)return;r.dataset.videoId=v?.id||'';r.dataset.loaded=v?'true':'false';r.querySelector('[data-deck-title]').textContent=v?.title||'Load a mix';r.querySelector('[data-deck-creator]').textContent=v?`${v.creator} · ${v.genre}`:'Choose a video from the queue'}
+function videoFromCard(c){return{id:c.dataset.videoId,title:c.dataset.title||'DJ Tube Mix',creator:c.dataset.creator||'DJ Tube',genre:c.dataset.genre||'Caribbean',region:c.dataset.region||'Caribbean'}}
+function createPlayer(i){return ytApi.then(YT=>new Promise(resolve=>{const host=document.querySelector(i?'#dj-youtube-b':'#dj-youtube-a');if(!host)return resolve(null);let player;player=new YT.Player(host,{width:'100%',height:'100%',videoId:'',playerVars:{autoplay:0,controls:1,rel:0,playsinline:1,modestbranding:1},events:{onReady:()=>resolve(player),onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING){state.playing=true;state.activeDeck=i;updateUi()}if(e.data===YT.PlayerState.ENDED&&state.activeDeck===i)next()},onError:()=>setStatus(`YouTube could not play Deck ${i?'B':'A'} — the video may be unavailable for embedding.`)}})}))}
+async function ensurePlayers(){if(state.ready)return;setStatus('Connecting to YouTube…');state.decks[0]=await createPlayer(0);state.decks[1]=await createPlayer(1);state.ready=Boolean(state.decks[0]&&state.decks[1]);setStatus(state.ready?'YouTube connected · 2-deck mode ready':'Player connection incomplete');updateUi()}
+function load(i,v,autoplay=false){if(!v)return;state.decks[i]?.cueVideoById(v.id);setDeckMeta(i,v);state.activeDeck=i;if(autoplay){state.decks[i]?.playVideo();state.playing=true}setVolume();updateUi()}
+function addToQueue(v){if(!v?.id)return;if(!state.queue.some(x=>x.id===v.id))state.queue.push(v);renderQueue();if(!els.deckA.dataset.loaded)load(0,v);else if(!els.deckB.dataset.loaded)load(1,v)}
+function renderQueue(){if(!els.queue)return;els.queue.innerHTML=state.queue.length?state.queue.map((v,i)=>`<button type="button" class="dj-queue-item" data-index="${i}"><span class="dj-queue-item__number">${i+1}</span><span><strong>${esc(v.title)}</strong><small>${esc(v.creator)} · ${esc(v.genre)}</small></span></button>`).join(''):'<p class="dj-queue-empty">Your queue is empty. Add a mix above.</p>';els.queue.querySelectorAll('[data-index]').forEach(b=>b.addEventListener('click',()=>load(state.activeDeck,state.queue[Number(b.dataset.index)],true)))}
+function currentVideo(){const r=state.activeDeck?els.deckB:els.deckA;return state.queue.find(v=>v.id===r?.dataset.videoId)||null}
+function setVolume(){const cf=state.crossfade/100;state.decks[0]?.setVolume?.(Math.round(state.masterVolume*(cf<=.5?1:2*(1-cf))));state.decks[1]?.setVolume?.(Math.round(state.masterVolume*(cf>=.5?1:2*cf)))}
+function togglePlay(){ensurePlayers().then(()=>{const p=state.decks[state.activeDeck];if(!p)return;if(state.playing){p.pauseVideo();state.playing=false;setStatus('Paused')}else{p.playVideo();state.playing=true;setStatus('Playing')}updateUi()})}
+function next(){if(!state.queue.length)return;const c=currentVideo(),i=c?state.queue.findIndex(v=>v.id===c.id):-1;load(state.activeDeck?0:1,state.queue[(i+1+state.queue.length)%state.queue.length],true)}
+function prev(){if(!state.queue.length)return;const c=currentVideo(),i=c?state.queue.findIndex(v=>v.id===c.id):0;load(state.activeDeck,state.queue[(i-1+state.queue.length)%state.queue.length],true)}
+function updateUi(){const v=currentVideo();if(els.now)els.now.textContent=v?`${v.title} · ${v.creator}`:'Nothing playing';if(els.play)els.play.textContent=state.playing?'Pause':'Play';[els.deckA,els.deckB].forEach((r,i)=>r?.classList.toggle('is-active',i===state.activeDeck))}
+[els.loadA,els.loadB].forEach((b,i)=>b?.addEventListener('click',()=>{const v=state.queue.find(x=>x.id===b.dataset.videoId);if(v)load(i,v)}));els.play?.addEventListener('click',togglePlay);els.next?.addEventListener('click',next);els.prev?.addEventListener('click',prev);els.crossfade?.addEventListener('input',e=>{state.crossfade=Number(e.target.value);setVolume();updateUi()});els.volume?.addEventListener('input',e=>{state.masterVolume=Number(e.target.value);setVolume()});els.clear?.addEventListener('click',()=>{state.queue=[];renderQueue();setDeckMeta(0,null);setDeckMeta(1,null)});
+document.addEventListener('click',e=>{const c=e.target.closest('[data-dj-queue-add]');if(!c)return;e.preventDefault();addToQueue(videoFromCard(c));document.querySelector('#dj-deck-player')?.scrollIntoView({behavior:'smooth',block:'start'});ensurePlayers()});
+ensurePlayers();DEFAULT_VIDEOS.forEach(v=>state.queue.push(v));renderQueue();load(0,DEFAULT_VIDEOS[0]);load(1,DEFAULT_VIDEOS[1]);updateUi();
 })();
