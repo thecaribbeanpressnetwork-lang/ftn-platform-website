@@ -1,30 +1,21 @@
-# DJ Tube Downloads
+# DJ Tube media downloads
 
-DJ Tube supports a multi-download queue for **authorized media sources**.
+The download manager supports three modes for media the DJ is authorized to save:
 
-Download modes:
+- **Original**: preserves the supplied source.
+- **Audio only**: delegated to an authorized transcoder/provider.
+- **Video only**: delegated to an authorized transcoder/provider.
 
-- Original — save the source file unchanged.
-- Audio only — requires an authorized transcoder for the source.
-- Video only — requires an authorized transcoder for the source.
+Multiple jobs can be queued with `downloadMany()`. The UI adapter provides per-job progress/status.
 
-The browser can download local DJ-owned files and authorized HTTPS media. The queue supports multiple simultaneous jobs and progress reporting.
+## Source policy
 
-## YouTube boundary
+The manager accepts a local `File`/`Blob` or an authorized HTTPS media URL. It deliberately does not extract media from a YouTube iframe, bypass YouTube advertising, defeat access controls, or download third-party material without authorization.
 
-The application does not extract, decrypt, or download YouTube media from an embedded player, and it does not bypass YouTube advertising or playback controls. The official YouTube APIs expose metadata/search capabilities, not a general-purpose downloadable media endpoint. If a rights holder supplies an authorized downloadable file/URL, that source can be passed to the download manager.
+## Production transcoder
 
-## UI target
+Configure `AuthorizedTranscoderAdapter` with a server-side transcoding provider. Keep credentials server-side. The browser should receive only the resulting authorized media URL/blob.
 
-The controller should expose a **DOWNLOAD** action with:
+## Recommended UI
 
-- Original
-- Audio Only
-- Video Only
-- Add to Download Queue
-- Queue progress
-- Completed downloads
-- Retry failed download
-- Clear completed
-
-For multiple selected tracks, the UI should add each authorized source to the queue and process them independently.
+Place download controls beside each authorized library item: `Original`, `Audio only`, `Video only`, then `Add to queue`. Show queue progress and allow several independent jobs. Downloads should be associated with the DJ's media library and retention policy when persistent storage is enabled.
