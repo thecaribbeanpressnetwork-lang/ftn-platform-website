@@ -20,6 +20,28 @@
     });
   }
 
+  function cleanPublicLayout() {
+    var status = document.querySelector('.ftn-production-status');
+    if (status && status.closest('section')) status.closest('section').remove();
+    var programming = document.getElementById('programming');
+    if (programming) programming.remove();
+
+    var heroActions = document.querySelector('.ftn-hero__actions');
+    if (heroActions) {
+      var links = heroActions.querySelectorAll('a');
+      if (links[1]) {
+        links[1].href = '#watch';
+        links[1].textContent = 'Watch & Follow';
+      }
+    }
+
+    var participate = document.getElementById('participate');
+    if (participate) {
+      var header = participate.querySelector('.section__header p');
+      if (header) header.textContent = 'Tell Face The Nation what should be discussed, who should be heard, or where the programme should go. Suggestions are saved on this device.';
+    }
+  }
+
   function ensureLocationPanel() {
     if (document.getElementById('ftn-location-form')) return;
     var grid = document.querySelector('.ftn-participation-grid');
@@ -108,7 +130,7 @@
       if (!adapter) { status.textContent = 'Submission storage is unavailable in this browser.'; status.className = 'ftn-form-status ftn-form-status--error'; return; }
       var toolId = isTopic ? 'facethenation-topic' : (isGuest ? 'facethenation-guest' : 'facethenation-location');
       adapter.submit(toolId, payload).then(function () {
-        status.textContent = 'Saved on this device only. Online editorial submission will connect here when the FTN backend is enabled.';
+        status.textContent = 'Saved on this device.';
         status.className = 'ftn-form-status ftn-form-status--ok';
         form.classList.add('ftn-participation-form--confirmed');
         global.setTimeout(function () { form.classList.remove('ftn-participation-form--confirmed'); }, 1200);
@@ -142,14 +164,15 @@
     watch.id = 'watch';
     var player = MEDIA.latestVideoId
       ? '<div class="ftn-video-frame"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(MEDIA.latestVideoId) + '" title="Watch Face The Nation on YouTube" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>'
-      : '<div class="ftn-video-placeholder"><span>FACE THE NATION</span><strong>YouTube home ready for Season One.</strong><p>When the first episode video ID is published in the media config, it will play here without redesigning this page.</p><a class="btn btn-primary" href="' + MEDIA.youtube + '" target="_blank" rel="noopener noreferrer">Open Face The Nation on YouTube</a></div>';
-    watch.innerHTML = '<div class="container"><div class="section__header"><span class="section__eyebrow">Watch Face The Nation</span><h2>The show lives here and on YouTube.</h2><p class="u-mt-16 u-max-60ch">Visitors can watch featured episodes directly on FTN Platform, then continue to the official Face The Nation YouTube channel.</p></div>' + player + '</div>';
+      : '<div class="ftn-video-placeholder"><span>FACE THE NATION</span><strong>Watch on the official YouTube channel.</strong><p>Open Face The Nation on YouTube for programme video and channel updates.</p><a class="btn btn-primary" href="' + MEDIA.youtube + '" target="_blank" rel="noopener noreferrer">Open Face The Nation on YouTube</a></div>';
+    watch.innerHTML = '<div class="container"><div class="section__header"><span class="section__eyebrow">Watch Face The Nation</span><h2>Watch and follow the programme.</h2></div>' + player + '</div>';
     follow.parentNode.insertBefore(watch, follow);
 
-    follow.innerHTML = '<div class="container"><div class="section__header"><span class="section__eyebrow">Follow Face The Nation</span><h2>@FaceTheNationTT</h2><p class="u-mt-16 u-max-60ch">One official social hub for the programme across YouTube and the FaceTheNationTT social accounts.</p></div><div class="ftn-social-grid">' + MEDIA.socials.map(function (item) { return '<a class="ftn-social-card" href="' + item.url + '" target="_blank" rel="noopener noreferrer"><span>' + escapeHtml(item.name) + '</span><strong>' + escapeHtml(item.handle) + '</strong><small>Open official profile →</small></a>'; }).join('') + '</div></div>';
+    follow.innerHTML = '<div class="container"><div class="section__header"><span class="section__eyebrow">Follow Face The Nation</span><h2>@FaceTheNationTT</h2><p class="u-mt-16 u-max-60ch">Official Face The Nation profiles across YouTube and social platforms.</p></div><div class="ftn-social-grid">' + MEDIA.socials.map(function (item) { return '<a class="ftn-social-card" href="' + item.url + '" target="_blank" rel="noopener noreferrer"><span>' + escapeHtml(item.name) + '</span><strong>' + escapeHtml(item.handle) + '</strong><small>Open official profile →</small></a>'; }).join('') + '</div></div>';
   }
 
   function init() {
+    cleanPublicLayout();
     addMnemonicLayer();
     ensureLocationPanel();
     mountForm(document.getElementById('ftn-topic-form'), 'topic');
