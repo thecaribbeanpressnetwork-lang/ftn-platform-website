@@ -3,6 +3,7 @@
   'use strict';
 
   var TZ = 'America/Port_of_Spain';
+  var ATLANTIC_OFFSET_HOURS = -4; // Trinidad & Tobago has no DST.
   var WINDOWS = {
     soca: { day:5, start:19, end:21, label:'Soca Energy' },
     calypso: { day:0, start:16, end:18, label:'Calypso & Kaiso' },
@@ -21,17 +22,30 @@
     return WINDOWS[key || 'default'];
   }
 
+  function atlanticClockDate(now) {
+    return new Date(now.getTime() + ATLANTIC_OFFSET_HOURS * 60 * 60 * 1000);
+  }
+
+  function utcFromAtlanticParts(year, month, day, hour) {
+    return new Date(Date.UTC(year, month, day, hour - ATLANTIC_OFFSET_HOURS, 0, 0, 0));
+  }
+
   function nextWindow(genre) {
     var rule = ruleFor(genre);
     var now = new Date();
-    var target = new Date(now.getTime());
-    var delta = (rule.day - target.getDay() + 7) % 7;
-    if (delta === 0 && target.getHours() >= rule.end) delta = 7;
-    target.setDate(target.getDate() + delta);
-    target.setHours(rule.start, 0, 0, 0);
-    var end = new Date(target.getTime()); end.setHours(rule.end, 0, 0, 0);
+    var clock = atlanticClockDate(now);
+    var day = clock.getUTCDay();
+    var hour = clock.getUTCHours();
+    var delta = (rule.day - day + 7) % 7;
+    if (delta === 0 && hour >= rule.end) delta = 7;
+
+    var targetClock = new Date(Date.UTC(clock.getUTCFullYear(), clock.getUTCMonth(), clock.getUTCDate() + delta, rule.start, 0, 0, 0));
+    var target = utcFromAtlanticParts(targetClock.getUTCFullYear(), targetClock.getUTCMonth(), targetClock.getUTCDate(), rule.start);
+    var end = utcFromAtlanticParts(targetClock.getUTCFullYear(), targetClock.getUTCMonth(), targetClock.getUTCDate(), rule.end);
+
     var dateText = new Intl.DateTimeFormat('en-TT', { timeZone:TZ, weekday:'long', month:'short', day:'numeric' }).format(target);
-    var timeText = new Intl.DateTimeFormat('en-TT', { timeZone:TZ, hour:'numeric', minute:'2-digit' }).format(target) + '–' + new Intl.DateTimeFormat('en-TT', { timeZone:TZ, hour:'numeric', minute:'2-digit' }).format(end);
+    var timeFmt = new Intl.DateTimeFormat('en-TT', { timeZone:TZ, hour:'numeric', minute:'2-digit' });
+    var timeText = timeFmt.format(target) + '–' + timeFmt.format(end);
     return { label:rule.label, start:target.toISOString(), end:end.toISOString(), text:dateText + ', ' + timeText + ' Atlantic' };
   }
 
