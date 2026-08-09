@@ -1,6 +1,4 @@
 // FTN Platform Website — FTN Kaiso workspace, production phase 1.
-// Production-honest newsroom foundation: coverage discovery + structured local story-tip intake.
-// Published stories, secure source handling and cloud editorial workflows are not represented as live.
 (function (global) {
   'use strict';
 
@@ -56,7 +54,7 @@
   }
 
   function beatsHTML(beats) {
-    if (!beats.length) return '<p class="workspace-muted">No planned coverage desk matched those words. A story can still be pitched using “Other / emerging issue”.</p>';
+    if (!beats.length) return '<p class="workspace-muted">No coverage desk matched those words. A story can still be pitched using “Other / emerging issue”.</p>';
     return '<ul class="kaiso-beat-list">' + beats.map(function (beat) {
       return '<li><strong>' + escapeHtml(beat.name) + '</strong><small>' + escapeHtml(beat.description) + '</small></li>';
     }).join('') + '</ul>';
@@ -95,11 +93,11 @@
       '<div class="workspace-field"><label for="kaiso-summary">What happened, and why does it matter?</label><textarea id="kaiso-summary" name="summary" required></textarea></div>' +
       '<div class="kaiso-tip-form__row"><div class="workspace-field"><label for="kaiso-source-type">How do you know?</label><select id="kaiso-source-type" name="sourceType"><option value="">Select</option><option>Directly witnessed it</option><option>Document / official record</option><option>Person directly involved</option><option>Multiple community reports</option><option>Public social/media material</option><option>Other</option></select></div>' +
       '<div class="workspace-field"><label for="kaiso-confidence">How certain are you?</label><select id="kaiso-confidence" name="confidence"><option value="">Select</option><option>First-hand / documented</option><option>Strong information, needs verification</option><option>Unconfirmed lead</option></select></div></div>' +
-      '<div class="workspace-field"><label for="kaiso-link">Supporting public link (optional)</label><input id="kaiso-link" name="link" type="url" placeholder="https://"></div>' +
-      '<div class="kaiso-tip-form__row"><div class="workspace-field"><label for="kaiso-name">Your name (optional)</label><input id="kaiso-name" name="name" type="text"></div><div class="workspace-field"><label for="kaiso-email">Email for follow-up (optional)</label><input id="kaiso-email" name="email" type="email"></div></div>' +
+      '<div class="workspace-field"><label for="kaiso-link">Supporting public link <span class="workspace-field__hint">(optional)</span></label><input id="kaiso-link" name="link" type="url" placeholder="https://"></div>' +
+      '<div class="kaiso-tip-form__row"><div class="workspace-field"><label for="kaiso-name">Your name <span class="workspace-field__hint">(optional)</span></label><input id="kaiso-name" name="name" type="text"></div><div class="workspace-field"><label for="kaiso-email">Email for follow-up <span class="workspace-field__hint">(optional)</span></label><input id="kaiso-email" name="email" type="email"></div></div>' +
       '<div class="workspace-field"><label for="kaiso-urgency">Editorial urgency</label><select id="kaiso-urgency" name="urgency"><option>Standard</option><option>Time-sensitive / developing</option><option>Public safety concern</option></select></div>' +
-      '<div class="kaiso-notice"><strong>Important:</strong> this website phase stores the pitch only in this browser. It is not transmitted to an FTN newsroom. Do not use this form for confidential documents, protected-source material, credentials, private addresses or information that could put someone at risk. A secure source channel requires dedicated server-side security before launch.</div>' +
-      '<label class="kaiso-consent"><input type="checkbox" name="consent" required> I understand this is a story lead for editorial review and verification, not publication, endorsement or a guarantee of coverage.</label>' +
+      '<p class="workspace-field__hint">Do not enter confidential credentials, private addresses or material that could put someone at risk.</p>' +
+      '<label class="kaiso-consent"><input type="checkbox" name="consent" required> I understand this is a story lead that requires verification before publication.</label>' +
       '<button type="submit" class="btn btn-primary">Save Story Pitch</button><p class="kaiso-form-status" role="status" aria-live="polite"></p></form>';
 
     var form = root.querySelector('form');
@@ -108,18 +106,10 @@
       event.preventDefault();
       var data = new FormData(form);
       var payload = {
-        beat: String(data.get('beat') || '').trim(),
-        location: String(data.get('location') || '').trim(),
-        headline: String(data.get('headline') || '').trim(),
-        summary: String(data.get('summary') || '').trim(),
-        sourceType: String(data.get('sourceType') || '').trim(),
-        confidence: String(data.get('confidence') || '').trim(),
-        link: String(data.get('link') || '').trim(),
-        name: String(data.get('name') || '').trim(),
-        email: String(data.get('email') || '').trim(),
-        urgency: String(data.get('urgency') || 'Standard').trim(),
-        countryContext: countryName(),
-        consent: data.get('consent') === 'on'
+        beat: String(data.get('beat') || '').trim(), location: String(data.get('location') || '').trim(), headline: String(data.get('headline') || '').trim(),
+        summary: String(data.get('summary') || '').trim(), sourceType: String(data.get('sourceType') || '').trim(), confidence: String(data.get('confidence') || '').trim(),
+        link: String(data.get('link') || '').trim(), name: String(data.get('name') || '').trim(), email: String(data.get('email') || '').trim(), urgency: String(data.get('urgency') || 'Standard').trim(),
+        countryContext: countryName(), consent: data.get('consent') === 'on', intentInterpreter: 'ibis.ai'
       };
       var errors = [];
       if (!payload.headline) errors.push('Add a working headline.');
@@ -128,30 +118,24 @@
       if (!payload.consent) errors.push('Confirm the editorial notice.');
       if (errors.length) { status.textContent = errors.join(' '); status.className = 'kaiso-form-status kaiso-form-status--error'; return; }
       var adapter = global.FTN && global.FTN.IntegrationAdapter;
-      if (!adapter) { status.textContent = 'Local newsroom storage is unavailable in this browser.'; status.className = 'kaiso-form-status kaiso-form-status--error'; return; }
+      if (!adapter) { status.textContent = 'Local storage is unavailable in this browser.'; status.className = 'kaiso-form-status kaiso-form-status--error'; return; }
       adapter.submit('kaiso-story-tip', payload).then(function () {
-        status.textContent = 'Saved on this device only. No newsroom transmission has occurred.';
+        status.textContent = 'Saved on this device.';
         status.className = 'kaiso-form-status kaiso-form-status--ok';
-        pulseMnemonic();
-        form.reset();
-        renderHistory();
+        pulseMnemonic(); form.reset(); renderHistory();
       });
     });
   }
 
   function buildWorkspace() {
     global.FTN.WorkspaceShell.init({
-      productId: 'kaiso',
-      mountId: 'workspace-root',
-      accentSmallVar: '--color-kaiso-on-dark',
+      productId: 'kaiso', mountId: 'workspace-root', accentSmallVar: '--color-kaiso-on-dark',
       build: function (content) {
-        content.innerHTML = '<section class="kaiso-hero"><div class="kaiso-hero__copy"><span class="kaiso-kicker">The Caribbean Newsroom</span><h2>Find the story. Build the record. Verify before publishing.</h2><p>FTN Kaiso is being built as FTN’s public-interest newsroom. Today the operational layer is coverage discovery and structured story-pitch preparation. Published reporting, investigations and secure source workflows activate only when the editorial backend and newsroom processes are deployed.</p></div>' +
+        content.innerHTML = '<section class="kaiso-hero"><div class="kaiso-hero__copy"><span class="kaiso-kicker">The Caribbean Newsroom</span><h2>Find the story. Build the record. Verify before publishing.</h2><p>Search FTN Kaiso coverage desks and prepare a structured story pitch with the facts, source basis and context that matter.</p></div>' +
           '<div class="kaiso-mnemonic" aria-hidden="true"><span class="kaiso-mnemonic__sheet"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--1"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--2"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--3"></span><span class="kaiso-mnemonic__rule"></span><span class="kaiso-mnemonic__stamp">Verify</span><span class="kaiso-mnemonic__scan"></span></div></section>' +
-          '<div class="kaiso-status-grid"><article><span>Operational now</span><strong>Coverage desk discovery</strong><p>Search the newsroom’s planned reporting beats using FTN Search Foundation.</p></article><article><span>Operational now</span><strong>Structured story-pitch prep</strong><p>Capture the lead, location, source basis, confidence and urgency on this device.</p></article><article><span>Future newsroom layer</span><strong>Publishing + secure sources</strong><p>Cloud editorial queues, secure uploads, assignments, verification workflows and publication require the newsroom backend.</p></article></div>' +
-          '<div class="kaiso-grid"><section class="kaiso-panel"><span class="kaiso-kicker">Coverage Desk</span><h3>What should Kaiso cover?</h3><p>Search the planned editorial beats. These are newsroom coverage areas, not fabricated articles.</p><div class="workspace-field kaiso-beat-search"><label for="kaiso-search">Search coverage beats</label><input type="text" id="kaiso-search" placeholder="e.g. climate, corruption, health"></div><p id="kaiso-count" class="workspace-field__hint"></p><div id="kaiso-results"></div></section>' +
-          '<section class="kaiso-panel"><span class="kaiso-kicker">Story Desk</span><h3>Prepare a story pitch</h3><p>A credible newsroom starts by separating a lead from a verified fact. Capture what is known, how it is known and what still needs checking.</p><div id="kaiso-tip-form"></div></section></div>' +
-          '<section class="kaiso-panel kaiso-history"><span class="kaiso-kicker">Saved on this device</span><h3>Recent story pitches</h3><div id="kaiso-history-list"></div></section>' +
-          '<section class="kaiso-notice"><strong>Editorial trust boundary:</strong> every pitch is a lead, not a fact. FTN Kaiso must independently verify claims before publication. Browser-local records are not evidence of newsroom receipt, assignment or editorial approval.</section>';
+          '<div class="kaiso-grid"><section class="kaiso-panel"><span class="kaiso-kicker">Coverage Desk</span><h3>What should Kaiso cover?</h3><div class="workspace-field kaiso-beat-search"><label for="kaiso-search">Search coverage beats</label><input type="text" id="kaiso-search" placeholder="e.g. climate, corruption, health"></div><p id="kaiso-count" class="workspace-field__hint"></p><div id="kaiso-results"></div></section>' +
+          '<section class="kaiso-panel"><span class="kaiso-kicker">Story Desk</span><h3>Prepare a story pitch</h3><p>Capture what happened, how you know and what still needs checking.</p><div id="kaiso-tip-form"></div></section></div>' +
+          '<section class="kaiso-panel kaiso-history"><span class="kaiso-kicker">Saved on this device</span><h3>Recent story pitches</h3><div id="kaiso-history-list"></div></section>';
 
         var input = document.getElementById('kaiso-search');
         var results = document.getElementById('kaiso-results');
@@ -162,14 +146,10 @@
           results.innerHTML = beatsHTML(out.results);
         }
         input.addEventListener('input', function () { render(input.value); });
-        render('');
-        mountTipForm();
-        renderHistory();
+        render(''); mountTipForm(); renderHistory();
       }
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
-    ensureIntegrationAdapter(buildWorkspace);
-  });
+  document.addEventListener('DOMContentLoaded', function () { ensureIntegrationAdapter(buildWorkspace); });
 })(window);
