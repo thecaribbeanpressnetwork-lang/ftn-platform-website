@@ -11,7 +11,6 @@
   function mountForm(root, kind) {
     if (!root) return;
     var isTopic = kind === 'topic';
-    var title = isTopic ? 'Suggest a Topic' : 'Recommend a Guest';
     var button = isTopic ? 'Save Topic Suggestion' : 'Save Guest Recommendation';
 
     root.innerHTML =
@@ -65,7 +64,7 @@
         return;
       }
       adapter.submit(toolId, payload).then(function () {
-        status.textContent = 'Saved on this device for programme review. Online editorial submission will connect here when the FTN backend is enabled.';
+        status.textContent = 'Saved on this device only. Online editorial submission will connect here when the FTN backend is enabled.';
         status.className = 'ftn-form-status ftn-form-status--ok';
         form.reset();
         renderHistory();
