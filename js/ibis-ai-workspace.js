@@ -1,151 +1,20 @@
 // FTN Platform Website — ibis.ai goal-routing workspace.
 (function (global) {
   'use strict';
-
-  if (!document.querySelector('link[data-ibis-style]')) {
-    var styleLink = document.createElement('link');
-    styleLink.rel = 'stylesheet';
-    styleLink.href = '/css/components/ibis-ai.css';
-    styleLink.setAttribute('data-ibis-style', 'true');
-    document.head.appendChild(styleLink);
-  }
-
-  var escapeHtml = global.FTN.WorkspaceShell.escapeHtml;
-  var STORAGE_KEY = 'ftn-ibis-recent-goals';
-  var EXAMPLES = [
-    'I need to report a pothole in my community',
-    'I am looking for a grant or business opportunity',
-    'I want to release and tag a soca track',
-    'I need help planning an event in Trinidad',
-    'I want to understand what is happening across Trinidad and Tobago',
-    'I want Caribbean news and investigations'
-  ];
-
-  function countryName() {
-    return global.FTN.Country && global.FTN.Country.get ? global.FTN.Country.get().name : 'Trinidad & Tobago';
-  }
-
-  function recentGoals() {
-    if (!global.FTN.storage) return [];
-    return global.FTN.storage.getJSON(STORAGE_KEY, []);
-  }
-
-  function rememberGoal(goal) {
-    if (!global.FTN.storage) return;
-    var items = recentGoals().filter(function (item) { return item !== goal; });
-    items.unshift(goal);
-    global.FTN.storage.setJSON(STORAGE_KEY, items.slice(0, 6));
-  }
-
-  function renderRecent(mount) {
-    if (!mount) return;
-    var items = recentGoals();
-    if (!items.length) {
-      mount.innerHTML = '<p class="workspace-muted">No recent goals saved on this device.</p>';
-      return;
-    }
-    mount.innerHTML = '<div class="ibis-chip-row">' + items.map(function (goal) {
-      return '<button type="button" class="ibis-chip" data-ibis-goal="' + escapeHtml(goal) + '">' + escapeHtml(goal) + '</button>';
-    }).join('') + '</div>';
-  }
-
-  function pulseMnemonic() {
-    var mnemonic = document.querySelector('.ibis-mnemonic');
-    if (!mnemonic) return;
-    mnemonic.classList.remove('ibis-mnemonic--active');
-    void mnemonic.offsetWidth;
-    mnemonic.classList.add('ibis-mnemonic--active');
-    global.setTimeout(function () { mnemonic.classList.remove('ibis-mnemonic--active'); }, 1300);
-  }
-
-  function renderMatches(output, goal, matches) {
-    if (!matches.length) {
-      output.innerHTML = '<div class="workspace-output"><span class="workspace-kicker">Try another description</span><h3>I could not find a strong FTN route for that yet.</h3><p>Describe the outcome another way, or <a href="/">explore the FTN ecosystem</a>.</p></div>';
-      return;
-    }
-
-    var html = '<div class="workspace-output"><span class="workspace-kicker">Best FTN routes for ' + escapeHtml(countryName()) + '</span><h3>I understood your goal as:</h3><p><strong>' + escapeHtml(goal) + '</strong></p><div class="ibis-result-list">';
-    matches.slice(0, 5).forEach(function (m, index) {
-      html += '<article class="ibis-result-card">' +
-        '<span class="ibis-result-rank">' + (index + 1) + '</span>' +
-        '<div><h4><a href="' + m.product.route + '">' + escapeHtml(m.product.name) + '</a></h4>' +
-        '<p><strong>' + escapeHtml(m.product.tagline) + '</strong></p>' +
-        '<p>' + escapeHtml(m.explanation) + '</p>' +
-        '<a class="btn btn-outline btn-sm" href="' + m.product.route + '">Open ' + escapeHtml(m.product.name) + '</a></div>' +
-        '</article>';
-    });
-    html += '</div></div>';
-    output.innerHTML = html;
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    global.FTN.WorkspaceShell.init({
-      productId: 'ibis-ai',
-      mountId: 'workspace-root',
-      accentSmallVar: '--color-ibis-on-dark',
-      build: function (content) {
-        content.innerHTML =
-          '<section class="ibis-brand-hero">' +
-            '<div class="ibis-brand-hero__copy">' +
-              '<span class="workspace-kicker">Caribbean Intelligence Layer</span>' +
-              '<h2>Tell ibis.ai what you want to accomplish.</h2>' +
-              '<p>Use your own words. ibis.ai checks the FTN ecosystem and recommends the strongest available route for your goal and Caribbean context.</p>' +
-            '</div>' +
-            '<div class="ibis-brand-hero__art">' +
-              '<img src="/assets/panels/05-ibis-ai.png" alt="ibis.ai — Built for the Caribbean">' +
-              '<div class="ibis-mnemonic" aria-hidden="true"><span class="ibis-mnemonic__orbit"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--a"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--b"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--c"></span><span class="ibis-mnemonic__core"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--a"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--b"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--c"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--d"></span></div>' +
-            '</div>' +
-          '</section>' +
-          '<section class="ibis-console">' +
-            '<form id="ibis-form" novalidate>' +
-              '<div class="workspace-field"><label for="ibis-goal">What are you trying to do?</label>' +
-              '<textarea id="ibis-goal" name="goal" rows="4" placeholder="Tell ibis.ai the outcome you want, in your own words" required></textarea></div>' +
-              '<div class="ibis-example-wrap"><span class="workspace-kicker">Try an example</span><div class="ibis-chip-row">' + EXAMPLES.map(function (example) { return '<button type="button" class="ibis-chip" data-ibis-goal="' + escapeHtml(example) + '">' + escapeHtml(example) + '</button>'; }).join('') + '</div></div>' +
-              '<button type="submit" class="btn btn-primary">Find my best route</button>' +
-            '</form>' +
-            '<div id="ibis-output" aria-live="polite"></div>' +
-          '</section>' +
-          '<section class="ibis-recent"><div class="ibis-recent__head"><div><span class="workspace-kicker">Saved on this device</span><h3>Recent goals</h3></div><button id="ibis-clear" type="button" class="btn btn-outline btn-sm">Clear</button></div><div id="ibis-recent-list"></div></section>';
-
-        var form = document.getElementById('ibis-form');
-        var input = document.getElementById('ibis-goal');
-        var output = document.getElementById('ibis-output');
-        var recentMount = document.getElementById('ibis-recent-list');
-        var clear = document.getElementById('ibis-clear');
-
-        function run(goal) {
-          goal = String(goal || '').trim();
-          if (!goal) {
-            output.innerHTML = '<div class="workspace-output"><p>Tell ibis.ai what you are trying to accomplish.</p></div>';
-            return;
-          }
-          var matches = global.FTN.IntentRouter.route(goal);
-          rememberGoal(goal);
-          renderRecent(recentMount);
-          renderMatches(output, goal, matches);
-          pulseMnemonic();
-        }
-
-        form.addEventListener('submit', function (event) {
-          event.preventDefault();
-          run(input.value);
-        });
-
-        content.addEventListener('click', function (event) {
-          var button = event.target.closest('[data-ibis-goal]');
-          if (!button) return;
-          input.value = button.getAttribute('data-ibis-goal') || '';
-          input.focus();
-          run(input.value);
-        });
-
-        clear.addEventListener('click', function () {
-          if (global.FTN.storage) global.FTN.storage.remove(STORAGE_KEY);
-          renderRecent(recentMount);
-        });
-
-        renderRecent(recentMount);
-      }
-    });
-  });
+  if (!document.querySelector('link[data-ibis-style]')) { var styleLink=document.createElement('link');styleLink.rel='stylesheet';styleLink.href='/css/components/ibis-ai.css';styleLink.setAttribute('data-ibis-style','true');document.head.appendChild(styleLink); }
+  var escapeHtml=global.FTN.WorkspaceShell.escapeHtml, STORAGE_KEY='ftn-ibis-recent-goals';
+  var EXAMPLES=['I need to report a pothole in my community','I am looking for a grant or business opportunity','I want to release and tag a soca track','I need help planning an event in Trinidad','I want to understand what is happening across Trinidad and Tobago','I want Caribbean news and investigations'];
+  function countryName(){return global.FTN.Country&&global.FTN.Country.get?global.FTN.Country.get().name:'Trinidad & Tobago';}
+  function recentGoals(){return global.FTN.storage?global.FTN.storage.getJSON(STORAGE_KEY,[]):[];}
+  function rememberGoal(goal){if(!global.FTN.storage)return;var items=recentGoals().filter(function(x){return x!==goal;});items.unshift(goal);global.FTN.storage.setJSON(STORAGE_KEY,items.slice(0,6));}
+  function renderRecent(mount){if(!mount)return;var items=recentGoals();mount.innerHTML=items.length?'<div class="ibis-chip-row">'+items.map(function(goal){return '<button type="button" class="ibis-chip" data-ibis-goal="'+escapeHtml(goal)+'">'+escapeHtml(goal)+'</button>';}).join('')+'</div>':'<p class="workspace-muted">No recent goals saved on this device.</p>';}
+  function pulseMnemonic(){var m=document.querySelector('.ibis-mnemonic');if(!m)return;m.classList.remove('ibis-mnemonic--active');void m.offsetWidth;m.classList.add('ibis-mnemonic--active');global.setTimeout(function(){m.classList.remove('ibis-mnemonic--active');},1300);}
+  function renderMatches(output,goal,matches,from){if(!matches.length){output.innerHTML='<div class="workspace-output"><span class="workspace-kicker">Try another description</span><h3>I could not find a strong FTN route for that yet.</h3><p>Describe the outcome another way, or <a href="/applications/">explore the FTN ecosystem</a>.</p></div>';return;}var context=from?'<p class="workspace-muted">Continuing from '+escapeHtml(from)+'.</p>':'';var html='<div class="workspace-output"><span class="workspace-kicker">Best FTN routes for '+escapeHtml(countryName())+'</span><h3>I understood your goal as:</h3><p><strong>'+escapeHtml(goal)+'</strong></p>'+context+'<div class="ibis-result-list">';matches.slice(0,5).forEach(function(m,index){html+='<article class="ibis-result-card"><span class="ibis-result-rank">'+(index+1)+'</span><div><h4><a href="'+m.product.route+'">'+escapeHtml(m.product.name)+'</a></h4><p><strong>'+escapeHtml(m.product.tagline)+'</strong></p><p>'+escapeHtml(m.explanation)+'</p><a class="btn btn-outline btn-sm" href="'+m.product.route+'">Open '+escapeHtml(m.product.name)+'</a></div></article>';});output.innerHTML=html+'</div></div>';}
+  document.addEventListener('DOMContentLoaded',function(){global.FTN.WorkspaceShell.init({productId:'ibis-ai',mountId:'workspace-root',accentSmallVar:'--color-ibis-on-dark',build:function(content){content.innerHTML='<section class="ibis-brand-hero"><div class="ibis-brand-hero__copy"><span class="workspace-kicker">Caribbean Intelligence Layer</span><h2>Tell ibis.ai what you want to accomplish.</h2><p>Use your own words. ibis.ai checks the FTN ecosystem and recommends the strongest available route for your goal and Caribbean context.</p></div><div class="ibis-brand-hero__art"><img src="/assets/panels/05-ibis-ai.png" alt="ibis.ai — Built for the Caribbean"><div class="ibis-mnemonic" aria-hidden="true"><span class="ibis-mnemonic__orbit"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--a"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--b"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--c"></span><span class="ibis-mnemonic__core"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--a"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--b"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--c"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--d"></span></div></div></section><section class="ibis-console"><form id="ibis-form" novalidate><div class="workspace-field"><label for="ibis-goal">What are you trying to do?</label><textarea id="ibis-goal" name="goal" rows="4" placeholder="Tell ibis.ai the outcome you want, in your own words" required></textarea></div><div class="ibis-example-wrap"><span class="workspace-kicker">Try an example</span><div class="ibis-chip-row">'+EXAMPLES.map(function(x){return '<button type="button" class="ibis-chip" data-ibis-goal="'+escapeHtml(x)+'">'+escapeHtml(x)+'</button>';}).join('')+'</div></div><button type="submit" class="btn btn-primary">Find my best route</button></form><div id="ibis-output" aria-live="polite"></div></section><section class="ibis-recent"><div class="ibis-recent__head"><div><span class="workspace-kicker">Saved on this device</span><h3>Recent goals</h3></div><button id="ibis-clear" type="button" class="btn btn-outline btn-sm">Clear</button></div><div id="ibis-recent-list"></div></section>';
+    var form=document.getElementById('ibis-form'),input=document.getElementById('ibis-goal'),output=document.getElementById('ibis-output'),recent=document.getElementById('ibis-recent-list'),clear=document.getElementById('ibis-clear');
+    var params=new URLSearchParams(location.search), incoming=(params.get('q')||'').trim(), from=(params.get('from')||'').trim();
+    function run(goal){goal=String(goal||'').trim();if(!goal){output.innerHTML='<div class="workspace-output"><p>Tell ibis.ai what you are trying to accomplish.</p></div>';return;}var matches=global.FTN.IntentRouter.route(goal);rememberGoal(goal);renderRecent(recent);renderMatches(output,goal,matches,from);pulseMnemonic();}
+    form.addEventListener('submit',function(e){e.preventDefault();run(input.value);});content.addEventListener('click',function(e){var b=e.target.closest('[data-ibis-goal]');if(!b)return;input.value=b.getAttribute('data-ibis-goal')||'';input.focus();run(input.value);});clear.addEventListener('click',function(){if(global.FTN.storage)global.FTN.storage.remove(STORAGE_KEY);renderRecent(recent);});renderRecent(recent);
+    if(incoming){input.value=incoming;global.setTimeout(function(){run(incoming);},50);}
+  }});});
 })(window);
