@@ -53,6 +53,15 @@
     }).join('') + '</div>';
   }
 
+  function pulseMnemonic() {
+    var mnemonic = document.querySelector('.ibis-mnemonic');
+    if (!mnemonic) return;
+    mnemonic.classList.remove('ibis-mnemonic--active');
+    void mnemonic.offsetWidth;
+    mnemonic.classList.add('ibis-mnemonic--active');
+    global.setTimeout(function () { mnemonic.classList.remove('ibis-mnemonic--active'); }, 1300);
+  }
+
   function renderMatches(output, goal, matches) {
     if (!matches.length) {
       output.innerHTML = '<div class="workspace-output"><span class="workspace-kicker">No confident route yet</span><h3>ibis.ai could not map that request to a current FTN product.</h3><p>Try different words, or <a href="/">explore the full FTN ecosystem</a>. This is a real limitation of the current deterministic router, not a hidden AI failure.</p></div>';
@@ -86,7 +95,10 @@
               '<h2>Tell ibis.ai what you need to accomplish.</h2>' +
               '<p>Built for Caribbean context. Today ibis.ai is FTN\'s transparent navigation and decision-routing layer: it reads your goal, checks the Product Registry and sends you to the FTN product most capable of helping. The purple intelligence identity comes directly from the established ibis.ai product panel.</p>' +
             '</div>' +
-            '<div class="ibis-brand-hero__art"><img src="/assets/panels/05-ibis-ai.png" alt="ibis.ai — Built for the Caribbean"></div>' +
+            '<div class="ibis-brand-hero__art">' +
+              '<img src="/assets/panels/05-ibis-ai.png" alt="ibis.ai — Built for the Caribbean">' +
+              '<div class="ibis-mnemonic" aria-hidden="true"><span class="ibis-mnemonic__orbit"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--a"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--b"></span><span class="ibis-mnemonic__route ibis-mnemonic__route--c"></span><span class="ibis-mnemonic__core"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--a"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--b"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--c"></span><span class="ibis-mnemonic__node ibis-mnemonic__node--d"></span></div>' +
+            '</div>' +
           '</section>' +
           '<section class="ibis-intro">' +
             '<div class="ibis-status-grid">' +
@@ -123,6 +135,7 @@
           rememberGoal(goal);
           renderRecent(recentMount);
           renderMatches(output, goal, matches);
+          pulseMnemonic();
         }
 
         form.addEventListener('submit', function (event) {
