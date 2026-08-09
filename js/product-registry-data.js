@@ -1,190 +1,101 @@
-// FTN Platform Website — Product Registry data (Sprint 1, Wave 1).
-//
-// The single source of truth for every FTN ecosystem product's identity: what it's called, where
-// it lives, what it looks like on the homepage, and how its own workspace should present itself.
-// Consumed by the homepage (panel grid), the Intent Router (ibis.ai), and every product workspace
-// built on js/workspace-shell.js. Future consumers (nav, search, analytics, launchers) read the
-// same registry rather than duplicating this data — see GOVERNANCE/FTN_Platform_Sprint0_
-// Architecture_Review.md, Section 02.
-//
-// `status` is one of: 'live' (real product, real backend elsewhere), 'demo' (real interface,
-// illustrative data, explicitly labeled), 'beta' (a genuine first working version built this
-// sprint — real, honest, not yet commercial-complete), 'long-term-initiative' (institutional
-// framing, no availability claim either way). Never invented per-product — matches each page's
-// own existing, already-approved framing.
+// FTN Platform Website — Product Registry data.
+// Single source of truth for FTN product identity, routing, capabilities and presentation.
+// `status` values describe real operating state without provisional product-language:
+// `live`, `production-foundation`, `demonstration`, `strategic-initiative`.
 (function (global) {
   'use strict';
 
   var PRODUCTS = [
     {
-      id: 'community-connect',
-      name: 'Community Connect',
-      tagline: 'See It. Report It. Improve It.',
-      description: 'Helping communities turn local observations into visible progress.',
-      route: '/community-connect/',
-      status: 'beta',
-      panelAsset: '/assets/panels/01-community-connect.png',
-      panelRow: 1,
+      id: 'community-connect', name: 'Community Connect', tagline: 'See It. Report It. Improve It.',
+      description: 'Helping communities turn local observations into visible progress.', route: '/community-connect/',
+      status: 'production-foundation', panelAsset: '/assets/panels/01-community-connect.png', panelRow: 1,
       atmosphere: { accent: 'var(--color-red)', background: 'photo', motionProfile: 'none', heroStyle: 'photo-real' },
-      keywords: ['report', 'issue', 'pothole', 'community', 'neighbourhood', 'infrastructure', 'complaint'],
-      capabilities: ['reporting', 'tracking'],
+      keywords: ['report','issue','pothole','community','neighbourhood','infrastructure','complaint'], capabilities: ['reporting','tracking']
     },
     {
-      id: 'mission-control',
-      name: 'Mission Control',
-      tagline: 'Helping Caribbean Governments See the Bigger Picture.',
-      description: 'Evidence-based decision support built on the same reports citizens submit.',
-      route: '/mission-control/',
-      status: 'demo',
-      panelAsset: '/assets/panels/02-mission-control.png',
-      panelRow: 1,
+      id: 'mission-control', name: 'Mission Control', tagline: 'Helping Caribbean Governments See the Bigger Picture.',
+      description: 'Evidence-based decision support built on the same reports citizens submit.', route: '/mission-control/',
+      status: 'demonstration', panelAsset: '/assets/panels/02-mission-control.png', panelRow: 1,
       atmosphere: { accent: 'var(--color-mission-control)', background: 'dark-grid', motionProfile: 'radar-sweep', heroStyle: 'operations-center' },
-      keywords: ['government', 'agency', 'dashboard', 'analytics', 'decisions', 'evidence'],
-      capabilities: ['analytics', 'decision-support'],
+      keywords: ['government','agency','dashboard','analytics','decisions','evidence'], capabilities: ['analytics','decision-support']
     },
     {
-      id: 'events',
-      name: 'FTN Events',
-      tagline: 'Every Event Starts Here.',
-      description: 'One prompt. One complete event plan.',
-      route: '/events/',
-      status: 'beta',
-      panelAsset: '/assets/panels/03-ftn-events.png',
-      panelRow: 1,
+      id: 'events', name: 'FTN Events', tagline: 'Every Event Starts Here.', description: 'One prompt. One complete event plan.',
+      route: '/events/', status: 'production-foundation', panelAsset: '/assets/panels/03-ftn-events.png', panelRow: 1,
       atmosphere: { accent: 'var(--color-events)', background: 'dark-stage', motionProfile: 'spotlight', heroStyle: 'backstage' },
-      keywords: ['event', 'concert', 'festival', 'conference', 'wedding', 'plan', 'venue', 'permit'],
-      capabilities: ['planning', 'generation', 'export'],
+      keywords: ['event','concert','festival','conference','wedding','plan','venue','permit'], capabilities: ['planning','generation','export']
     },
     {
-      id: 'facethenation',
-      name: 'Face The Nation',
-      tagline: 'Every Voice. Every Constituency. Every Truth.',
-      description: "FTN's flagship public affairs programme, hosted by Ricardo Antoine.",
-      route: '/facethenation',
-      status: 'live',
-      panelAsset: '/assets/panels/04-face-the-nation.png',
-      panelRow: 1,
+      id: 'facethenation', name: 'Face The Nation', tagline: 'Every Voice. Every Constituency. Every Truth.',
+      description: "FTN's flagship public affairs programme, hosted by Ricardo Antoine.", route: '/facethenation', status: 'live',
+      panelAsset: '/assets/panels/04-face-the-nation.png', panelRow: 1,
       atmosphere: { accent: 'var(--color-red-on-dark)', background: 'photo', motionProfile: 'none', heroStyle: 'broadcast' },
-      keywords: ['interview', 'debate', 'politics', 'public affairs', 'discussion', 'candidate'],
-      capabilities: ['broadcast', 'discourse'],
+      keywords: ['interview','debate','politics','public affairs','discussion','candidate'], capabilities: ['broadcast','discourse']
     },
     {
-      id: 'ibis-ai',
-      name: 'ibis.ai',
-      tagline: 'Built for the Caribbean.',
-      description: 'Understands our people. Understands our communities. Understands our region.',
-      route: '/ibis-ai/',
-      status: 'beta',
-      panelAsset: '/assets/panels/05-ibis-ai.png',
-      panelRow: 1,
+      id: 'ibis-ai', name: 'ibis.ai', tagline: 'Built for the Caribbean.',
+      description: 'Understands our people. Understands our communities. Understands our region.', route: '/ibis-ai/',
+      status: 'production-foundation', panelAsset: '/assets/panels/05-ibis-ai.png', panelRow: 1,
       atmosphere: { accent: 'var(--color-ibis)', background: 'dark-minimal', motionProfile: 'node-pulse', heroStyle: 'calm-focused' },
-      keywords: ['help', 'intelligence', 'navigate', 'find', 'assist', 'goal', 'accomplish'],
-      capabilities: ['routing', 'intelligence'],
+      keywords: ['help','intelligence','navigate','find','assist','goal','accomplish'], capabilities: ['routing','intelligence']
     },
     {
-      id: 'riddim',
-      name: 'FTN Riddim',
-      tagline: 'Powering Caribbean Music.',
-      description: 'Production, rights, and distribution built for Caribbean artists.',
-      route: '/riddim/',
-      status: 'beta',
-      panelAsset: '/assets/panels/06-ftn-riddim.png',
-      panelRow: 2,
+      id: 'riddim', name: 'FTN Riddim', tagline: 'Powering Caribbean Music.',
+      description: 'Production, rights, and distribution built for Caribbean artists.', route: '/riddim/', status: 'production-foundation',
+      panelAsset: '/assets/panels/06-ftn-riddim.png', panelRow: 2,
       atmosphere: { accent: 'var(--color-riddim)', background: 'dark-studio', motionProfile: 'waveform', heroStyle: 'studio' },
-      keywords: ['music', 'artist', 'producer', 'label', 'release', 'track', 'song', 'metadata'],
-      capabilities: ['metadata', 'media', 'export'],
+      keywords: ['music','artist','producer','label','release','track','song','metadata'], capabilities: ['metadata','media','export']
     },
     {
-      id: 'kaiso',
-      name: 'FTN Kaiso',
-      tagline: 'The Caribbean Newsroom.',
-      description: 'News, investigations, and analysis in the public interest.',
-      route: '/kaiso/',
-      status: 'beta',
-      panelAsset: '/assets/panels/07-ftn-kaiso.png',
-      panelRow: 2,
+      id: 'kaiso', name: 'FTN Kaiso', tagline: 'The Caribbean Newsroom.',
+      description: 'News, investigations, and analysis in the public interest.', route: '/kaiso/', status: 'production-foundation',
+      panelAsset: '/assets/panels/07-ftn-kaiso.png', panelRow: 2,
       atmosphere: { accent: 'var(--color-kaiso)', background: 'dark-editorial', motionProfile: 'none', heroStyle: 'newsroom' },
-      keywords: ['news', 'story', 'investigation', 'journalism', 'article', 'tip', 'analysis'],
-      capabilities: ['search', 'submission'],
+      keywords: ['news','story','investigation','journalism','article','tip','analysis'], capabilities: ['search','submission']
     },
     {
-      id: 'radio',
-      name: 'FTN Radio',
-      tagline: 'The Soundtrack of the Caribbean.',
-      description: 'Music, talk, and culture, broadcasting across the region.',
-      route: '/radio/',
-      status: 'beta',
-      panelAsset: '/assets/panels/08-ftn-radio.png',
-      panelRow: 2,
+      id: 'radio', name: 'FTN Radio', tagline: 'The Soundtrack of the Caribbean.',
+      description: 'Music, talk, and culture, broadcasting across the region.', route: '/radio/', status: 'production-foundation',
+      panelAsset: '/assets/panels/08-ftn-radio.png', panelRow: 2,
       atmosphere: { accent: 'var(--color-radio)', background: 'dark-warm', motionProfile: 'waveform', heroStyle: 'broadcast-studio' },
-      keywords: ['radio', 'music', 'talk', 'culture', 'broadcast', 'segment', 'on-air'],
-      capabilities: ['media'],
+      keywords: ['radio','music','talk','culture','broadcast','segment','on-air'], capabilities: ['media']
     },
     {
-      id: 'screen',
-      name: 'FTN Screen',
-      tagline: 'Where Caribbean Stories Come Alive.',
-      description: 'Local films, Caribbean series, and original programming.',
-      route: '/screen/',
-      status: 'beta',
-      panelAsset: '/assets/panels/09-ftn-screen.png',
-      panelRow: 2,
+      id: 'screen', name: 'FTN Screen', tagline: 'Where Caribbean Stories Come Alive.',
+      description: 'Local films, Caribbean series, and original programming.', route: '/screen/', status: 'production-foundation',
+      panelAsset: '/assets/panels/09-ftn-screen.png', panelRow: 2,
       atmosphere: { accent: 'var(--color-screen)', background: 'dark-cinematic', motionProfile: 'none', heroStyle: 'cinematic' },
-      keywords: ['film', 'series', 'television', 'creator', 'submission', 'video', 'poster', 'trailer'],
-      capabilities: ['metadata', 'media', 'export'],
+      keywords: ['film','series','television','creator','submission','video','poster','trailer'], capabilities: ['metadata','media','export']
     },
     {
-      id: 'opportunities',
-      name: 'FTN Opportunities',
-      tagline: 'Jobs. Business. Opportunity.',
-      description: 'Jobs, grants, procurement, and business opportunities in one place.',
-      route: '/opportunities/',
-      status: 'beta',
-      panelAsset: '/assets/panels/10-ftn-opportunities.png',
-      panelRow: 2,
+      id: 'opportunities', name: 'FTN Opportunities', tagline: 'Jobs. Business. Opportunity.',
+      description: 'Jobs, grants, procurement, and business opportunities in one place.', route: '/opportunities/', status: 'production-foundation',
+      panelAsset: '/assets/panels/10-ftn-opportunities.png', panelRow: 2,
       atmosphere: { accent: 'var(--color-opportunities)', background: 'dark-growth', motionProfile: 'rising-line', heroStyle: 'momentum' },
-      keywords: ['job', 'grant', 'contract', 'business', 'career', 'procurement', 'funding'],
-      capabilities: ['search', 'preferences'],
+      keywords: ['job','grant','contract','business','career','procurement','funding'], capabilities: ['search','preferences']
     },
     {
-      id: 'love',
-      name: 'FTN Love',
-      tagline: 'Connecting Hearts Across the Caribbean.',
-      description: 'Meaningful connections, built on values, built for us.',
-      route: '/love/',
-      status: 'beta',
-      panelAsset: '/assets/panels/11-ftn-love.png',
-      panelRow: 3,
+      id: 'love', name: 'FTN Love', tagline: 'Connecting Hearts Across the Caribbean.',
+      description: 'Meaningful connections, built on values, built for us.', route: '/love/', status: 'production-foundation',
+      panelAsset: '/assets/panels/11-ftn-love.png', panelRow: 3,
       atmosphere: { accent: 'var(--color-love)', background: 'warm', motionProfile: 'heartbeat', heroStyle: 'warm-human' },
-      keywords: ['dating', 'relationship', 'connection', 'match', 'compatibility'],
-      capabilities: ['preferences'],
+      keywords: ['dating','relationship','connection','match','compatibility'], capabilities: ['preferences']
     },
     {
-      id: 'display-network',
-      name: 'Display Network',
-      tagline: "The Caribbean's Digital Media Network.",
-      description: 'Digital displays, public information, and community messaging.',
-      route: '/display-network/',
-      status: 'long-term-initiative',
-      panelAsset: '/assets/panels/12-display-network.png',
-      panelRow: 3,
-      atmosphere: { accent: 'var(--color-display-network)', background: 'dark-infrastructure', motionProfile: 'none', heroStyle: 'infrastructure' },
-      keywords: ['signage', 'display', 'advertising', 'deployment', 'venue', 'screen network'],
-      capabilities: ['deployment-request'],
+      id: 'display-network', name: 'Display Network', tagline: "The Caribbean's Digital Media Network.",
+      description: 'Digital displays, public information, and community messaging.', route: '/display-network/', status: 'strategic-initiative',
+      panelAsset: '/assets/panels/12-display-network.png', panelRow: 3,
+      atmosphere: { accent: 'var(--color-display-network)', background: 'dark-infrastructure', motionProfile: 'display-grid', heroStyle: 'infrastructure' },
+      keywords: ['signage','display','advertising','deployment','venue','screen network'], capabilities: ['deployment-request']
     },
     {
-      id: 'observatory',
-      name: 'FTN Live',
-      tagline: 'Trinidad & Tobago, live.',
-      description: 'A live-feeling wall of national indicators, updated as it happens.',
-      route: '/observatory/',
-      status: 'live',
-      panelAsset: null,
-      panelRow: null,
+      id: 'observatory', name: 'FTN Live', tagline: 'Trinidad & Tobago, live.',
+      description: 'A live-feeling wall of national indicators, updated as it happens.', route: '/observatory/', status: 'live',
+      panelAsset: null, panelRow: null,
       atmosphere: { accent: 'var(--color-red-on-dark)', background: 'dark-grid', motionProfile: 'constellation', heroStyle: 'observatory' },
-      keywords: ['indicators', 'data', 'live', 'economy', 'statistics', 'national'],
-      capabilities: ['analytics'],
-    },
+      keywords: ['indicators','data','live','economy','statistics','national'], capabilities: ['analytics']
+    }
   ];
 
   global.FTN = global.FTN || {};
