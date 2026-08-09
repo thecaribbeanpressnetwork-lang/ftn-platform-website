@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  document.addEventListener('DOMContentLoaded', function () {
+  window.addEventListener('load', function () {
     var hub = document.querySelector('.riddim-hub');
     if (!hub) return;
 
