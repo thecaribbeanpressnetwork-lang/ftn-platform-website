@@ -7,6 +7,7 @@ Move the Face The Nation page from a static programme description toward a real 
 - Programme identity and editorial positioning.
 - Public topic-suggestion intake saved in the visitor's browser.
 - Public guest-recommendation intake saved in the visitor's browser.
+- Public location/community pitch intake saved in the visitor's browser.
 - Local recent-suggestion history.
 - Community / constituency and issue-area context captured with each suggestion.
 - Face The Nation social hub with direct links to YouTube, Instagram, Facebook, TikTok and X.
@@ -36,3 +37,10 @@ The YouTube player uses privacy-enhanced `youtube-nocookie.com` embedding when a
 The participation layer uses the shared FTN Integration Adapter. Today that adapter stores records locally; a future newsroom API can replace that storage seam without rebuilding the public form.
 
 The media layer deliberately separates channel/profile identity from individual episode IDs. Future YouTube API or backend feed integration should populate the same media surface rather than introducing a second programme page.
+
+## FTN Product Mnemonic Layer
+Face The Nation uses a broadcast-signal mnemonic: concentric signal rings, a directional beam and a voice waveform integrated into the hero rather than a generic decorative icon.
+
+The mnemonic follows the FTN product rule that the visual must communicate the product's function and become behaviorally meaningful. It stays quiet at rest and pulses only after a successful Topic, Guest or Location Desk save action. Motion is disabled for `prefers-reduced-motion` users.
+
+This mnemonic is product-specific and must not be reused unchanged by another FTN module. Shared FTN identity remains black / white / FTN red; the mnemonic adds recognition without replacing the master brand.
