@@ -33,12 +33,13 @@
     }
 
     if (cards[2]) {
+      var parent = cards[2].parentNode;
       var daw = document.createElement('a');
       daw.className = 'riddim-card';
       daw.href = '/riddim/daw/';
       daw.innerHTML = '<h2>FTN DAW</h2><p>Load authorized local audio, shape gain, tempo and EQ, compare the original, save named versions, then download the processed WAV and its FTN settings recipe.</p><span class="riddim-link">Open FTN DAW →</span>';
-      cards[2].replaceWith(daw);
-      if (djCard && djCard.parentNode) djCard.parentNode.insertBefore(daw, djCard);
+      parent.replaceChild(daw, cards[2]);
+      if (djCard && djCard.parentNode === parent) parent.insertBefore(daw, djCard);
     }
   });
 })();
