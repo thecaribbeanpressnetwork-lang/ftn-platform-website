@@ -1,44 +1,51 @@
 # FTN Platform Website — Version Record
 
-This is an internal release record, not a public-facing UI element. The site itself deliberately
-shows no visible version/build badge (a founder-consistent choice recorded in CLAUDE.md — this is a
-marketing/institutional site, not versioned software end users need to identify by number). This
-file exists so the release procedure has one authoritative place to check version/build/commit
-consistency, per the FTN Release Procedure (first applied 2026-07-11).
+This internal record tracks the website release state. The public website does not display build/version badges.
+
+## Current release candidate
 
 | Field | Value |
 |---|---|
-| Platform version | 1.9.0 |
-| Program milestone name | Sprint 0 (Architecture Review) + Sprint 1 (Shared Platform Architecture) — nine shared platform capabilities (Product Registry, Workspace Shell, Generator Engine, Entity Metadata Engine, Export Framework, Search Foundation, Media Intake/Playback, Integration Adapter Layer, Intent Router) built and integrated into real consumers in the same sprint; the homepage rebuilt on real founder-approved panel artwork; all 9 flagship product pages rebuilt from static "in development" brochures into real, working, honest first experiences. See CLAUDE.md §7.16 and `GOVERNANCE/FTN_Platform_Sprint0_Architecture_Review.md`. |
-| Canonical release marker | git tag `v1.9.0` — authoritative; resolve it (`git rev-parse v1.9.0`) rather than trusting a hardcoded hash in this file, which necessarily can't name its own commit |
-| Release date | 2026-07-14 |
-| Branch | `main` |
-| Remote / deployment | `origin` = `https://github.com/thecaribbeanpressnetwork-lang/ftn-platform-website.git`; Cloudflare Pages, custom domain `ftnplatform.org` — push/deploy verification results recorded in this release's engineering report |
+| Release state | Consolidation release candidate |
+| Branch | `agent/site-consolidation-release` |
+| Pull request | `#15` |
+| Production branch | `main` |
+| Production host | Cloudflare Pages |
+| Production domain | `ftnplatform.org` |
+| Production deployment gate | Explicit founder approval required before merge to `main` |
+| Community Connect | Separate application; final app/web/APK handoff intentionally held until the current app completion pass is finished |
 
-Note on build number: a commit-count "build number" was considered and dropped from this table —
-it can't stay accurate inside the file whose own commit it would need to count, and a wrong number
-here is worse than no number. Use `git rev-list --count v1.2.1` if a build number is needed.
+### Release scope
 
-## History
+- Original FTN product artwork restored as the visual identity layer for shared workspaces and the All Platforms gallery.
+- Shared Product Registry remains the source of truth for product routes, capabilities, discovery keywords and visual atmosphere.
+- Shared Workspace Shell now supports product artwork, responsive mobile/laptop heroes, product mnemonic selectors and progressive enhancement.
+- Site-wide ibis presence carries the visitor's plain-language goal and originating page into the ibis workspace.
+- ibis.ai launch capability is accurately described as contextual intent routing across available FTN capabilities.
+- Shared Smart Export exposes only files a product can genuinely generate, with native sharing where supported.
+- Browser-local drafts, offline state, page saving, sharing and external-source cues are centralized in the shared UX layer.
+- FTN Riddim includes rights-aware track metadata, FTN DAW and FTN DJ Tube without unsupported AI-mix or publishing-administration claims.
+- FTN Radio includes programming briefs, creator music packages, FTN Link profile preparation, a vintage tuning mnemonic and Atlantic-time estimated listening windows.
+- FTN Screen is the cinema/movie product and includes filmmaker records, local trailer preview and reusable festival-submission packages.
+- FTN TV is separate from Screen and includes On Air, Up Next and a seven-day Atlantic-time programming guide.
+- Face The Nation includes Topic, Guest and Location participation desks and official programme/social destinations.
+- FTN Kaiso includes public-interest story pitching, provenance and verification cues.
+- FTN Opportunities includes category discovery plus a reusable plain-language Opportunity Profile.
+- FTN Love includes a private compatibility brief rather than claiming a live matching network.
+- FTN Display Network includes a structured venue/deployment brief rather than claiming unbuilt infrastructure.
+- FTN Live links verified authoritative current-information sources without fabricated camera/feed claims.
+- Mission Control exposes its working decision-support demonstration and removes roadmap material from public UI.
+- FTN Top Picks uses one Relationship Registry for affiliate/support disclosures while keeping recommendations commission-independent.
+- Machine and human sitemaps include the current FTN ecosystem routes.
+- Public construction language, unsupported future-service claims and misleading provisional-status language have been removed from the release surfaces touched by this consolidation.
 
-| Version | Date | Tag | Notes |
-|---|---|---|---|
-| 1.9.0 | 2026-07-14 | `v1.9.0` | Sprint 0 (read-only architecture review, `GOVERNANCE/FTN_Platform_Sprint0_Architecture_Review.md`) + Sprint 1 (Shared Platform Architecture). Nine shared capabilities built with a real consumer in the same sprint (Product Registry, Workspace Shell, Generator Engine, Entity Metadata Engine, Export Framework, Search Foundation, Media Intake/Playback, Integration Adapter Layer, Intent Router). Homepage rebuilt on the real founder-approved PNG panels (`assets/panels/`), hand-synced static markup (not JS-rendered, for progressive enhancement), one-screen fit verified at 1440×900 and 1920×1080. All 9 flagship product pages (Events, Riddim, Screen, ibis.ai, Kaiso, Opportunities, Radio, Love, Display Network) rebuilt from static "in development" brochures into real, working, honest first experiences on the new Workspace Shell — each verified end-to-end with real form-fill/submit/export/save interaction, not just visually. Found and fixed a real bug in the Product Registry's search function (stopword/substring false positives) while building ibis.ai. `js/persisted-flag.js` factory consolidates `platform-mode.js`/`country.js`'s duplicated storage/event plumbing, preserving their exact public API. Deleted `css/components/product-page.css` (fully dead after the rebuild). 26/26 pages clean (console/requests/overflow), 0 broken internal links, axe-core WCAG 2.2 AA clean except the 2 pre-existing founder-reserved contrast violations already on record. See CLAUDE.md §7.16 and the engineering report. |
-| 1.8.0 | 2026-07-13 | `v1.8.0` | Ecosystem Completion Pass. Homepage rebuilt as a dark, 12-card interactive "Ecosystem Board" (Community Connect, Mission Control, FTN Events, Face The Nation, ibis.ai, FTN Riddim, FTN Kaiso, FTN Radio, FTN Screen, FTN Opportunities, FTN Love, Display Network), each card contrast-verified and fully clickable with hover/press interaction. Nine new product pages built from one shared dark template (`css/components/product-page.css`), each honestly labeled "In Development." Sitewide nav simplified to Home/About FTN/News/Partners/Investors/Contact + Sign In (routes to Community Connect's launch flow, documented as the future SSO integration point); footer's Platform column now lists all 12 ecosystem products plus FTN Live. FTN Live/Observatory kept fully live per explicit founder confirmation — removed from the homepage grid only, not retired. Explicitly supersedes the light-first mandate (homepage + new product pages only) and the investor-nav-entry ban (Investors now routes to Contact's already-compliant `#investors` category) — see CLAUDE.md §7.15 for the full authorization record, including the recon that confirmed this was a deliberate founder override and not the "wrong chat" mix-up from one turn earlier in the same session. 140/140 regression checks pass (28 pages × 5 breakpoints) and a full axe-core WCAG 2.2 AA sweep is clean across all 26 content pages — including catching and fixing three small-text contrast gaps (ibis.ai, Kaiso, Love accent colors) before they shipped. See the engineering report and Founder Review package. |
-| 1.7.1 | 2026-07-13 | `v1.7.1` | Post-release engineering quality gate. A full axe-core WCAG 2.2 AA sweep of the live production site (not caught by any prior manual/scripted regression pass) found: (1) `country-switcher-trigger` had zero accessible name on every page, critical — root cause was a real CSS specificity bug where an unscoped `display: none` rule on the label appeared after its own `@media (min-width: 1260px)` override in source order, permanently hiding the country name at every viewport width since it shipped in v1.6, not just below 1260px as intended; fixed the source order, added an always-visible override for the mobile-nav variant, and added a static `aria-label` fallback. (2) Four color-contrast defects (serious), distinct from the already-known/founder-reserved success-green trend indicator (untouched): `.ecosystem__status--live`, `.module-card__status--live` (two contexts), and `.chart-card` text inside `.section--dark` sections — all fixed with either a solid-background swap or a corrected-specificity override, each re-verified against its computed contrast ratio. 95/95 regression checks pass; 0 new axe violations across all 18 pages, re-confirmed directly against production after push. See the engineering report. |
-| 1.7.0 | 2026-07-13 | `v1.7.0` | Executive Visual Polish & Caribbean Localization — corrects the FTN wordmark to its official AEB-01 treatment (red T, black/white F and N) across all 38 header/footer occurrences plus the two standalone logo SVGs; a fresh atmosphere audit (Applications' 4-card grid rebalanced 2x2, no other genuine gaps found — v1.6 already closed the atmosphere/breathing-room gap); real, honest per-country messaging wired to the v1.6 country-switcher scaffold (Community Connect and FTN Live now show "FTN is expanding to `<Country>`" when a non-Trinidad country is explicitly selected, rather than leaving Trinidad-only content unlabeled). New per-country photography was evaluated and deliberately not shipped — the only candidate source (`FTN editing assets/` board 41) turned out to be AI-generated concept imagery, not real photography, which the brief itself says to avoid. 95/95 regression checks pass (19 pages × 5 breakpoints: 0 console errors, 0 overflow, 0 broken images, exactly 2 red-T logo occurrences per page). See the release engineering report. |
-| 1.6.0 | 2026-07-13 | `v1.6.0` | Caribbean Executive Identity — a creative/institutional-identity pass layered on 1.5.0: the Heritage Layer System (restrained, per-page hand-authored SVG motifs at 2–8% opacity), a typography confidence pass (founding statements on 5 flagship pages), atmosphere equalization (dark bands added to Applications/Resources/Insights/News/Contact), subtle reduced-motion-respecting animation, nav/logo breathing-room and content refinements, a real Community Connect logo extraction from AEB-13, and the country-switcher architecture (`js/country.js`/`js/country-switcher.js`) built as a scaffold — persisted selection and UI only, no localized content yet (localized messaging follows in 1.7.0). Eight sequential phases, each independently committed and verified. |
-| 1.5.0 | 2026-07-13 | `v1.5.0` | Executive Design System — a complete visual redesign (tokens, buttons, cards, typography, spacing, nav/footer chrome, all 8 bespoke pages) with zero architecture, routing, or content changes. Six sequential phases, each independently verified (0 console errors, 0 overflow across all 20 pages × 5 breakpoints, 0 id changes, header/footer byte-identical across all pages, all JS hooks intact). See `RELEASE_NOTES_v1.5.md` and `GOVERNANCE/FTN_Platform_Website_v1.5.0-rc1_Design_Release_Report.md` (written during the `-rc1` phase; content still accurate for the finalized 1.5.0 tag). |
-| 1.4.0 | 2026-07-13 | `v1.4.0` | Operational Phase 1 — the first two live operational platforms beyond the website itself. **1A, Community Connect Public Beta Integration:** the real, existing Community Connect application (separate repository) integrated as an external application — new `/applications/` Platforms hub, upgraded `/community-connect/` product page with Public Beta badge/launch flow, every sitewide CTA unified to one journey, Contact's ninth "Beta Feedback" category, deployment architecture recommendation (`community.ftnplatform.org`, a dedicated subdomain). **1B, Face the Nation Platform Integration:** supersedes the 2026-07-11 Founder Decision keeping Face the Nation out of navigation — it's now a real, live platform. New `/facethenation` (no trailing slash, by design) built from the approved visual concept and real production photography/branding reviewed from the full asset library; Applications renamed to Platforms sitewide; a bounded dark "broadcast" treatment scoped to this one page only (same pattern as Observatory/Mission Control Demo), never a site-wide theme change. See `CLAUDE.md` §7.11–§7.12 and `RELEASE_NOTES_v1.4.md`. |
-| 1.3.0 | 2026-07-12 | `v1.3.0` | Website Completion Program ("Website Version 1.0") — FTN Live/Contact/News/Insights product journeys, Executive Polish (visual experience locked), Presentation Mode / Live Mode global infrastructure, complete legal content across all four legal pages, an independent Engineering Release Certification (zero release blockers found), and a release-closeout repository-hygiene fix (internal strategy/governance material removed from the public repo — see `CLAUDE.md` §7.10). See `RELEASE_NOTES_v1.0.md` and `GOVERNANCE/FTN_Platform_Website_v1.0_Engineering_Release_Certification.md`. |
-| 1.2.1 | 2026-07-12 | `v1.2.1` | Design Language Completion — extends the v1.2.0 design language to every interior page (new page-hero panel family, platform ecosystem diagram, redesigned Coming Soon pages, categorized sitemap, legal-page in-page indexes) and adds one restrained, fully progressive scroll-reveal moment. Mission Control Demo and Observatory deliberately left unchanged. See commit `60bed92` and the CLAUDE.md notes it added. |
-| 1.2.0 | 2026-07-11 | `v1.2.0` | Institutional Identity Release — first major creative release. FTN design language established (hero-scale type, node-motif hero, scale-band narrative device, editorial split); homepage narrative and hero fully redesigned (no placeholder); 404 and footer redesigned; nav hover treatment refined; homepage brand-hierarchy fix (h1 no longer borrows Community Connect's tagline); domain/robots.txt/sitemap housekeeping. See §7.4 of CLAUDE.md. |
-| 1.1 (unreleased/no tag) | 2026-07-11 | — | Governance Baseline v1.0 (`07d27ab`) and documentation-architecture lock (`cbdc6d0`) — founder decisions, Design Constitution, and Implementation Roadmap recorded. Explicitly not tagged or deployed as its own release per founder instruction; folded into the 1.2.0 release. |
-| 1.0.0 | 2026-07-11 | `v1.0.0` | First official release. Includes Phases 1–4, RC1 (cleanup/deployment readiness), RC2 (product journey/real screenshots), RC3 (Reality Engine consolidation/Presentation Engine groundwork), plus this version record. |
+### Release gate still open
 
-## Versioning policy
+1. Integrate the finished Community Connect app/web/APK artifacts after the separate app completion pass.
+2. Perform final visual/browser sign-off on the Cloudflare branch preview at desktop and phone widths.
+3. Re-run final link/form/media/accessibility/performance checks after the Community Connect handoff.
+4. Obtain explicit founder approval before merging PR #15 to `main`.
 
-- Semantic versioning (`Major.Minor.Patch`) starting at `1.0.0` for the first official release.
-- Build number is the `git rev-list --count HEAD` value on `main` at release time — monotonic, not
-  reset per version.
-- Update this file as part of every official release commit, before tagging.
+## Prior tagged history
+
+The repository's existing tagged releases remain authoritative for historical versions. Use Git tags and Git history for prior release details.
