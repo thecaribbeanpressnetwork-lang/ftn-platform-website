@@ -1,13 +1,9 @@
-// FTN Platform Website — FTN Events workspace (Sprint 1, Wave 2).
-// The page-specific consumer of js/workspace-shell.js: builds the event-plan form, runs it
-// through js/generator-engine.js + js/events-generator.js, renders the result, and wires
-// js/export-framework.js (TXT/JSON/Print) and js/integration-adapter.js (save locally).
+// FTN Platform Website — FTN Events workspace.
 (function (global) {
   'use strict';
 
-  // Shared implementation lives in js/workspace-shell.js -- consolidated during Founder
-  // Certification (was independently copy-pasted into all 9 workspace scripts).
   var escapeHtml = global.FTN.WorkspaceShell.escapeHtml;
+  var HISTORY_KEY = 'ftn-events-plans-v2';
 
   function planToText(plan) {
     var lines = [plan.title, ''];
@@ -19,6 +15,48 @@
     return lines.join('\n');
   }
 
+  function getSaved() {
+    return global.FTN.storage ? global.FTN.storage.getJSON(HISTORY_KEY, []) : [];
+  }
+
+  function setSaved(items) {
+    return global.FTN.storage ? global.FTN.storage.setJSON(HISTORY_KEY, items) : false;
+  }
+
+  function renderSaved(mount, api) {
+    var items = getSaved();
+    if (!items.length) {
+      mount.innerHTML = '<p class="workspace-field__hint">No saved plans on this device yet.</p>';
+      return;
+    }
+    mount.innerHTML = items.slice().reverse().map(function (entry, reverseIndex) {
+      var realIndex = items.length - 1 - reverseIndex;
+      return '<article class="workspace-output" style="margin-top:12px">' +
+        '<h4>' + escapeHtml(entry.plan.title) + '</h4>' +
+        '<p class="workspace-field__hint">' + escapeHtml(entry.savedAt) + ' · ' + escapeHtml(entry.plan.meta.type) + ' · ' + escapeHtml(String(entry.plan.meta.guestCount)) + ' guests</p>' +
+        '<div class="workspace-actions"><button type="button" class="btn btn-outline btn-sm" data-open-plan="' + realIndex + '">Open</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" data-delete-plan="' + realIndex + '">Delete</button></div>' +
+      '</article>';
+    }).join('');
+
+    mount.querySelectorAll('[data-open-plan]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var plan = getSaved()[Number(btn.getAttribute('data-open-plan'))].plan;
+        renderPlan(plan, document.getElementById('events-output'), api);
+        document.getElementById('events-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    mount.querySelectorAll('[data-delete-plan]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var all = getSaved();
+        all.splice(Number(btn.getAttribute('data-delete-plan')), 1);
+        setSaved(all);
+        renderSaved(mount, api);
+        api.notify('Saved plan removed from this browser.', 'success');
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     global.FTN.WorkspaceShell.init({
       productId: 'events',
@@ -27,41 +65,48 @@
       toolbar: false,
       build: function (content, api) {
         content.innerHTML =
-          '<p class="u-max-60ch">Answer a few questions about your event and get a complete, ' +
-          'exportable planning checklist -- permits, logistics, safety, vendors, marketing, and ' +
-          'day-of operations -- generated from real event-planning logic, tailored to what you ' +
-          'tell us. Nothing here is AI-written: every line comes from a rule tied to your answers.</p>' +
-          '<form id="events-form" novalidate>' +
-          '<div class="workspace-field"><label for="ev-name">Event name</label>' +
-          '<input type="text" id="ev-name" name="name" required></div>' +
-          '<div class="workspace-field"><label for="ev-type">Event type</label>' +
-          '<select id="ev-type" name="type" required><option value="">Select a type</option>' +
-          '<option>Concert</option><option>Festival</option><option>Conference</option>' +
-          '<option>Wedding</option><option>Corporate</option><option>Community</option>' +
-          '<option>Other</option></select></div>' +
-          '<div class="workspace-field"><label for="ev-guests">Expected guest count</label>' +
-          '<input type="number" id="ev-guests" name="guestCount" min="1" required></div>' +
-          '<div class="workspace-field"><label for="ev-venue">Venue type</label>' +
-          '<select id="ev-venue" name="venueType" required><option value="">Select a venue type</option>' +
-          '<option>Indoor</option><option>Outdoor</option><option>Hybrid</option></select></div>' +
-          '<div class="workspace-field"><label for="ev-budget">Budget tier</label>' +
-          '<select id="ev-budget" name="budgetTier" required><option value="">Select a budget tier</option>' +
-          '<option>Grassroots</option><option>Standard</option><option>Flagship</option></select></div>' +
-          '<button type="submit" class="btn btn-primary">Generate event plan</button>' +
-          '</form>' +
-          '<div id="events-output"></div>';
+          '<section class="workspace-card">' +
+            '<span class="workspace-eyebrow">FTN EVENTS · PLANNING WORKSPACE</span>' +
+            '<h1>Turn an event idea into an operational plan.</h1>' +
+            '<p class="u-max-60ch">FTN Events converts your answers into a structured planning file covering compliance, venue, production, safety, vendors, marketing, budget, timeline and day-of operations. The current planner uses transparent rule-based logic so every recommendation can be inspected and improved; it does not pretend to be generative AI.</p>' +
+            '<div class="callout u-mt-16 u-max-60ch"><strong>Important:</strong> Permit, licensing, policing, fire, health and venue requirements vary by jurisdiction. FTN identifies planning categories; organizers must verify requirements with the responsible authority.</div>' +
+          '</section>' +
+          '<section class="workspace-card u-mt-24">' +
+            '<h2>Build your event</h2>' +
+            '<form id="events-form" novalidate>' +
+              '<div class="workspace-field"><label for="ev-name">Event name</label><input type="text" id="ev-name" name="name" required placeholder="e.g. South Carnival Launch"></div>' +
+              '<div class="workspace-field"><label for="ev-type">Event type</label><select id="ev-type" name="type" required><option value="">Select a type</option><option>Concert</option><option>Festival</option><option>Conference</option><option>Wedding</option><option>Corporate</option><option>Community</option><option>Carnival / Fete</option><option>Sports</option><option>Fundraiser</option><option>Other</option></select></div>' +
+              '<div class="workspace-field"><label for="ev-date">Target date (optional)</label><input type="date" id="ev-date" name="date"></div>' +
+              '<div class="workspace-field"><label for="ev-country">Country</label><input type="text" id="ev-country" name="country" value="Trinidad &amp; Tobago" required></div>' +
+              '<div class="workspace-field"><label for="ev-city">City / area (optional)</label><input type="text" id="ev-city" name="city" placeholder="San Fernando"></div>' +
+              '<div class="workspace-field"><label for="ev-guests">Expected guest count</label><input type="number" id="ev-guests" name="guestCount" min="1" required></div>' +
+              '<div class="workspace-field"><label for="ev-venue">Venue type</label><select id="ev-venue" name="venueType" required><option value="">Select a venue type</option><option>Indoor</option><option>Outdoor</option><option>Hybrid</option></select></div>' +
+              '<div class="workspace-field"><label for="ev-budget">Budget tier</label><select id="ev-budget" name="budgetTier" required><option value="">Select a budget tier</option><option>Grassroots</option><option>Standard</option><option>Flagship</option></select></div>' +
+              '<div class="workspace-field"><label for="ev-budget-amount">Working budget (optional)</label><input type="text" id="ev-budget-amount" name="budgetAmount" placeholder="e.g. TT$250,000"></div>' +
+              '<div class="workspace-field"><label for="ev-goal">Primary objective (optional)</label><textarea id="ev-goal" name="goal" placeholder="What must this event achieve?"></textarea></div>' +
+              '<button type="submit" class="btn btn-primary">Generate operational plan</button>' +
+            '</form>' +
+          '</section>' +
+          '<div id="events-output"></div>' +
+          '<section class="workspace-card u-mt-24"><h2>Saved event plans</h2><p class="workspace-field__hint">Saved only in this browser until FTN account/cloud storage is connected.</p><div id="events-saved"></div></section>';
 
         var form = document.getElementById('events-form');
         var output = document.getElementById('events-output');
+        renderSaved(document.getElementById('events-saved'), api);
 
         form.addEventListener('submit', function (e) {
           e.preventDefault();
           var input = {
             name: form.name.value,
             type: form.type.value,
+            date: form.date.value,
+            country: form.country.value,
+            city: form.city.value,
             guestCount: form.guestCount.value,
             venueType: form.venueType.value,
             budgetTier: form.budgetTier.value,
+            budgetAmount: form.budgetAmount.value,
+            goal: form.goal.value,
           };
           var result = global.FTN.GeneratorEngine.run(global.FTN.EventsGenerator, input);
           if (!result.valid) {
@@ -69,18 +114,19 @@
             return;
           }
           renderPlan(result.output, output, api);
+          output.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       },
     });
   });
 
   function renderPlan(plan, output, api) {
-    var html = '<div class="workspace-output"><h3>' + escapeHtml(plan.title) + '</h3>';
+    var html = '<section class="workspace-card u-mt-24"><div class="workspace-output"><span class="workspace-eyebrow">GENERATED PLAN</span><h2>' + escapeHtml(plan.title) + '</h2>' +
+      '<p class="workspace-field__hint">Generated ' + escapeHtml(new Date(plan.meta.generatedAt).toLocaleString()) + ' · ' + escapeHtml(plan.meta.engine) + '</p>';
     plan.sections.forEach(function (s) {
-      html += '<h4>' + escapeHtml(s.heading) + '</h4><ul>' +
-        s.items.map(function (i) { return '<li>' + escapeHtml(i) + '</li>'; }).join('') + '</ul>';
+      html += '<h3>' + escapeHtml(s.heading) + '</h3><ul>' + s.items.map(function (i) { return '<li>' + escapeHtml(i) + '</li>'; }).join('') + '</ul>';
     });
-    html += global.FTN.WorkspaceShell.exportRowHTML('events-save', 'Save this plan') + '</div>';
+    html += global.FTN.WorkspaceShell.exportRowHTML('events-save', 'Save plan to this device') + '</div></section>';
     output.innerHTML = html;
 
     global.FTN.WorkspaceShell.wireExportButtons(output, {
@@ -89,9 +135,14 @@
       richBody: plan,
     });
 
-    document.getElementById('events-save').addEventListener('click', function () {
-      global.FTN.IntegrationAdapter.submit('events', plan).then(function (res) {
-        api.notify(res.message, 'success');
+    var save = document.getElementById('events-save');
+    if (save) save.addEventListener('click', function () {
+      var all = getSaved();
+      all.push({ savedAt: new Date().toISOString(), plan: plan });
+      setSaved(all);
+      global.FTN.IntegrationAdapter.submit('events', plan).then(function () {
+        renderSaved(document.getElementById('events-saved'), api);
+        api.notify('Event plan saved in this browser.', 'success');
       });
     });
   }
