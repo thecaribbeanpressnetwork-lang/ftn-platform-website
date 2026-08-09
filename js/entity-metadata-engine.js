@@ -1,32 +1,18 @@
 // FTN Platform Website — Entity Metadata Engine (Sprint 1, Wave 1).
-//
-// A reusable metadata *architecture* for FTN entity types (music releases, screen submissions,
-// and future types: events, news stories, opportunities, community reports, radio segments) --
-// not hardcoded to any one product. Per the founder's explicit refinement: only the schemas
-// Sprint 1's real consumers need (music-release for Riddim, screen-submission for Screen) are
-// implemented. Other entity types are documented extension points below, not pre-built --
-// register a real schema for one only when it gains a real consumer.
-//
-// A schema is: { fields: [{ key, label, type, required }], toRecord(input) -> a plain object }.
-// The engine validates required fields and stamps every record with a consistent envelope
-// (entityType, createdAt placeholder, fields) so every consumer's output has the same shape.
+// Shared canonical metadata architecture for FTN entity types.
 (function (global) {
   'use strict';
 
   var SCHEMAS = {};
 
-  function registerSchema(entityType, schema) {
-    SCHEMAS[entityType] = schema;
-  }
+  function registerSchema(entityType, schema) { SCHEMAS[entityType] = schema; }
 
   function validate(entityType, input) {
     var schema = SCHEMAS[entityType];
     if (!schema) return { valid: false, errors: ['Unknown entity type: ' + entityType] };
     var errors = [];
     schema.fields.forEach(function (f) {
-      if (f.required && !String(input[f.key] || '').trim()) {
-        errors.push(f.label + ' is required.');
-      }
+      if (f.required && !String(input[f.key] || '').trim()) errors.push(f.label + ' is required.');
     });
     return { valid: errors.length === 0, errors: errors };
   }
@@ -37,25 +23,13 @@
     var schema = SCHEMAS[entityType];
     var fields = {};
     schema.fields.forEach(function (f) { fields[f.key] = input[f.key] || ''; });
-    return {
-      valid: true,
-      errors: [],
-      record: {
-        entityType: entityType,
-        // A real, honest timestamp of when the record was generated in this session -- not a
-        // server-assigned id, since there's no backend yet (see Integration Adapter Layer).
-        generatedAt: new Date().toISOString(),
-        fields: fields,
-      },
-    };
+    return { valid: true, errors: [], record: { entityType: entityType, generatedAt: new Date().toISOString(), fields: fields } };
   }
 
   function fieldsFor(entityType) {
     var schema = SCHEMAS[entityType];
     return schema ? schema.fields.slice() : [];
   }
-
-  // --- Real Sprint 1 schemas -----------------------------------------------------------------
 
   registerSchema('music-release', {
     fields: [
@@ -64,36 +38,36 @@
       { key: 'genre', label: 'Genre', type: 'text', required: false },
       { key: 'releaseDate', label: 'Target Release Date', type: 'date', required: false },
       { key: 'credits', label: 'Credits (producer, writers, features)', type: 'textarea', required: false },
-      { key: 'isrc', label: 'ISRC (if already assigned)', type: 'text', required: false },
-    ],
+      { key: 'isrc', label: 'ISRC (if already assigned)', type: 'text', required: false }
+    ]
   });
 
+  // Canonical FTN Screen submission record. These fields are deliberately distribution- and
+  // platform-neutral so the record can later feed programming, catalog, rights and ibis.ai
+  // services without being locked to a specific streaming or CMS vendor.
   registerSchema('screen-submission', {
     fields: [
       { key: 'title', label: 'Title', type: 'text', required: true },
       { key: 'creatorName', label: 'Creator / Studio Name', type: 'text', required: true },
+      { key: 'format', label: 'Format', type: 'text', required: true },
       { key: 'genre', label: 'Genre', type: 'text', required: false },
-      { key: 'runtime', label: 'Runtime (minutes)', type: 'text', required: false },
+      { key: 'country', label: 'Country / Territory of Origin', type: 'text', required: false },
+      { key: 'language', label: 'Primary Language', type: 'text', required: false },
+      { key: 'runtime', label: 'Runtime / Episode Length', type: 'text', required: false },
+      { key: 'year', label: 'Production Year', type: 'text', required: false },
+      { key: 'productionStatus', label: 'Production Status', type: 'text', required: false },
+      { key: 'logline', label: 'Logline', type: 'textarea', required: true },
       { key: 'synopsis', label: 'Synopsis', type: 'textarea', required: true },
-    ],
+      { key: 'audience', label: 'Intended Audience', type: 'text', required: false },
+      { key: 'credits', label: 'Key Cast / Crew / Credits', type: 'textarea', required: false },
+      { key: 'rightsStatus', label: 'Rights / Submission Authority', type: 'text', required: true },
+      { key: 'availability', label: 'Current Availability / Distribution Status', type: 'textarea', required: false },
+      { key: 'contact', label: 'Creator / Rights Contact', type: 'text', required: false }
+    ]
   });
 
-  // --- Documented extension points, not implemented this sprint ------------------------------
-  // Each of these becomes a real registerSchema() call once a real product needs it -- adding one
-  // does not require changing this engine, only adding the schema definition (see the two above
-  // for the pattern). Intentionally left unregistered, not stubbed with fake fields:
-  //   'event'              -- FTN Events, if/when it needs structured entity records beyond its
-  //                           own Generator Engine checklist output
-  //   'news-story'         -- FTN Kaiso
-  //   'opportunity'        -- FTN Opportunities
-  //   'community-report'   -- Community Connect (would need coordination with its own repo)
-  //   'radio-segment'      -- FTN Radio
-
+  // Future extension points are registered only when a real consumer exists:
+  // event, news-story, opportunity, community-report, radio-segment.
   global.FTN = global.FTN || {};
-  global.FTN.EntityMetadataEngine = {
-    registerSchema: registerSchema,
-    validate: validate,
-    createRecord: createRecord,
-    fieldsFor: fieldsFor,
-  };
+  global.FTN.EntityMetadataEngine = { registerSchema: registerSchema, validate: validate, createRecord: createRecord, fieldsFor: fieldsFor };
 })(window);
