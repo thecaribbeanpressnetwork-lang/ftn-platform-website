@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Face the Nation — FTN Platform's Flagship Public Affairs Programme</title>
-  <meta name="description" content="Face the Nation is FTN Platform's flagship public affairs programme — turning community intelligence into national conversation. Every constituency. Every candidate. Every voice.">
+  <title>Face The Nation — FTN Platform's Flagship Public Affairs Programme</title>
+  <meta name="description" content="Face The Nation is FTN Platform's flagship public affairs programme — turning community intelligence into national conversation across Trinidad and Tobago.">
   <link rel="canonical" href="/facethenation">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
   <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="FTN Platform">
-  <meta property="og:title" content="Face the Nation — FTN Platform's Flagship Public Affairs Programme">
-  <meta property="og:description" content="Turning community intelligence into national conversation. Every constituency. Every candidate. Every voice. Truth.">
+  <meta property="og:title" content="Face The Nation — FTN Platform's Flagship Public Affairs Programme">
+  <meta property="og:description" content="Every constituency. Every candidate. Every voice. Truth.">
   <meta property="og:url" content="https://ftnplatform.org/facethenation">
   <meta property="og:image" content="https://ftnplatform.org/assets/social/og-face-the-nation.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Face the Nation — FTN Platform's Flagship Public Affairs Programme">
-  <meta name="twitter:description" content="Turning community intelligence into national conversation. Every constituency. Every candidate. Every voice. Truth.">
+  <meta name="twitter:title" content="Face The Nation — FTN Platform's Flagship Public Affairs Programme">
+  <meta name="twitter:description" content="Every constituency. Every candidate. Every voice. Truth.">
   <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-face-the-nation.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
   <link rel="stylesheet" href="/css/components/face-the-nation.css">
+  <link rel="stylesheet" href="/css/components/face-the-nation-participation.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -56,7 +57,6 @@
           <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#0B0B0B">PLATFORM</text>
         </svg>
       </a>
-
       <nav class="site-nav" aria-label="Primary">
         <ul class="site-nav__list">
           <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/">Home</a></li>
@@ -67,13 +67,8 @@
           <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/">Contact</a></li>
         </ul>
       </nav>
-
       <div class="site-header__actions">
         <button type="button" class="country-switcher-trigger" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span class="country-switcher-trigger__pin" aria-hidden="true"></span><span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></button>
-        <!-- Sign In: routes to Community Connect's launch flow today, the only FTN product with
-             real user accounts. data-sign-in-entry marks this as the future unified FTN
-             Account/SSO integration point -- swap the href when a real identity service exists,
-             no nav restructure needed. -->
         <a class="btn btn-primary btn-sm" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
         <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
           <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
@@ -81,18 +76,10 @@
         </button>
       </div>
     </div>
-
     <div class="mobile-nav" id="mobile-nav">
-      <div class="mobile-nav__section">
-        <div class="mobile-nav__links">
-          <a href="/" class="mobile-nav__link--top">Home</a>
-          <a href="/about/" class="mobile-nav__link--top">About FTN</a>
-          <a href="/news/" class="mobile-nav__link--top">News</a>
-          <a href="/contact/#commercial" class="mobile-nav__link--top">Partners</a>
-          <a href="/contact/#investors" class="mobile-nav__link--top">Investors</a>
-          <a href="/contact/" class="mobile-nav__link--top">Contact</a>
-        </div>
-      </div>
+      <div class="mobile-nav__section"><div class="mobile-nav__links">
+        <a href="/" class="mobile-nav__link--top">Home</a><a href="/about/" class="mobile-nav__link--top">About FTN</a><a href="/news/" class="mobile-nav__link--top">News</a><a href="/contact/#commercial" class="mobile-nav__link--top">Partners</a><a href="/contact/#investors" class="mobile-nav__link--top">Investors</a><a href="/contact/" class="mobile-nav__link--top">Contact</a>
+      </div></div>
       <div class="mobile-nav__actions">
         <button type="button" class="mobile-nav__country-switcher" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span><span class="country-switcher-trigger__pin" aria-hidden="true"></span> <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></span><span aria-hidden="true">&rsaquo;</span></button>
         <a class="btn btn-primary" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
@@ -102,33 +89,16 @@
 
   <main id="main" tabindex="-1" class="ftn-show">
     <section class="ftn-hero">
-      <div class="heritage-layer heritage-layer--on-dark heritage-layer--facethenation" aria-hidden="true">
-        <svg viewBox="0 0 1400 700" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <!-- Broadcast waveform and an editorial column grid -- the studio and the page,
-               the two forms this programme actually takes. -->
-          <g stroke="currentColor" stroke-width="1">
-            <path class="hl-sweep" d="M900,560 L920,560 L930,520 L940,600 L950,480 L960,610 L970,540 L980,570 L990,500 L1000,585 L1010,555 L1020,530 L1030,595 L1040,545 L1050,565 L1060,510 L1070,580 L1080,550 L1090,520 L1100,590 L1110,560 L1120,540 L1130,575 L1140,555 L1150,560" fill="none" />
-          </g>
-          <g stroke="currentColor" stroke-width="0.5">
-            <line x1="1200" y1="40" x2="1200" y2="660" />
-            <line x1="1260" y1="40" x2="1260" y2="660" />
-            <line x1="1320" y1="40" x2="1320" y2="660" />
-            <line x1="1380" y1="40" x2="1380" y2="660" />
-          </g>
-        </svg>
-      </div>
+      <div class="heritage-layer heritage-layer--on-dark heritage-layer--facethenation" aria-hidden="true"></div>
       <div class="container ftn-hero__content" data-reveal>
         <img class="ftn-badge" src="/assets/face-the-nation/ftn-badge-logo.jpg" alt="" width="96" height="96">
         <span class="ftn-hero__eyebrow">FTN Platform Presents</span>
         <h1 class="ftn-hero__title">FACE THE<span>NATION</span></h1>
         <p class="ftn-hero__byline">with Ricardo Antoine</p>
         <p class="ftn-hero__tagline">Every constituency. Every candidate. <em>Every voice. Truth.</em></p>
-        <p class="ftn-hero__lede">
-          FTN's flagship public affairs programme, bringing citizens, leaders and decision-makers
-          together for real conversations about the issues that shape Trinidad &amp; Tobago.
-        </p>
+        <p class="ftn-hero__lede">FTN's flagship public affairs programme, bringing citizens, leaders and decision-makers together for real conversations about the issues shaping Trinidad &amp; Tobago.</p>
         <div class="ftn-hero__actions">
-          <a class="btn btn-primary btn-lg" href="#follow">Follow Face the Nation</a>
+          <a class="btn btn-primary btn-lg" href="#participate">Join the Conversation</a>
           <a class="btn btn-outline btn-outline--on-dark btn-lg" href="#programming">Season One in Production</a>
         </div>
       </div>
@@ -136,236 +106,79 @@
 
     <section class="section">
       <div class="container">
-        <span class="section__eyebrow">More Than a Podcast</span>
-        <h2 class="u-mt-8">Turning community intelligence into national conversation.</h2>
-        <p class="u-mt-16 u-max-60ch">
-          Community Connect helps communities report what they see. Face the Nation brings those
-          issues to the table — connecting the dots between citizens, leaders, experts and
-          decision-makers so informed decisions can create better communities.
-        </p>
+        <span class="section__eyebrow">Public Affairs Infrastructure</span>
+        <h2 class="u-mt-8">From a community issue to a national conversation.</h2>
+        <p class="u-mt-16 u-max-60ch">Community Connect captures what citizens are seeing. Face The Nation creates the editorial and broadcast space to examine those issues with citizens, experts, community leaders and decision-makers.</p>
         <div class="ftn-flow" data-reveal>
-          <div class="ftn-flow__node">
-            <img src="/assets/icons/icon-community.svg" alt="">
-            <span>Citizens</span>
-          </div>
-          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
-          <div class="ftn-flow__node">
-            <img src="/assets/icons/icon-report.svg" alt="">
-            <span>Communities</span>
-          </div>
-          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
-          <div class="ftn-flow__node">
-            <img src="/assets/icons/icon-progress.svg" alt="">
-            <span>Intelligence</span>
-          </div>
-          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
-          <div class="ftn-flow__node">
-            <img src="/assets/icons/icon-share.svg" alt="">
-            <span>Discussion</span>
-          </div>
-          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
-          <div class="ftn-flow__node">
-            <img src="/assets/icons/icon-shield.svg" alt="">
-            <span>Decisions</span>
-          </div>
-          <div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
-          <div class="ftn-flow__node">
-            <img src="/assets/icons/icon-community.svg" alt="">
-            <span>Better Communities</span>
-          </div>
+          <div class="ftn-flow__node"><img src="/assets/icons/icon-community.svg" alt=""><span>Citizens</span></div><div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node"><img src="/assets/icons/icon-report.svg" alt=""><span>Issues</span></div><div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node"><img src="/assets/icons/icon-progress.svg" alt=""><span>Evidence</span></div><div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node"><img src="/assets/icons/icon-share.svg" alt=""><span>Discussion</span></div><div class="ftn-flow__arrow" aria-hidden="true">&rarr;</div>
+          <div class="ftn-flow__node"><img src="/assets/icons/icon-shield.svg" alt=""><span>Accountability</span></div>
         </div>
       </div>
     </section>
 
     <section class="section section--tint">
       <div class="container">
-        <div class="ftn-coming-soon-panel">
-          <span class="ftn-coming-soon-panel__eyebrow">Season One</span>
-          <h2>In production.</h2>
-          <p class="u-max-60ch">
-            Interviews. Debates. Real conversations about the issues that matter most to Trinidad
-            &amp; Tobago. Face the Nation's first season is in production — follow along below to
-            be first to know when it airs.
-          </p>
+        <div class="section__header"><span class="section__eyebrow">Production Status</span><h2>Season One is being built now.</h2><p class="u-mt-16 u-max-60ch">This page separates what is operational today from what launches with the programme. No episode, livestream or guest booking is represented as live before it exists.</p></div>
+        <div class="ftn-production-status">
+          <article class="ftn-production-status__item"><span>Operational now</span><strong>Programme identity + editorial intake</strong><p>Topic suggestions and guest recommendations can be prepared and saved on this device.</p></article>
+          <article class="ftn-production-status__item"><span>In production</span><strong>Season One programming</strong><p>Interview, debate and community-issue formats are being developed for launch.</p></article>
+          <article class="ftn-production-status__item"><span>Future connection</span><strong>Publishing + broadcast backend</strong><p>Cloud editorial queues, episode publishing, livestreams and audience registration will connect here when deployed.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="participate">
+      <div class="container">
+        <div class="section__header"><span class="section__eyebrow">The Public Conversation Desk</span><h2>This show starts with you.</h2><p class="u-mt-16 u-max-60ch">Submit the issue you want examined or recommend a person who should be part of the conversation. During this website phase, submissions are stored only in your browser; they are not yet sent to an FTN newsroom server.</p></div>
+        <div class="ftn-editorial-note"><p><strong>Editorial independence:</strong> a suggestion does not guarantee coverage, an interview, endorsement or invitation. Face The Nation retains editorial control over programme selection and framing.</p></div>
+        <div class="ftn-participation-grid">
+          <article class="ftn-participation-panel"><span class="section__eyebrow">Topic Desk</span><h3>Suggest a Topic</h3><p>What issue should be investigated, explained or debated?</p><div id="ftn-topic-form"></div></article>
+          <article class="ftn-participation-panel"><span class="section__eyebrow">Guest Desk</span><h3>Recommend a Guest</h3><p>Nominate a community voice, expert, organisation or decision-maker.</p><div id="ftn-guest-form"></div></article>
+        </div>
+        <div class="ftn-participation-panel u-mt-24"><span class="section__eyebrow">Saved on this Device</span><h3>Recent programme suggestions</h3><div id="ftn-participation-history"></div></div>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="programming">
+      <div class="container">
+        <div class="section__header"><span class="section__eyebrow">Programming Framework</span><h2>What Face The Nation is being built to cover.</h2></div>
+        <div class="ftn-programming-grid" data-reveal>
+          <div class="ftn-programming-card"><span class="ftn-programming-card__status">Season One</span><h3>Community Issues</h3><p>Citizen-reported problems, evidence and the institutions responsible for addressing them.</p></div>
+          <div class="ftn-programming-card"><span class="ftn-programming-card__status">Season One</span><h3>Candidate Interviews</h3><p>Direct constituency-level conversations focused on policy, record, priorities and accountability.</p></div>
+          <div class="ftn-programming-card"><span class="ftn-programming-card__status">Season One</span><h3>Community Leaders</h3><p>The people, organisations and institutions doing the work inside communities.</p></div>
+          <div class="ftn-programming-card"><span class="ftn-programming-card__status">Season One</span><h3>National Policy</h3><p>How national choices affect municipalities, communities, families and businesses.</p></div>
+          <div class="ftn-programming-card"><span class="ftn-programming-card__status">Season One</span><h3>Special Discussions</h3><p>Focused panels and interviews when an issue needs context beyond the daily headline.</p></div>
+          <div class="ftn-programming-card"><span class="ftn-programming-card__status">Planned format</span><h3>Audience Programmes</h3><p>Public participation formats designed for citizens to question, challenge and contribute.</p></div>
         </div>
       </div>
     </section>
 
     <section class="section" id="follow">
       <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Follow the Conversation</span>
-          <h2>One home for every conversation.</h2>
-          <p class="u-mt-16 u-max-60ch">
-            Face the Nation is being built as a cross-platform Caribbean public affairs
-            programme. Season One will launch simultaneously across our official digital
-            channels — <strong>@FaceTheNationTT</strong> — creating one consistent home for
-            every interview, discussion, and public conversation.
-          </p>
-        </div>
+        <div class="section__header"><span class="section__eyebrow">Follow the Conversation</span><h2>@FaceTheNationTT</h2><p class="u-mt-16 u-max-60ch">Face The Nation is being developed as a cross-platform Caribbean public affairs programme. Official channel links will be maintained here as publishing integrations are finalized.</p></div>
+        <div class="ftn-platform-links"><a class="btn btn-outline btn-outline--on-dark" href="https://youtube.com/@FaceTheNationTT" rel="noopener noreferrer" target="_blank">YouTube</a><a class="btn btn-outline btn-outline--on-dark" href="/contact/">Contact the Programme</a></div>
       </div>
     </section>
 
-    <section class="section section--tint">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Be Part of the Conversation</span>
-          <h2>This show starts with you.</h2>
-        </div>
-        <div class="module-grid">
-          <div class="ftn-card">
-            <h3>Suggest a Topic</h3>
-            <p>Is there an issue your community wants to see discussed on the show? Tell us about it.</p>
-            <a class="btn btn-outline btn-outline--on-dark" href="/contact/#general">Submit a Topic</a>
-          </div>
-          <div class="ftn-card">
-            <h3>Become a Guest</h3>
-            <p>Nominate a community leader, expert, or public official — or put yourself forward — for the show.</p>
-            <a class="btn btn-outline btn-outline--on-dark" href="/contact/#general">Recommend a Guest</a>
-          </div>
-        </div>
-      </div>
-    </section>
+    <section class="section founding-statement"><div class="container"><span class="founding-statement__mark" aria-hidden="true"></span><p>The Caribbean deserves conversations worthy of its future.</p></div></section>
 
-    <section class="section" id="programming">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__eyebrow">Programming</span>
-          <h2>What Face the Nation will cover.</h2>
-          <p class="u-mt-16 u-max-60ch">
-            Season One is in production. Here's the programming it's being built around.
-          </p>
-        </div>
-        <div class="ftn-programming-grid" data-reveal>
-          <div class="ftn-programming-card">
-            <span class="ftn-programming-card__status">Season One</span>
-            <h3>Community Issues</h3>
-            <p>The problems citizens are reporting, brought to the table for real discussion.</p>
-          </div>
-          <div class="ftn-programming-card">
-            <span class="ftn-programming-card__status">Season One</span>
-            <h3>Candidate Interviews</h3>
-            <p>Every constituency, every candidate — direct, accountable conversation.</p>
-          </div>
-          <div class="ftn-programming-card">
-            <span class="ftn-programming-card__status">Season One</span>
-            <h3>Community Leaders</h3>
-            <p>The people already doing the work of holding their communities together.</p>
-          </div>
-          <div class="ftn-programming-card">
-            <span class="ftn-programming-card__status">Season One</span>
-            <h3>National Policy</h3>
-            <p>From local community issues to the national decisions that shape them.</p>
-          </div>
-          <div class="ftn-programming-card">
-            <span class="ftn-programming-card__status">Season One</span>
-            <h3>Special Discussions</h3>
-            <p>Focused conversations on the moments that call for more than a headline.</p>
-          </div>
-          <div class="ftn-programming-card">
-            <span class="ftn-programming-card__status">Season One</span>
-            <h3>Live Audience Programmes</h3>
-            <p>Real people, real voices, real impact — the audience is part of the conversation.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section founding-statement">
-      <div class="container">
-        <span class="founding-statement__mark" aria-hidden="true"></span>
-        <p>The Caribbean deserves conversations worthy of its future.</p>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="ftn-cc-band">
-          <div>
-            <h2>The conversation starts with the community.</h2>
-            <p>
-              Community Connect gathers community intelligence — the reports, the patterns, the
-              issues that matter. Face the Nation helps the nation discuss what those reports
-              reveal.
-            </p>
-          </div>
-          <a class="btn btn-secondary btn-secondary--on-dark btn-lg" href="/community-connect/#launch">Launch Community Connect</a>
-        </div>
-      </div>
-    </section>
+    <section class="section"><div class="container"><div class="ftn-cc-band"><div><h2>The conversation starts with the community.</h2><p>Community Connect gathers reports and patterns. Face The Nation provides the public-affairs layer for examining what those reports reveal.</p></div><a class="btn btn-secondary btn-secondary--on-dark btn-lg" href="/community-connect/#launch">Launch Community Connect</a></div></div></section>
   </main>
 
   <footer class="site-footer">
     <div class="container">
       <div class="site-footer__top">
-        <div class="site-footer__brand">
-          <svg viewBox="0 0 220 64" role="img" aria-labelledby="footerLogoTitle" class="logo-mark--footer">
-            <title id="footerLogoTitle">FTN Platform</title>
-            <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#FFFFFF">F<tspan class="logo-mark__t">T</tspan>N</text>
-            <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#FFFFFF">PLATFORM</text>
-          </svg>
-<p class="site-footer__tagline">One Ecosystem. One Mission. Built for the Caribbean.</p>
-          <div class="site-footer__social">
-            <a href="https://x.com/realityarttv" aria-label="FTN Platform on X"><img src="/assets/icons/social-x.svg" alt="" width="16" height="16"></a>
-            <a href="https://facebook.com/realityarttv" aria-label="FTN Platform on Facebook"><img src="/assets/icons/social-facebook.svg" alt="" width="16" height="16"></a>
-            <a href="https://instagram.com/realityarttv" aria-label="FTN Platform on Instagram"><img src="/assets/icons/social-instagram.svg" alt="" width="16" height="16"></a>
-            <a href="https://youtube.com/realityarttv" aria-label="FTN Platform on YouTube"><img src="/assets/icons/social-youtube.svg" alt="" width="16" height="16"></a>
-            <a href="https://linkedin.com/company/realityarttv" aria-label="FTN Platform on LinkedIn"><img src="/assets/icons/social-linkedin.svg" alt="" width="16" height="16"></a>
-          </div>
-        </div>
-
+        <div class="site-footer__brand"><svg viewBox="0 0 220 64" role="img" aria-labelledby="footerLogoTitle" class="logo-mark--footer"><title id="footerLogoTitle">FTN Platform</title><text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#FFFFFF">F<tspan class="logo-mark__t">T</tspan>N</text><text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#FFFFFF">PLATFORM</text></svg><p class="site-footer__tagline">One Ecosystem. One Mission. Built for the Caribbean.</p><div class="site-footer__social"><a href="https://x.com/realityarttv" aria-label="FTN Platform on X"><img src="/assets/icons/social-x.svg" alt="" width="16" height="16"></a><a href="https://facebook.com/realityarttv" aria-label="FTN Platform on Facebook"><img src="/assets/icons/social-facebook.svg" alt="" width="16" height="16"></a><a href="https://instagram.com/realityarttv" aria-label="FTN Platform on Instagram"><img src="/assets/icons/social-instagram.svg" alt="" width="16" height="16"></a><a href="https://youtube.com/realityarttv" aria-label="FTN Platform on YouTube"><img src="/assets/icons/social-youtube.svg" alt="" width="16" height="16"></a><a href="https://linkedin.com/company/realityarttv" aria-label="FTN Platform on LinkedIn"><img src="/assets/icons/social-linkedin.svg" alt="" width="16" height="16"></a></div></div>
         <div class="site-footer__columns">
-          <div>
-            <p class="site-footer__heading">Platform</p>
-            <div class="site-footer__links">
-              <a href="/about/">About FTN</a>
-              <a href="/community-connect/">Community Connect</a>
-              <a href="/mission-control/">Mission Control</a>
-              <a href="/events/">FTN Events</a>
-              <a href="/facethenation">Face The Nation</a>
-              <a href="/ibis-ai/">ibis.ai</a>
-              <a href="/riddim/">FTN Riddim</a>
-              <a href="/kaiso/">FTN Kaiso</a>
-              <a href="/radio/">FTN Radio</a>
-              <a href="/screen/">FTN Screen</a>
-              <a href="/opportunities/">FTN Opportunities</a>
-              <a href="/love/">FTN Love</a>
-              <a href="/display-network/">Display Network</a>
-              <a href="/observatory/">FTN Live</a>
-            </div>
-          </div>
-          <div>
-            <p class="site-footer__heading">Resources</p>
-            <div class="site-footer__links">
-              <a href="/insights/">Insights</a>
-              <a href="/news/">News &amp; Stories</a>
-              <a href="/resources/#faq">Help Center</a>
-              <a href="/resources/#documentation">Guides &amp; API Access</a>
-              <a href="/resources/#media-kit">Media Kit</a>
-              <a href="/mission-control/demo/">Mission Control Demo</a>
-            </div>
-          </div>
-          <div>
-            <p class="site-footer__heading">Legal</p>
-            <div class="site-footer__links">
-              <a href="/legal/privacy-policy/">Privacy Policy</a>
-              <a href="/legal/terms-of-service/">Terms of Service</a>
-              <a href="/legal/cookie-policy/">Cookie Policy</a>
-              <a href="/legal/data-retention/">Data Retention</a>
-            </div>
-          </div>
+          <div><p class="site-footer__heading">Platform</p><div class="site-footer__links"><a href="/about/">About FTN</a><a href="/community-connect/">Community Connect</a><a href="/mission-control/">Mission Control</a><a href="/events/">FTN Events</a><a href="/facethenation">Face The Nation</a><a href="/ibis-ai/">ibis.ai</a><a href="/riddim/">FTN Riddim</a><a href="/kaiso/">FTN Kaiso</a><a href="/radio/">FTN Radio</a><a href="/screen/">FTN Screen</a><a href="/opportunities/">FTN Opportunities</a><a href="/love/">FTN Love</a><a href="/display-network/">Display Network</a><a href="/observatory/">FTN Live</a></div></div>
+          <div><p class="site-footer__heading">Resources</p><div class="site-footer__links"><a href="/insights/">Insights</a><a href="/news/">News &amp; Stories</a><a href="/resources/#faq">Help Center</a><a href="/resources/#documentation">Guides &amp; API Access</a><a href="/resources/#media-kit">Media Kit</a><a href="/mission-control/demo/">Mission Control Demo</a></div></div>
+          <div><p class="site-footer__heading">Legal</p><div class="site-footer__links"><a href="/legal/privacy-policy/">Privacy Policy</a><a href="/legal/terms-of-service/">Terms of Service</a><a href="/legal/cookie-policy/">Cookie Policy</a><a href="/legal/data-retention/">Data Retention</a></div></div>
         </div>
       </div>
-
-      <div class="site-footer__bottom">
-        <p>&copy; 2026 RealityArtTV Media. All Rights Reserved.</p>
-<div class="site-footer__bottom-links">
-          <a href="/sitemap/">Sitemap</a>
-          <a href="/accessibility/">Accessibility</a>
-          <a href="/applications/">All Platforms</a>
-          <a href="/">English</a>
-        </div>
-      </div>
+      <div class="site-footer__bottom"><p>&copy; 2026 RealityArtTV Media. All Rights Reserved.</p><div class="site-footer__bottom-links"><a href="/sitemap/">Sitemap</a><a href="/accessibility/">Accessibility</a><a href="/applications/">All Platforms</a><a href="/">English</a></div></div>
     </div>
   </footer>
 
@@ -377,5 +190,7 @@
   <script src="/js/country-switcher.js"></script>
   <script src="/js/reveal.js"></script>
   <script src="/js/presentation-control.js"></script>
+  <script src="/js/integration-adapter.js"></script>
+  <script src="/js/facethenation-participation.js"></script>
 </body>
 </html>
