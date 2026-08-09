@@ -23,16 +23,30 @@
   function mountForm(root, kind) {
     if (!root) return;
     var isTopic = kind === 'topic';
-    var button = isTopic ? 'Save Topic Suggestion' : 'Save Guest Recommendation';
+    var isGuest = kind === 'guest';
+    var isLocation = kind === 'location';
+    var button = isTopic ? 'Save Topic Suggestion' : (isGuest ? 'Save Guest Recommendation' : 'Save Location Pitch');
+    var specificFields = '';
+
+    if (isTopic) {
+      specificFields = '<div class="workspace-field"><label>What should Face The Nation discuss?</label><textarea name="detail" rows="5" required></textarea></div>';
+    } else if (isGuest) {
+      specificFields = '<div class="workspace-field"><label>Who would you like to see on Face The Nation?</label><input name="guest" type="text" required></div>' +
+        '<div class="workspace-field"><label>Why should this person or organisation be heard?</label><textarea name="detail" rows="5" required></textarea></div>';
+    } else {
+      specificFields = '<div class="workspace-field"><label>Where should Face The Nation go?</label><input name="location" type="text" placeholder="Community, street, school, market, venue or constituency" required></div>' +
+        '<div class="workspace-field"><label>What should we talk about there, and who should be part of the conversation?</label><textarea name="detail" rows="5" required></textarea></div>';
+    }
+
     root.innerHTML =
       '<form class="ftn-participation-form" novalidate>' +
-      '<div class="workspace-field"><label>Name</label><input name="name" type="text" required></div>' +
+      '<div class="workspace-field"><label>Your name</label><input name="name" type="text" required></div>' +
       '<div class="workspace-field"><label>Email</label><input name="email" type="email" required></div>' +
-      '<div class="workspace-field"><label>Constituency / community</label><input name="community" type="text"></div>' +
+      '<div class="workspace-field"><label>Your constituency / community</label><input name="community" type="text"></div>' +
       '<div class="workspace-field"><label>Issue area</label><select name="issue"><option value="">Select</option><option>Community infrastructure</option><option>Local government</option><option>National policy</option><option>Economy and jobs</option><option>Crime and public safety</option><option>Health</option><option>Education</option><option>Environment</option><option>Culture</option><option>Other</option></select></div>' +
-      (isTopic ? '<div class="workspace-field"><label>What should Face The Nation discuss?</label><textarea name="detail" rows="5" required></textarea></div>' : '<div class="workspace-field"><label>Guest name / organisation</label><input name="guest" type="text" required></div><div class="workspace-field"><label>Why should this person be invited?</label><textarea name="detail" rows="5" required></textarea></div>') +
+      specificFields +
       '<div class="workspace-field"><label>Supporting link (optional)</label><input name="link" type="url" placeholder="https://"></div>' +
-      '<label class="ftn-consent"><input type="checkbox" name="consent" required> I understand this is a programme suggestion, not a guarantee of coverage or an invitation.</label>' +
+      '<label class="ftn-consent"><input type="checkbox" name="consent" required> I understand this is a public programme suggestion, not a guarantee of coverage, invitation or location selection.</label>' +
       '<button class="btn btn-primary" type="submit">' + button + '</button><p class="ftn-form-status" role="status" aria-live="polite"></p></form>';
 
     var form = root.querySelector('form');
@@ -40,17 +54,30 @@
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       var data = new FormData(form);
-      var payload = { kind: kind, name: String(data.get('name') || '').trim(), email: String(data.get('email') || '').trim(), community: String(data.get('community') || '').trim(), issue: String(data.get('issue') || '').trim(), guest: String(data.get('guest') || '').trim(), detail: String(data.get('detail') || '').trim(), link: String(data.get('link') || '').trim(), consent: data.get('consent') === 'on' };
+      var payload = {
+        kind: kind,
+        name: String(data.get('name') || '').trim(),
+        email: String(data.get('email') || '').trim(),
+        community: String(data.get('community') || '').trim(),
+        issue: String(data.get('issue') || '').trim(),
+        guest: String(data.get('guest') || '').trim(),
+        location: String(data.get('location') || '').trim(),
+        detail: String(data.get('detail') || '').trim(),
+        link: String(data.get('link') || '').trim(),
+        consent: data.get('consent') === 'on'
+      };
       var errors = [];
       if (!payload.name) errors.push('Enter your name.');
       if (!payload.email || payload.email.indexOf('@') === -1) errors.push('Enter a valid email address.');
-      if (!payload.detail) errors.push(isTopic ? 'Tell us what should be discussed.' : 'Explain why this guest should be invited.');
-      if (!isTopic && !payload.guest) errors.push('Enter the guest name or organisation.');
+      if (!payload.detail) errors.push('Tell us what conversation you want to see.');
+      if (isGuest && !payload.guest) errors.push('Enter the guest name or organisation.');
+      if (isLocation && !payload.location) errors.push('Enter the place you want Face The Nation to visit.');
       if (!payload.consent) errors.push('Confirm the programme-suggestion notice.');
       if (errors.length) { status.textContent = errors.join(' '); status.className = 'ftn-form-status ftn-form-status--error'; return; }
       var adapter = global.FTN && global.FTN.IntegrationAdapter;
       if (!adapter) { status.textContent = 'Submission storage is unavailable in this browser.'; status.className = 'ftn-form-status ftn-form-status--error'; return; }
-      adapter.submit(isTopic ? 'facethenation-topic' : 'facethenation-guest', payload).then(function () {
+      var toolId = isTopic ? 'facethenation-topic' : (isGuest ? 'facethenation-guest' : 'facethenation-location');
+      adapter.submit(toolId, payload).then(function () {
         status.textContent = 'Saved on this device only. Online editorial submission will connect here when the FTN backend is enabled.';
         status.className = 'ftn-form-status ftn-form-status--ok'; form.reset(); renderHistory();
       });
@@ -62,7 +89,12 @@
     if (!mount || !global.FTN || !global.FTN.IntegrationAdapter) return;
     var topics = global.FTN.IntegrationAdapter.history('facethenation-topic') || [];
     var guests = global.FTN.IntegrationAdapter.history('facethenation-guest') || [];
-    var rows = topics.map(function (r) { return { type: 'Topic', at: r.submittedAt, label: r.payload && r.payload.detail }; }).concat(guests.map(function (r) { return { type: 'Guest', at: r.submittedAt, label: r.payload && r.payload.guest }; })).sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); }).slice(0, 6);
+    var locations = global.FTN.IntegrationAdapter.history('facethenation-location') || [];
+    var rows = topics.map(function (r) { return { type: 'Topic', at: r.submittedAt, label: r.payload && r.payload.detail }; })
+      .concat(guests.map(function (r) { return { type: 'Guest', at: r.submittedAt, label: r.payload && r.payload.guest }; }))
+      .concat(locations.map(function (r) { return { type: 'Where', at: r.submittedAt, label: r.payload && r.payload.location }; }))
+      .sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); })
+      .slice(0, 9);
     if (!rows.length) { mount.innerHTML = '<p class="ftn-history-empty">No suggestions saved on this device yet.</p>'; return; }
     mount.innerHTML = '<div class="ftn-history-list">' + rows.map(function (row) { var when = row.at ? new Date(row.at).toLocaleString() : ''; return '<div class="ftn-history-item"><span>' + escapeHtml(row.type) + '</span><strong>' + escapeHtml(row.label || '(untitled)') + '</strong><small>' + escapeHtml(when) + '</small></div>'; }).join('') + '</div>';
   }
@@ -85,6 +117,7 @@
   function init() {
     mountForm(document.getElementById('ftn-topic-form'), 'topic');
     mountForm(document.getElementById('ftn-guest-form'), 'guest');
+    mountForm(document.getElementById('ftn-location-form'), 'location');
     renderHistory();
     renderMediaHub();
   }
