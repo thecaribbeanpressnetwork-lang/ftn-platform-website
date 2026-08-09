@@ -15,7 +15,7 @@
 
     var panel=document.createElement('section');
     panel.className='screen-panel'; panel.id='screen-festival-package';
-    panel.innerHTML='<span class="screen-kicker">Festival Package</span><h3>Prepare one package. Adapt it to many festivals.</h3><p class="workspace-muted">Create a reusable submission record for international, Caribbean and independent film festivals. FTN Festival Scout can later match this package against live calls.</p>'+
+    panel.innerHTML='<span class="screen-kicker">Festival Package</span><h3>Prepare one package. Adapt it to many festivals.</h3><p class="workspace-muted">Create a reusable submission record for international, Caribbean and independent film festivals, with the core information and assets commonly requested by festival platforms.</p>'+
       '<form id="screen-festival-form" class="screen-form" data-ftn-draft="true">'+
       '<div class="workspace-field"><label>Film title</label><input name="title" required></div><div class="workspace-field"><label>Director</label><input name="director" required></div>'+
       '<div class="workspace-field"><label>Producer / production company <span class="workspace-field__hint">(optional)</span></label><input name="producer"></div><div class="workspace-field"><label>Country / territory</label><input name="country" required></div>'+
