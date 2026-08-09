@@ -6,6 +6,16 @@
   document.documentElement.classList.remove('no-js');
   document.documentElement.classList.add('js');
 
+  // Shared FTN capabilities that belong on nearly every public page load here once,
+  // rather than forcing every product page to duplicate script tags.
+  if (!document.querySelector('script[data-ftn-smart-export]')) {
+    var smartExport = document.createElement('script');
+    smartExport.src = '/js/smart-export.js';
+    smartExport.defer = true;
+    smartExport.setAttribute('data-ftn-smart-export', 'true');
+    document.head.appendChild(smartExport);
+  }
+
   var toggle = document.querySelector('[data-nav-toggle]');
   var mobileNav = document.getElementById('mobile-nav');
 
