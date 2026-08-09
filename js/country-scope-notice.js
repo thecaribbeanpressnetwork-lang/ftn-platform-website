@@ -26,8 +26,20 @@
     }
   }
 
+  function loadObservatoryLiveMedia() {
+    var path = global.location && global.location.pathname ? global.location.pathname : '';
+    if (path.indexOf('/observatory') !== 0) return;
+    if (document.querySelector('script[data-ftn-live-media]')) return;
+    var script = document.createElement('script');
+    script.src = '/js/observatory-live-media.js';
+    script.defer = true;
+    script.setAttribute('data-ftn-live-media', 'true');
+    document.head.appendChild(script);
+  }
+
   function init() {
     render();
+    loadObservatoryLiveMedia();
     global.addEventListener('ftn:country-changed', render);
   }
 
