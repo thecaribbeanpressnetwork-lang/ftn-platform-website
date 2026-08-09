@@ -50,15 +50,12 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     global.FTN.WorkspaceShell.init({
-      productId: 'screen',
-      mountId: 'workspace-root',
-      accentSmallVar: '--color-screen',
+      productId: 'screen', mountId: 'workspace-root', accentSmallVar: '--color-screen',
       build: function (content, api) {
         var fields = global.FTN.EntityMetadataEngine.fieldsFor('screen-submission');
         var attachedFile = null;
-        content.innerHTML = '<section class="screen-hero"><div><span class="screen-kicker">Where Caribbean Stories Come Alive</span><h2>Turn a film or series into a complete programming record.</h2><p>FTN Screen’s production foundation is a canonical Caribbean screen-submission record: creative identity, format, origin, logline, synopsis, credits, audience, rights authority and distribution state. Trailer preview and export work locally today; streaming, licensing and commissioning remain future services.</p></div><div class="screen-mnemonic" aria-hidden="true"><span class="screen-mnemonic__frame"></span><span class="screen-mnemonic__play"></span><span class="screen-mnemonic__focus"></span></div></section>' +
-          '<div class="screen-status-grid"><article><span>Operational now</span><strong>Canonical submission record</strong><p>Structured metadata for films, series and programming concepts.</p></article><article><span>Operational now</span><strong>Local trailer preview + export</strong><p>Preview video without upload and export the record for review.</p></article><article><span>Future platform layer</span><strong>Catalog + streaming + commissioning</strong><p>Rights workflows, storage, screening, programming decisions and distribution require production services.</p></article></div>' +
-          '<section class="screen-panel"><span class="screen-kicker">Submission Studio</span><h3>Build the programming package</h3><form id="screen-form" class="screen-form" novalidate>' + fields.map(function (f) { var wide = f.type === 'textarea' ? ' workspace-field--wide' : ''; return '<div class="workspace-field' + wide + '"><label for="sc-' + f.key + '">' + escapeHtml(f.label) + (f.required ? '' : ' (optional)') + '</label>' + fieldInputHTML(f) + '</div>'; }).join('') + '<div class="workspace-field workspace-field--wide"><label>Attach a trailer or clip (optional local preview)</label><div id="screen-media-intake"></div></div><div class="screen-notice workspace-field--wide"><strong>Rights boundary:</strong> generating or saving this record does not transfer rights, create a commissioning agreement, upload the video or guarantee programming consideration.</div><div class="screen-form__actions"><button type="submit" class="btn btn-primary">Generate Submission Record</button></div></form><div id="screen-output"></div></section>' +
+        content.innerHTML = '<section class="screen-hero"><div><span class="screen-kicker">Where Caribbean Stories Come Alive</span><h2>Turn a film or series into a complete programming record.</h2><p>Capture the creative identity, origin, story, credits, audience, rights and distribution details that make a Caribbean film or series understandable at a glance.</p></div><div class="screen-mnemonic" aria-hidden="true"><span class="screen-mnemonic__frame"></span><span class="screen-mnemonic__play"></span><span class="screen-mnemonic__focus"></span></div></section>' +
+          '<section class="screen-panel"><span class="screen-kicker">Submission Studio</span><h3>Build the programming package</h3><form id="screen-form" class="screen-form" novalidate>' + fields.map(function (f) { var wide = f.type === 'textarea' ? ' workspace-field--wide' : ''; return '<div class="workspace-field' + wide + '"><label for="sc-' + f.key + '">' + escapeHtml(f.label) + (f.required ? '' : ' <span class="workspace-field__hint">(optional)</span>') + '</label>' + fieldInputHTML(f) + '</div>'; }).join('') + '<div class="workspace-field workspace-field--wide"><label>Attach a trailer or clip <span class="workspace-field__hint">(optional local preview)</span></label><div id="screen-media-intake"></div><p class="workspace-field__hint">The preview stays on this device.</p></div><div class="screen-form__actions"><button type="submit" class="btn btn-primary">Generate Submission Record</button></div></form><div id="screen-output"></div></section>' +
           '<section class="screen-panel" style="margin-top:var(--space-24)"><span class="screen-kicker">Saved on this device</span><h3>Recent Screen records</h3><div id="screen-history"></div></section>';
 
         global.FTN.MediaIntake.mount(document.getElementById('screen-media-intake'), { accept:'video/*', kind:'video', id:'screen-clip-input', label:'Choose a video file', onSelect:function(file){ attachedFile=file; } });
@@ -70,6 +67,7 @@
           fields.forEach(function (f) { input[f.key] = form[f.key].value; });
           var result = global.FTN.EntityMetadataEngine.createRecord('screen-submission', input);
           if (!result.valid) { output.innerHTML = global.FTN.WorkspaceShell.renderErrorsHTML(result.errors); return; }
+          result.record.intentInterpreter = 'ibis.ai';
           renderRecord(result.record, api, output, fields, attachedFile);
         });
         renderHistory();
