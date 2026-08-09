@@ -1,6 +1,4 @@
 // FTN Platform Website — FTN Opportunities workspace, production phase 1.
-// Real today: opportunity-category discovery plus a structured browser-local Opportunity Profile.
-// Not represented as live: job/grant feeds, subscriptions, application tracking or employer APIs.
 (function (global) {
   'use strict';
 
@@ -65,26 +63,25 @@
       build: function (content, api) {
         content.innerHTML =
           '<section class="opp-hero">' +
-            '<div class="opp-hero__copy"><span class="opp-kicker">Caribbean Opportunity Radar</span><h2>Know what you are looking for before the opportunity appears.</h2><p>FTN Opportunities is building one discovery layer for jobs, grants, procurement, business support, training and sponsorships. There is no live listings feed yet, so this phase helps you define and save a structured Opportunity Profile that a future feed can match against.</p></div>' +
+            '<div class="opp-hero__copy"><span class="opp-kicker">Caribbean Opportunity Radar</span><h2>Tell FTN what you are trying to accomplish.</h2><p>Explore opportunity categories, define the kind of work, funding or business support you want, and save the details that matter to you.</p></div>' +
             '<div class="opp-mnemonic" aria-hidden="true"><span class="opp-mnemonic__axis"></span><span class="opp-mnemonic__path"></span><span class="opp-mnemonic__node opp-mnemonic__node--1"></span><span class="opp-mnemonic__node opp-mnemonic__node--2"></span><span class="opp-mnemonic__node opp-mnemonic__node--3"></span><span class="opp-mnemonic__beacon"></span></div>' +
           '</section>' +
-          '<section class="opp-status-grid"><article><span>Operational now</span><strong>Category discovery</strong><p>Search FTN\'s real opportunity taxonomy.</p></article><article><span>Operational now</span><strong>Opportunity Profile</strong><p>Save the kind of work, funding and business opportunities that matter to you on this device.</p></article><article><span>Future connection</span><strong>Verified listing feeds</strong><p>Employer, government, funder and partner feeds connect only after source, expiry and provenance rules are implemented.</p></article></section>' +
           '<section class="opp-discovery"><div class="workspace-field"><label for="opp-search">Explore opportunity categories</label><input type="text" id="opp-search" placeholder="Search grants, procurement, training, sponsorships..."></div><p id="opp-count" class="workspace-field__hint"></p><div id="opp-results"></div></section>' +
-          '<section class="opp-profile"><div class="opp-section-head"><span class="opp-kicker">Build your signal</span><h3>Your Opportunity Profile</h3><p>This is a browser-local preference profile, not a live alert subscription or application.</p></div>' +
+          '<section class="opp-profile"><div class="opp-section-head"><span class="opp-kicker">Build your signal</span><h3>Your Opportunity Profile</h3><p>Use the structured fields, your own words, or both.</p></div>' +
             '<form id="opp-preferences" novalidate>' +
               '<div class="workspace-field"><label>What opportunity types matter to you?</label><div class="opp-check-grid">' + CATEGORIES.map(function (c) { return '<label class="workspace-checkbox-label"><input type="checkbox" name="category" value="' + c.id + '"> ' + escapeHtml(c.name) + '</label>'; }).join('') + '</div></div>' +
               '<div class="opp-form-grid"><div class="workspace-field"><label for="opp-territory">Preferred territory</label><input id="opp-territory" name="territory" type="text" value="' + escapeHtml(countryName()) + '" placeholder="Country, island, Caribbean-wide or remote"></div>' +
               '<div class="workspace-field"><label for="opp-sector">Sector / field</label><input id="opp-sector" name="sector" type="text" placeholder="e.g. media, construction, technology, tourism"></div>' +
               '<div class="workspace-field"><label for="opp-stage">Career / business stage</label><select id="opp-stage" name="stage"><option value="">Select</option><option>Student / trainee</option><option>Entry level</option><option>Experienced professional</option><option>Founder / entrepreneur</option><option>Established business</option><option>Creator / artist</option><option>Community organisation</option></select></div>' +
               '<div class="workspace-field"><label for="opp-mode">Preferred work mode</label><select id="opp-mode" name="mode"><option value="">Any</option><option>On-site</option><option>Hybrid</option><option>Remote</option><option>Project / contract</option></select></div>' +
-              '<div class="workspace-field"><label for="opp-value">Target value / income (optional)</label><input id="opp-value" name="targetValue" type="text" placeholder="Salary, grant amount, contract value or range"></div>' +
+              '<div class="workspace-field"><label for="opp-value">Target value / income <span class="workspace-field__hint">(optional)</span></label><input id="opp-value" name="targetValue" type="text" placeholder="Salary, grant amount, contract value or range"></div>' +
               '<div class="workspace-field"><label for="opp-timing">Timing</label><select id="opp-timing" name="timing"><option>As soon as possible</option><option>Within 3 months</option><option>Within 6 months</option><option>This year</option><option>Just exploring</option></select></div></div>' +
-              '<div class="workspace-field"><label for="opp-notes">What would make an opportunity a strong match?</label><textarea id="opp-notes" name="notes" rows="4" placeholder="Skills, qualifications, industries, exclusions, accessibility needs or other matching context"></textarea></div>' +
+              '<div class="workspace-field"><label for="opp-intent">Describe what you are trying to accomplish, in your own words <span class="workspace-field__hint">(optional)</span></label><textarea id="opp-intent" name="intentText" rows="4" maxlength="1200" placeholder="Example: I run a small Trinidad construction company and want government or private contracts we can realistically bid on within the next six months."></textarea></div>' +
+              '<div class="workspace-field"><label for="opp-notes">Anything else that would make a result useful? <span class="workspace-field__hint">(optional)</span></label><textarea id="opp-notes" name="notes" rows="3" placeholder="Skills, qualifications, exclusions, accessibility needs or other context"></textarea></div>' +
               '<button type="submit" class="btn btn-primary">Save Opportunity Profile</button><p id="opp-form-status" class="workspace-field__hint" role="status" aria-live="polite"></p>' +
             '</form>' +
           '</section>' +
-          '<section class="opp-history-panel"><div class="opp-section-head"><span class="opp-kicker">Saved on this device</span><h3>Recent profiles</h3></div><div id="opp-history"></div></section>' +
-          '<section class="opp-trust"><strong>Trust boundary</strong><p>FTN Opportunities does not currently claim live jobs, live grants, automatic alerts, application submission, employer verification or guaranteed eligibility. Future listings should carry source, territory, deadline, eligibility and last-verified metadata before being represented as active.</p></section>';
+          '<section class="opp-history-panel"><div class="opp-section-head"><span class="opp-kicker">Saved on this device</span><h3>Recent profiles</h3></div><div id="opp-history"></div></section>';
 
         var input = document.getElementById('opp-search');
         var results = document.getElementById('opp-results');
@@ -106,12 +103,14 @@
         form.addEventListener('submit', function (event) {
           event.preventDefault();
           var checked = Array.prototype.slice.call(form.querySelectorAll('input[name="category"]:checked')).map(function (el) { return el.value; });
-          if (!checked.length) {
-            status.textContent = 'Choose at least one opportunity type.';
+          var data = new FormData(form);
+          var intentText = String(data.get('intentText') || '').trim();
+          if (!checked.length && !intentText) {
+            status.textContent = 'Choose at least one opportunity type or describe what you want in your own words.';
             return;
           }
-          var data = new FormData(form);
           var payload = {
+            schemaVersion: 2,
             categories: checked,
             territory: String(data.get('territory') || '').trim(),
             sector: String(data.get('sector') || '').trim(),
@@ -119,11 +118,13 @@
             mode: String(data.get('mode') || '').trim(),
             targetValue: String(data.get('targetValue') || '').trim(),
             timing: String(data.get('timing') || '').trim(),
+            intentText: intentText,
             notes: String(data.get('notes') || '').trim(),
-            country: countryName()
+            country: countryName(),
+            intentInterpreter: 'ibis.ai'
           };
           global.FTN.IntegrationAdapter.submit('opportunities', payload).then(function (res) {
-            status.textContent = 'Saved on this device. This is not yet a live opportunity alert subscription.';
+            status.textContent = 'Saved on this device.';
             api.notify(res.message, 'success');
             pulseMnemonic();
             renderHistory(history);
