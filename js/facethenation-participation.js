@@ -20,6 +20,16 @@
     });
   }
 
+  function ensureLocationPanel() {
+    if (document.getElementById('ftn-location-form')) return;
+    var grid = document.querySelector('.ftn-participation-grid');
+    if (!grid) return;
+    var panel = document.createElement('article');
+    panel.className = 'ftn-participation-panel';
+    panel.innerHTML = '<span class="section__eyebrow">Location Desk</span><h3>Choose the Place</h3><p>Where should Face The Nation go? Tell us the community, street, school, market, venue or constituency — and what conversation should happen there.</p><div id="ftn-location-form"></div>';
+    grid.appendChild(panel);
+  }
+
   function mountForm(root, kind) {
     if (!root) return;
     var isTopic = kind === 'topic';
@@ -115,6 +125,7 @@
   }
 
   function init() {
+    ensureLocationPanel();
     mountForm(document.getElementById('ftn-topic-form'), 'topic');
     mountForm(document.getElementById('ftn-guest-form'), 'guest');
     mountForm(document.getElementById('ftn-location-form'), 'location');
