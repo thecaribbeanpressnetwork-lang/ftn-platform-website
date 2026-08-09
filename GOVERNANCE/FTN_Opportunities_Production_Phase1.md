@@ -32,6 +32,21 @@ The Opportunity Profile is useful future structured data for ibis.ai matching an
 - Reuses Product Registry, Workspace Shell, Search Foundation, Country Registry, shared storage and Integration Adapter.
 - No listing vendor, proprietary identifier or external credential is introduced.
 - Future providers should map into FTN-owned canonical opportunity records rather than becoming the system of record.
+- Provider-specific configuration must remain outside core Opportunities logic so future FTN-native, FTN-hosted, connected-provider and external-provider capabilities can be routed independently.
+- Secrets and provider credentials must never be committed to this repository.
+
+## Deferred architecture item — FTN Autonomous Opportunity & Provider Engine
+**Status: DEFER. Do not build during the website completion pass.**
+
+Preserve a future path toward:
+
+**FTN Capability Registry → Provider Registry → Opportunity Registry → Relationship Registry → Provider Router → Opportunity Scout → Creative Engine → ibis.ai orchestration**
+
+The current Opportunities page contributes only the pieces that naturally belong here today: structured demand/preferences, canonical future opportunity metadata expectations, provenance requirements, shared adapter usage and vendor independence. It does not introduce speculative registries, provider routing, scheduled scouts, autonomous applications or affiliate logic.
+
+When the website completion/deployment foundation is mature enough, evaluate this deferred system through the FTN Nexus Decision Gate before implementation. At that stage explicitly classify components as BUILD NOW / PREPARE NOW / BUILD LATER / EXPERIMENT / DEFER / REJECT.
+
+External services such as vidIQ may eventually be evaluated as discoverable/recommended providers where relevant, but no provider is privileged, registered or integrated in this phase. Recommendation quality and user value must remain independent of any future affiliate/referral relationship.
 
 ## Merge gate
 Browser visual/interactivity review is required before merge.
