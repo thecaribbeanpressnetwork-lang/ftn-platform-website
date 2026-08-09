@@ -30,6 +30,26 @@
     grid.appendChild(panel);
   }
 
+  function addMnemonicLayer() {
+    var hero = document.querySelector('.ftn-hero');
+    if (hero && !hero.querySelector('.ftn-mnemonic')) {
+      var mark = document.createElement('div');
+      mark.className = 'ftn-mnemonic';
+      mark.setAttribute('aria-hidden', 'true');
+      mark.innerHTML = '<span class="ftn-mnemonic__ring"></span><span class="ftn-mnemonic__beam"></span><span class="ftn-mnemonic__voice"></span>';
+      hero.appendChild(mark);
+    }
+  }
+
+  function pulseMnemonic() {
+    var hero = document.querySelector('.ftn-hero');
+    if (!hero) return;
+    hero.classList.remove('ftn-hero--signal');
+    void hero.offsetWidth;
+    hero.classList.add('ftn-hero--signal');
+    global.setTimeout(function () { hero.classList.remove('ftn-hero--signal'); }, 1500);
+  }
+
   function mountForm(root, kind) {
     if (!root) return;
     var isTopic = kind === 'topic';
@@ -89,7 +109,12 @@
       var toolId = isTopic ? 'facethenation-topic' : (isGuest ? 'facethenation-guest' : 'facethenation-location');
       adapter.submit(toolId, payload).then(function () {
         status.textContent = 'Saved on this device only. Online editorial submission will connect here when the FTN backend is enabled.';
-        status.className = 'ftn-form-status ftn-form-status--ok'; form.reset(); renderHistory();
+        status.className = 'ftn-form-status ftn-form-status--ok';
+        form.classList.add('ftn-participation-form--confirmed');
+        global.setTimeout(function () { form.classList.remove('ftn-participation-form--confirmed'); }, 1200);
+        pulseMnemonic();
+        form.reset();
+        renderHistory();
       });
     });
   }
@@ -125,6 +150,7 @@
   }
 
   function init() {
+    addMnemonicLayer();
     ensureLocationPanel();
     mountForm(document.getElementById('ftn-topic-form'), 'topic');
     mountForm(document.getElementById('ftn-guest-form'), 'guest');
