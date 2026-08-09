@@ -5,6 +5,15 @@
 (function (global) {
   'use strict';
 
+  // Keep product-specific styling isolated from the shared workspace shell.
+  if (!document.querySelector('link[data-ibis-style]')) {
+    var styleLink = document.createElement('link');
+    styleLink.rel = 'stylesheet';
+    styleLink.href = '/css/components/ibis-ai.css';
+    styleLink.setAttribute('data-ibis-style', 'true');
+    document.head.appendChild(styleLink);
+  }
+
   var escapeHtml = global.FTN.WorkspaceShell.escapeHtml;
   var STORAGE_KEY = 'ftn-ibis-recent-goals';
   var EXAMPLES = [
@@ -71,14 +80,19 @@
       accentSmallVar: '--color-ibis-on-dark',
       build: function (content) {
         content.innerHTML =
+          '<section class="ibis-brand-hero">' +
+            '<div class="ibis-brand-hero__copy">' +
+              '<span class="workspace-kicker">Caribbean Intelligence Layer</span>' +
+              '<h2>Tell ibis.ai what you need to accomplish.</h2>' +
+              '<p>Built for Caribbean context. Today ibis.ai is FTN\'s transparent navigation and decision-routing layer: it reads your goal, checks the Product Registry and sends you to the FTN product most capable of helping. The purple intelligence identity comes directly from the established ibis.ai product panel.</p>' +
+            '</div>' +
+            '<div class="ibis-brand-hero__art"><img src="/assets/panels/05-ibis-ai.png" alt="ibis.ai — Built for the Caribbean"></div>' +
+          '</section>' +
           '<section class="ibis-intro">' +
-            '<span class="workspace-kicker">Caribbean Intelligence Layer</span>' +
-            '<h2>Tell ibis.ai what you need to accomplish.</h2>' +
-            '<p class="u-max-60ch">Today, ibis.ai is a transparent FTN navigation and decision-routing engine. It understands your goal using the Product Registry and sends you to the FTN product most capable of helping. No external language model or hidden API is being claimed in this release.</p>' +
             '<div class="ibis-status-grid">' +
               '<article><span>Operational now</span><strong>Goal → FTN product routing</strong><p>Real deterministic matching with visible explanations.</p></article>' +
               '<article><span>Operational now</span><strong>Country context</strong><p>Your selected Caribbean country is carried into the recommendation surface.</p></article>' +
-              '<article><span>Future layer</span><strong>Regional intelligence</strong><p>Structured Caribbean datasets, models and decision support will connect here as verified services are deployed.</p></article>' +
+              '<article><span>Future layer</span><strong>Regional intelligence</strong><p>Structured Caribbean datasets, models and decision support connect here only after verified services and governance are deployed.</p></article>' +
             '</div>' +
           '</section>' +
           '<section class="ibis-console">' +
@@ -91,7 +105,7 @@
             '<div id="ibis-output" aria-live="polite"></div>' +
           '</section>' +
           '<section class="ibis-recent"><div class="ibis-recent__head"><div><span class="workspace-kicker">Saved on this device</span><h3>Recent goals</h3></div><button id="ibis-clear" type="button" class="btn btn-outline btn-sm">Clear</button></div><div id="ibis-recent-list"></div></section>' +
-          '<section class="ibis-trust"><span class="workspace-kicker">What ibis.ai does not do yet</span><p>It does not currently provide open-ended AI chat, government decisions, legal or medical conclusions, or live autonomous access to Caribbean databases. Those capabilities require separate verified data, governance, privacy and model layers before FTN can responsibly activate them.</p></section>';
+          '<section class="ibis-trust"><span class="workspace-kicker">Trust boundary</span><p>ibis.ai does not currently provide open-ended AI chat, government decisions, legal or medical conclusions, or live autonomous access to Caribbean databases. Those capabilities require verified data, privacy, governance and model layers before FTN can responsibly activate them.</p></section>';
 
         var form = document.getElementById('ibis-form');
         var input = document.getElementById('ibis-goal');
