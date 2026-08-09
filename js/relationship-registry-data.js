@@ -17,7 +17,8 @@
       capabilities: ['youtube-research', 'keyword-research', 'channel-analytics', 'video-discovery'],
       ecosystemUses: ['radio', 'face-the-nation', 'kaiso', 'opportunities', 'ibis-ai'],
       ownership: 'external-provider',
-      providerClass: 'connected-provider'
+      providerClass: 'connected-provider',
+      opportunity: { type: 'affiliate', state: 'active' }
     },
     {
       id: 'patreon',
@@ -65,7 +66,8 @@
       capabilities: ['beat-marketplace', 'creator-storefront'],
       ecosystemUses: ['riddim', 'radio', 'ftn-link'],
       ownership: 'external-provider',
-      providerClass: 'external-provider'
+      providerClass: 'external-provider',
+      opportunity: { type: 'affiliate', state: 'research-required' }
     },
     {
       id: 'openart',
@@ -77,7 +79,8 @@
       capabilities: ['image-generation', 'video-generation'],
       ecosystemUses: ['creative-engine'],
       ownership: 'external-provider',
-      providerClass: 'connected-provider'
+      providerClass: 'connected-provider',
+      opportunity: { type: 'affiliate', state: 'application-available' }
     },
     {
       id: 'runway',
@@ -89,7 +92,8 @@
       capabilities: ['image-generation', 'video-generation', 'video-editing'],
       ecosystemUses: ['creative-engine'],
       ownership: 'external-provider',
-      providerClass: 'connected-provider'
+      providerClass: 'connected-provider',
+      opportunity: { type: 'referral-credits', state: 'available-with-paid-plan-conditions' }
     },
     {
       id: 'heygen',
@@ -101,7 +105,8 @@
       capabilities: ['avatar-video', 'speech', 'translation', 'lip-sync'],
       ecosystemUses: ['creative-engine'],
       ownership: 'external-provider',
-      providerClass: 'connected-provider'
+      providerClass: 'connected-provider',
+      opportunity: { type: 'affiliate-ambassador-founder-programs', state: 'application-available' }
     },
     {
       id: 'veed',
@@ -113,7 +118,8 @@
       capabilities: ['video-generation'],
       ecosystemUses: ['creative-engine'],
       ownership: 'external-provider',
-      providerClass: 'connected-provider'
+      providerClass: 'connected-provider',
+      opportunity: { type: 'affiliate', state: 'application-available', benefitNote: 'Published affiliate benefits include a Pro account and AI credits for approved affiliates.' }
     },
     {
       id: 'blitzreels',
@@ -125,7 +131,8 @@
       capabilities: ['short-video', 'clip-generation', 'captions', 'social-video'],
       ecosystemUses: ['creative-engine', 'face-the-nation', 'kaiso'],
       ownership: 'external-provider',
-      providerClass: 'connected-provider'
+      providerClass: 'connected-provider',
+      opportunity: { type: 'affiliate', state: 'unverified' }
     }
   ];
 
