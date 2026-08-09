@@ -6,14 +6,20 @@
   document.documentElement.classList.remove('no-js');
   document.documentElement.classList.add('js');
 
-  // Shared FTN capabilities that belong on nearly every public page load here once,
-  // rather than forcing every product page to duplicate script tags.
+  // Shared FTN capabilities load here once so product pages do not duplicate them.
   if (!document.querySelector('script[data-ftn-smart-export]')) {
     var smartExport = document.createElement('script');
     smartExport.src = '/js/smart-export.js';
     smartExport.defer = true;
     smartExport.setAttribute('data-ftn-smart-export', 'true');
     document.head.appendChild(smartExport);
+  }
+  if (!document.querySelector('script[data-ftn-ux-primitives]')) {
+    var ux = document.createElement('script');
+    ux.src = '/js/ux-primitives.js';
+    ux.defer = true;
+    ux.setAttribute('data-ftn-ux-primitives', 'true');
+    document.head.appendChild(ux);
   }
 
   var toggle = document.querySelector('[data-nav-toggle]');
@@ -42,7 +48,6 @@
   navItems.forEach(function (item) {
     var trigger = item.querySelector('[data-nav-trigger]');
     if (!trigger) return;
-
     trigger.addEventListener('click', function () {
       var isOpen = item.classList.contains('is-open');
       closeAll(item);
@@ -52,9 +57,7 @@
   });
 
   document.addEventListener('click', function (event) {
-    if (!event.target.closest('[data-nav-item]')) {
-      closeAll();
-    }
+    if (!event.target.closest('[data-nav-item]')) closeAll();
   });
 
   document.addEventListener('keydown', function (event) {
