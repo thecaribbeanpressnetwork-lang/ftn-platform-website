@@ -20,12 +20,13 @@
       if (p0) p0.textContent = 'Attach an authorized track, inspect supported embedded metadata, complete credits and rights information, then save or export one canonical FTN music record.';
     }
 
-    if (cards[1]) {
-      var badge1 = cards[1].querySelector('.riddim-badge');
+    var djCard = cards[1] || null;
+    if (djCard) {
+      var badge1 = djCard.querySelector('.riddim-badge');
       if (badge1) badge1.remove();
-      var h1 = cards[1].querySelector('h2');
-      var p1 = cards[1].querySelector('p');
-      var l1 = cards[1].querySelector('.riddim-link');
+      var h1 = djCard.querySelector('h2');
+      var p1 = djCard.querySelector('p');
+      var l1 = djCard.querySelector('.riddim-link');
       if (h1) h1.textContent = 'FTN DJ Tube';
       if (p1) p1.textContent = 'Open the two-deck Caribbean DJ workspace with local profiles, controller mapping, tempo, cue, crossfade and performance controls.';
       if (l1) l1.textContent = 'Open FTN DJ Tube →';
@@ -37,6 +38,7 @@
       daw.href = '/riddim/daw/';
       daw.innerHTML = '<h2>FTN DAW</h2><p>Load authorized local audio, shape gain, tempo and EQ, compare the original, save named versions, then download the processed WAV and its FTN settings recipe.</p><span class="riddim-link">Open FTN DAW →</span>';
       cards[2].replaceWith(daw);
+      if (djCard && djCard.parentNode) djCard.parentNode.insertBefore(daw, djCard);
     }
   });
 })();
