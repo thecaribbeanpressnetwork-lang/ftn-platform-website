@@ -129,3 +129,11 @@
   global.FTN = global.FTN || {};
   global.FTN.RiddimMetadata = { read: read, parseID3: parseID3 };
 })(window);
+
+// Product-local hub presentation module. Kept out of shared/global files so Riddim can evolve
+// without creating cross-product merge conflicts during the website completion pass.
+(function () {
+  var script = document.createElement('script');
+  script.src = '/js/riddim-hub-finalize.js';
+  document.head.appendChild(script);
+})();
