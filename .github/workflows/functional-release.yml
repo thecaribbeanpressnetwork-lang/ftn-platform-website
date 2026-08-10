@@ -11,7 +11,7 @@ permissions:
 jobs:
   functional-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,6 +42,11 @@ jobs:
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/functional-release.mjs
+
+      - name: Run critical mobile scenarios
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/mobile-release.mjs
 
       - name: Static broken-local-reference scan
         run: |
