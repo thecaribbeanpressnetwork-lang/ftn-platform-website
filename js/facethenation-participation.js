@@ -1,188 +1,20 @@
-// FTN Platform Website — Face The Nation audience participation + media hub.
-(function (global) {
-  'use strict';
-
-  var MEDIA = {
-    youtube: 'https://www.youtube.com/@FaceTheNation-TT',
-    latestVideoId: '',
-    socials: [
-      { name: 'YouTube', handle: '@FaceTheNation-TT', url: 'https://www.youtube.com/@FaceTheNation-TT' },
-      { name: 'Instagram', handle: '@FaceTheNationTT', url: 'https://www.instagram.com/facethenationtt/' },
-      { name: 'Facebook', handle: 'FaceTheNationTT', url: 'https://www.facebook.com/FaceTheNationTT' },
-      { name: 'TikTok', handle: '@FaceTheNationTT', url: 'https://www.tiktok.com/@facethenationtt' },
-      { name: 'X', handle: '@FaceTheNationTT', url: 'https://x.com/FaceTheNationTT' }
-    ]
-  };
-
-  function escapeHtml(value) {
-    return String(value || '').replace(/[&<>'\"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '\"': '&quot;' }[c];
-    });
-  }
-
-  function cleanPublicLayout() {
-    var status = document.querySelector('.ftn-production-status');
-    if (status && status.closest('section')) status.closest('section').remove();
-    var programming = document.getElementById('programming');
-    if (programming) programming.remove();
-
-    var heroActions = document.querySelector('.ftn-hero__actions');
-    if (heroActions) {
-      var links = heroActions.querySelectorAll('a');
-      if (links[1]) {
-        links[1].href = '#watch';
-        links[1].textContent = 'Watch & Follow';
-      }
-    }
-
-    var participate = document.getElementById('participate');
-    if (participate) {
-      var header = participate.querySelector('.section__header p');
-      if (header) header.textContent = 'Tell Face The Nation what should be discussed, who should be heard, or where the programme should go. Suggestions are saved on this device.';
-    }
-  }
-
-  function ensureLocationPanel() {
-    if (document.getElementById('ftn-location-form')) return;
-    var grid = document.querySelector('.ftn-participation-grid');
-    if (!grid) return;
-    var panel = document.createElement('article');
-    panel.className = 'ftn-participation-panel';
-    panel.innerHTML = '<span class="section__eyebrow">Location Desk</span><h3>Choose the Place</h3><p>Where should Face The Nation go? Tell us the community, street, school, market, venue or constituency — and what conversation should happen there.</p><div id="ftn-location-form"></div>';
-    grid.appendChild(panel);
-  }
-
-  function addMnemonicLayer() {
-    var hero = document.querySelector('.ftn-hero');
-    if (hero && !hero.querySelector('.ftn-mnemonic')) {
-      var mark = document.createElement('div');
-      mark.className = 'ftn-mnemonic';
-      mark.setAttribute('aria-hidden', 'true');
-      mark.innerHTML = '<span class="ftn-mnemonic__ring"></span><span class="ftn-mnemonic__beam"></span><span class="ftn-mnemonic__voice"></span>';
-      hero.appendChild(mark);
-    }
-  }
-
-  function pulseMnemonic() {
-    var hero = document.querySelector('.ftn-hero');
-    if (!hero) return;
-    hero.classList.remove('ftn-hero--signal');
-    void hero.offsetWidth;
-    hero.classList.add('ftn-hero--signal');
-    global.setTimeout(function () { hero.classList.remove('ftn-hero--signal'); }, 1500);
-  }
-
-  function mountForm(root, kind) {
-    if (!root) return;
-    var isTopic = kind === 'topic';
-    var isGuest = kind === 'guest';
-    var isLocation = kind === 'location';
-    var button = isTopic ? 'Save Topic Suggestion' : (isGuest ? 'Save Guest Recommendation' : 'Save Location Pitch');
-    var specificFields = '';
-
-    if (isTopic) {
-      specificFields = '<div class="workspace-field"><label>What should Face The Nation discuss?</label><textarea name="detail" rows="5" required></textarea></div>';
-    } else if (isGuest) {
-      specificFields = '<div class="workspace-field"><label>Who would you like to see on Face The Nation?</label><input name="guest" type="text" required></div>' +
-        '<div class="workspace-field"><label>Why should this person or organisation be heard?</label><textarea name="detail" rows="5" required></textarea></div>';
-    } else {
-      specificFields = '<div class="workspace-field"><label>Where should Face The Nation go?</label><input name="location" type="text" placeholder="Community, street, school, market, venue or constituency" required></div>' +
-        '<div class="workspace-field"><label>What should we talk about there, and who should be part of the conversation?</label><textarea name="detail" rows="5" required></textarea></div>';
-    }
-
-    root.innerHTML =
-      '<form class="ftn-participation-form" novalidate>' +
-      '<div class="workspace-field"><label>Your name</label><input name="name" type="text" required></div>' +
-      '<div class="workspace-field"><label>Email</label><input name="email" type="email" required></div>' +
-      '<div class="workspace-field"><label>Your constituency / community</label><input name="community" type="text"></div>' +
-      '<div class="workspace-field"><label>Issue area</label><select name="issue"><option value="">Select</option><option>Community infrastructure</option><option>Local government</option><option>National policy</option><option>Economy and jobs</option><option>Crime and public safety</option><option>Health</option><option>Education</option><option>Environment</option><option>Culture</option><option>Other</option></select></div>' +
-      specificFields +
-      '<div class="workspace-field"><label>Supporting link (optional)</label><input name="link" type="url" placeholder="https://"></div>' +
-      '<label class="ftn-consent"><input type="checkbox" name="consent" required> I understand this is a public programme suggestion, not a guarantee of coverage, invitation or location selection.</label>' +
-      '<button class="btn btn-primary" type="submit">' + button + '</button><p class="ftn-form-status" role="status" aria-live="polite"></p></form>';
-
-    var form = root.querySelector('form');
-    var status = root.querySelector('.ftn-form-status');
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      var data = new FormData(form);
-      var payload = {
-        kind: kind,
-        name: String(data.get('name') || '').trim(),
-        email: String(data.get('email') || '').trim(),
-        community: String(data.get('community') || '').trim(),
-        issue: String(data.get('issue') || '').trim(),
-        guest: String(data.get('guest') || '').trim(),
-        location: String(data.get('location') || '').trim(),
-        detail: String(data.get('detail') || '').trim(),
-        link: String(data.get('link') || '').trim(),
-        consent: data.get('consent') === 'on'
-      };
-      var errors = [];
-      if (!payload.name) errors.push('Enter your name.');
-      if (!payload.email || payload.email.indexOf('@') === -1) errors.push('Enter a valid email address.');
-      if (!payload.detail) errors.push('Tell us what conversation you want to see.');
-      if (isGuest && !payload.guest) errors.push('Enter the guest name or organisation.');
-      if (isLocation && !payload.location) errors.push('Enter the place you want Face The Nation to visit.');
-      if (!payload.consent) errors.push('Confirm the programme-suggestion notice.');
-      if (errors.length) { status.textContent = errors.join(' '); status.className = 'ftn-form-status ftn-form-status--error'; return; }
-      var adapter = global.FTN && global.FTN.IntegrationAdapter;
-      if (!adapter) { status.textContent = 'Submission storage is unavailable in this browser.'; status.className = 'ftn-form-status ftn-form-status--error'; return; }
-      var toolId = isTopic ? 'facethenation-topic' : (isGuest ? 'facethenation-guest' : 'facethenation-location');
-      adapter.submit(toolId, payload).then(function () {
-        status.textContent = 'Saved on this device.';
-        status.className = 'ftn-form-status ftn-form-status--ok';
-        form.classList.add('ftn-participation-form--confirmed');
-        global.setTimeout(function () { form.classList.remove('ftn-participation-form--confirmed'); }, 1200);
-        pulseMnemonic();
-        form.reset();
-        renderHistory();
-      });
-    });
-  }
-
-  function renderHistory() {
-    var mount = document.getElementById('ftn-participation-history');
-    if (!mount || !global.FTN || !global.FTN.IntegrationAdapter) return;
-    var topics = global.FTN.IntegrationAdapter.history('facethenation-topic') || [];
-    var guests = global.FTN.IntegrationAdapter.history('facethenation-guest') || [];
-    var locations = global.FTN.IntegrationAdapter.history('facethenation-location') || [];
-    var rows = topics.map(function (r) { return { type: 'Topic', at: r.submittedAt, label: r.payload && r.payload.detail }; })
-      .concat(guests.map(function (r) { return { type: 'Guest', at: r.submittedAt, label: r.payload && r.payload.guest }; }))
-      .concat(locations.map(function (r) { return { type: 'Where', at: r.submittedAt, label: r.payload && r.payload.location }; }))
-      .sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); })
-      .slice(0, 9);
-    if (!rows.length) { mount.innerHTML = '<p class="ftn-history-empty">No suggestions saved on this device yet.</p>'; return; }
-    mount.innerHTML = '<div class="ftn-history-list">' + rows.map(function (row) { var when = row.at ? new Date(row.at).toLocaleString() : ''; return '<div class="ftn-history-item"><span>' + escapeHtml(row.type) + '</span><strong>' + escapeHtml(row.label || '(untitled)') + '</strong><small>' + escapeHtml(when) + '</small></div>'; }).join('') + '</div>';
-  }
-
-  function renderMediaHub() {
-    var follow = document.getElementById('follow');
-    if (!follow) return;
-    var watch = document.createElement('section');
-    watch.className = 'section section--tint ftn-watch';
-    watch.id = 'watch';
-    var player = MEDIA.latestVideoId
-      ? '<div class="ftn-video-frame"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(MEDIA.latestVideoId) + '" title="Watch Face The Nation on YouTube" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>'
-      : '<div class="ftn-video-placeholder"><span>FACE THE NATION</span><strong>Watch on the official YouTube channel.</strong><p>Open Face The Nation on YouTube for programme video and channel updates.</p><a class="btn btn-primary" href="' + MEDIA.youtube + '" target="_blank" rel="noopener noreferrer">Open Face The Nation on YouTube</a></div>';
-    watch.innerHTML = '<div class="container"><div class="section__header"><span class="section__eyebrow">Watch Face The Nation</span><h2>Watch and follow the programme.</h2></div>' + player + '</div>';
-    follow.parentNode.insertBefore(watch, follow);
-
-    follow.innerHTML = '<div class="container"><div class="section__header"><span class="section__eyebrow">Follow Face The Nation</span><h2>@FaceTheNationTT</h2><p class="u-mt-16 u-max-60ch">Official Face The Nation profiles across YouTube and social platforms.</p></div><div class="ftn-social-grid">' + MEDIA.socials.map(function (item) { return '<a class="ftn-social-card" href="' + item.url + '" target="_blank" rel="noopener noreferrer"><span>' + escapeHtml(item.name) + '</span><strong>' + escapeHtml(item.handle) + '</strong><small>Open official profile →</small></a>'; }).join('') + '</div></div>';
-  }
-
-  function init() {
-    cleanPublicLayout();
-    addMnemonicLayer();
-    ensureLocationPanel();
-    mountForm(document.getElementById('ftn-topic-form'), 'topic');
-    mountForm(document.getElementById('ftn-guest-form'), 'guest');
-    mountForm(document.getElementById('ftn-location-form'), 'location');
-    renderHistory();
-    renderMediaHub();
-  }
-
-  global.FTN = global.FTN || {};
-  global.FTN.FaceTheNationMedia = MEDIA;
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+// Face The Nation — programme hub + public conversation desk.
+(function(global){
+'use strict';
+var MEDIA={youtube:'https://www.youtube.com/@FaceTheNation-TT',socials:[{name:'YouTube',handle:'@FaceTheNation-TT',url:'https://www.youtube.com/@FaceTheNation-TT'},{name:'Instagram',handle:'@FaceTheNationTT',url:'https://www.instagram.com/facethenationtt/'},{name:'Facebook',handle:'FaceTheNationTT',url:'https://www.facebook.com/FaceTheNationTT'},{name:'TikTok',handle:'@facethenationtt',url:'https://www.tiktok.com/@facethenationtt'},{name:'X',handle:'@FaceTheNationTT',url:'https://x.com/FaceTheNationTT'}]};
+function esc(v){return String(v||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function load(src){return new Promise(function(resolve){var old=document.querySelector('script[src="'+src+'"]');if(old){if(global.FTN&&global.FTN.MediaDiscovery)resolve();else old.addEventListener('load',resolve,{once:true});return;}var s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=resolve;document.head.appendChild(s);});}
+function cleanLayout(){var status=document.querySelector('.ftn-production-status');if(status&&status.closest('section'))status.closest('section').remove();var programming=document.getElementById('programming');if(programming)programming.remove();var actions=document.querySelector('.ftn-hero__actions');if(actions){var links=actions.querySelectorAll('a');if(links[1]){links[1].href='#watch';links[1].textContent='Watch Face The Nation';}}}
+function pulse(){var hero=document.querySelector('.ftn-hero');if(!hero)return;hero.classList.remove('ftn-hero--signal');void hero.offsetWidth;hero.classList.add('ftn-hero--signal');setTimeout(function(){hero.classList.remove('ftn-hero--signal');},1200);}
+function addMnemonic(){var hero=document.querySelector('.ftn-hero');if(hero&&!hero.querySelector('.ftn-mnemonic')){var d=document.createElement('div');d.className='ftn-mnemonic';d.setAttribute('aria-hidden','true');d.innerHTML='<span class="ftn-mnemonic__ring"></span><span class="ftn-mnemonic__beam"></span><span class="ftn-mnemonic__voice"></span>';hero.appendChild(d);}}
+function ensureLocation(){if(document.getElementById('ftn-location-form'))return;var grid=document.querySelector('.ftn-participation-grid');if(!grid)return;var p=document.createElement('article');p.className='ftn-participation-panel';p.innerHTML='<span class="section__eyebrow">Location Desk</span><h3>Choose the Place</h3><p>Where should Face The Nation go, and what conversation should happen there?</p><div id="ftn-location-form"></div>';grid.appendChild(p);}
+function formMarkup(kind){var specific=kind==='topic'?'<div class="workspace-field"><label>What should Face The Nation discuss?</label><textarea name="detail" rows="5" required></textarea></div>':kind==='guest'?'<div class="workspace-field"><label>Guest / organisation</label><input name="guest" required></div><div class="workspace-field"><label>Why should they be heard?</label><textarea name="detail" rows="5" required></textarea></div>':'<div class="workspace-field"><label>Where should Face The Nation go?</label><input name="location" required placeholder="Community, school, market, venue or constituency"></div><div class="workspace-field"><label>What should be discussed there?</label><textarea name="detail" rows="5" required></textarea></div>';return'<form class="ftn-participation-form" novalidate><div class="workspace-field"><label>Your name</label><input name="name" required></div><div class="workspace-field"><label>Email</label><input name="email" type="email" required></div><div class="workspace-field"><label>Constituency / community</label><input name="community"></div>'+specific+'<div class="workspace-field"><label>Supporting public link (optional)</label><input name="link" type="url" placeholder="https://"></div><label class="ftn-consent"><input type="checkbox" name="consent" required> I understand this is a programme suggestion and editorial selection remains with Face The Nation.</label><button class="btn btn-primary" type="submit">Save '+(kind==='topic'?'Topic':kind==='guest'?'Guest':'Location')+' Suggestion</button><p class="ftn-form-status" role="status" aria-live="polite"></p></form>';}
+function mountForm(root,kind){if(!root)return;root.innerHTML=formMarkup(kind);var form=root.querySelector('form'),status=root.querySelector('.ftn-form-status');form.onsubmit=function(e){e.preventDefault();var d=new FormData(form),p={kind:kind,name:String(d.get('name')||'').trim(),email:String(d.get('email')||'').trim(),community:String(d.get('community')||'').trim(),guest:String(d.get('guest')||'').trim(),location:String(d.get('location')||'').trim(),detail:String(d.get('detail')||'').trim(),link:String(d.get('link')||'').trim(),consent:d.get('consent')==='on'};var errors=[];if(!p.name)errors.push('Enter your name.');if(!/^\S+@\S+\.\S+$/.test(p.email))errors.push('Enter a valid email.');if(!p.detail)errors.push('Tell us what conversation you want.');if(kind==='guest'&&!p.guest)errors.push('Enter the guest.');if(kind==='location'&&!p.location)errors.push('Enter the location.');if(!p.consent)errors.push('Confirm the editorial notice.');if(errors.length){status.textContent=errors.join(' ');status.className='ftn-form-status ftn-form-status--error';return;}var tool='facethenation-'+kind;global.FTN.IntegrationAdapter.submit(tool,p).then(function(r){status.textContent=r.message;status.className='ftn-form-status ftn-form-status--ok';form.reset();pulse();renderHistory();});};}
+function renderHistory(){var m=document.getElementById('ftn-participation-history');if(!m||!global.FTN.IntegrationAdapter)return;var rows=[];['topic','guest','location'].forEach(function(k){(global.FTN.IntegrationAdapter.history('facethenation-'+k)||[]).forEach(function(r){rows.push({type:k==='topic'?'Topic':k==='guest'?'Guest':'Location',at:r.submittedAt,label:k==='topic'?r.payload.detail:k==='guest'?r.payload.guest:r.payload.location});});});rows.sort(function(a,b){return String(b.at).localeCompare(String(a.at));});m.innerHTML=rows.length?'<div class="ftn-history-list">'+rows.slice(0,9).map(function(x){return'<div class="ftn-history-item"><span>'+esc(x.type)+'</span><strong>'+esc(x.label)+'</strong><small>'+esc(new Date(x.at).toLocaleString())+'</small></div>';}).join('')+'</div>':'<p class="ftn-history-empty">No suggestions saved on this device yet.</p>';}
+function injectWatchStyles(){if(document.getElementById('ftn-watch-live-style'))return;var s=document.createElement('style');s.id='ftn-watch-live-style';s.textContent='\
+.ftn-watch-live{display:grid;grid-template-columns:minmax(300px,1.15fr) minmax(0,.85fr);gap:14px}.ftn-watch-player{background:#08090b;border-radius:16px;border:1px solid #ccd0d6;overflow:hidden}.ftn-watch-video{aspect-ratio:16/9;background:#000}.ftn-watch-video iframe{width:100%;height:100%;border:0}.ftn-watch-meta{padding:13px}.ftn-watch-meta strong{display:block;font-size:17px}.ftn-watch-meta span{display:block;color:#6c737d;margin-top:4px}.ftn-watch-search{display:flex;gap:7px;margin-bottom:8px}.ftn-watch-search input{flex:1;min-width:0}.ftn-episodes{display:grid;gap:6px;max-height:510px;overflow:auto}.ftn-episode{display:grid;grid-template-columns:108px 1fr;gap:8px;text-align:left;border:1px solid #d2d6dc;border-radius:10px;background:#fff;padding:6px;cursor:pointer}.ftn-episode img{width:108px;height:64px;object-fit:cover;border-radius:6px}.ftn-episode strong{font-size:11px;line-height:1.25}.ftn-episode span{display:block;color:#707782;font-size:9px;margin-top:4px}.ftn-watch-status{font-size:11px;color:#68707b;margin:7px 0}@media(max-width:760px){.ftn-watch-live{grid-template-columns:1fr}.ftn-watch-player{position:sticky;top:0;z-index:20}.ftn-episode{grid-template-columns:82px 1fr}.ftn-episode img{width:82px;height:50px}}';document.head.appendChild(s);}
+async function renderWatch(){var section=document.getElementById('watch');if(!section)return;injectWatchStyles();await load('/js/ftn-media-discovery.js');var container=section.querySelector('.container')||section;container.innerHTML='<div class="section__header"><span class="section__eyebrow">Watch Face The Nation</span><h2>Episodes, interviews and public conversations.</h2><p class="u-mt-16 u-max-60ch">Search the programme directly on FTN. Playback remains sourced from the official/public YouTube channel and the original channel is always identified.</p></div><div class="ftn-watch-live"><div class="ftn-watch-player"><div class="ftn-watch-video"><iframe id="ftn-watch-frame" title="Face The Nation player" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div><div class="ftn-watch-meta"><strong id="ftn-watch-title">Loading programme catalogue…</strong><span id="ftn-watch-source">Face The Nation</span></div></div><div><div class="ftn-watch-search"><input id="ftn-watch-query" type="search" placeholder="Search guest, topic or episode"><button class="btn btn-primary" id="ftn-watch-search">Search</button></div><p class="ftn-watch-status" id="ftn-watch-status">Finding programme video…</p><div class="ftn-episodes" id="ftn-episodes"></div></div></div>';var items=[];function play(i){var t=items[i];if(!t)return;document.getElementById('ftn-watch-frame').src='https://www.youtube.com/embed/'+encodeURIComponent(t.videoId)+'?autoplay=1&rel=0&playsinline=1';document.getElementById('ftn-watch-title').textContent=t.title;document.getElementById('ftn-watch-source').textContent=t.channel||'YouTube';}function draw(){var m=document.getElementById('ftn-episodes');m.innerHTML=items.map(function(t,i){return'<button type="button" class="ftn-episode" data-ftn-episode="'+i+'"><img src="'+esc(t.thumbnail||'')+'" alt=""><span><strong>'+esc(t.title)+'</strong><span>'+esc(t.channel||'YouTube')+(t.publishedAt?' · '+new Date(t.publishedAt).toLocaleDateString():'')+'</span></span></button>';}).join('');m.querySelectorAll('[data-ftn-episode]').forEach(function(b){b.onclick=function(){play(+b.getAttribute('data-ftn-episode'));};});if(items.length)play(0);}async function discover(q){var status=document.getElementById('ftn-watch-status');status.textContent='Searching Face The Nation…';try{var queries=q?[q+' Face The Nation Trinidad Tobago',q+' FaceTheNationTT']:[ 'FaceTheNationTT','Face The Nation Trinidad Tobago RealityArtTV','Face The Nation Caribbean Press Network Trinidad'];var d=await global.FTN.MediaDiscovery.discover({mode:'video',queries:queries,limit:100},{force:!!q});items=(d.results||[]).filter(function(t){var h=(t.title+' '+t.channel).toLowerCase();return /face.*nation|facethenation|realityarttv|caribbean press network/.test(h);});if(!items.length)items=d.results||[];draw();status.textContent=items.length+' embeddable programme results found.';}catch(e){status.textContent=e.message+' · Open the official YouTube channel if the catalogue is temporarily unavailable.';}}document.getElementById('ftn-watch-search').onclick=function(){discover(document.getElementById('ftn-watch-query').value.trim());};document.getElementById('ftn-watch-query').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('ftn-watch-search').click();}};discover('');}
+function renderFollow(){var follow=document.getElementById('follow');if(!follow)return;follow.innerHTML='<div class="container"><div class="section__header"><span class="section__eyebrow">Follow Face The Nation</span><h2>@FaceTheNationTT</h2></div><div class="ftn-social-grid">'+MEDIA.socials.map(function(x){return'<a class="ftn-social-card" href="'+x.url+'" target="_blank" rel="noopener noreferrer"><span>'+esc(x.name)+'</span><strong>'+esc(x.handle)+'</strong><small>Open official profile →</small></a>';}).join('')+'</div></div>';}
+async function init(){cleanLayout();addMnemonic();ensureLocation();mountForm(document.getElementById('ftn-topic-form'),'topic');mountForm(document.getElementById('ftn-guest-form'),'guest');mountForm(document.getElementById('ftn-location-form'),'location');renderHistory();renderFollow();await renderWatch();}
+global.FTN=global.FTN||{};global.FTN.FaceTheNationMedia=MEDIA;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(window);
