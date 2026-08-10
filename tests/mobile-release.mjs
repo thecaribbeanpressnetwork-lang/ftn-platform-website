@@ -24,7 +24,7 @@ const surfaces=[
   ['/observatory/','.ftn-sat'],
   ['/events/','#events-form'],
   ['/opportunities/','#opp-search'],
-  ['/radio/','#ftn-radio-live'],
+  ['/radio/','.ftn-radio-live'],
   ['/dj-tube-prototype/?ftn=1','#playA'],
   ['/riddim/daw/','#play'],
   ['/screen/','.screen-catalog'],
