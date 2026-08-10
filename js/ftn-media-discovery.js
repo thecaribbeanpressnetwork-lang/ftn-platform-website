@@ -8,6 +8,13 @@
   var ENDPOINT=SUPABASE_URL+'/functions/v1/dj-tube-discovery';
   var cache=new Map();
 
+  // The DJ prototype intentionally keeps two decks visible side-by-side on phones.
+  // Every grid child therefore needs min-width:0; otherwise intrinsic button/iframe
+  // widths can make the document wider than the viewport even when body overflow is hidden.
+  if(/\/dj-tube-prototype\//.test(global.location.pathname)&&!document.getElementById('ftn-dj-mobile-width-fix')){
+    var style=document.createElement('style');style.id='ftn-dj-mobile-width-fix';style.textContent='@media(max-width:620px){.wrap{width:100%;max-width:100vw}.discovery,.console,.deck,.mixer,.panel,.queue,.queue-head,.searchbar,.faders,.channel,.deckcontrols,.deckcontrols>*{min-width:0;max-width:100%}.console{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.deckcontrols{grid-template-columns:repeat(3,minmax(0,1fr))}.deckcontrols button{min-width:0;width:100%;padding-left:2px;padding-right:2px;overflow:hidden;text-overflow:clip}.deck .screen{width:100%;max-width:43vw}.queue{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.queue-head>*{min-width:0}.item{min-width:0}.item span{min-width:0;overflow:hidden}.item strong,.item small{overflow:hidden;text-overflow:ellipsis}.searchbar{width:100%}.searchbar input{min-width:0}}';document.head.appendChild(style);
+  }
+
   function keyFor(payload){try{return JSON.stringify(payload,Object.keys(payload).sort());}catch(e){return String(Date.now());}}
   function discover(payload, options){
     payload=payload||{};options=options||{};
