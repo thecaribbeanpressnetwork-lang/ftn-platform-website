@@ -43,6 +43,11 @@ jobs:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/functional-release.mjs
 
+      - name: Verify Turnstile safe readiness
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/turnstile-release.mjs
+
       - name: Run critical mobile scenarios
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
