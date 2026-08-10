@@ -40,7 +40,15 @@ function applicationsTruth(){
   };if(copy[name])p.textContent=copy[name];});
 }
 function sitemapTruth(){textReplace(document.body,'National Observatory','FTN Live');textReplace(document.body,'News & Stories','FTN Kaiso');}
-function insightsTruth(){document.querySelectorAll('a[href="/news/"],a[href="/news"]').forEach(function(a){a.href='/kaiso/';if(/news/i.test(a.textContent||''))a.textContent='Open FTN Kaiso';});}
+function insightsTruth(){
+  document.querySelectorAll('a[href="/news/"],a[href="/news"]').forEach(function(a){a.href='/kaiso/';if(/news/i.test(a.textContent||''))a.textContent='Open FTN Kaiso';});
+  var community=document.querySelector('#community-reports .chart-card');
+  if(community)community.innerHTML='<p><strong>Community data stays permission-aware.</strong> Community Connect information is not automatically published into Insights or Mission Control. When FTN presents aggregated community patterns here, the view must identify its source, date, classification and privacy boundary.</p><p class="u-mt-16"><a href="/kaiso/">Open FTN Kaiso for current source discovery and newsroom verification →</a></p>';
+  var live=document.querySelector('a.module-card[href="/observatory/"] p');
+  if(live)live.textContent='Current Caribbean satellite imagery, connected public sources and clearly classified national indicator context.';
+  var mc=document.querySelector('a.module-card[href="/mission-control/demo/"] p');
+  if(mc)mc.textContent='Calculate relationships in loaded indicator histories, inspect evidence and test disclosed demonstration scenarios.';
+}
 function init(){if(!document.body)return;globalTruth();var p=location.pathname;if(p.indexOf('/about/')===0)aboutTruth();if(p.indexOf('/applications/')===0)applicationsTruth();if(p.indexOf('/sitemap/')===0)sitemapTruth();if(p.indexOf('/insights/')===0)insightsTruth();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
