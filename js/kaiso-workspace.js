@@ -1,155 +1,18 @@
-// FTN Platform Website — FTN Kaiso workspace, production phase 1.
-(function (global) {
-  'use strict';
-
-  var BEATS = [
-    { name: 'Politics & Government', description: 'Elections, policy, parliament and public administration.' },
-    { name: 'Crime & Justice', description: 'Law enforcement, courts, public safety and the justice system.' },
-    { name: 'Corruption & Accountability', description: 'Public accountability, procurement and investigative reporting.' },
-    { name: 'Environment & Climate', description: 'Climate, conservation, pollution and environmental risk.' },
-    { name: 'Weather & Disasters', description: 'Hurricanes, flooding, severe weather and emergency response.' },
-    { name: 'Business & Economy', description: 'Trade, prices, employment, enterprise and the Caribbean economy.' },
-    { name: 'Health', description: 'Public health, healthcare access, institutions and wellness policy.' },
-    { name: 'Education', description: 'Schools, universities, students and education policy.' },
-    { name: 'Technology', description: 'Innovation, digital access, cybersecurity and regional technology.' },
-    { name: 'Culture & Entertainment', description: 'Carnival, music, film, heritage and the arts.' },
-    { name: 'Sports', description: 'Community, regional and international sport.' },
-    { name: 'Community Issues', description: 'Local infrastructure, services, development and neighbourhood concerns.' },
-    { name: 'Immigration & Diaspora', description: 'Migration, diaspora communities and regional movement.' },
-    { name: 'International', description: 'Global developments with material Caribbean relevance.' }
-  ];
-
-  function ensureStyles() {
-    if (document.querySelector('link[data-kaiso-production-style]')) return;
-    var link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/css/components/kaiso-production.css';
-    link.setAttribute('data-kaiso-production-style', 'true');
-    document.head.appendChild(link);
-  }
-
-  function ensureIntegrationAdapter(done) {
-    if (global.FTN && global.FTN.IntegrationAdapter) { done(); return; }
-    var existing = document.querySelector('script[data-ftn-integration-adapter]');
-    if (existing) { existing.addEventListener('load', done, { once: true }); return; }
-    var script = document.createElement('script');
-    script.src = '/js/integration-adapter.js';
-    script.setAttribute('data-ftn-integration-adapter', 'true');
-    script.addEventListener('load', done, { once: true });
-    script.addEventListener('error', done, { once: true });
-    document.head.appendChild(script);
-  }
-
-  ensureStyles();
-  var escapeHtml = global.FTN.WorkspaceShell.escapeHtml;
-
-  function countryName() {
-    return global.FTN.Country && global.FTN.Country.get ? global.FTN.Country.get().name : 'Trinidad & Tobago';
-  }
-
-  function beatOptions() {
-    return '<option value="">Select coverage desk</option>' + BEATS.map(function (beat) {
-      return '<option value="' + escapeHtml(beat.name) + '">' + escapeHtml(beat.name) + '</option>';
-    }).join('');
-  }
-
-  function beatsHTML(beats) {
-    if (!beats.length) return '<p class="workspace-muted">No coverage desk matched those words. A story can still be pitched using “Other / emerging issue”.</p>';
-    return '<ul class="kaiso-beat-list">' + beats.map(function (beat) {
-      return '<li><strong>' + escapeHtml(beat.name) + '</strong><small>' + escapeHtml(beat.description) + '</small></li>';
-    }).join('') + '</ul>';
-  }
-
-  function pulseMnemonic() {
-    var mnemonic = document.querySelector('.kaiso-mnemonic');
-    if (!mnemonic) return;
-    mnemonic.classList.remove('kaiso-mnemonic--confirmed');
-    void mnemonic.offsetWidth;
-    mnemonic.classList.add('kaiso-mnemonic--confirmed');
-    global.setTimeout(function () { mnemonic.classList.remove('kaiso-mnemonic--confirmed'); }, 1100);
-  }
-
-  function renderHistory() {
-    var mount = document.getElementById('kaiso-history-list');
-    if (!mount) return;
-    var adapter = global.FTN && global.FTN.IntegrationAdapter;
-    if (!adapter) { mount.innerHTML = '<p class="workspace-muted">Local newsroom storage is unavailable.</p>'; return; }
-    var records = (adapter.history('kaiso-story-tip') || []).slice().reverse().slice(0, 8);
-    if (!records.length) { mount.innerHTML = '<p class="workspace-muted">No story pitches saved on this device yet.</p>'; return; }
-    mount.innerHTML = '<div class="kaiso-history-list">' + records.map(function (record) {
-      var payload = record.payload || {};
-      var when = record.submittedAt ? new Date(record.submittedAt).toLocaleString() : '';
-      return '<div class="kaiso-history-item"><span>' + escapeHtml(payload.beat || 'Story tip') + '</span><strong>' + escapeHtml(payload.headline || payload.summary || 'Untitled pitch') + '</strong><small>' + escapeHtml(when) + '</small></div>';
-    }).join('') + '</div>';
-  }
-
-  function mountTipForm() {
-    var root = document.getElementById('kaiso-tip-form');
-    if (!root) return;
-    root.innerHTML = '<form class="kaiso-tip-form" novalidate>' +
-      '<div class="kaiso-tip-form__row"><div class="workspace-field"><label for="kaiso-beat">Coverage desk</label><select id="kaiso-beat" name="beat">' + beatOptions() + '<option>Other / emerging issue</option></select></div>' +
-      '<div class="workspace-field"><label for="kaiso-location">Where is this happening?</label><input id="kaiso-location" name="location" type="text" placeholder="Community, city, country"></div></div>' +
-      '<div class="workspace-field"><label for="kaiso-headline">Working headline</label><input id="kaiso-headline" name="headline" type="text" placeholder="Describe the story in one line" required></div>' +
-      '<div class="workspace-field"><label for="kaiso-summary">What happened, and why does it matter?</label><textarea id="kaiso-summary" name="summary" required></textarea></div>' +
-      '<div class="kaiso-tip-form__row"><div class="workspace-field"><label for="kaiso-source-type">How do you know?</label><select id="kaiso-source-type" name="sourceType"><option value="">Select</option><option>Directly witnessed it</option><option>Document / official record</option><option>Person directly involved</option><option>Multiple community reports</option><option>Public social/media material</option><option>Other</option></select></div>' +
-      '<div class="workspace-field"><label for="kaiso-confidence">How certain are you?</label><select id="kaiso-confidence" name="confidence"><option value="">Select</option><option>First-hand / documented</option><option>Strong information, needs verification</option><option>Unconfirmed lead</option></select></div></div>' +
-      '<div class="workspace-field"><label for="kaiso-link">Supporting public link <span class="workspace-field__hint">(optional)</span></label><input id="kaiso-link" name="link" type="url" placeholder="https://"></div>' +
-      '<div class="kaiso-tip-form__row"><div class="workspace-field"><label for="kaiso-name">Your name <span class="workspace-field__hint">(optional)</span></label><input id="kaiso-name" name="name" type="text"></div><div class="workspace-field"><label for="kaiso-email">Email for follow-up <span class="workspace-field__hint">(optional)</span></label><input id="kaiso-email" name="email" type="email"></div></div>' +
-      '<div class="workspace-field"><label for="kaiso-urgency">Editorial urgency</label><select id="kaiso-urgency" name="urgency"><option>Standard</option><option>Time-sensitive / developing</option><option>Public safety concern</option></select></div>' +
-      '<p class="workspace-field__hint">Do not enter confidential credentials, private addresses or material that could put someone at risk.</p>' +
-      '<label class="kaiso-consent"><input type="checkbox" name="consent" required> I understand this is a story lead that requires verification before publication.</label>' +
-      '<button type="submit" class="btn btn-primary">Save Story Pitch</button><p class="kaiso-form-status" role="status" aria-live="polite"></p></form>';
-
-    var form = root.querySelector('form');
-    var status = root.querySelector('.kaiso-form-status');
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      var data = new FormData(form);
-      var payload = {
-        beat: String(data.get('beat') || '').trim(), location: String(data.get('location') || '').trim(), headline: String(data.get('headline') || '').trim(),
-        summary: String(data.get('summary') || '').trim(), sourceType: String(data.get('sourceType') || '').trim(), confidence: String(data.get('confidence') || '').trim(),
-        link: String(data.get('link') || '').trim(), name: String(data.get('name') || '').trim(), email: String(data.get('email') || '').trim(), urgency: String(data.get('urgency') || 'Standard').trim(),
-        countryContext: countryName(), consent: data.get('consent') === 'on', intentInterpreter: 'ibis.ai'
-      };
-      var errors = [];
-      if (!payload.headline) errors.push('Add a working headline.');
-      if (!payload.summary) errors.push('Explain what happened and why it matters.');
-      if (payload.email && payload.email.indexOf('@') === -1) errors.push('Enter a valid email or leave it blank.');
-      if (!payload.consent) errors.push('Confirm the editorial notice.');
-      if (errors.length) { status.textContent = errors.join(' '); status.className = 'kaiso-form-status kaiso-form-status--error'; return; }
-      var adapter = global.FTN && global.FTN.IntegrationAdapter;
-      if (!adapter) { status.textContent = 'Local storage is unavailable in this browser.'; status.className = 'kaiso-form-status kaiso-form-status--error'; return; }
-      adapter.submit('kaiso-story-tip', payload).then(function () {
-        status.textContent = 'Saved on this device.';
-        status.className = 'kaiso-form-status kaiso-form-status--ok';
-        pulseMnemonic(); form.reset(); renderHistory();
-      });
-    });
-  }
-
-  function buildWorkspace() {
-    global.FTN.WorkspaceShell.init({
-      productId: 'kaiso', mountId: 'workspace-root', accentSmallVar: '--color-kaiso-on-dark',
-      build: function (content) {
-        content.innerHTML = '<section class="kaiso-hero"><div class="kaiso-hero__copy"><span class="kaiso-kicker">The Caribbean Newsroom</span><h2>Find the story. Build the record. Verify before publishing.</h2><p>Search FTN Kaiso coverage desks and prepare a structured story pitch with the facts, source basis and context that matter.</p></div>' +
-          '<div class="kaiso-mnemonic" aria-hidden="true"><span class="kaiso-mnemonic__sheet"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--1"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--2"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--3"></span><span class="kaiso-mnemonic__rule"></span><span class="kaiso-mnemonic__stamp">Verify</span><span class="kaiso-mnemonic__scan"></span></div></section>' +
-          '<div class="kaiso-grid"><section class="kaiso-panel"><span class="kaiso-kicker">Coverage Desk</span><h3>What should Kaiso cover?</h3><div class="workspace-field kaiso-beat-search"><label for="kaiso-search">Search coverage beats</label><input type="text" id="kaiso-search" placeholder="e.g. climate, corruption, health"></div><p id="kaiso-count" class="workspace-field__hint"></p><div id="kaiso-results"></div></section>' +
-          '<section class="kaiso-panel"><span class="kaiso-kicker">Story Desk</span><h3>Prepare a story pitch</h3><p>Capture what happened, how you know and what still needs checking.</p><div id="kaiso-tip-form"></div></section></div>' +
-          '<section class="kaiso-panel kaiso-history"><span class="kaiso-kicker">Saved on this device</span><h3>Recent story pitches</h3><div id="kaiso-history-list"></div></section>';
-
-        var input = document.getElementById('kaiso-search');
-        var results = document.getElementById('kaiso-results');
-        var count = document.getElementById('kaiso-count');
-        function render(query) {
-          var out = global.FTN.SearchFoundation.query(BEATS, { textQuery: query });
-          count.textContent = out.total + ' of ' + BEATS.length + ' coverage beats' + (query ? ' match “' + query + '”' : '');
-          results.innerHTML = beatsHTML(out.results);
-        }
-        input.addEventListener('input', function () { render(input.value); });
-        render(''); mountTipForm(); renderHistory();
-      }
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', function () { ensureIntegrationAdapter(buildWorkspace); });
+// FTN Kaiso — current-source radar + newsroom pitch desk.
+(function(global){
+'use strict';
+var NEWS_ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-news-sources',PUBLISHABLE_KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+var BEATS=['Politics & Government','Crime & Justice','Corruption & Accountability','Environment & Climate','Weather & Disasters','Business & Economy','Health','Education','Technology','Culture & Entertainment','Sports','Community Issues','Immigration & Diaspora','International'];
+function esc(v){return global.FTN.WorkspaceShell.escapeHtml(String(v==null?'':v));}
+function country(){return global.FTN.Country&&global.FTN.Country.get?global.FTN.Country.get().name:'Trinidad & Tobago';}
+function load(src){return new Promise(function(resolve){var o=document.querySelector('script[src="'+src+'"]');if(o){resolve();return;}var s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=resolve;document.head.appendChild(s);});}
+function inject(){if(!document.querySelector('link[data-kaiso-production-style]')){var l=document.createElement('link');l.rel='stylesheet';l.href='/css/components/kaiso-production.css';l.setAttribute('data-kaiso-production-style','true');document.head.appendChild(l);}if(document.getElementById('kaiso-live-style'))return;var s=document.createElement('style');s.id='kaiso-live-style';s.textContent='\
+.kaiso-radar{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.kaiso-radar__search{display:flex;gap:7px}.kaiso-radar__search input{flex:1;min-width:0}.kaiso-radar__tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.kaiso-radar__tabs button{font-size:10px}.kaiso-feed{display:grid;gap:7px;max-height:620px;overflow:auto}.kaiso-story{border:1px solid rgba(255,255,255,.14);border-radius:11px;background:rgba(255,255,255,.03);padding:11px;color:#fff;text-decoration:none}.kaiso-story strong{display:block;line-height:1.3}.kaiso-story span,.kaiso-story small{display:block;color:#a8b0bc;margin-top:4px;font-size:10px}.kaiso-story__class{color:#ff7b84!important;font-weight:900;text-transform:uppercase;letter-spacing:.07em}.kaiso-video-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:620px;overflow:auto}.kaiso-video{display:grid;grid-template-columns:72px 1fr;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:#0d1117;color:#fff;padding:6px;text-decoration:none}.kaiso-video img{width:72px;height:52px;object-fit:cover;border-radius:6px}.kaiso-video strong{font-size:10px;line-height:1.25}.kaiso-video span{font-size:9px;color:#9aa4b2}.kaiso-verification{border-left:4px solid #e10613;padding:12px;background:rgba(225,6,19,.08);font-size:11px;line-height:1.55;margin-top:10px}.kaiso-pitch-actions{display:flex;gap:7px;flex-wrap:wrap}.kaiso-pitch-actions>*{text-align:center}.kaiso-source-status{font-size:10px;color:#98a2af}@media(max-width:820px){.kaiso-radar{grid-template-columns:1fr}.kaiso-radar__search{display:grid;grid-template-columns:1fr auto}.kaiso-video-grid{max-height:430px}}@media(max-width:540px){.kaiso-radar__search{grid-template-columns:1fr}.kaiso-video-grid{grid-template-columns:1fr}.kaiso-pitch-actions>*{flex:1}}';document.head.appendChild(s);}
+function renderHistory(){var m=document.getElementById('kaiso-history-list');if(!m||!global.FTN.IntegrationAdapter)return;var rows=(global.FTN.IntegrationAdapter.history('kaiso-story-tip')||[]).slice().reverse().slice(0,8);m.innerHTML=rows.length?'<div class="kaiso-history-list">'+rows.map(function(r){var p=r.payload||{};return'<div class="kaiso-history-item"><span>'+esc(p.beat||'Story lead')+'</span><strong>'+esc(p.headline||'Untitled')+'</strong><small>'+esc(new Date(r.submittedAt).toLocaleString())+'</small></div>';}).join('')+'</div>':'<p class="workspace-muted">No newsroom drafts saved on this device yet.</p>';}
+function pitchText(p){return['FTN KAISO — STORY LEAD','','Working headline: '+p.headline,'Coverage desk: '+(p.beat||'Unassigned'),'Location: '+(p.location||'Not specified'),'Urgency: '+p.urgency,'','What happened / why it matters:',p.summary,'','Source basis: '+(p.sourceType||'Not specified'),'Confidence: '+(p.confidence||'Not specified'),'Supporting public link: '+(p.link||'None'),'','Contact name: '+(p.name||'Not provided'),'Contact email: '+(p.email||'Not provided'),'Country context: '+p.countryContext,'','Editorial notice: This is a lead. It requires independent verification before FTN publication.'].join('\n');}
+function mountForm(){var root=document.getElementById('kaiso-tip-form');if(!root)return;root.innerHTML='<form class="kaiso-tip-form" novalidate><div class="kaiso-tip-form__row"><div class="workspace-field"><label>Coverage desk</label><select name="beat"><option value="">Select</option>'+BEATS.map(function(x){return'<option>'+esc(x)+'</option>';}).join('')+'<option>Other / emerging issue</option></select></div><div class="workspace-field"><label>Where is this happening?</label><input name="location" placeholder="Community, city, country"></div></div><div class="workspace-field"><label>Working headline</label><input name="headline" required placeholder="Describe the story in one line"></div><div class="workspace-field"><label>What happened, and why does it matter?</label><textarea name="summary" required></textarea></div><div class="kaiso-tip-form__row"><div class="workspace-field"><label>How do you know?</label><select name="sourceType"><option value="">Select</option><option>Directly witnessed it</option><option>Document / official record</option><option>Person directly involved</option><option>Multiple community reports</option><option>Public social/media material</option><option>Other</option></select></div><div class="workspace-field"><label>How certain are you?</label><select name="confidence"><option value="">Select</option><option>First-hand / documented</option><option>Strong information, needs verification</option><option>Unconfirmed lead</option></select></div></div><div class="workspace-field"><label>Supporting public link</label><input name="link" type="url" placeholder="https://"></div><div class="kaiso-tip-form__row"><div class="workspace-field"><label>Your name</label><input name="name"></div><div class="workspace-field"><label>Email for follow-up</label><input name="email" type="email"></div></div><div class="workspace-field"><label>Editorial urgency</label><select name="urgency"><option>Standard</option><option>Time-sensitive / developing</option><option>Public safety concern</option></select></div><label class="kaiso-consent"><input type="checkbox" name="consent" required> I understand this is a story lead, not a published fact, and FTN must verify it before publication.</label><div class="kaiso-pitch-actions"><button class="btn btn-primary" type="submit">Save newsroom draft</button><a class="btn btn-outline" id="kaiso-email-pitch" href="mailto:facethenationtt@gmail.com">Email newsroom</a></div><p class="kaiso-form-status" role="status" aria-live="polite"></p></form>';var form=root.querySelector('form'),status=root.querySelector('.kaiso-form-status'),emailLink=document.getElementById('kaiso-email-pitch');function payload(){var d=new FormData(form);return{beat:String(d.get('beat')||'').trim(),location:String(d.get('location')||'').trim(),headline:String(d.get('headline')||'').trim(),summary:String(d.get('summary')||'').trim(),sourceType:String(d.get('sourceType')||'').trim(),confidence:String(d.get('confidence')||'').trim(),link:String(d.get('link')||'').trim(),name:String(d.get('name')||'').trim(),email:String(d.get('email')||'').trim(),urgency:String(d.get('urgency')||'Standard'),countryContext:country(),consent:d.get('consent')==='on'};}function email(){var p=payload();emailLink.href='mailto:facethenationtt@gmail.com?subject='+encodeURIComponent('FTN Kaiso story lead — '+(p.headline||'New lead'))+'&body='+encodeURIComponent(pitchText(p));}form.addEventListener('input',email);email();form.onsubmit=function(e){e.preventDefault();var p=payload(),errors=[];if(!p.headline)errors.push('Add a headline.');if(!p.summary)errors.push('Explain the story.');if(p.email&&!/^\S+@\S+\.\S+$/.test(p.email))errors.push('Check the email address.');if(!p.consent)errors.push('Confirm the editorial notice.');if(errors.length){status.textContent=errors.join(' ');return;}global.FTN.IntegrationAdapter.submit('kaiso-story-tip',p).then(function(r){status.textContent=r.message+' Use “Email newsroom” when you are ready to send the lead to FTN.';renderHistory();});};}
+async function renderSourceRadar(){var official=document.getElementById('kaiso-official-feed'),status=document.getElementById('kaiso-source-status');try{var r=await fetch(NEWS_ENDPOINT,{headers:{Accept:'application/json',apikey:PUBLISHABLE_KEY}}),d=await r.json();if(!r.ok)throw new Error(d.error||'Source feed failed');official.innerHTML=(d.items||[]).map(function(x){return'<a class="kaiso-story" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer"><span class="kaiso-story__class">'+esc(x.classification)+'</span><strong>'+esc(x.title)+'</strong><span>'+esc(x.publisher)+(x.publishedAt?' · '+esc(x.publishedAt):'')+'</span><small>'+esc(x.excerpt||'')+'</small></a>';}).join('')||'<p>No institutional releases returned.</p>';status.textContent='Official source checked '+new Date(d.fetchedAt).toLocaleString()+'. Discovery does not equal verification.';}catch(e){official.innerHTML='<p class="workspace-muted">CARICOM source radar unavailable. <a href="https://caricom.org/category/pressreleases/" target="_blank" rel="noopener">Open the official source.</a></p>';status.textContent=e.message;}}
+async function searchVideo(q){var m=document.getElementById('kaiso-video-feed'),status=document.getElementById('kaiso-video-status');status.textContent='Scanning embeddable Caribbean news video…';try{var d=await global.FTN.MediaDiscovery.discover({mode:'video',queries:[q+' Trinidad Tobago news',q+' Caribbean news',q+' Trinidad current affairs'],limit:100},{force:true}),items=d.results||[];m.innerHTML=items.slice(0,60).map(function(x){return'<a class="kaiso-video" href="https://www.youtube.com/watch?v='+encodeURIComponent(x.videoId)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(x.thumbnail||'')+'" alt=""><span><strong>'+esc(x.title)+'</strong><span>'+esc(x.channel||'YouTube')+(x.publishedAt?' · '+new Date(x.publishedAt).toLocaleDateString():'')+'</span></span></a>';}).join('');status.textContent=items.length+' source videos found. Kaiso must verify claims before publication.';}catch(e){status.textContent=e.message;}}
+async function build(){inject();await load('/js/integration-adapter.js');await load('/js/ftn-media-discovery.js');global.FTN.WorkspaceShell.init({productId:'kaiso',mountId:'workspace-root',accentSmallVar:'--color-kaiso-on-dark',build:function(content){content.innerHTML='<section class="kaiso-hero"><div class="kaiso-hero__copy"><span class="kaiso-kicker">The Caribbean Newsroom</span><h2>Discover. Verify. Explain. Hold power accountable.</h2><p>Kaiso begins with sources, not decoration. The radar below surfaces current institutional releases and public video sources; the newsroom desk records what still has to be checked before FTN publishes anything.</p></div><div class="kaiso-mnemonic" aria-hidden="true"><span class="kaiso-mnemonic__sheet"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--1"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--2"></span><span class="kaiso-mnemonic__line kaiso-mnemonic__line--3"></span><span class="kaiso-mnemonic__rule"></span><span class="kaiso-mnemonic__stamp">Verify</span></div></section><section class="kaiso-panel"><span class="kaiso-kicker">Live Source Radar</span><div class="kaiso-radar__search"><input id="kaiso-live-search" type="search" value="Trinidad Tobago" placeholder="Search an issue, person or place"><button class="btn btn-primary" id="kaiso-live-go">Search current sources</button></div><div class="kaiso-radar__tabs">'+BEATS.slice(0,10).map(function(x){return'<button type="button" class="btn btn-outline btn-sm" data-kaiso-query="'+esc(x)+'">'+esc(x)+'</button>';}).join('')+'</div><div class="kaiso-radar"><div><h3>Official / institutional releases</h3><p id="kaiso-source-status" class="kaiso-source-status">Connecting to source…</p><div id="kaiso-official-feed" class="kaiso-feed"></div></div><div><h3>Public video source discovery</h3><p id="kaiso-video-status" class="kaiso-source-status">Connecting to FTN media discovery…</p><div id="kaiso-video-feed" class="kaiso-video-grid"></div></div></div><div class="kaiso-verification"><strong>Editorial rule:</strong> a press release, YouTube video, citizen report or social post is a source or lead—not automatically a fact. Kaiso publication requires attribution, corroboration where appropriate, factual/legal review and correction tracking.</div></section><div class="kaiso-grid"><section class="kaiso-panel"><span class="kaiso-kicker">Story Desk</span><h3>Prepare a story lead</h3><p>Record what happened, the source basis, uncertainty and urgency. Save the working record, then deliberately email it to the FTN newsroom when ready.</p><div id="kaiso-tip-form"></div></section><section class="kaiso-panel"><span class="kaiso-kicker">Coverage Map</span><h3>Newsroom desks</h3><ul class="kaiso-beat-list">'+BEATS.map(function(x){return'<li><strong>'+esc(x)+'</strong></li>';}).join('')+'</ul></section></div><section class="kaiso-panel kaiso-history"><span class="kaiso-kicker">Local Newsroom File</span><h3>Recent drafts</h3><div id="kaiso-history-list"></div></section>';mountForm();renderHistory();var q=document.getElementById('kaiso-live-search');document.getElementById('kaiso-live-go').onclick=function(){searchVideo(q.value.trim()||'Trinidad Tobago');};q.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('kaiso-live-go').click();}};content.querySelectorAll('[data-kaiso-query]').forEach(function(b){b.onclick=function(){q.value=b.getAttribute('data-kaiso-query');searchVideo(q.value);};});renderSourceRadar();searchVideo(q.value);}});}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
 })(window);
