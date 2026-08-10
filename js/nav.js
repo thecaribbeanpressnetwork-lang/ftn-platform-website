@@ -19,21 +19,22 @@
   if (location.pathname.indexOf('/screen') === 0) loadOnce('/js/screen-festival-package.js', 'data-ftn-screen-festival');
   if (location.pathname.indexOf('/applications') === 0) loadOnce('/js/applications-creator-doorways.js', 'data-ftn-creator-doorways');
 
-  // Canonical investor route: old contact anchors remain compatible without editing every page.
   document.querySelectorAll('a[href="/contact/#investors"],a[href="/contact/?#investors"]').forEach(function (a) {
     a.setAttribute('href', '/invest/');
   });
 
   function mountSupportChooser() {
     if (document.querySelector('[data-ftn-support-trigger]') || location.pathname.indexOf('/support') === 0) return;
-    var host = document.querySelector('.site-header__actions') || document.body;
+    var mobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+    var host = mobile ? document.querySelector('.mobile-nav__actions') : document.querySelector('.site-header__actions');
+    host = host || document.body;
     var button = document.createElement('button');
     button.type = 'button';
     button.className = 'btn btn-outline btn-sm';
     button.textContent = 'Support Us';
     button.setAttribute('data-ftn-support-trigger', 'true');
     button.setAttribute('aria-haspopup', 'dialog');
-    host.insertBefore(button, host.firstChild);
+    if (mobile) host.appendChild(button); else host.insertBefore(button, host.firstChild);
 
     var wrap = document.createElement('div');
     wrap.hidden = true;
