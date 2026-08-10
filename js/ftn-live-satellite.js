@@ -21,12 +21,15 @@
   function load(force){
     var status=document.getElementById('ftn-sat-status'),host=document.getElementById('ftn-sat-image');if(!status||!host)return;
     status.textContent='Refreshing NOAA GOES-19…';
-    fetch(ENDPOINT+(force?'?t='+Date.now():''),{headers:{'Accept':'application/json','apikey':PUBLISHABLE_KEY}}).then(function(r){return r.json().then(function(b){if(!r.ok)throw new Error(b.error||'Satellite source unavailable');return b;});}).then(function(data){
+    var controller=typeof AbortController==='function'?new AbortController():null;
+    var timer=controller?setTimeout(function(){controller.abort();},18000):0;
+    fetch(ENDPOINT+(force?'?t='+Date.now():''),{headers:{'Accept':'application/json','apikey':PUBLISHABLE_KEY},signal:controller?controller.signal:undefined}).then(function(r){return r.json().then(function(b){if(!r.ok)throw new Error(b.error||'Satellite source unavailable');return b;});}).then(function(data){
+      if(timer)clearTimeout(timer);
       var sat=data.satellite||{};if(!sat.imageUrl)throw new Error('Current satellite image was not returned by NOAA.');
       var img=new Image();img.alt='Current GOES-19 GeoColor satellite view of the Caribbean';img.decoding='async';img.onload=function(){host.innerHTML='';host.appendChild(img);var badge=document.createElement('span');badge.className='ftn-sat__badge';badge.textContent='CURRENT NOAA IMAGE';host.appendChild(badge);};img.onerror=function(){host.innerHTML='<p class="ftn-sat__error">The NOAA image could not be loaded in this browser. Use the NOAA source link while FTN retries.</p>';};img.src=sat.imageUrl+(sat.imageUrl.indexOf('?')===-1?'?':'&')+'ftn='+Date.now();
       document.getElementById('ftn-sat-time').textContent=sat.sourceTimestamp||'Latest published image';document.getElementById('ftn-sat-source').href=sat.sourceUrl||document.getElementById('ftn-sat-source').href;status.textContent=(sat.sourceTimestamp?'NOAA image · '+sat.sourceTimestamp:'Latest NOAA Caribbean image');
       var loop=document.getElementById('ftn-sat-loop');if(sat.loopUrl){loop.hidden=false;loop.onclick=function(){img.src=sat.loopUrl+(sat.loopUrl.indexOf('?')===-1?'?':'&')+'ftn='+Date.now();loop.textContent='Showing recent loop';};}
-    }).catch(function(err){status.textContent='NOAA connection unavailable';host.innerHTML='<div class="ftn-sat__error"><strong>Satellite source temporarily unavailable.</strong><br>'+String(err.message||err)+'<br><br>FTN has kept the direct NOAA source available at right.</div>';});
+    }).catch(function(err){if(timer)clearTimeout(timer);status.textContent='NOAA connection unavailable';var message=err&&err.name==='AbortError'?'FTN stopped waiting for the upstream source after 18 seconds.':String(err.message||err);host.innerHTML='<div class="ftn-sat__error"><strong>Satellite source temporarily unavailable.</strong><br>'+message+'<br><br>FTN has kept the direct NOAA source available at right.</div>';});
   }
   function init(){mount();load(false);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

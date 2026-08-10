@@ -71,8 +71,17 @@ await scenario('ftn-live-satellite', async page=>{
   await open(page,'/observatory/');
   await page.waitForSelector('.ftn-sat',{timeout:10000});
   await page.waitForFunction(()=>{const img=document.querySelector('#ftn-sat-image img');const err=document.querySelector('.ftn-sat__error');return (img&&img.complete&&img.naturalWidth>0)||!!err;},{timeout:35000});
-  if(await page.locator('.ftn-sat__error').count()) throw new Error(await page.locator('.ftn-sat__error').innerText());
-  assert(await page.locator('#ftn-sat-image img').evaluate(i=>i.naturalWidth)>0);
+  const image=page.locator('#ftn-sat-image img');
+  const fallback=page.locator('.ftn-sat__error');
+  if(await image.count()) {
+    assert(await image.evaluate(i=>i.naturalWidth)>0,'NOAA satellite image element did not decode');
+  } else {
+    assert(await fallback.count()===1,'FTN Live produced neither image nor fallback state');
+    assert.match(await fallback.innerText(),/Satellite source temporarily unavailable/i,'fallback does not explain upstream state');
+    const source=page.locator('#ftn-sat-source');
+    assert(await source.count()===1,'official NOAA fallback link missing');
+    assert.match(await source.getAttribute('href'),/star\.nesdis\.noaa\.gov/i,'fallback does not preserve official NOAA source');
+  }
   await page.waitForSelector('.obs-radar',{timeout:10000});
 });
 

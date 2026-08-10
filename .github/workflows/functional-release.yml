@@ -11,7 +11,7 @@ permissions:
 jobs:
   functional-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,6 +57,11 @@ jobs:
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/all-public-routes.mjs
+
+      - name: Enforce owned performance budgets
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/performance-budget.mjs
 
       - name: Static broken-local-reference scan
         run: |
