@@ -9,6 +9,8 @@
     if(path.indexOf('/observatory/')===0)sources.push('/js/observatory-functional.js');
     if(path.indexOf('/display-network/')===0)sources.push('/js/display-network-preview.js');
     if(path.indexOf('/radio/')===0)sources.push('/js/radio-submission-fallback.js');
+    if(path.indexOf('/events/')===0)sources.push('/js/events-runtime-fix.js');
+    if(path.indexOf('/facethenation')===0)sources.push('/js/facethenation-empty-state.js');
     sources.forEach(function(src){if(document.querySelector('script[src="'+src+'"]'))return;var s=document.createElement('script');s.src=src;s.defer=true;document.head.appendChild(s);});
   })();
   var POSITION_KEY='ftn-presentation-control-position',control=null,dismissedThisView=false;
