@@ -1,0 +1,73 @@
+name: FTN Functional Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  functional-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static FTN server
+        run: |
+          python3 -m http.server 3000 --bind 127.0.0.1 > /tmp/ftn-server.log 2>&1 &
+          echo $! > /tmp/ftn-server.pid
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:3000/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ftn-server.log
+          exit 1
+
+      - name: Run functional scenarios
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/functional-release.mjs
+
+      - name: Static broken-local-reference scan
+        run: |
+          python3 - <<'PY'
+          import pathlib,re,sys,urllib.parse
+          root=pathlib.Path('.')
+          missing=[]
+          attrs=re.compile(r'''(?:href|src)=["']([^"']+)["']''',re.I)
+          for html in root.rglob('*.html'):
+              text=html.read_text(encoding='utf-8',errors='ignore')
+              for raw in attrs.findall(text):
+                  if not raw or raw.startswith(('#','mailto:','tel:','javascript:','data:','blob:','http://','https://','//')): continue
+                  path=urllib.parse.urlsplit(raw).path
+                  if not path: continue
+                  if path.startswith('/'):
+                      target=root/path.lstrip('/')
+                  else:
+                      target=html.parent/path
+                  if path.endswith('/'):
+                      target=target/'index.html'
+                  elif target.is_dir():
+                      target=target/'index.html'
+                  if not target.exists(): missing.append(f'{html}: {raw}')
+          if missing:
+              print('Broken local references:')
+              print('\n'.join(missing))
+              sys.exit(1)
+          print('No broken local href/src references found.')
+          PY
