@@ -4,6 +4,7 @@
 (function(){
 'use strict';
 function textReplace(root,from,to){var w=document.createTreeWalker(root||document.body,NodeFilter.SHOW_TEXT);var n;while((n=w.nextNode()))if(n.nodeValue&&n.nodeValue.indexOf(from)>=0)n.nodeValue=n.nodeValue.split(from).join(to);}
+function loadOnce(src,marker){if(document.querySelector('script['+marker+']')||document.querySelector('script[src="'+src+'"]'))return;var s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute(marker,'true');document.head.appendChild(s);}
 function globalTruth(){
   document.querySelectorAll('a[href="/news/"],a[href="/news"]').forEach(function(a){a.href='/kaiso/';var t=(a.textContent||'').trim();if(t==='News'||t==='News & Stories')a.textContent='FTN Kaiso';});
   textReplace(document.body,'FTN Link','FTN EPK');
@@ -61,6 +62,6 @@ function resourcesTruth(){
   var doc=document.querySelector('#documentation .u-text-silver');
   if(doc)doc.innerHTML='FTN already uses shared product, data, provenance and integration interfaces internally. Public developer credentials are not issued by this page. Government, media and partner organizations can <a href="/contact/#commercial">contact FTN</a> to define a scoped integration and the exact permissions it requires.';
 }
-function init(){if(!document.body)return;globalTruth();var p=location.pathname;if(p.indexOf('/about/')===0)aboutTruth();if(p.indexOf('/applications/')===0)applicationsTruth();if(p.indexOf('/sitemap/')===0)sitemapTruth();if(p.indexOf('/insights/')===0)insightsTruth();if(p.indexOf('/resources/')===0)resourcesTruth();}
+function init(){if(!document.body)return;globalTruth();var p=location.pathname;if(p.indexOf('/about/')===0)aboutTruth();if(p.indexOf('/applications/')===0)applicationsTruth();if(p.indexOf('/sitemap/')===0)sitemapTruth();if(p.indexOf('/insights/')===0)insightsTruth();if(p.indexOf('/resources/')===0)resourcesTruth();if(p.indexOf('/facethenation')===0)loadOnce('/js/facethenation-empty-state.js','data-ftn-facethenation-empty-state');}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
