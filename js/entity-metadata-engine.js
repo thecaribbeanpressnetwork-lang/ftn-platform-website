@@ -8,7 +8,11 @@
     var schema = SCHEMAS[entityType];
     if (!schema) return { valid:false, errors:['Unknown entity type: ' + entityType] };
     var errors = [];
-    schema.fields.forEach(function (f) { if (f.required && !String(input[f.key] || '').trim()) errors.push(f.label + ' is required.'); });
+    schema.fields.forEach(function (f) {
+      var value = String(input[f.key] || '').trim();
+      if (f.required && !value) errors.push(f.label + ' is required.');
+      if (f.type === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) errors.push(f.label + ' must be a valid email address.');
+    });
     return { valid:errors.length === 0, errors:errors };
   }
   function createRecord(entityType, input) {
@@ -21,6 +25,7 @@
   function fieldsFor(entityType) { var schema = SCHEMAS[entityType]; return schema ? schema.fields.slice() : []; }
 
   registerSchema('music-release', { fields: [
+    { key:'clientEmail', label:'Your Email', type:'email', required:true },
     { key:'catalogNo', label:'Catalog No.', type:'text', required:false },
     { key:'trackTitle', label:'Track Title', type:'text', required:true },
     { key:'version', label:'Version', type:'text', required:false },
@@ -66,6 +71,7 @@
   ]});
 
   registerSchema('screen-submission', { fields: [
+    { key:'clientEmail', label:'Your Email', type:'email', required:true },
     { key:'title', label:'Title', type:'text', required:true },
     { key:'creatorName', label:'Creator / Studio Name', type:'text', required:true },
     { key:'format', label:'Format', type:'text', required:true },
