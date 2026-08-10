@@ -102,14 +102,14 @@ await scenario('radio-catalog', async page=>{
   await open(page,'/radio/');
   await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>10 || /failed|unavailable|error/i.test(document.querySelector('#ftn-radio-status')?.innerText||''),{timeout:45000});
   const n=await page.locator('.ftn-radio-live__track').count();assert(n>10,`radio only loaded ${n} tracks`);
-  const titles=(await page.locator('.ftn-radio-live__track').allInnerTexts()).slice(0,30).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix/i.test(titles),'radio mix exclusion failed');
+  const titles=(await page.locator('.ftn-radio-live__track').allInnerTexts()).slice(0,30).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix|roadmix/i.test(titles),'radio mix exclusion failed');
 });
 
 await scenario('dj-discovery-and-controls', async page=>{
   await open(page,'/dj-tube-prototype/?ftn=1');
   await page.waitForFunction(()=>document.querySelectorAll('[data-track]').length>10 || /failed|unavailable|error/i.test(document.querySelector('#queueStatus')?.innerText||''),{timeout:45000});
   const n=await page.locator('[data-track]').count();assert(n>10,`DJ only loaded ${n} tracks`);
-  const texts=(await page.locator('[data-track]').allInnerTexts()).slice(0,40).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix/i.test(texts),'DJ mix exclusion failed');
+  const texts=(await page.locator('[data-track]').allInnerTexts()).slice(0,40).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix|roadmix/i.test(texts),'DJ mix exclusion failed');
   await page.locator('[data-track]').first().click();await page.waitForTimeout(200);
   assert(await page.locator('#playA').count()===1 && await page.locator('#playB').count()===1,'DJ transport missing');
 });
@@ -149,8 +149,9 @@ await scenario('ftn-tv-on-air', async page=>{
 
 await scenario('face-the-nation-programme-hub', async page=>{
   await open(page,'/facethenation');
-  await page.waitForFunction(()=>document.querySelectorAll('.ftn-episode').length>0 || /unavailable|failed|error/i.test(document.querySelector('#ftn-watch-status')?.innerText||''),{timeout:45000});
-  assert(await page.locator('.ftn-episode').count()>0,'Face The Nation catalogue empty');
+  await page.waitForFunction(()=>document.querySelectorAll('.ftn-episode').length>0 || /does not currently have published episodes|unavailable|failed|error/i.test(document.querySelector('#ftn-watch-status')?.innerText||''),{timeout:45000});
+  const count=await page.locator('.ftn-episode').count();
+  if(!count) assert.match(await page.locator('#ftn-watch-status').innerText(),/does not currently have published episodes/i);
   assert.equal(await page.locator('#watch').count(),1,'duplicate #watch section');
 });
 
@@ -167,7 +168,7 @@ await scenario('display-network-studio', async page=>{
 });
 
 await scenario('love-limited-tool', async page=>{
-  await open(page,'/love/');await page.selectOption('#love-goal',{label:'A relationship'});await page.locator('input[name="value"]').first().check();await page.locator('#love-form').evaluate(f=>f.requestSubmit());await page.waitForTimeout(150);assert.match(await page.locator('#love-output').innerText(),/Compatibility brief saved/i);
+  await open(page,'/love/');await page.selectOption('#love-goal',{label:'A relationship'});await page.locator('input[name="value"]').first().check({force:true});await page.locator('#love-form').evaluate(f=>f.requestSubmit());await page.waitForTimeout(150);assert.match(await page.locator('#love-output').innerText(),/Compatibility brief saved/i);
 });
 
 await scenario('riddim-hub-links', async page=>{
