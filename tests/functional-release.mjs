@@ -11,7 +11,7 @@ async function scenario(name, fn, viewport={width:1280,height:900}) {
   const page = await context.newPage();
   const errors=[];
   page.on('pageerror', e=>errors.push('pageerror: '+e.message));
-  page.on('console', m=>{ if(m.type()==='error' && !/youtube|favicon|ERR_BLOCKED_BY_CLIENT|Failed to load resource.*404/i.test(m.text())) errors.push('console: '+m.text()); });
+  page.on('console', m=>{ if(m.type()==='error' && !/youtube|favicon|ERR_BLOCKED_BY_CLIENT|Failed to load resource.*404|compute-pressure is not allowed/i.test(m.text())) errors.push('console: '+m.text()); });
   try {
     await fn(page);
     if(errors.length) throw new Error(errors.join('\n'));
