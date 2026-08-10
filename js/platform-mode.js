@@ -1,16 +1,4 @@
 // FTN Platform Website — global Platform Mode (Presentation Mode / Live Mode).
-//
-// One flag, read the same way by every flagship platform. Presentation Mode and Live Mode
-// share identical layouts, navigation, workflows and interactions — the only thing that is
-// ever allowed to differ is which datasource a page resolves through js/data-source.js.
-//
-// Built on js/persisted-flag.js (Sprint 1, Wave 3) — the storage/attribute/event plumbing lives
-// there now, shared with js/country.js; this module owns only what's specific to Platform Mode:
-// the two valid values, the ?mode= deliberate-entry URL parameter, and the isPresentation()/
-// isLive() convenience API every consumer already uses.
-//
-// Loads first, right after js/persisted-flag.js and before every other script, so the mode is
-// settled before anything else on the page asks for it.
 (function (global) {
   'use strict';
 
@@ -34,4 +22,15 @@
 
   global.FTN = global.FTN || {};
   global.FTN.PlatformMode = { get: get, set: set, isPresentation: isPresentation, isLive: isLive };
+
+  // Legacy informational templates are progressively consolidated. This shared,
+  // presentation-only layer keeps public labels/routes aligned with the current
+  // Product Registry without changing product data or operational behavior.
+  if (!document.querySelector('script[data-ftn-truth-runtime]')) {
+    var truth = document.createElement('script');
+    truth.src = '/js/platform-truth-runtime.js';
+    truth.defer = true;
+    truth.setAttribute('data-ftn-truth-runtime', 'true');
+    document.head.appendChild(truth);
+  }
 })(window);
