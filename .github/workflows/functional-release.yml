@@ -60,7 +60,10 @@ jobs:
           root=pathlib.Path('.')
           missing=[]
           attrs=re.compile(r'''(?:href|src)=["']([^"']+)["']''',re.I)
+          excluded_roots={'node_modules','.git'}
           for html in root.rglob('*.html'):
+              if any(part in excluded_roots for part in html.parts):
+                  continue
               text=html.read_text(encoding='utf-8',errors='ignore')
               for raw in attrs.findall(text):
                   if not raw or raw.startswith(('#','mailto:','tel:','javascript:','data:','blob:','http://','https://','//')): continue
