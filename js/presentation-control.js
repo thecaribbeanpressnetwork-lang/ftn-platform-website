@@ -2,17 +2,15 @@
 (function (global) {
   'use strict';
   function ready(fn){if(document.readyState!=='loading')fn();else document.addEventListener('DOMContentLoaded',fn);}
-
-  // Product-specific runtime upgrades stay isolated from page templates.
   (function loadRouteEnhancements(){
     var path=global.location.pathname,sources=[];
+    if(path==='/')sources.push('/js/home-live-rail.js');
     if(path.indexOf('/mission-control/demo/')===0)sources.push('/js/mission-control-functional.js');
     if(path.indexOf('/observatory/')===0)sources.push('/js/observatory-functional.js');
     if(path.indexOf('/display-network/')===0)sources.push('/js/display-network-preview.js');
     if(path.indexOf('/radio/')===0)sources.push('/js/radio-submission-fallback.js');
     sources.forEach(function(src){if(document.querySelector('script[src="'+src+'"]'))return;var s=document.createElement('script');s.src=src;s.defer=true;document.head.appendChild(s);});
   })();
-
   var POSITION_KEY='ftn-presentation-control-position',control=null,dismissedThisView=false;
   function clamp(x,y,width,height){var maxX=Math.max(8,global.innerWidth-width-8),maxY=Math.max(8,global.innerHeight-height-8);return{x:Math.min(Math.max(x,8),maxX),y:Math.min(Math.max(y,8),maxY)};}
   function loadPosition(){return(global.FTN&&global.FTN.storage)?global.FTN.storage.getJSON(POSITION_KEY,null):null;}
