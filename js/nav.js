@@ -18,9 +18,10 @@
   loadOnce('/js/smart-export.js', 'data-ftn-smart-export');
   loadOnce('/js/ux-primitives.js', 'data-ftn-ux-primitives');
 
-  // Product-specific finishing layers are intentionally tiny and loaded only where needed.
+  // Product/page-specific finishing layers are intentionally tiny and loaded only where needed.
   if (location.pathname.indexOf('/radio') === 0) loadOnce('/js/radio-airtime.js', 'data-ftn-radio-airtime');
   if (location.pathname.indexOf('/screen') === 0) loadOnce('/js/screen-festival-package.js', 'data-ftn-screen-festival');
+  if (location.pathname.indexOf('/applications') === 0) loadOnce('/js/applications-creator-doorways.js', 'data-ftn-creator-doorways');
 
   var toggle = document.querySelector('[data-nav-toggle]');
   var mobileNav = document.getElementById('mobile-nav');
