@@ -89,6 +89,7 @@ await scenario('events-workflow', async page=>{
   await open(page,'/events/');
   await page.fill('#events-prompt','I need a 700 person outdoor soca concert in San Fernando with a TT$250,000 working budget and security, sound and lights.');
   await page.click('#events-interpret');
+  assert.equal(await page.locator('#events-form input[name="guestCount"]').inputValue(),'700','event brief did not interpret attendance');
   await page.fill('#events-form input[name="name"]','FTN Test Concert');
   await page.fill('#events-form input[name="city"]','San Fernando');
   await page.locator('#events-form').evaluate(f=>f.requestSubmit());
@@ -161,6 +162,7 @@ await scenario('face-the-nation-programme-hub', async page=>{
   await page.waitForFunction(()=>document.querySelectorAll('.ftn-episode').length>0 || /does not currently have published episodes|unavailable|failed|error/i.test(document.querySelector('#ftn-watch-status')?.innerText||''),{timeout:45000});
   const count=await page.locator('.ftn-episode').count();
   if(!count) assert.match(await page.locator('#ftn-watch-status').innerText(),/does not currently have published episodes/i);
+  assert(!/Invalid Date/i.test(await page.locator('#watch').innerText()),'Face The Nation rendered an invalid provider date');
   assert.equal(await page.locator('#watch').count(),1,'duplicate #watch section');
 });
 
@@ -168,6 +170,7 @@ await scenario('kaiso-newsroom', async page=>{
   await open(page,'/kaiso/');
   await page.waitForFunction(()=>document.querySelectorAll('.kaiso-story').length>0 || document.querySelectorAll('.kaiso-video').length>5 || /unavailable|failed|error/i.test((document.querySelector('#kaiso-source-status')?.innerText||'')+' '+(document.querySelector('#kaiso-video-status')?.innerText||'')),{timeout:45000});
   assert((await page.locator('.kaiso-story').count())+(await page.locator('.kaiso-video').count())>0,'Kaiso source radar empty');
+  assert(!/Invalid Date/i.test(await page.locator('#kaiso-video-feed').innerText()),'Kaiso rendered an invalid provider date');
   const f=page.locator('.kaiso-tip-form');await f.locator('input[name="headline"]').fill('FTN test story');await f.locator('textarea[name="summary"]').fill('Testing newsroom draft and verification workflow.');await f.locator('input[name="consent"]').check();await f.evaluate(el=>el.requestSubmit());await page.waitForTimeout(200);assert.match(await page.locator('#kaiso-history-list').innerText(),/FTN test story/i);
 });
 
