@@ -26,6 +26,11 @@
   function video(query,limit){return discover({mode:'video',query:query,limit:limit||50});}
   function videos(queries,limit){return discover({mode:'video',queries:queries,limit:limit||100});}
   function playlist(playlistId,mode,limit){return discover({playlistId:playlistId,mode:mode||'music',limit:limit||160});}
+  function formatPublishedAt(value){
+    if(!value)return'';
+    var parsed=new Date(value);
+    return isNaN(parsed.getTime())?String(value):parsed.toLocaleDateString();
+  }
   global.FTN=global.FTN||{};
-  global.FTN.MediaDiscovery={discover:discover,music:music,video:video,videos:videos,playlist:playlist,endpoint:ENDPOINT};
+  global.FTN.MediaDiscovery={discover:discover,music:music,video:video,videos:videos,playlist:playlist,formatPublishedAt:formatPublishedAt,endpoint:ENDPOINT};
 })(window);
