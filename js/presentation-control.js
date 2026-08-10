@@ -1,11 +1,4 @@
-// FTN Platform Website — floating Presentation Mode control.
-//
-// Renders only while global.FTN.PlatformMode.isPresentation() is true (js/platform-mode.js).
-// Available on every page, movable, dismissible for the current page view, and the one place
-// a visitor deliberately exits back to Live Mode. Re-entering Presentation Mode is intentionally
-// NOT offered from here or anywhere else in the interface — that requires the ?mode=presentation
-// entry point (platform-mode.js), matching the founder-locked rule that returning to Presentation
-// Mode takes a deliberate action, not a stray click.
+// FTN Platform Website — floating Presentation Mode control + route enhancement loader.
 (function (global) {
   'use strict';
 
@@ -13,6 +6,16 @@
     if (document.readyState !== 'loading') fn();
     else document.addEventListener('DOMContentLoaded', fn);
   }
+
+  // Small route loader: keeps product-specific runtime upgrades in their own files
+  // without duplicating them into page templates. Loaded only where needed.
+  (function loadRouteEnhancements(){
+    var path=global.location.pathname,src='';
+    if(path.indexOf('/mission-control/demo/')===0)src='/js/mission-control-functional.js';
+    else if(path.indexOf('/observatory/')===0)src='/js/observatory-functional.js';
+    if(!src||document.querySelector('script[src="'+src+'"]'))return;
+    var s=document.createElement('script');s.src=src;s.defer=true;document.head.appendChild(s);
+  })();
 
   var POSITION_KEY = 'ftn-presentation-control-position';
   var control = null;
