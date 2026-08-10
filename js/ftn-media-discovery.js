@@ -13,12 +13,12 @@
     payload=payload||{};options=options||{};
     var cacheKey=keyFor(payload),cached=cache.get(cacheKey);
     if(cached&&!options.force&&Date.now()-cached.at<120000)return Promise.resolve(cached.data);
-    return fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','apikey':PUBLISHABLE_KEY,'Authorization':'Bearer '+PUBLISHABLE_KEY},body:JSON.stringify(payload)}).then(function(r){return r.json().catch(function(){return{};}).then(function(body){if(!r.ok)throw new Error(body.error||body.message||('Discovery failed ('+r.status+')'));cache.set(cacheKey,{at:Date.now(),data:body});return body;});});
+    return fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','apikey':PUBLISHABLE_KEY},body:JSON.stringify(payload)}).then(function(r){return r.json().catch(function(){return{};}).then(function(body){if(!r.ok)throw new Error(body.error||body.message||('Discovery failed ('+r.status+')'));cache.set(cacheKey,{at:Date.now(),data:body});return body;});});
   }
   function music(genre,limit){return discover({mode:'music',genre:genre,limit:limit||100});}
   function video(query,limit){return discover({mode:'video',query:query,limit:limit||50});}
   function videos(queries,limit){return discover({mode:'video',queries:queries,limit:limit||100});}
-  function playlist(playlistId,mode,limit){return discover({playlistId:playlistId,mode:mode||'music',limit:limit||200});}
+  function playlist(playlistId,mode,limit){return discover({playlistId:playlistId,mode:mode||'music',limit:limit||160});}
   global.FTN=global.FTN||{};
   global.FTN.MediaDiscovery={discover:discover,music:music,video:video,videos:videos,playlist:playlist,endpoint:ENDPOINT};
 })(window);
