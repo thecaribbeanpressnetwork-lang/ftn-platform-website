@@ -6,13 +6,21 @@ const TRANSACTION='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-tra
 const cfg=await fetch(BASE+'/config/public-runtime.json').then(r=>{assert(r.ok,'public runtime config missing');return r.json();});
 assert.equal(cfg.schemaVersion,1,'unexpected public runtime config schema');
 assert.equal(typeof cfg.turnstileSiteKey,'string','Turnstile site key config must be a string');
+const siteKey=cfg.turnstileSiteKey.trim();
 
 // Safe configuration probe: an allowed-origin request with deliberately missing transaction
-// fields must reach validation (422). A 503 would mean the server-side Turnstile secret is absent.
-// This never carries a valid token or creates a transaction and cannot reveal the secret value.
+// fields reaches 422 only when the server-side Turnstile secret is configured. A 503 means
+// the secret is still absent. We permit that only while the PUBLIC site key is also blank,
+// so FTN can ship the fail-closed preparation layer without accidentally activating half a gate.
+// This request never carries a valid token or creates a transaction and cannot reveal a secret.
 const probe=await fetch(TRANSACTION,{method:'POST',headers:{Origin:'https://ftnplatform.org','Content-Type':'application/json'},body:'{}'});
-assert.equal(probe.status,422,`transaction verification backend is not ready (expected 422 validation probe, received ${probe.status})`);
-console.log('TURNSTILE SERVER SECRET CONFIGURED PASS');
+if(siteKey){
+  assert.equal(probe.status,422,`Turnstile site key is active but the verification backend is not ready (expected 422 validation probe, received ${probe.status})`);
+  console.log('TURNSTILE CLIENT + SERVER CONFIGURATION PASS');
+}else{
+  assert([422,503].includes(probe.status),`unexpected transaction backend probe status ${probe.status}`);
+  console.log(probe.status===422?'TURNSTILE SERVER SECRET READY; PUBLIC SITE KEY PENDING':'TURNSTILE FAIL-CLOSED PRECONFIGURATION PASS; SITE KEY + SECRET PENDING');
+}
 
 const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({viewport:{width:1280,height:900}});
