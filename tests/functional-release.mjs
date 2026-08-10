@@ -29,18 +29,12 @@ async function open(page,path){
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   assert(overflow<=3,`${path} horizontal overflow ${overflow}px`);
 }
-async function waitEither(page,successSelector,errorSelector,timeout=30000){
-  await Promise.race([
-    page.waitForSelector(successSelector,{timeout,state:'attached'}),
-    page.waitForSelector(errorSelector,{timeout,state:'attached'}).then(async()=>{throw new Error(await page.locator(errorSelector).innerText());})
-  ]);
-}
 function wavBuffer(seconds=1,sampleRate=8000){
   const samples=seconds*sampleRate, dataSize=samples*2, b=Buffer.alloc(44+dataSize);let o=0;
   const s=x=>{b.write(x,o,'ascii');o+=x.length};s('RIFF');b.writeUInt32LE(36+dataSize,o);o+=4;s('WAVE');s('fmt ');b.writeUInt32LE(16,o);o+=4;b.writeUInt16LE(1,o);o+=2;b.writeUInt16LE(1,o);o+=2;b.writeUInt32LE(sampleRate,o);o+=4;b.writeUInt32LE(sampleRate*2,o);o+=4;b.writeUInt16LE(2,o);o+=2;b.writeUInt16LE(16,o);o+=2;s('data');b.writeUInt32LE(dataSize,o);o+=4;for(let i=0;i<samples;i++){b.writeInt16LE(Math.round(Math.sin(2*Math.PI*440*i/sampleRate)*9000),o);o+=2;}return b;
 }
 
-await scenario('home-desktop', async page=>{await open(page,'/');assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);});
+await scenario('home-desktop', async page=>{await open(page,'/');assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);});
 await scenario('home-mobile', async page=>{await open(page,'/');},{width:390,height:844});
 
 await scenario('ibis-visual-and-handoff', async page=>{
@@ -97,18 +91,18 @@ await scenario('opportunities-live', async page=>{
 
 await scenario('radio-catalog', async page=>{
   await open(page,'/radio/');
-  await page.waitForFunction(()=>document.querySelectorAll('.radio-track').length>10 || /failed|unavailable|error/i.test(document.body.innerText),{timeout:40000});
-  const n=await page.locator('.radio-track').count();assert(n>10,`radio only loaded ${n} tracks`);
-  const titles=(await page.locator('.radio-track').allInnerTexts()).slice(0,30).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix/i.test(titles),'radio mix exclusion failed');
+  await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>10 || /failed|unavailable|error/i.test(document.querySelector('#ftn-radio-status')?.innerText||''),{timeout:40000});
+  const n=await page.locator('.ftn-radio-live__track').count();assert(n>10,`radio only loaded ${n} tracks`);
+  const titles=(await page.locator('.ftn-radio-live__track').allInnerTexts()).slice(0,30).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix/i.test(titles),'radio mix exclusion failed');
 });
 
 await scenario('dj-discovery-and-controls', async page=>{
   await open(page,'/dj-tube-prototype/?ftn=1');
-  await page.waitForFunction(()=>document.querySelectorAll('[data-queue-index]').length>10 || /failed|unavailable|error/i.test(document.body.innerText),{timeout:40000});
-  const n=await page.locator('[data-queue-index]').count();assert(n>10,`DJ only loaded ${n} tracks`);
-  const texts=(await page.locator('[data-queue-index]').allInnerTexts()).slice(0,40).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix/i.test(texts),'DJ mix exclusion failed');
-  await page.locator('[data-queue-index]').first().click();await page.waitForTimeout(200);
-  assert(await page.locator('button').filter({hasText:/PLAY/i}).count()>0,'DJ transport missing');
+  await page.waitForFunction(()=>document.querySelectorAll('[data-track]').length>10 || /failed|unavailable|error/i.test(document.querySelector('#queueStatus')?.innerText||''),{timeout:40000});
+  const n=await page.locator('[data-track]').count();assert(n>10,`DJ only loaded ${n} tracks`);
+  const texts=(await page.locator('[data-track]').allInnerTexts()).slice(0,40).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix/i.test(texts),'DJ mix exclusion failed');
+  await page.locator('[data-track]').first().click();await page.waitForTimeout(200);
+  assert(await page.locator('#playA').count()===1 && await page.locator('#playB').count()===1,'DJ transport missing');
 });
 
 await scenario('daw-live-audio', async page=>{
@@ -124,7 +118,7 @@ await scenario('daw-live-audio', async page=>{
 
 await scenario('screen-view-and-festival', async page=>{
   await open(page,'/screen/');
-  await page.waitForFunction(()=>document.querySelectorAll('[data-screen-video]').length>5 || /failed|unavailable|error/i.test(document.body.innerText),{timeout:40000});
+  await page.waitForFunction(()=>document.querySelectorAll('[data-screen-video]').length>5 || /failed|unavailable|error/i.test(document.querySelector('#screen-catalog-status')?.innerText||''),{timeout:40000});
   assert(await page.locator('[data-screen-video]').count()>5,'Screen catalog empty');
   await page.waitForSelector('#screen-fest-form',{timeout:10000});
   await page.fill('#screen-fest-form input[name="title"]','FTN Test Film');
@@ -139,9 +133,8 @@ await scenario('screen-view-and-festival', async page=>{
 
 await scenario('ftn-tv-on-air', async page=>{
   await open(page,'/tv/');
-  await page.waitForFunction(()=>{const f=document.querySelector('.tv-player iframe');const e=document.querySelector('.tv-player__error');return (f&&f.src&&/youtube/.test(f.src))||!!e;},{timeout:40000});
-  if(await page.locator('.tv-player__error').count()) throw new Error(await page.locator('.tv-player__error').innerText());
-  assert.match(await page.locator('.tv-player iframe').getAttribute('src'),/youtube/);
+  await page.waitForFunction(()=>{const f=document.querySelector('.tv-player iframe');const s=document.querySelector('#tv-status')?.textContent||'';return (f&&f.src&&/youtube/.test(f.src))||/No embeddable|failed|unavailable|error/i.test(s);},{timeout:40000});
+  const src=await page.locator('.tv-player iframe').getAttribute('src');assert(src&&/youtube/.test(src),'FTN TV did not tune a YouTube source');
   assert(await page.locator('.tv-guide__row button').count()>0,'TV tune buttons missing');
 });
 
@@ -154,7 +147,7 @@ await scenario('face-the-nation-programme-hub', async page=>{
 
 await scenario('kaiso-newsroom', async page=>{
   await open(page,'/kaiso/');
-  await page.waitForFunction(()=>document.querySelectorAll('.kaiso-story').length>0 || document.querySelectorAll('.kaiso-video').length>5 || /unavailable|failed|error/i.test(document.body.innerText),{timeout:40000});
+  await page.waitForFunction(()=>document.querySelectorAll('.kaiso-story').length>0 || document.querySelectorAll('.kaiso-video').length>5 || /unavailable|failed|error/i.test((document.querySelector('#kaiso-source-status')?.innerText||'')+' '+(document.querySelector('#kaiso-video-status')?.innerText||'')),{timeout:40000});
   assert((await page.locator('.kaiso-story').count())+(await page.locator('.kaiso-video').count())>0,'Kaiso source radar empty');
   const f=page.locator('.kaiso-tip-form');await f.locator('input[name="headline"]').fill('FTN test story');await f.locator('textarea[name="summary"]').fill('Testing newsroom draft and verification workflow.');await f.locator('input[name="consent"]').check();await f.evaluate(el=>el.requestSubmit());await page.waitForTimeout(200);assert.match(await page.locator('#kaiso-history-list').innerText(),/FTN test story/i);
 });
@@ -172,8 +165,6 @@ await scenario('riddim-hub-links', async page=>{
   await open(page,'/riddim/');assert(await page.locator('a[href="/riddim/daw/"]').count()>0,'DAW link missing');assert(await page.locator('a[href="/riddim/dj/"]').count()>0,'DJ link missing');await page.click('#riddim-track-choice');await page.waitForSelector('#riddim-form',{timeout:5000});
 });
 
-// Generic informational/support route smoke. These pages are not required to invent tools,
-// but they must render cleanly and not expose broken internal links.
 for (const path of ['/about/','/applications/','/contact/','/news/','/insights/','/resources/','/top-picks/','/invest/']) {
   await scenario('route-'+path.replaceAll('/','-'), async page=>{await open(page,path);assert(await page.locator('main').count()===1);});
 }
