@@ -2,9 +2,17 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 
 const BASE=process.env.FTN_TEST_BASE||'http://127.0.0.1:3000';
+const TRANSACTION='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-transactions';
 const cfg=await fetch(BASE+'/config/public-runtime.json').then(r=>{assert(r.ok,'public runtime config missing');return r.json();});
 assert.equal(cfg.schemaVersion,1,'unexpected public runtime config schema');
 assert.equal(typeof cfg.turnstileSiteKey,'string','Turnstile site key config must be a string');
+
+// Safe configuration probe: an allowed-origin request with deliberately missing transaction
+// fields must reach validation (422). A 503 would mean the server-side Turnstile secret is absent.
+// This never carries a valid token or creates a transaction and cannot reveal the secret value.
+const probe=await fetch(TRANSACTION,{method:'POST',headers:{Origin:'https://ftnplatform.org','Content-Type':'application/json'},body:'{}'});
+assert.equal(probe.status,422,`transaction verification backend is not ready (expected 422 validation probe, received ${probe.status})`);
+console.log('TURNSTILE SERVER SECRET CONFIGURED PASS');
 
 const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({viewport:{width:1280,height:900}});
