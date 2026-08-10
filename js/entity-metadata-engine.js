@@ -35,6 +35,13 @@
     { key:'producer', label:'Producer', type:'text', required:false },
     { key:'studio', label:'Studio', type:'text', required:false },
     { key:'contact', label:'Contact', type:'text', required:false },
+    { key:'ipiRoute', label:'IPI / CAE Route', type:'select', required:false, options:[
+      {value:'own',label:'Use my own IPI / CAE'},
+      {value:'ftn-admin',label:'Use FTN/Boss Entertainment Publishing administrator IPI'},
+      {value:'cott',label:'Help me prepare for COTT'},
+      {value:'bmi',label:'Help me apply/check with BMI'},
+      {value:'other-cmo',label:'Another Caribbean CMO / PRO'}
+    ]},
     { key:'artistIpi', label:'Artist / Writer IPI / CAE', type:'text', required:false },
     { key:'genre', label:'Genre', type:'text', required:false },
     { key:'subgenre', label:'Subgenre', type:'text', required:false },
