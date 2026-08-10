@@ -62,6 +62,6 @@ function resourcesTruth(){
   var doc=document.querySelector('#documentation .u-text-silver');
   if(doc)doc.innerHTML='FTN already uses shared product, data, provenance and integration interfaces internally. Public developer credentials are not issued by this page. Government, media and partner organizations can <a href="/contact/#commercial">contact FTN</a> to define a scoped integration and the exact permissions it requires.';
 }
-function init(){if(!document.body)return;globalTruth();var p=location.pathname;if(p.indexOf('/about/')===0)aboutTruth();if(p.indexOf('/applications/')===0)applicationsTruth();if(p.indexOf('/sitemap/')===0)sitemapTruth();if(p.indexOf('/insights/')===0)insightsTruth();if(p.indexOf('/resources/')===0)resourcesTruth();if(p.indexOf('/facethenation')===0)loadOnce('/js/facethenation-empty-state.js','data-ftn-facethenation-empty-state');}
+function init(){if(!document.body)return;globalTruth();var p=location.pathname;if(p.indexOf('/about/')===0)aboutTruth();if(p.indexOf('/applications/')===0)applicationsTruth();if(p.indexOf('/sitemap/')===0)sitemapTruth();if(p.indexOf('/insights/')===0)insightsTruth();if(p.indexOf('/resources/')===0)resourcesTruth();if(p.indexOf('/facethenation')===0)loadOnce('/js/facethenation-empty-state.js','data-ftn-facethenation-empty-state');if(p.indexOf('/tv/')===0)loadOnce('/js/tv-facethenation-fallback.js','data-ftn-tv-facethenation-fallback');}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
