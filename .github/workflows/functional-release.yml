@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Audit Git-owned FTN backend source
+        run: node tests/backend-source-audit.mjs
+
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
