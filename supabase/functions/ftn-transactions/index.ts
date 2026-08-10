@@ -2,7 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const ALLOWED = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
+const ALLOWED_TURNSTILE_HOSTS = new Set(["ftnplatform.org", "www.ftnplatform.org"]);
+const TURNSTILE_ACTION = "ftn_transaction";
 const DEFAULT_REVIEW_CC = "facethenationtt@gmail.com";
+const EMAIL_WINDOW_MINUTES = 15;
+const EMAIL_WINDOW_LIMIT = 5;
 
 const headers = (origin: string) => ({
   "Content-Type": "application/json",
@@ -96,8 +100,8 @@ function founderDraftMessage(record: Record<string, any>) {
     `Work / request: ${work}`,
     `Transaction type: ${type}`,
     `Country: ${record.country || "Not specified"}`,
-    `Authority declaration: CONFIRMED`,
-    `Human verification: PASSED`,
+    "Authority declaration: CONFIRMED",
+    "Human verification: PASSED",
     "",
     "USER-CONFIRMED METADATA",
     ...(payloadLines.length ? payloadLines : ["No additional structured metadata was supplied."]),
@@ -149,6 +153,20 @@ async function createFounderDraft(record: Record<string, any>) {
   return { configured: true, draftId };
 }
 
+async function exceedsEmailRateLimit(supabase: any, email: string) {
+  const windowStart = new Date(Date.now() - EMAIL_WINDOW_MINUTES * 60_000).toISOString();
+  const { count, error } = await supabase
+    .from("ftn_platform_transactions")
+    .select("id", { count: "exact", head: true })
+    .eq("client_email", email)
+    .gte("created_at", windowStart);
+  if (error) {
+    console.error("Transaction rate-limit check failed", error);
+    throw new Error("Transaction rate-limit check unavailable");
+  }
+  return (count || 0) >= EMAIL_WINDOW_LIMIT;
+}
+
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin") || "";
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: headers(origin) });
@@ -166,7 +184,7 @@ Deno.serve(async (req: Request) => {
     return json(origin, { ok: false, error: "Invalid request" }, 400);
   }
 
-  const email = text(body.client_email, 320);
+  const email = text(body.client_email, 320).toLowerCase();
   const tool = text(body.tool_id, 80);
   const type = text(body.transaction_type, 80);
   const token = text(body.turnstile_token, 4096);
@@ -196,18 +214,35 @@ Deno.serve(async (req: Request) => {
       signal: AbortSignal.timeout(12000),
     });
     const result = await verification.json();
-    human = result.success === true;
+    const hostname = text(result.hostname, 255).toLowerCase();
+    const action = text(result.action, 100);
+    human = result.success === true && ALLOWED_TURNSTILE_HOSTS.has(hostname) && action === TURNSTILE_ACTION;
   } catch {
     human = false;
   }
   if (!human) return json(origin, { ok: false, error: "Human verification failed" }, 403);
 
-  const transactionId = `FTN-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
+  try {
+    if (await exceedsEmailRateLimit(supabase, email)) {
+      return json(
+        origin,
+        {
+          ok: false,
+          error: `Too many recent FTN transactions for this email. Wait ${EMAIL_WINDOW_MINUTES} minutes before trying again.`,
+        },
+        429,
+      );
+    }
+  } catch {
+    return json(origin, { ok: false, error: "Secure transaction controls are temporarily unavailable" }, 503);
+  }
+
+  const transactionId = `FTN-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const record = {
     transaction_id: transactionId,
     tool_id: tool,
