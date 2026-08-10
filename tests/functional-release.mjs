@@ -25,7 +25,12 @@ async function scenario(name, fn, viewport={width:1280,height:900}) {
 async function open(page,path){
   const r=await page.goto(BASE+path,{waitUntil:'domcontentloaded',timeout:45000});
   assert(r && r.ok(),`${path} returned ${r?.status()}`);
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(250);
+  const firstVisit=page.locator('.country-switcher-dialog.is-open [data-country-code="TT"]');
+  if(await firstVisit.count()) {
+    await firstVisit.first().click({timeout:5000});
+    await page.waitForFunction(()=>!document.querySelector('.country-switcher-dialog.is-open'),{timeout:5000});
+  }
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   assert(overflow<=3,`${path} horizontal overflow ${overflow}px`);
 }
@@ -34,17 +39,20 @@ function wavBuffer(seconds=1,sampleRate=8000){
   const s=x=>{b.write(x,o,'ascii');o+=x.length};s('RIFF');b.writeUInt32LE(36+dataSize,o);o+=4;s('WAVE');s('fmt ');b.writeUInt32LE(16,o);o+=4;b.writeUInt16LE(1,o);o+=2;b.writeUInt16LE(1,o);o+=2;b.writeUInt32LE(sampleRate,o);o+=4;b.writeUInt32LE(sampleRate*2,o);o+=4;b.writeUInt16LE(2,o);o+=2;b.writeUInt16LE(16,o);o+=2;s('data');b.writeUInt32LE(dataSize,o);o+=4;for(let i=0;i<samples;i++){b.writeInt16LE(Math.round(Math.sin(2*Math.PI*440*i/sampleRate)*9000),o);o+=2;}return b;
 }
 
-await scenario('home-desktop', async page=>{await open(page,'/');assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);});
-await scenario('home-mobile', async page=>{await open(page,'/');},{width:390,height:844});
+await scenario('home-desktop', async page=>{await open(page,'/');assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);assert(await page.locator('.eco-live-rail').count()===1,'home live tools rail missing');});
+await scenario('home-mobile', async page=>{await open(page,'/');assert(await page.locator('.eco-live-rail').count()===1);},{width:390,height:844});
 
 await scenario('ibis-visual-and-handoff', async page=>{
   await open(page,'/ibis-ai/?prompt=create%20a%20visual%20for%20a%20Caribbean%20film');
   await page.waitForSelector('#ibis-goal',{timeout:10000});
   assert.match(await page.locator('#ibis-goal').inputValue(),/Caribbean film/i);
-  const visual=page.locator('[data-ibis-mode="visual"]'); if(await visual.count()) await visual.click();
+  const visual=page.locator('[data-mode="visual"]'); assert(await visual.count()===1,'CREATE VISUAL mode missing');
+  await visual.click();
+  assert.equal(await visual.getAttribute('aria-pressed'),'true');
   await page.locator('#ibis-form').evaluate(f=>f.requestSubmit());
-  await page.waitForSelector('canvas',{timeout:12000});
-  assert(await page.locator('canvas').count()>0);
+  await page.waitForSelector('.ibis-visual-result img',{timeout:20000});
+  assert((await page.locator('.ibis-visual-result img').getAttribute('src')).startsWith('data:image/png'));
+  assert(await page.locator('.ibis-visual-result a[download]').count()===1,'ibis visual download missing');
 });
 
 await scenario('mission-control-calculation', async page=>{
@@ -78,11 +86,12 @@ await scenario('events-workflow', async page=>{
   await page.waitForSelector('#events-output .workspace-output',{timeout:8000});
   assert.match(await page.locator('#events-output').innerText(),/FTN Test Concert/i);
   assert((await page.locator('#events-rfq-text').inputValue()).length>200,'RFQ not generated');
+  assert.match(await page.locator('#events-maps').getAttribute('href'),/google\.com\/maps/);
 });
 
 await scenario('opportunities-live', async page=>{
   await open(page,'/opportunities/');
-  await page.waitForFunction(()=>document.querySelectorAll('.opp-live-card').length>0 || /unavailable/i.test(document.querySelector('#opp-results')?.innerText||''),{timeout:35000});
+  await page.waitForFunction(()=>document.querySelectorAll('.opp-live-card').length>0 || /unavailable/i.test(document.querySelector('#opp-results')?.innerText||''),{timeout:45000});
   const cards=await page.locator('.opp-live-card').count();assert(cards>0,'no source-backed opportunities loaded');
   await page.locator('.opp-live-card [data-save]').first().click();
   await page.waitForSelector('.opp-saved',{timeout:4000});
@@ -91,14 +100,14 @@ await scenario('opportunities-live', async page=>{
 
 await scenario('radio-catalog', async page=>{
   await open(page,'/radio/');
-  await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>10 || /failed|unavailable|error/i.test(document.querySelector('#ftn-radio-status')?.innerText||''),{timeout:40000});
+  await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>10 || /failed|unavailable|error/i.test(document.querySelector('#ftn-radio-status')?.innerText||''),{timeout:45000});
   const n=await page.locator('.ftn-radio-live__track').count();assert(n>10,`radio only loaded ${n} tracks`);
   const titles=(await page.locator('.ftn-radio-live__track').allInnerTexts()).slice(0,30).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix/i.test(titles),'radio mix exclusion failed');
 });
 
 await scenario('dj-discovery-and-controls', async page=>{
   await open(page,'/dj-tube-prototype/?ftn=1');
-  await page.waitForFunction(()=>document.querySelectorAll('[data-track]').length>10 || /failed|unavailable|error/i.test(document.querySelector('#queueStatus')?.innerText||''),{timeout:40000});
+  await page.waitForFunction(()=>document.querySelectorAll('[data-track]').length>10 || /failed|unavailable|error/i.test(document.querySelector('#queueStatus')?.innerText||''),{timeout:45000});
   const n=await page.locator('[data-track]').count();assert(n>10,`DJ only loaded ${n} tracks`);
   const texts=(await page.locator('[data-track]').allInnerTexts()).slice(0,40).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix/i.test(texts),'DJ mix exclusion failed');
   await page.locator('[data-track]').first().click();await page.waitForTimeout(200);
@@ -118,7 +127,7 @@ await scenario('daw-live-audio', async page=>{
 
 await scenario('screen-view-and-festival', async page=>{
   await open(page,'/screen/');
-  await page.waitForFunction(()=>document.querySelectorAll('[data-screen-video]').length>5 || /failed|unavailable|error/i.test(document.querySelector('#screen-catalog-status')?.innerText||''),{timeout:40000});
+  await page.waitForFunction(()=>document.querySelectorAll('[data-screen-video]').length>5 || /failed|unavailable|error/i.test(document.querySelector('#screen-catalog-status')?.innerText||''),{timeout:45000});
   assert(await page.locator('[data-screen-video]').count()>5,'Screen catalog empty');
   await page.waitForSelector('#screen-fest-form',{timeout:10000});
   await page.fill('#screen-fest-form input[name="title"]','FTN Test Film');
@@ -133,21 +142,21 @@ await scenario('screen-view-and-festival', async page=>{
 
 await scenario('ftn-tv-on-air', async page=>{
   await open(page,'/tv/');
-  await page.waitForFunction(()=>{const f=document.querySelector('.tv-player iframe');const s=document.querySelector('#tv-status')?.textContent||'';return (f&&f.src&&/youtube/.test(f.src))||/No embeddable|failed|unavailable|error/i.test(s);},{timeout:40000});
+  await page.waitForFunction(()=>{const f=document.querySelector('.tv-player iframe');const s=document.querySelector('#tv-status')?.textContent||'';return (f&&f.src&&/youtube/.test(f.src))||/No embeddable|failed|unavailable|error/i.test(s);},{timeout:45000});
   const src=await page.locator('.tv-player iframe').getAttribute('src');assert(src&&/youtube/.test(src),'FTN TV did not tune a YouTube source');
   assert(await page.locator('.tv-guide__row button').count()>0,'TV tune buttons missing');
 });
 
 await scenario('face-the-nation-programme-hub', async page=>{
   await open(page,'/facethenation');
-  await page.waitForFunction(()=>document.querySelectorAll('.ftn-episode').length>0 || /unavailable|failed|error/i.test(document.querySelector('#ftn-watch-status')?.innerText||''),{timeout:40000});
+  await page.waitForFunction(()=>document.querySelectorAll('.ftn-episode').length>0 || /unavailable|failed|error/i.test(document.querySelector('#ftn-watch-status')?.innerText||''),{timeout:45000});
   assert(await page.locator('.ftn-episode').count()>0,'Face The Nation catalogue empty');
   assert.equal(await page.locator('#watch').count(),1,'duplicate #watch section');
 });
 
 await scenario('kaiso-newsroom', async page=>{
   await open(page,'/kaiso/');
-  await page.waitForFunction(()=>document.querySelectorAll('.kaiso-story').length>0 || document.querySelectorAll('.kaiso-video').length>5 || /unavailable|failed|error/i.test((document.querySelector('#kaiso-source-status')?.innerText||'')+' '+(document.querySelector('#kaiso-video-status')?.innerText||'')),{timeout:40000});
+  await page.waitForFunction(()=>document.querySelectorAll('.kaiso-story').length>0 || document.querySelectorAll('.kaiso-video').length>5 || /unavailable|failed|error/i.test((document.querySelector('#kaiso-source-status')?.innerText||'')+' '+(document.querySelector('#kaiso-video-status')?.innerText||'')),{timeout:45000});
   assert((await page.locator('.kaiso-story').count())+(await page.locator('.kaiso-video').count())>0,'Kaiso source radar empty');
   const f=page.locator('.kaiso-tip-form');await f.locator('input[name="headline"]').fill('FTN test story');await f.locator('textarea[name="summary"]').fill('Testing newsroom draft and verification workflow.');await f.locator('input[name="consent"]').check();await f.evaluate(el=>el.requestSubmit());await page.waitForTimeout(200);assert.match(await page.locator('#kaiso-history-list').innerText(),/FTN test story/i);
 });
