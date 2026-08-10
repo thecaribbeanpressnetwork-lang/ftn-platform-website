@@ -1,75 +1,16 @@
-// FTN Platform Website — Display Network workspace (Sprint 1, Wave 2).
-// A real deployment-interest intake, saved via the Integration Adapter Layer, plus the existing
-// Commercial Partnerships Contact pathway for actual follow-up -- consistent with Display
-// Network's Long-Term Initiative status (CLAUDE.md §4/§7.12): real interest capture, no
-// availability claim, no fabricated deployment count or venue list.
+// FTN Platform Website — Display Network production workspace.
 (function (global) {
   'use strict';
-
-  var VENUE_TYPES = ['Retail', 'Transit Hub', 'Government Building', 'University / School',
-    'Healthcare Facility', 'Community Centre', 'Other'];
-
-  // Shared implementation lives in js/workspace-shell.js -- consolidated during Founder
-  // Certification (was independently copy-pasted into all 9 workspace scripts).
-  var escapeHtml = global.FTN.WorkspaceShell.escapeHtml;
-
-  document.addEventListener('DOMContentLoaded', function () {
-    global.FTN.WorkspaceShell.init({
-      productId: 'display-network',
-      mountId: 'workspace-root',
-      accentSmallVar: '--color-display-network',
-      build: function (content, api) {
-        content.innerHTML =
-          '<p class="u-max-60ch">Display Network is a long-term FTN initiative -- there is no ' +
-          'deployment schedule or venue list to show yet. If your venue might be a fit, register ' +
-          'your interest below; it\'s saved in your browser today; then reach the team directly ' +
-          'through Commercial Partnerships for a real conversation.</p>' +
-          '<form id="dn-form" novalidate>' +
-          '<div class="workspace-field"><label for="dn-venue">Venue / organization name</label>' +
-          '<input type="text" id="dn-venue" name="venue" required></div>' +
-          '<div class="workspace-field"><label for="dn-type">Venue type</label>' +
-          '<select id="dn-type" name="venueType" required><option value="">Select a venue type</option>' +
-          VENUE_TYPES.map(function (t) { return '<option>' + t + '</option>'; }).join('') +
-          '</select></div>' +
-          '<div class="workspace-field"><label for="dn-screens">Estimated number of screens</label>' +
-          '<input type="number" id="dn-screens" name="screenCount" min="1"></div>' +
-          '<div class="workspace-field"><label for="dn-notes">Anything else we should know? (optional)</label>' +
-          '<textarea id="dn-notes" name="notes"></textarea></div>' +
-          '<button type="submit" class="btn btn-primary">Save deployment interest</button>' +
-          '</form>' +
-          '<div id="dn-output"></div>';
-
-        var form = document.getElementById('dn-form');
-        var output = document.getElementById('dn-output');
-
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          var venue = form.venue.value.trim();
-          var venueType = form.venueType.value;
-          if (!venue || !venueType) {
-            var errors = [];
-            if (!venue) errors.push('Venue / organization name is required.');
-            if (!venueType) errors.push('Choose a venue type.');
-            output.innerHTML = global.FTN.WorkspaceShell.renderErrorsHTML(errors);
-            return;
-          }
-
-          var payload = {
-            venue: venue,
-            venueType: venueType,
-            screenCount: form.screenCount.value || null,
-            notes: form.notes.value.trim() || null,
-          };
-
-          global.FTN.IntegrationAdapter.submit('display-network', payload).then(function (res) {
-            api.notify(res.message, 'success');
-            output.innerHTML = '<div class="workspace-output"><h3>Interest saved</h3>' +
-              '<p>' + escapeHtml(venue) + ' (' + escapeHtml(venueType) + ') is saved in this browser. ' +
-              'For a real conversation about deployment, reach the team directly: ' +
-              '<a href="/contact/#commercial">Discuss a Deployment</a>.</p></div>';
-          });
-        });
-      },
-    });
-  });
+  if (!document.querySelector('link[data-ftn-display-network-style]')) { var s=document.createElement('link');s.rel='stylesheet';s.href='/css/components/display-network.css';s.setAttribute('data-ftn-display-network-style','true');document.head.appendChild(s); }
+  var VENUE_TYPES=['Retail','Transit Hub','Government Building','University / School','Healthcare Facility','Community Centre','Hospitality','Entertainment Venue','Corporate Office','Other'];
+  var PURPOSES=['Public information','Community messaging','Commercial advertising','Wayfinding','Emergency / service notices','Events and culture','Internal communications'];
+  var escapeHtml=global.FTN.WorkspaceShell.escapeHtml;
+  function selectedValues(form,name){return Array.prototype.slice.call(form.querySelectorAll('input[name="'+name+'"]:checked')).map(function(el){return el.value;});}
+  function pulseMnemonic(){var root=document.querySelector('[data-dn-mnemonic]');if(!root)return;root.classList.remove('is-complete');void root.offsetWidth;root.classList.add('is-complete');}
+  function renderRecent(host){var items=global.FTN.IntegrationAdapter&&global.FTN.IntegrationAdapter.history?global.FTN.IntegrationAdapter.history('display-network'):[];if(!items.length){host.innerHTML='<p class="workspace-field__hint">No deployment briefs saved on this device yet.</p>';return;}host.innerHTML='<div class="dn-history">'+items.slice().reverse().slice(0,4).map(function(item){var p=item.payload||{};return '<article class="dn-history__item"><strong>'+escapeHtml(p.venue||'Venue')+'</strong><span>'+escapeHtml(p.venueType||'')+(p.country?' · '+escapeHtml(p.country):'')+'</span><small>'+escapeHtml((p.purposes||[]).join(', ')||'Deployment brief')+'</small></article>';}).join('')+'</div>';}
+  document.addEventListener('DOMContentLoaded',function(){global.FTN.WorkspaceShell.init({productId:'display-network',mountId:'workspace-root',accentSmallVar:'--color-display-network',build:function(content,api){var country=global.FTN.Country&&global.FTN.Country.get?global.FTN.Country.get():{name:'Trinidad & Tobago'};
+    content.innerHTML='<section class="dn-hero"><div class="dn-hero__copy"><span class="dn-kicker">PHYSICAL DIGITAL INFRASTRUCTURE</span><h2>Turn screens into a trusted Caribbean network.</h2><p>Build a venue deployment brief, define what the screens need to do, and give FTN enough context for a real partnership conversation.</p></div><div class="dn-mnemonic" data-dn-mnemonic aria-hidden="true"><span class="dn-screen dn-screen--a"></span><span class="dn-screen dn-screen--b"></span><span class="dn-screen dn-screen--c"></span><span class="dn-screen dn-screen--d"></span><span class="dn-link dn-link--1"></span><span class="dn-link dn-link--2"></span><span class="dn-node"></span></div></section><section class="dn-planner"><div class="dn-planner__intro"><span class="dn-kicker">DEPLOYMENT DESK</span><h3>Build a venue deployment brief.</h3><p>Use the structured fields, your own words, or both.</p></div><form id="dn-form" novalidate><div class="dn-form-grid"><div class="workspace-field"><label for="dn-venue">Venue / organization name</label><input type="text" id="dn-venue" name="venue" required></div><div class="workspace-field"><label for="dn-type">Venue type</label><select id="dn-type" name="venueType" required><option value="">Select venue type</option>'+VENUE_TYPES.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></div><div class="workspace-field"><label for="dn-country">Country / territory</label><input type="text" id="dn-country" name="country" value="'+escapeHtml(country.name||'')+'" required></div><div class="workspace-field"><label for="dn-area">City / community</label><input type="text" id="dn-area" name="area" required></div><div class="workspace-field"><label for="dn-screens">Estimated screen count</label><input type="number" id="dn-screens" name="screenCount" min="1"></div><div class="workspace-field"><label for="dn-environment">Primary environment</label><select id="dn-environment" name="environment"><option>Indoor</option><option>Outdoor</option><option>Mixed indoor / outdoor</option></select></div></div><div class="workspace-field"><label>What should the screens be used for?</label><div class="dn-purpose-grid">'+PURPOSES.map(function(p){return '<label class="workspace-checkbox-label"><input type="checkbox" name="purpose" value="'+escapeHtml(p)+'"> '+escapeHtml(p)+'</label>';}).join('')+'</div></div><div class="workspace-field"><label for="dn-intent">Describe what you are trying to accomplish, in your own words <span class="workspace-field__hint">(optional)</span></label><textarea id="dn-intent" name="intentText" rows="4" maxlength="1200"></textarea></div><div class="workspace-field"><label for="dn-audience">Who uses or passes through this venue? <span class="workspace-field__hint">(optional)</span></label><textarea id="dn-audience" name="audience"></textarea></div><div class="workspace-field"><label for="dn-notes">Anything else FTN should know? <span class="workspace-field__hint">(optional)</span></label><textarea id="dn-notes" name="notes"></textarea></div><label class="dn-consent"><input type="checkbox" name="followUp"> I want FTN to consider this brief for a commercial conversation.</label><button type="submit" class="btn btn-primary">Save deployment brief</button></form><div id="dn-output"></div></section><section class="dn-history-panel"><div class="dn-section-head"><span class="dn-kicker">SAVED ON THIS DEVICE</span><h3>Deployment briefs</h3></div><div id="dn-history"></div></section>';
+    var form=document.getElementById('dn-form'),output=document.getElementById('dn-output'),history=document.getElementById('dn-history');renderRecent(history);
+    form.addEventListener('submit',function(e){e.preventDefault();var purposes=selectedValues(form,'purpose'),payload={schemaVersion:2,venue:form.venue.value.trim(),venueType:form.venueType.value,country:form.country.value.trim(),area:form.area.value.trim(),screenCount:form.screenCount.value||null,environment:form.environment.value,purposes:purposes,intentText:form.intentText.value.trim(),audience:form.audience.value.trim()||null,notes:form.notes.value.trim()||null,followUpRequested:!!form.followUp.checked,source:'ftn-display-network-deployment-desk',capturedAt:new Date().toISOString(),intentInterpreter:'ibis.ai'},errors=[];if(!payload.venue)errors.push('Venue / organization name is required.');if(!payload.venueType)errors.push('Choose a venue type.');if(!payload.country)errors.push('Country / territory is required.');if(!payload.area)errors.push('City / community is required.');if(!purposes.length&&!payload.intentText)errors.push('Choose at least one screen purpose or describe what you want in your own words.');if(errors.length){output.innerHTML=global.FTN.WorkspaceShell.renderErrorsHTML(errors);return;}global.FTN.IntegrationAdapter.submit('display-network',payload).then(function(res){api.notify(res.message,'success');pulseMnemonic();output.innerHTML='<div class="workspace-output"><h3>Deployment brief saved</h3><p><strong>'+escapeHtml(payload.venue)+'</strong> · '+escapeHtml(payload.area)+', '+escapeHtml(payload.country)+'</p>'+(payload.intentText?'<p><strong>In your own words:</strong> '+escapeHtml(payload.intentText)+'</p>':'')+'<p><a href="/contact/#commercial">Discuss a Deployment →</a></p></div>';renderRecent(history);});});
+  }});});
 })(window);
