@@ -49,6 +49,18 @@ function insightsTruth(){
   var mc=document.querySelector('a.module-card[href="/mission-control/demo/"] p');
   if(mc)mc.textContent='Calculate relationships in loaded indicator histories, inspect evidence and test disclosed demonstration scenarios.';
 }
-function init(){if(!document.body)return;globalTruth();var p=location.pathname;if(p.indexOf('/about/')===0)aboutTruth();if(p.indexOf('/applications/')===0)applicationsTruth();if(p.indexOf('/sitemap/')===0)sitemapTruth();if(p.indexOf('/insights/')===0)insightsTruth();}
+function resourcesTruth(){
+  var lede=document.querySelector('.page-hero__lede');
+  if(lede)lede.textContent='Answers, documentation status and media resources for the wider FTN Platform ecosystem.';
+  document.querySelectorAll('.faq-item').forEach(function(item){var q=item.querySelector('summary'),a=item.querySelector('.faq-item__answer');if(!q||!a)return;var t=(q.textContent||'').trim();
+    if(t==='What is FTN Platform?')a.innerHTML='<p>FTN Platform is a Caribbean-first digital infrastructure ecosystem spanning civic participation, intelligence, public affairs, journalism, music, radio, film, events, opportunities, live information and controlled display distribution. <a href="/applications/">Explore the product map</a>.</p>';
+    if(t==="What's the difference between Community Connect and Mission Control?")a.innerHTML='<p>Community Connect is the public civic participation product. Mission Control is the institutional decision-support and operations layer. Permission-appropriate, structured Community Connect information may support Mission Control, but private user data is not automatically shared across products.</p>';
+    if(t==='Who can access Mission Control?')a.innerHTML='<p>The public <a href="/mission-control/demo/">Mission Control workspace</a> demonstrates evidence, scenarios and calculated relationships. Any real institutional deployment requires organization-specific identity, permissions, governance and data access.</p>';
+    if(t==='How is my data used?')a.innerHTML='<p>See the <a href="/legal/privacy-policy/">Privacy Policy</a> and the privacy information inside the product you are using. FTN connections are governed by purpose, consent, permissions and public/private boundaries; data does not become universally shared merely because products belong to one ecosystem.</p>';
+  });
+  var doc=document.querySelector('#documentation .u-text-silver');
+  if(doc)doc.innerHTML='FTN already uses shared product, data, provenance and integration interfaces internally. Public developer credentials are not issued by this page. Government, media and partner organizations can <a href="/contact/#commercial">contact FTN</a> to define a scoped integration and the exact permissions it requires.';
+}
+function init(){if(!document.body)return;globalTruth();var p=location.pathname;if(p.indexOf('/about/')===0)aboutTruth();if(p.indexOf('/applications/')===0)applicationsTruth();if(p.indexOf('/sitemap/')===0)sitemapTruth();if(p.indexOf('/insights/')===0)insightsTruth();if(p.indexOf('/resources/')===0)resourcesTruth();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
