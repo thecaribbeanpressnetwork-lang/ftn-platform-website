@@ -1,0 +1,21 @@
+// FTN Platform — public Cloudflare Turnstile client gate.
+// The Turnstile site key is PUBLIC configuration and lives in /config/public-runtime.json.
+// Never put the Turnstile secret key or any provider secret in this repository/browser layer.
+(function(global){
+'use strict';
+var CONFIG_URL='/config/public-runtime.json';
+var SCRIPT_URL='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+
+function ready(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn,{once:true});else fn();}
+function mounts(){return Array.prototype.slice.call(document.querySelectorAll('[data-turnstile-mount]'));}
+function forms(){return mounts().map(function(m){return m.closest('form');}).filter(Boolean);}
+function setExpected(v){forms().forEach(function(f){f.dataset.ftnTurnstileExpected=v?'true':'false';});document.documentElement.dataset.ftnTurnstileConfigured=v?'true':'false';}
+function tokenInput(form){var input=form.querySelector('input[name="cf-turnstile-response"]');if(!input){input=document.createElement('input');input.type='hidden';input.name='cf-turnstile-response';form.appendChild(input);}return input;}
+function setLoading(){mounts().forEach(function(m){m.innerHTML='<p class="workspace-field__hint">Loading secure human verification…</p>';});forms().forEach(function(f){var b=f.querySelector('button[type="submit"],button:not([type])');if(b){b.dataset.ftnOriginalLabel=b.textContent||'Submit';b.disabled=true;b.textContent='Loading human verification…';}});}
+function restoreSubmit(form){var b=form.querySelector('button[type="submit"],button:not([type])');if(b){b.disabled=false;b.textContent=b.dataset.ftnOriginalLabel||'Submit for FTN Review';delete b.dataset.ftnOriginalLabel;}}
+function showUnavailable(message){setExpected(false);mounts().forEach(function(m){m.innerHTML='<p class="workspace-field__hint"><strong>Secure web submission is not active yet.</strong> '+message+'</p>';});}
+function loadScript(){return new Promise(function(resolve,reject){if(global.turnstile&&typeof global.turnstile.render==='function'){resolve();return;}var existing=document.querySelector('script[data-ftn-turnstile-api]');if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',reject,{once:true});return;}var s=document.createElement('script');s.src=SCRIPT_URL;s.async=true;s.defer=true;s.setAttribute('data-ftn-turnstile-api','true');s.onload=resolve;s.onerror=function(){reject(new Error('Cloudflare Turnstile could not be loaded.'));};document.head.appendChild(s);});}
+function render(siteKey){mounts().forEach(function(m,index){var form=m.closest('form');if(!form)return;m.innerHTML='';var input=tokenInput(form);try{global.turnstile.render(m,{sitekey:siteKey,theme:'auto',action:'ftn_transaction',callback:function(token){input.value=token;input.dispatchEvent(new Event('input',{bubbles:true}));restoreSubmit(form);},'expired-callback':function(){input.value='';var b=form.querySelector('button[type="submit"],button:not([type])');if(b)b.disabled=true;},'error-callback':function(){input.value='';var b=form.querySelector('button[type="submit"],button:not([type])');if(b)b.disabled=true;}});}catch(e){m.innerHTML='<p class="workspace-field__hint">Human verification could not be rendered. Reload the page or use the safe fallback submission route.</p>';}});}
+async function init(){if(!mounts().length)return;try{var r=await fetch(CONFIG_URL,{cache:'no-store',headers:{Accept:'application/json'}});if(!r.ok)throw new Error('Public runtime configuration is unavailable.');var cfg=await r.json(),key=String(cfg.turnstileSiteKey||'').trim();if(!key){showUnavailable('The FTN Cloudflare site key still needs to be connected.');return;}setExpected(true);setLoading();await loadScript();render(key);}catch(e){showUnavailable('FTN will not bypass human verification.');}}
+ready(init);
+})(window);
