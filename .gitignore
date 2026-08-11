@@ -14,5 +14,9 @@
 /STRATEGY/
 /FTN_Strategic_Foundation_v1.0/
 
+# Local browser-test runtime. The public site has no Node build dependency, so this
+# must never be shipped or accidentally committed with a static-site release.
+/node_modules/
+
 # Local Claude Code tooling state (settings, session lock files) — not part of the shipped site.
 /.claude/
