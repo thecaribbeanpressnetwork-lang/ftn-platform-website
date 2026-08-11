@@ -14,7 +14,9 @@
   }
 
   function get(id) {
-    return data().filter(function (p) { return p.id === id; })[0] || null;
+    return data().filter(function (p) {
+      return p.id === id || (Array.isArray(p.legacyIds) && p.legacyIds.indexOf(id) !== -1);
+    })[0] || null;
   }
 
   function byRoute(route) {
@@ -25,6 +27,29 @@
     return data()
       .filter(function (p) { return p.panelAsset && p.panelRow; })
       .sort(function (a, b) { return a.panelRow - b.panelRow; });
+  }
+
+  function publicProducts(options) {
+    options = options || {};
+    return data().filter(function (p) {
+      if (p.publicVisibility === false || p.status === 'PRIVATE' || p.status === 'MAINTENANCE') return false;
+      if (!options.includeSupporting && p.principal === false) return false;
+      return true;
+    });
+  }
+
+  function sitemapProducts() {
+    return publicProducts({ includeSupporting: true }).filter(function (p) {
+      return p.id !== 'account';
+    });
+  }
+
+  function accountShortcuts() {
+    return publicProducts({ includeSupporting: false }).filter(function (p) {
+      return Array.isArray(p.capabilities) && p.capabilities.some(function (capability) {
+        return ['save','saved-items','project-recipe','local-watchlist','application-tracker'].indexOf(capability) !== -1;
+      });
+    });
   }
 
   // Simple, transparent keyword scoring -- every product's keywords + name + tagline are
@@ -48,7 +73,7 @@
     });
     if (!qWords.length) return [];
 
-    return data()
+    return publicProducts({ includeSupporting: true })
       .map(function (p) {
         var haystackWords = [p.name, p.tagline, p.description].concat(p.keywords)
           .join(' ').toLowerCase().split(/\W+/).filter(Boolean);
@@ -76,6 +101,9 @@
     get: get,
     byRoute: byRoute,
     homepagePanels: homepagePanels,
+    publicProducts: publicProducts,
+    sitemapProducts: sitemapProducts,
+    accountShortcuts: accountShortcuts,
     search: search,
   };
 })(window);

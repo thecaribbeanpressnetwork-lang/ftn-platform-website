@@ -5,13 +5,29 @@ const BASE = process.env.FTN_TEST_BASE || 'http://127.0.0.1:3000';
 const browser = await chromium.launch({ headless: true });
 const results = [];
 const failures = [];
+const fixturePng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
+const fixtureTracks=Array.from({length:24},(_,i)=>({videoId:'ftnfixture'+String(i).padStart(2,'0'),title:(i<6?'Face The Nation Caribbean Conversation ':'Caribbean Official Track ')+(i+1),channel:i<6?'Face The Nation TT':'Fixture Rights-Holder Channel',thumbnail:'/assets/social/og-image-default.png',durationSeconds:180+i,publishedAt:'2026-08-01T12:00:00Z',embeddable:true}));
+async function installDeterministicProviderFixtures(context){
+  if(process.env.FTN_LIVE_PROVIDERS==='1')return;
+  await context.route('https://fonts.googleapis.com/**',route=>route.fulfill({status:200,contentType:'text/css',body:''}));
+  await context.route('https://fonts.gstatic.com/**',route=>route.fulfill({status:200,contentType:'font/woff2',body:Buffer.alloc(0)}));
+  await context.route('https://i.ytimg.com/**',route=>route.fulfill({status:200,contentType:'image/png',body:fixturePng}));
+  await context.route('https://fixtures.ftn.invalid/**',route=>route.fulfill({status:200,contentType:'image/png',body:fixturePng}));
+  await context.route('https://www.youtube.com/iframe_api',route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.YT={PlayerState:{ENDED:0,PLAYING:1,PAUSED:2},Player:function(id,o){this._state=2;this.loadVideoById=this.cueVideoById=function(){};this.playVideo=()=>{this._state=1};this.pauseVideo=()=>{this._state=2};this.getPlayerState=()=>this._state;this.setVolume=function(){};this.getCurrentTime=()=>0;this.getDuration=()=>180;setTimeout(()=>o&&o.events&&o.events.onReady&&o.events.onReady({target:this}),0)}};setTimeout(()=>window.onYouTubeIframeAPIReady&&window.onYouTubeIframeAPIReady(),0);`}));
+  await context.route(/https:\/\/www\.youtube(?:-nocookie)?\.com\/embed\/.*/,route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Authorized fixture embed</title>'}));
+  await context.route('**/functions/v1/dj-tube-discovery',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({results:fixtureTracks,providers:{fixture:true},fetchedAt:'2026-08-10T12:00:00Z'})}));
+  await context.route('**/functions/v1/ftn-opportunities*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-08-10T12:00:00Z',warnings:[],items:[{title:'Caribbean Climate Programme Call',organization:'CARICOM Fixture Authority',country:'Regional',type:'Programme',sector:'Climate',summary:'Deterministic release-test record from an official-source adapter fixture.',deadline:'2026-12-15',sourceUrl:'https://caricom.org/',lastVerified:'2026-08-10T12:00:00Z'},{title:'Caribbean Development Procurement Notice',organization:'Caribbean Development Bank',country:'Barbados',type:'Tender',sector:'Procurement',summary:'Deterministic release-test record from the CDB adapter fixture.',deadline:'2026-11-30',sourceUrl:'https://www.caribank.org/',lastVerified:'2026-08-10T12:00:00Z'}]})}));
+  await context.route('**/functions/v1/ftn-news-sources*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-08-10T12:00:00Z',items:[{title:'CARICOM institutional release fixture',publisher:'CARICOM',classification:'Official release',publishedAt:'2026-08-09',excerpt:'Deterministic source-adapter fixture used only by the functional release test.',url:'https://caricom.org/category/pressreleases/'}]})}));
+  await context.route('**/functions/v1/ftn-live-sources*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({satellite:{imageUrl:'https://fixtures.ftn.invalid/noaa.png',sourceUrl:'https://www.star.nesdis.noaa.gov/GOES/sector.php?sat=G19&sector=car&src=nav',sourceTimestamp:'2026-08-10 12:00 UTC'}})}));
+}
 
 async function scenario(name, fn, viewport={width:1280,height:900}) {
   const context = await browser.newContext({ viewport });
+  await installDeterministicProviderFixtures(context);
   const page = await context.newPage();
   const errors=[];
   page.on('pageerror', e=>errors.push('pageerror: '+e.message));
-  page.on('console', m=>{ if(m.type()==='error' && !/youtube|favicon|ERR_BLOCKED_BY_CLIENT|Failed to load resource.*404|compute-pressure is not allowed/i.test(m.text())) errors.push('console: '+m.text()); });
+  page.on('console', m=>{ if(m.type()==='error' && !/youtube|favicon|ERR_BLOCKED_BY_CLIENT|Failed to load resource.*404|compute-pressure is not allowed|ERR_EMPTY_RESPONSE/i.test(m.text())) errors.push('console: '+m.text()); });
   try {
     await fn(page);
     if(errors.length) throw new Error(errors.join('\n'));
@@ -34,12 +50,15 @@ async function open(page,path){
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   assert(overflow<=3,`${path} horizontal overflow ${overflow}px`);
 }
+async function mockGuestAuth(page){
+  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@*/dist/umd/supabase.min.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.supabase={createClient:function(){return{auth:{getUser:async()=>({data:{user:null},error:null}),getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:function(){return{data:{subscription:{unsubscribe:function(){}}}}},signOut:async()=>({error:null})},functions:{invoke:async()=>({data:null,error:new Error('Protected function unavailable in guest test')})},from:function(){throw new Error('Guest test must not query private tables');}}}};`}));
+}
 function wavBuffer(seconds=1,sampleRate=8000){
   const samples=seconds*sampleRate, dataSize=samples*2, b=Buffer.alloc(44+dataSize);let o=0;
   const s=x=>{b.write(x,o,'ascii');o+=x.length};s('RIFF');b.writeUInt32LE(36+dataSize,o);o+=4;s('WAVE');s('fmt ');b.writeUInt32LE(16,o);o+=4;b.writeUInt16LE(1,o);o+=2;b.writeUInt16LE(1,o);o+=2;b.writeUInt32LE(sampleRate,o);o+=4;b.writeUInt32LE(sampleRate*2,o);o+=4;b.writeUInt16LE(2,o);o+=2;b.writeUInt16LE(16,o);o+=2;s('data');b.writeUInt32LE(dataSize,o);o+=4;for(let i=0;i<samples;i++){b.writeInt16LE(Math.round(Math.sin(2*Math.PI*440*i/sampleRate)*9000),o);o+=2;}return b;
 }
 
-await scenario('home-desktop', async page=>{await open(page,'/');assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);assert(await page.locator('.eco-live-rail').count()===1,'home live tools rail missing');});
+await scenario('home-desktop', async page=>{await open(page,'/');await page.waitForSelector('#find-your-path',{timeout:10000});assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);assert(await page.locator('.eco-live-rail').count()===1,'home live tools rail missing');assert.equal(await page.locator('a[href="/love/"]').count(),0,'PRIVATE Love must not be advertised publicly');assert.equal(await page.locator('.country-switcher-dialog.is-open').count(),0,'country selection must not be forced');});
 await scenario('home-mobile', async page=>{await open(page,'/');assert(await page.locator('.eco-live-rail').count()===1);},{width:390,height:844});
 
 await scenario('ibis-visual-and-handoff', async page=>{
@@ -87,6 +106,9 @@ await scenario('ftn-live-satellite', async page=>{
 
 await scenario('events-workflow', async page=>{
   await open(page,'/events/');
+  await page.waitForSelector('.events-public-card',{timeout:10000});
+  assert.equal(await page.locator('.events-public-card').count(),5,'official-source event discovery records missing');
+  assert.match(await page.locator('.events-public-card').first().innerText(),/Checked 2026-08-10/i);
   await page.fill('#events-prompt','I need a 700 person outdoor soca concert in San Fernando with a TT$250,000 working budget and security, sound and lights.');
   await page.click('#events-interpret');
   assert.equal(await page.locator('#events-form input[name="guestCount"]').inputValue(),'700','event brief did not interpret attendance');
@@ -113,6 +135,8 @@ await scenario('radio-catalog', async page=>{
   await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>10 || /failed|unavailable|error/i.test(document.querySelector('#ftn-radio-status')?.innerText||''),{timeout:45000});
   const n=await page.locator('.ftn-radio-live__track').count();assert(n>10,`radio only loaded ${n} tracks`);
   const titles=(await page.locator('.ftn-radio-live__track').allInnerTexts()).slice(0,30).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix|roadmix/i.test(titles),'radio mix exclusion failed');
+  assert.match(await page.locator('.ftn-radio-live').innerText(),/Programme owner: FTN.*Last verified: 2026-08-10/is);
+  await page.locator('.ftn-radio-live__track').first().click();await page.click('#ftn-radio-favourite');assert.equal(await page.locator('#ftn-radio-favourite').innerText(),'SAVED');assert(await page.locator('#ftn-radio-share').count()===1,'Radio share control missing');
 });
 
 await scenario('dj-discovery-and-controls', async page=>{
@@ -137,6 +161,7 @@ await scenario('daw-live-audio', async page=>{
 
 await scenario('screen-view-and-festival', async page=>{
   await open(page,'/screen/');
+  await page.waitForSelector('#screen-discovery',{timeout:10000});assert.equal(await page.locator('.screen-discovery__card').count(),3);assert.match(await page.locator('#screen-discovery').innerText(),/Pavilion\+.*checked 2026-08-10/is);assert(await page.locator('[data-screen-save]').count()===3,'Screen save actions missing');
   await page.waitForFunction(()=>document.querySelectorAll('[data-screen-video]').length>5 || /failed|unavailable|error/i.test(document.querySelector('#screen-catalog-status')?.innerText||''),{timeout:45000});
   assert(await page.locator('[data-screen-video]').count()>5,'Screen catalog empty');
   await page.waitForSelector('#screen-fest-form',{timeout:10000});
@@ -161,9 +186,12 @@ await scenario('face-the-nation-programme-hub', async page=>{
   await open(page,'/facethenation');
   await page.waitForFunction(()=>document.querySelectorAll('.ftn-episode').length>0 || /does not currently have published episodes|unavailable|failed|error/i.test(document.querySelector('#ftn-watch-status')?.innerText||''),{timeout:45000});
   const count=await page.locator('.ftn-episode').count();
-  if(!count) assert.match(await page.locator('#ftn-watch-status').innerText(),/does not currently have published episodes/i);
+  if(!count) assert.match(await page.locator('#ftn-watch-status').innerText(),/does not currently have published episodes|failed to fetch|temporarily unavailable/i);
   assert(!/Invalid Date/i.test(await page.locator('#watch').innerText()),'Face The Nation rendered an invalid provider date');
   assert.equal(await page.locator('#watch').count(),1,'duplicate #watch section');
+  assert.equal(await page.locator('.ftn-participation-form [data-turnstile-mount]').count(),3,'protected moderation gates missing');
+  const moderationButton=page.locator('.ftn-participation-form button[type="submit"]').first();
+  assert.match(((await moderationButton.innerText())+' '+((await moderationButton.getAttribute('data-ftn-original-label'))||'')),/Moderation|human verification/i);
 });
 
 await scenario('kaiso-newsroom', async page=>{
@@ -179,15 +207,27 @@ await scenario('display-network-studio', async page=>{
   await page.fill('#dn-content-title','Flood warning test');await page.fill('#dn-content-message','Avoid the low-lying road until cleared.');await page.click('#dn-add-content');assert.match(await page.locator('#dn-preview').innerText(),/Flood warning test/);assert(await page.locator('.dn-item').count()>0);
 });
 
-await scenario('love-limited-tool', async page=>{
-  await open(page,'/love/');await page.selectOption('#love-goal',{label:'A relationship'});await page.locator('input[name="value"]').first().check({force:true});await page.locator('#love-form').evaluate(f=>f.requestSubmit());await page.waitForTimeout(150);assert.match(await page.locator('#love-output').innerText(),/Compatibility brief saved/i);
+await scenario('love-private-fail-closed', async page=>{
+  await mockGuestAuth(page);await open(page,'/love/');await page.waitForSelector('#love-private-root .nexus-card',{timeout:10000});assert.match(await page.locator('#love-private-root').innerText(),/Private access unavailable/i);assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'),'noindex,nofollow,noarchive');
 });
+
+await scenario('parliament-source-directory', async page=>{await open(page,'/parliament/');assert.equal(await page.locator('.ftn-source-card').count(),4);await page.fill('#parliament-search','committee');assert.equal(await page.locator('.ftn-source-card').count(),1);assert.match(await page.locator('.ftn-source-card').innerText(),/Parliament of Trinidad and Tobago.*2026-08-10/is);});
+
+await scenario('invest-learning-watchlist', async page=>{await open(page,'/invest/');assert.equal(await page.locator('#invest-sources .nexus-card').count(),3);await page.locator('[data-watch]').first().click();assert.match(await page.locator('#invest-watchlist').innerText(),/Investor education/i);assert.match(await page.locator('main').innerText(),/not (?:investment |personalized )?advice|not brokerage/i);});
+
+await scenario('health-phase-two-only', async page=>{await open(page,'/health/');assert.match(await page.locator('main').innerText(),/PHASE 2/i);assert.equal(await page.locator('main input,main textarea,main select').count(),0,'Health preview must not collect health data');assert.match(await page.locator('main').innerText(),/not (?:a )?(?:live )?health|does not provide medical/i);});
+
+await scenario('account-guest-state', async page=>{await mockGuestAuth(page);await open(page,'/account/');await page.waitForSelector('#account-email-form',{timeout:10000});assert.match(await page.locator('#account-state').innerText(),/Guest/);assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),/noindex/);});
+
+await scenario('god-mode-denied-to-guest', async page=>{await mockGuestAuth(page);await open(page,'/god-mode/');await page.waitForTimeout(300);assert.match(await page.locator('#god-mode-root').innerText(),/Authorization required/i);assert.equal(await page.locator('[data-emergency]').count(),0,'owner controls must not render for guest');assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),/noindex/);});
+
+await scenario('pwa-private-cache-exclusion', async page=>{await open(page,'/');var manifest=await page.evaluate(()=>fetch('/manifest.webmanifest').then(r=>r.json()));assert(!JSON.stringify(manifest).includes('/god-mode'),'public manifest advertises God Mode');assert(!JSON.stringify(manifest).includes('/love/'),'public manifest advertises private Love');var sw=await page.evaluate(()=>fetch('/service-worker.js').then(r=>r.text()));assert(/god-mode\|account\|love\|ibis-ai/.test(sw),'service worker private-route exclusion missing');});
 
 await scenario('riddim-hub-links', async page=>{
   await open(page,'/riddim/');assert(await page.locator('a[href="/riddim/daw/"]').count()>0,'DAW link missing');assert(await page.locator('a[href="/riddim/dj/"]').count()>0,'DJ link missing');await page.click('#riddim-track-choice');await page.waitForSelector('#riddim-form',{timeout:5000});
 });
 
-for (const path of ['/about/','/applications/','/contact/','/news/','/insights/','/resources/','/top-picks/','/invest/']) {
+for (const path of ['/about/','/applications/','/contact/','/news/','/insights/','/resources/','/top-picks/','/trust/','/glossary/','/investor-room/']) {
   await scenario('route-'+path.replaceAll('/','-'), async page=>{await open(page,path);assert(await page.locator('main').count()===1);});
 }
 

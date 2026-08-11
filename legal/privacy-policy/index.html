@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy — FTN Platform</title>
   <meta name="description" content="How the FTN Platform website handles information: what is collected, what is stored on your device, and your choices.">
-  <link rel="canonical" href="/legal/privacy-policy/">
+  <link rel="canonical" href="https://ftnplatform.org/legal/privacy-policy/">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
   <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
@@ -147,46 +147,42 @@
         <p>FTN exists to help communities, institutions and decision-makers understand the world around them more clearly.</p>
         <p>Protecting the privacy, dignity and trust of the people who interact with FTN is fundamental to that mission.</p>
         <p>This Privacy Policy explains how the public FTN Platform website at ftnplatform.org currently handles information.</p>
-        <p>This policy applies only to the public informational website. It does not govern separate FTN applications or services, including Community Connect, Mission Control, Display Network or Media Network applications. Those products will publish their own privacy notices before collecting or processing operational user information.</p>
+        <p>This policy applies to the shared public website and FTN Account surfaces at ftnplatform.org. Community Connect remains a separate protected application and privacy boundary. Sensitive products, including FTN Love and private ibis content, require their own point-of-use notices and server-side controls before public release.</p>
 
         <h2 id="what-we-currently-collect">What We Currently Collect</h2>
-        <p>The FTN Platform website does not currently:</p>
+        <p>The public website does not silently collect civic evidence, precise location, health information, payment details or private media merely because a visitor browses a page. Current collection is limited to information a user deliberately provides for a defined action:</p>
         <ul>
-          <li>require user registration;</li>
-          <li>create user accounts;</li>
-          <li>operate a user database;</li>
-          <li>collect reports through Community Connect;</li>
-          <li>collect GPS coordinates;</li>
-          <li>collect photographs or uploaded media;</li>
-          <li>collect payment details;</li>
-          <li>collect government information;</li>
-          <li>collect analytics or advertising identifiers;</li>
-          <li>deliberately track users across websites;</li>
-          <li>operate a functional contact-submission backend.</li>
+          <li>Supabase Auth processes an email address, stable user ID and session information when a visitor creates or uses an FTN Account;</li>
+          <li>the protected FTN transaction service records contact and creator submissions, consent/authority confirmation, route, time and the fields shown in the form;</li>
+          <li>Cloudflare hosting, security and Web Analytics may process ordinary delivery telemetry such as request, device, referrer, country-level and security information;</li>
+          <li>product workspaces may save clearly labelled drafts, preferences, recent items and source watchlists in the visitor&rsquo;s own browser.</li>
         </ul>
-        <p>The website&rsquo;s Contact form currently performs browser-side validation but does not send, store or transmit the information entered into it.</p>
-        <p>Visitors should therefore not enter confidential, sensitive, urgent or legally privileged information into the Contact form until a live submission service is formally announced.</p>
+        <p>Contact and creator transactions require a stated purpose, authority confirmation and Cloudflare Turnstile. A successful receipt includes a transaction ID; a browser-only draft or email fallback is not described as submitted.</p>
+        <p>Do not enter passwords, payment-card details, medical records, private civic evidence, identity documents, urgent threats or legally privileged information into general forms.</p>
 
         <h2 id="information-stored-on-your-device">Information Stored on Your Device</h2>
-        <p>The website uses browser local storage to remember limited interface preferences.</p>
+        <p>The website uses browser local storage for interface preferences and explicitly labelled local work.</p>
         <p>These preferences may include:</p>
         <ul>
           <li>Presentation Mode or Live Mode selection;</li>
           <li>the position or dismissed state of the Presentation Mode control;</li>
           <li>interface display choices;</li>
-          <li>other non-identifying user-experience settings.</li>
+          <li>last public task, saved public pages and source watchlists;</li>
+          <li>draft form values and local creative project recipes;</li>
+          <li>recently played or locally prepared media metadata;</li>
+          <li>Supabase Auth session material when a user chooses to sign in.</li>
         </ul>
         <p>These settings remain within the visitor&rsquo;s browser unless the visitor clears browser storage.</p>
-        <p>The website does not intentionally store names, email addresses, telephone numbers, reports, photographs or other personally identifying information in local storage.</p>
+        <p>Some workspaces may contain names, contact fields or project metadata supplied by the user. Each local save must say that it stays on the device and is not a cloud backup. FTN&rsquo;s public service worker excludes Account, FTN Love, God Mode and private ibis routes from its cache.</p>
 
         <h2 id="cookies">Cookies</h2>
         <p>The website does not currently set or use cookies.</p>
-        <p>If cookies, analytics or similar technologies are introduced later, this Privacy Policy and the Cookie Policy will be updated before or when those technologies are activated.</p>
+        <p>FTN Account currently uses browser storage rather than an FTN authentication cookie. Infrastructure providers may set strictly necessary security cookies outside the website code. See the Cookie Policy for the current distinction.</p>
 
         <h2 id="third-party-services">Third-Party Services</h2>
         <p>The website currently requests font files from Google Fonts.</p>
         <p>When a visitor&rsquo;s browser requests those files, the third-party provider may receive ordinary technical request information such as the visitor&rsquo;s IP address, browser details and request time as part of normal internet delivery.</p>
-        <p>FTN does not currently use third-party advertising networks, behavioural analytics services, social-media tracking pixels or embedded payment processors on this website.</p>
+        <p>FTN does not currently use third-party behavioural advertising networks, social-media tracking pixels or embedded payment processors on this website. The production host currently includes Cloudflare Web Analytics/delivery telemetry; sensitive surfaces prohibit session replay.</p>
         <p>The website is hosted through infrastructure that may process ordinary server and security information necessary to deliver and protect the site. Such infrastructure may include Cloudflare Pages and related domain or hosting services configured outside the website repository.</p>
 
         <h2 id="presentation-mode-and-live-mode">Presentation Mode and Live Mode</h2>

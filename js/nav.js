@@ -14,13 +14,14 @@
 
   loadOnce('/js/smart-export.js', 'data-ftn-smart-export');
   loadOnce('/js/ux-primitives.js', 'data-ftn-ux-primitives');
+  loadOnce('/js/platform-foundation.js', 'data-ftn-platform-foundation');
 
   if (location.pathname.indexOf('/radio') === 0) loadOnce('/js/radio-airtime.js', 'data-ftn-radio-airtime');
   if (location.pathname.indexOf('/screen') === 0) loadOnce('/js/screen-festival-package.js', 'data-ftn-screen-festival');
   if (location.pathname.indexOf('/applications') === 0) loadOnce('/js/applications-creator-doorways.js', 'data-ftn-creator-doorways');
 
   document.querySelectorAll('a[href="/contact/#investors"],a[href="/contact/?#investors"]').forEach(function (a) {
-    a.setAttribute('href', '/invest/');
+    a.setAttribute('href', '/investor-room/');
   });
 
   function mountSupportChooser() {
@@ -39,7 +40,7 @@
     var wrap = document.createElement('div');
     wrap.hidden = true;
     wrap.setAttribute('data-ftn-support-dialog', 'true');
-    wrap.innerHTML = '<div data-ftn-support-backdrop style="position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.66);backdrop-filter:blur(7px);display:grid;place-items:center;padding:20px"><section role="dialog" aria-modal="true" aria-labelledby="ftn-support-title" style="width:min(440px,100%);background:#0d0e11;color:#fff;border:1px solid #34363d;border-radius:22px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.55)"><p style="margin:0 0 6px;color:#ff4551;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase">Support FTN</p><h2 id="ftn-support-title" style="margin:0 0 8px;font:800 1.45rem/1.15 Montserrat,Inter,sans-serif">Choose how you want to help.</h2><p style="margin:0 0 18px;color:#b8bbc2;line-height:1.55;font-size:.92rem">No pressure. Pick the option that suits you, or simply keep using and sharing FTN.</p><div style="display:grid;gap:10px"><a class="btn btn-primary" href="https://ko-fi.com/facethenationtt" rel="noopener noreferrer">One-time support · Ko-fi</a><a class="btn btn-outline btn-outline--on-dark" href="https://www.patreon.com/cw/FTNPlatform" rel="noopener noreferrer">Ongoing support · Patreon</a><a class="btn btn-outline btn-outline--on-dark" href="/invest/">Investor / strategic partner</a></div><button type="button" data-ftn-support-close style="margin-top:16px;border:0;background:none;color:#aeb2ba;cursor:pointer;padding:6px 0;font:700 12px Inter,sans-serif">Not now</button></section></div>';
+    wrap.innerHTML = '<div data-ftn-support-backdrop style="position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.66);backdrop-filter:blur(7px);display:grid;place-items:center;padding:20px"><section role="dialog" aria-modal="true" aria-labelledby="ftn-support-title" style="width:min(440px,100%);background:#0d0e11;color:#fff;border:1px solid #34363d;border-radius:22px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.55)"><p style="margin:0 0 6px;color:#ff4551;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase">Support FTN</p><h2 id="ftn-support-title" style="margin:0 0 8px;font:800 1.45rem/1.15 Montserrat,Inter,sans-serif">Choose how you want to help.</h2><p style="margin:0 0 18px;color:#b8bbc2;line-height:1.55;font-size:.92rem">No pressure. Pick the option that suits you, or simply keep using and sharing FTN.</p><div style="display:grid;gap:10px"><a class="btn btn-primary" href="https://ko-fi.com/facethenationtt" rel="noopener noreferrer">One-time support · Ko-fi</a><a class="btn btn-outline btn-outline--on-dark" href="https://www.patreon.com/cw/FTNPlatform" rel="noopener noreferrer">Ongoing support · Patreon</a><a class="btn btn-outline btn-outline--on-dark" href="/investor-room/">Investor / strategic partner</a></div><button type="button" data-ftn-support-close style="margin-top:16px;border:0;background:none;color:#aeb2ba;cursor:pointer;padding:6px 0;font:700 12px Inter,sans-serif">Not now</button></section></div>';
     document.body.appendChild(wrap);
     function close(){wrap.hidden=true;button.setAttribute('aria-expanded','false');button.focus();}
     button.setAttribute('aria-expanded','false');

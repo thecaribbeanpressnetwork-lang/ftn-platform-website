@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cookie Policy — FTN Platform</title>
-  <meta name="description" content="The FTN Platform website sets no cookies. This policy explains what local browser storage it does use.">
-  <link rel="canonical" href="/legal/cookie-policy/">
+  <meta name="description" content="How FTN Platform currently uses browser storage, authentication sessions and Cloudflare delivery telemetry.">
+  <link rel="canonical" href="https://ftnplatform.org/legal/cookie-policy/">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
   <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
@@ -138,30 +138,32 @@
         </nav>
         <div class="legal-doc">
         <h2 id="current-position">Current Position</h2>
-        <p>The FTN Platform website does not currently set cookies.</p>
+        <p>The FTN website code does not currently set an FTN advertising or analytics cookie. FTN Account uses Supabase Auth session material in browser storage. Cloudflare or another infrastructure provider may set strictly necessary security cookies while delivering or protecting the site.</p>
         <p>The website does not currently use:</p>
         <ul>
           <li>behavioural advertising cookies;</li>
           <li>cross-site tracking cookies;</li>
-          <li>analytics cookies;</li>
+          <li>FTN behavioural-analytics cookies;</li>
           <li>social-media tracking pixels;</li>
-          <li>user-authentication cookies;</li>
+          <li>an FTN password cookie;</li>
           <li>payment cookies.</li>
         </ul>
 
         <h2 id="local-browser-storage">Local Browser Storage</h2>
-        <p>The website uses local browser storage to remember limited interface preferences.</p>
+        <p>The website uses local browser storage for interface preferences, explicit local work and—when a user signs in—Supabase Auth session material.</p>
         <p>These settings may include:</p>
         <ul>
           <li>Presentation Mode or Live Mode;</li>
           <li>the floating Presentation Mode control position;</li>
           <li>whether the control was dismissed during a page view;</li>
-          <li>other interface preferences.</li>
+          <li>country preference, last public task, saved pages and source watchlists;</li>
+          <li>clearly labelled drafts, recent items and creative project recipes;</li>
+          <li>authentication session tokens needed to keep a signed-in user on the current device.</li>
         </ul>
-        <p>This information is stored on the visitor&rsquo;s device and is not intentionally transmitted by the website to FTN.</p>
+        <p>Local drafts and preferences normally remain on the visitor&rsquo;s device. Authentication tokens are transmitted to Supabase Auth and protected FTN functions when needed to authenticate an action. Clearing browser storage signs the user out and removes local work that was not exported or cloud-saved.</p>
 
         <h2 id="third-party-resources">Third-Party Resources</h2>
-        <p>The website currently requests font resources from Google Fonts.</p>
+        <p>The website currently requests font resources from Google Fonts, authentication code from the pinned Supabase JavaScript distribution when FTN Account is used, Cloudflare Turnstile for protected forms, and Cloudflare Web Analytics/delivery telemetry on the production host.</p>
         <p>That request is made by the visitor&rsquo;s browser to the third-party provider and may involve ordinary technical request information.</p>
         <p>The third party&rsquo;s own terms and privacy practices govern its processing.</p>
 
