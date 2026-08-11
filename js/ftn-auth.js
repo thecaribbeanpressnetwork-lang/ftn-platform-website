@@ -24,10 +24,14 @@ async function getSession(){var c=await client();var result=await c.auth.getSess
 async function getAccessToken(){var session=await getSession();return session&&session.access_token||null;}
 async function getVerifiedUser(){var c=await client();var result=await c.auth.getUser();if(result.error){if(/session.*missing/i.test(result.error.message||''))return null;throw result.error;}return result.data.user||null;}
 async function signInWithEmail(email,returnTo){var c=await client();var target=rememberReturn(returnTo||returnPath());var redirect=location.origin+'/account/?return='+encodeURIComponent(target);var result=await c.auth.signInWithOtp({email:String(email||'').trim(),options:{emailRedirectTo:redirect,shouldCreateUser:true}});if(result.error)throw result.error;return result.data;}
+// Google OAuth uses the same FTN Account callback page as email links. The
+// Supabase client exchanges the returned authorization code there, so neither
+// Google credentials nor privileged Supabase keys are exposed in the browser.
+async function signInWithGoogle(returnTo){var c=await client();var target=rememberReturn(returnTo||returnPath());var redirect=location.origin+'/account/?return='+encodeURIComponent(target);var result=await c.auth.signInWithOAuth({provider:'google',options:{redirectTo:redirect}});if(result.error)throw result.error;return result.data;}
 async function verifyEmailOtp(email,token){var c=await client();var result=await c.auth.verifyOtp({email:String(email||'').trim(),token:String(token||'').trim(),type:'email'});if(result.error)throw result.error;return result.data.session;}
 async function signOut(){var c=await client();var result=await c.auth.signOut({scope:'local'});if(result.error)throw result.error;try{sessionStorage.removeItem('ftn.auth.return');}catch(e){}}
 async function invoke(name,body){var c=await client();var result=await c.functions.invoke(name,{body:body||{}});if(result.error)throw result.error;return result.data;}
 async function ownerAccess(){try{return await invoke('ftn-owner-control',{action:'authorize'});}catch(e){return{allowed:false,error:e.message||'Owner authorization unavailable.'};}}
 function onChange(callback){client().then(function(c){c.auth.onAuthStateChange(function(event,session){callback(event,session);});});}
-global.FTN=global.FTN||{};global.FTN.Auth={ready:client,completeEmailLink:completeEmailLink,getSession:getSession,getAccessToken:getAccessToken,getVerifiedUser:getVerifiedUser,signInWithEmail:signInWithEmail,verifyEmailOtp:verifyEmailOtp,signOut:signOut,invoke:invoke,ownerAccess:ownerAccess,onChange:onChange,safeReturn:safeReturn,rememberReturn:rememberReturn,returnPath:returnPath};
+global.FTN=global.FTN||{};global.FTN.Auth={ready:client,completeEmailLink:completeEmailLink,getSession:getSession,getAccessToken:getAccessToken,getVerifiedUser:getVerifiedUser,signInWithEmail:signInWithEmail,signInWithGoogle:signInWithGoogle,verifyEmailOtp:verifyEmailOtp,signOut:signOut,invoke:invoke,ownerAccess:ownerAccess,onChange:onChange,safeReturn:safeReturn,rememberReturn:rememberReturn,returnPath:returnPath};
 })(window);
