@@ -1,0 +1,46 @@
+FTN PARLIAMENT CHANNEL — OFFICIAL SOURCE REGISTRY
+Version: 0.1 (foundation)
+Purpose: provide a source-controlled directory for official parliamentary broadcasts,
+orders of business, chamber records and archives. Caribbean sources always appear first.
+
+NON-NEGOTIABLE SOURCE RULES
+- Link only to a parliament/legislature's official website or official, verified broadcaster account.
+- "LIVE" means the source exposes a live/current stream or a published sittings schedule.
+  It does not mean that a sitting is occurring at this moment.
+- Do not rehost a legislature's stream without explicit permission.
+- Preserve source URL, source type, verification status and last checked date per record.
+- An editor must verify any source before marking it "verified-live".
+
+CARIBBEAN PRIORITY SOURCES (verified 2026-08-10)
+
+Trinidad and Tobago | Parliament of the Republic of Trinidad and Tobago
+Official site: https://www.ttparliament.org/
+Live / ParlView: https://parlview.ttparliament.org/
+Channel page: https://www.ttparliament.org/parliament-channel/
+Source type: Official parliamentary web broadcast, schedule and archive
+Status: verified-live-source
+
+Guyana | Parliament of the Co-operative Republic of Guyana
+Official site / live stream: https://parliament.gov.gy/
+Official YouTube channel: https://www.youtube.com/@parliamentofguyana1710/streams
+Source type: Official parliamentary web broadcast and official YouTube archive
+Status: verified-live-source
+
+CARIBBEAN PRIORITY QUEUE — OFFICIAL SOURCE VERIFICATION REQUIRED BEFORE PUBLIC LISTING
+Anguilla; Antigua and Barbuda; Aruba; Bahamas; Barbados; Belize; Bermuda;
+British Virgin Islands; Cayman Islands; Cuba; Curaçao; Dominica; Dominican Republic;
+Grenada; Haiti; Jamaica; Montserrat; Puerto Rico; Saint Kitts and Nevis; Saint Lucia;
+Saint Vincent and the Grenadines; Sint Maarten; Suriname; Turks and Caicos Islands;
+United States Virgin Islands.
+
+WORLDWIDE COVERAGE — AUTHORITATIVE BASE DIRECTORY
+Inter-Parliamentary Union (IPU) Parline: https://data.ipu.org/
+The IPU identifies 193 national parliaments and provides a country/chamber directory.
+Use it as the global country/chamber backbone. FTN must independently verify each
+official broadcast source before presenting it as live.
+
+IMPLEMENTATION STATUS
+- Caribbean entries above are ready for FTN Parliament Channel.
+- The global registry is deliberately not populated with unverified video URLs.
+- Next ingestion pass: official source verification for each Caribbean legislature,
+  followed by the remaining IPU country/chamber records in batches.
