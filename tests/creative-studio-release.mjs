@@ -21,22 +21,22 @@ await scenario('ibis-provider-transparent-studio',async page=>{
   assert.equal(providerCalls.length,0,'Creative planning must not call PixVerse or Kling');
 });
 
-await scenario('fire-real-instrumental-draft-and-wav',async page=>{
+await scenario('fire-flow-music-instrumental-handoff',async page=>{
+  await page.context().grantPermissions(['clipboard-read','clipboard-write'],{origin:BASE});
+  await page.route('https://www.flowmusic.app/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Flow Music fixture</title>'}));
   await open(page,'/riddim/fire/');
   assert.match(await page.locator('h1').innerText(),/FTN\s*FIRE/i);
   assert.match(await page.locator('.fire-boundary').innerText(),/Instrumentals only/i);
   await page.fill('#fire-prompt','Make me a dark 105 BPM soca instrumental with heavy bass, percussion and steelpan-inspired melodies.');
   await page.selectOption('#fire-bars','4');await page.check('#fire-originality');
-  await page.locator('#fire-form').evaluate(form=>form.requestSubmit());
-  assert.equal(await page.locator('#fire-status').innerText(),'DRAFT READY');
-  assert.match(await page.locator('#fire-recipe').innerText(),/Instrumental only/i);
-  assert.equal(await page.locator('#fire-play').isEnabled(),true);
-  const download=page.waitForEvent('download');await page.click('#fire-export');const item=await download;
-  assert.match(item.suggestedFilename(),/ftn-fire-soca-105bpm\.wav$/);
-  await page.waitForFunction(()=>/WAV EXPORTED/.test(document.querySelector('#fire-status')?.textContent||''),null,{timeout:30000});
-  const stems=page.waitForEvent('download');await page.click('#fire-stems');const stemZip=await stems;
-  assert.match(stemZip.suggestedFilename(),/ftn-fire-stems-soca-105bpm\.zip$/);
-  await page.waitForFunction(()=>/STEMS ZIP EXPORTED/.test(document.querySelector('#fire-status')?.textContent||''),null,{timeout:60000});
+  const popup=page.waitForEvent('popup');await page.locator('#fire-form').evaluate(form=>form.requestSubmit());const flow=await popup;
+  await flow.waitForLoadState('domcontentloaded');
+  assert.match(flow.url(),/flowmusic\.app/);
+  await page.waitForSelector('#fire-flow-prompt');
+  const brief=await page.locator('#fire-flow-prompt').inputValue();
+  assert.match(brief,/original instrumental only/i);assert.match(brief,/105 BPM/i);assert.match(brief,/No vocals, lyrics/i);
+  assert.equal(await page.locator('#fire-copy-flow').isEnabled(),true);
+  assert.match(await page.locator('#fire-status').innerText(),/FLOW MUSIC OPENED|PROMPT COPIED/i);
 });
 
 await scenario('daw-multitrack-arrangement-and-real-mix',async page=>{

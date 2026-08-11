@@ -65,7 +65,7 @@ function wavBuffer(seconds=1,sampleRate=8000){
   const s=x=>{b.write(x,o,'ascii');o+=x.length};s('RIFF');b.writeUInt32LE(36+dataSize,o);o+=4;s('WAVE');s('fmt ');b.writeUInt32LE(16,o);o+=4;b.writeUInt16LE(1,o);o+=2;b.writeUInt16LE(1,o);o+=2;b.writeUInt32LE(sampleRate,o);o+=4;b.writeUInt32LE(sampleRate*2,o);o+=4;b.writeUInt16LE(2,o);o+=2;b.writeUInt16LE(16,o);o+=2;s('data');b.writeUInt32LE(dataSize,o);o+=4;for(let i=0;i<samples;i++){b.writeInt16LE(Math.round(Math.sin(2*Math.PI*440*i/sampleRate)*9000),o);o+=2;}return b;
 }
 
-await scenario('home-desktop', async page=>{await open(page,'/');await page.waitForSelector('#find-your-path',{timeout:10000});assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);assert(await page.locator('.eco-live-rail').count()===1,'home live tools rail missing');assert.equal(await page.locator('a[href="/love/"]').count(),0,'PRIVATE Love must not be advertised publicly');assert.equal(await page.locator('.country-switcher-dialog.is-open').count(),0,'country selection must not be forced');});
+await scenario('home-desktop', async page=>{await open(page,'/');await page.waitForSelector('#find-your-path',{timeout:10000});assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);assert(await page.locator('.eco-live-rail').count()===1,'home live tools rail missing');assert.equal(await page.locator('.country-switcher-dialog.is-open').count(),0,'country selection must not be forced');});
 await scenario('home-mobile', async page=>{await open(page,'/');assert(await page.locator('.eco-live-rail').count()===1);},{width:390,height:844});
 
 await scenario('ibis-visual-and-handoff', async page=>{
@@ -214,8 +214,8 @@ await scenario('display-network-studio', async page=>{
   await page.fill('#dn-content-title','Flood warning test');await page.fill('#dn-content-message','Avoid the low-lying road until cleared.');await page.click('#dn-add-content');assert.match(await page.locator('#dn-preview').innerText(),/Flood warning test/);assert(await page.locator('.dn-item').count()>0);
 });
 
-await scenario('love-private-fail-closed', async page=>{
-  await mockGuestAuth(page);await open(page,'/love/');await page.waitForSelector('#love-private-root .nexus-card',{timeout:10000});assert.match(await page.locator('#love-private-root').innerText(),/Private access unavailable/i);assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'),'noindex,nofollow,noarchive');
+await scenario('love-public-entry-fails-closed-for-guest', async page=>{
+  await mockGuestAuth(page);await open(page,'/love/');await page.waitForSelector('#love-private-root .nexus-card',{timeout:10000});assert.match(await page.locator('#love-private-root').innerText(),/Private access unavailable/i);assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'),'index,follow');
 });
 
 await scenario('parliament-source-directory', async page=>{await open(page,'/parliament/');assert.equal(await page.locator('.ftn-source-card').count(),4);await page.fill('#parliament-search','committee');assert.equal(await page.locator('.ftn-source-card').count(),1);assert.match(await page.locator('.ftn-source-card').innerText(),/Parliament of Trinidad and Tobago.*2026-08-10/is);});

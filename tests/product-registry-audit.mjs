@@ -23,20 +23,22 @@ for(const p of products){
 const phaseTwo=products.filter(p=>p.status==='PHASE 2');
 assert.equal(phaseTwo.map(p=>p.id).join(','),'health','FTN Health must be the sole Phase 2 product');
 const love=products.find(p=>p.id==='love');
-assert.equal(love.status,'PRIVATE');assert.equal(love.publicVisibility,false);
+assert.equal(love.status,'BETA');assert.equal(love.publicVisibility,true);
 const fire=products.find(p=>p.id==='ftn-fire');
-assert(fire,'FTN Fire supporting product missing');assert.equal(fire.parentProduct,'riddim');assert.equal(fire.principal,false);assert(fire.capabilities.includes('wav-export'));assert.match(fire.description,/without generated lyrics or vocalist/i);
+assert(fire,'FTN Fire supporting product missing');assert.equal(fire.parentProduct,'riddim');assert.equal(fire.principal,false);assert(fire.capabilities.includes('flow-music-handoff'));assert.match(fire.description,/without generated lyrics or vocalist/i);
 const ibis=products.find(p=>p.id==='ibis-ai');assert(ibis.capabilities.includes('creative-project-planning'),'ibis Creative Studio capability missing');assert(ibis.featureFlags.includes('provider-cost-lock'),'ibis provider cost lock missing');
 
 const sitemap=fs.readFileSync('sitemap.xml','utf8'),manifest=fs.readFileSync('manifest.webmanifest','utf8'),robots=fs.readFileSync('robots.txt','utf8');
 for(const p of products.filter(p=>p.publicVisibility!==false&&p.status!=='PRIVATE'&&p.id!=='account'&&p.principal!==false))assert(sitemap.includes(`https://ftnplatform.org${p.route}`),`Public product absent from sitemap: ${p.id}`);
-for(const route of ['/account/','/god-mode/','/love/'])assert(!sitemap.includes(`https://ftnplatform.org${route}`),`Private route leaked into sitemap: ${route}`);
+for(const route of ['/account/','/god-mode/'])assert(!sitemap.includes(`https://ftnplatform.org${route}`),`Private route leaked into sitemap: ${route}`);
+assert(sitemap.includes('https://ftnplatform.org/love/'),'Public FTN Love entry is absent from sitemap');
 assert(!manifest.includes('/god-mode/'),'God Mode must not appear in the public manifest');
-assert(!manifest.includes('/love/'),'Private Love must not appear in the public manifest');
-for(const route of ['/account/','/god-mode/','/love/'])assert(robots.includes(`Disallow: ${route}`),`${route} must be disallowed in robots.txt`);
+assert(!manifest.includes('/love/'),'Sensitive Love workspace must not appear in the public manifest');
+for(const route of ['/account/','/god-mode/'])assert(robots.includes(`Disallow: ${route}`),`${route} must be disallowed in robots.txt`);
+assert(!robots.includes('Disallow: /love/'),'Public FTN Love entry must be crawlable');
 
 const publicHtml=['index.html','applications/index.html'].map(f=>fs.readFileSync(f,'utf8')).join('\n');
-assert(!/href=["']\/love\//.test(publicHtml),'Private Love must not be advertised on home/product directory source');
+assert(/href=["']\/love\//.test(publicHtml),'Public FTN Love entry must be advertised in the product directory source');
 
 const htmlFiles=[];function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules'].includes(entry.name))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(entry.name.endsWith('.html'))htmlFiles.push(full);}}walk('.');
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8'),match=html.match(/<link rel=["']canonical["'] href=["']([^"']+)/i);if(match)assert(/^https:\/\/ftnplatform\.org\//.test(match[1]),`${file} has non-apex canonical ${match[1]}`);}

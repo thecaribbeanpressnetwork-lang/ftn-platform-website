@@ -4,7 +4,6 @@ User-agent: *
 Allow: /
 Disallow: /account/
 Disallow: /god-mode/
-Disallow: /love/
 Disallow: /*?*token=
 Disallow: /*?*code=
 Disallow: /*?*return=

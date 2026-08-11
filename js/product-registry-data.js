@@ -133,11 +133,11 @@ product({
 }),
 product({
   id:'ftn-fire',name:'FTN Fire',shortName:'Fire',tagline:'Caribbean riddims. Instrumentals only.',
-  description:'Riddim’s Caribbean-first instrumental beatmaker: an ibis producer brief, real on-device rhythmic synthesis and provider-neutral WAV/recipe export without generated lyrics or vocalist.',route:'/riddim/fire/',status:'BETA',parentProduct:'riddim',principal:false,
-  primaryUser:'Caribbean producers, artists and creators who need an original instrumental starting point',primaryJourney:'Describe the riddim, set BPM/key/energy/instruments, render a real browser draft, export WAV and continue in FTN DAW or ibis Creative Studio.',
-  callsToAction:[{label:'Build a Fire draft',route:'/riddim/fire/'}],visualMnemonic:'Layered Caribbean flame waveform',atmosphere:{accent:'#ff4d00',background:'dark-fire-studio',motionProfile:'flame-pulse',heroStyle:'producer-deck'},
-  dataSources:['user-authored producer brief','on-device Web Audio synthesis','optional authenticated ibis producer notes'],accessRules:['guest on-device draft','explicit authenticated text-AI transfer'],featureFlags:['fire-on-device-engine','fire-wav-export','fire-provider-lock'],relatedProducts:['riddim','daw','ibis-ai'],
-  legalNotices:['Instrumentals only','No artist impersonation','Provider transfer and cost lock'],analyticsClassification:'creative-private-no-replay',keywords:['fire','beatmaker','beat','instrumental','soca','reggae','dancehall','calypso','chutney','kompa','zouk'],capabilities:['producer-brief','caribbean-style-controls','on-device-playback','wav-export','recipe-export','ibis-producer-notes']
+  description:'Riddim’s Caribbean-first instrumental creation hand-off: Fire turns a producer brief into a detailed Flow Music prompt without generated lyrics or vocalist.',route:'/riddim/fire/',status:'BETA',parentProduct:'riddim',principal:false,
+  primaryUser:'Caribbean producers, artists and creators who need an original instrumental starting point',primaryJourney:'Describe the riddim, set BPM/key/energy/instruments, open Flow Music with a copied instrumental-only producer prompt, then import rights-cleared audio into FTN DAW.',
+  callsToAction:[{label:'Create an instrumental',route:'/riddim/fire/'}],visualMnemonic:'Layered Caribbean flame waveform',atmosphere:{accent:'#ff4d00',background:'dark-fire-studio',motionProfile:'flame-pulse',heroStyle:'producer-deck'},
+  dataSources:['user-authored producer brief','user-operated Flow Music hand-off'],accessRules:['guest producer brief','separate Flow Music account required'],featureFlags:['fire-flow-music-handoff'],relatedProducts:['riddim','daw','ibis-ai'],
+  legalNotices:['Instrumentals only','No artist impersonation','Separate-provider account and rights boundary'],analyticsClassification:'creative-private-no-replay',keywords:['fire','beatmaker','beat','instrumental','soca','reggae','dancehall','calypso','chutney','kompa','zouk'],capabilities:['producer-brief','caribbean-style-controls','flow-music-handoff','prompt-copy','daw-handoff']
 }),
 product({
   id:'kaiso',name:'FTN Kaiso',shortName:'Kaiso',tagline:'Caribbean music, culture and newsroom sources.',
@@ -171,9 +171,9 @@ product({
 }),
 product({
   id:'love',name:'FTN Love',shortName:'Love',tagline:'Consent and safety before discovery.',
-  description:'A private relationship-discovery product undergoing account, moderation and cross-user safety verification. It is not available to the public during release validation.',route:'/love/',status:'PRIVATE',publicVisibility:false,
+  description:'A consent-first relationship-discovery product for adults. Private profiles, discovery, matching, messages, block, report and deletion remain protected behind FTN Account and server-side safety controls.',route:'/love/',status:'BETA',publicVisibility:true,
   primaryUser:'Adults who explicitly consent to a private relationship journey',primaryJourney:'Authenticate, confirm age and consent, create a private profile, use controlled discovery and retain block/report/delete control.',
-  callsToAction:[{label:'Private access',route:'/account/?return=%2Flove%2F'}],visualMnemonic:'Protected heart boundary',panelAsset:'/assets/panels/11-ftn-love.png',panelRow:null,accent:'var(--color-love)',atmosphere:{accent:'var(--color-love)',background:'warm',motionProfile:'heartbeat',heroStyle:'warm-human'},
+  callsToAction:[{label:'Explore FTN Love',route:'/love/'}],visualMnemonic:'Protected heart boundary',panelAsset:'/assets/panels/11-ftn-love.png',panelRow:null,accent:'var(--color-love)',atmosphere:{accent:'var(--color-love)',background:'warm',motionProfile:'heartbeat',heroStyle:'warm-human'},
   dataSources:['user-consented private profile data'],accessRules:['authenticated adult','RLS owner-only profile','mutual match for messaging'],featureFlags:['love-private'],relatedProducts:['account'],legalNotices:['18+ only','Consent and safety','Private-data boundary'],analyticsClassification:'restricted-sensitive-no-replay',
   keywords:['relationship','connection','match','compatibility','consent','safety'],capabilities:['private-onboarding','consent','controlled-discovery','block','report','delete']
 }),
