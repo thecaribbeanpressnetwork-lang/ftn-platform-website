@@ -1,6 +1,13 @@
 /news/ /kaiso/ 301
 /news /kaiso/ 301
 
+# Stable Trust Centre aliases for public OAuth consent, partner reviews and
+# older FTN links. The full legal documents remain canonical under /legal/.
+/trust-centre/privacy /legal/privacy-policy/ 301
+/trust-centre/privacy/ /legal/privacy-policy/ 301
+/trust-centre/terms /legal/terms-of-service/ 301
+/trust-centre/terms/ /legal/terms-of-service/ 301
+
 # Supabase source, migrations and internal engineering records are Git-owned
 # deployment inputs, never public website content. Cloudflare Pages evaluates
 # these rules before serving the static file tree.
