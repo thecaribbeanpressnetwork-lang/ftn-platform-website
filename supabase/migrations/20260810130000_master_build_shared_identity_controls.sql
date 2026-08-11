@@ -35,10 +35,46 @@ on public.issues for update to authenticated
 using (public.ftn_has_operator_role(array['administrator','owner']))
 with check (public.ftn_has_operator_role(array['administrator','owner']));
 
--- Public views run with the caller's permissions/RLS instead of the view owner's privileges.
-alter view if exists public.issues_public set (security_invoker = true);
-alter view if exists public.issue_confirmation_counts set (security_invoker = true);
-alter view if exists public.issue_verification_counts set (security_invoker = true);
+-- Public Community Connect reads are column-limited before the legacy public
+-- views become security invokers. The source tables retain reporter contact,
+-- original photo data and unredacted metadata for the authorised service path;
+-- none of those fields are granted to browser roles.
+drop policy if exists "Public read public issue fields" on public.issues;
+create policy "Public read public issue fields" on public.issues
+for select to anon, authenticated using (true);
+revoke select on public.issues from anon, authenticated;
+grant select (id, case_number, title, category, community, description, latitude, longitude, status, lifecycle_status, created_at, updated_at)
+on public.issues to anon, authenticated;
+
+drop policy if exists "Public read confirmation count inputs" on public.issue_confirmations;
+create policy "Public read confirmation count inputs" on public.issue_confirmations
+for select to anon, authenticated using (true);
+revoke select on public.issue_confirmations from anon, authenticated;
+grant select (case_number, created_at) on public.issue_confirmations to anon, authenticated;
+
+drop policy if exists "Public read verification count inputs" on public.issue_verifications;
+create policy "Public read verification count inputs" on public.issue_verifications
+for select to anon, authenticated using (true);
+revoke select on public.issue_verifications from anon, authenticated;
+grant select (case_number, response) on public.issue_verifications to anon, authenticated;
+
+-- Keep the legacy response shape while redacting values that are not public.
+-- This avoids a destructive drop/recreate of views consumed by Community Connect.
+create or replace view public.issues_public with (security_invoker = true) as
+select
+  id, case_number, title, category, community, description,
+  null::text as photo_data_url,
+  round(latitude::numeric, 3)::double precision as latitude,
+  round(longitude::numeric, 3)::double precision as longitude,
+  status, lifecycle_status, created_at, updated_at,
+  '{}'::jsonb as metadata
+from public.issues;
+create or replace view public.issue_confirmation_counts with (security_invoker = true) as
+select case_number, count(*) as count, max(created_at) as last_confirmed_at
+from public.issue_confirmations group by case_number;
+create or replace view public.issue_verification_counts with (security_invoker = true) as
+select case_number, response, count(*) as count
+from public.issue_verifications group by case_number, response;
 
 create table if not exists public.ftn_user_preferences (
   user_id uuid primary key references auth.users(id) on delete cascade,
