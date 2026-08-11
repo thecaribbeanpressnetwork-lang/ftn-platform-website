@@ -2,6 +2,22 @@
 
 This internal record tracks the website release state. The public website does not display build/version badges.
 
+## Current release candidate — Master Build v2.0.0-rc.1
+
+| Field | Value |
+|---|---|
+| Release state | **Verified release candidate; not promoted to production** |
+| Candidate branch | `codex/master-build-v1` |
+| Protected baseline | `9ee081bd678fb5ec21e4325090f22b9b8737dfbd` |
+| Baseline recovery branch | `backup/master-build-baseline-20260810-9ee081b` |
+| Candidate date | 2026-08-10 |
+| Production impact | None; `main`, production Supabase and DNS were not mutated |
+| Release ledger | `GOVERNANCE/FTN_Master_Build_Execution_Ledger_2026-08-10.md` |
+
+The candidate expands the functional ecosystem to the required 21-product registry and shared account/trust/PWA foundation. It adds source-aware Parliament and Invest products, private Account/Love/God Mode controls, the Phase 2-only Health boundary, ibis Creative Studio, and a real instrument-only FTN Fire Caribbean beatmaker nested under Riddim. FTN Fire is not represented as a lyric or vocal-generation product.
+
+Browser release evidence covers 33 functional scenarios, 11 foundation journeys, five ibis/Fire/DAW/DJ journeys, 12 mobile surfaces, 40 indexed routes, 12 performance-budget routes, Turnstile on Radio/Screen/Face The Nation, and all 58 visual assets. Promotion remains blocked on paid isolated Supabase staging, visual-provenance/legal review, owner identity/MFA configuration, provider contract/cost approval, and DNS/security-header access.
+
 ## Current production release — Functional Ecosystem Release
 
 | Field | Value |

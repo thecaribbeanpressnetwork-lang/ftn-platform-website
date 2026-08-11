@@ -21,6 +21,15 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Audit Git-owned FTN backend source
+        run: node tests/backend-source-audit.mjs
+
+      - name: Audit Product Registry and private-route boundaries
+        run: node tests/product-registry-audit.mjs
+
+      - name: Audit visual asset manifest coverage
+        run: node tests/asset-manifest-audit.mjs
+
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
@@ -42,6 +51,16 @@ jobs:
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/functional-release.mjs
+
+      - name: Verify shared platform foundation
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/foundation-release.mjs
+
+      - name: Verify ibis Creative Studio and FTN Fire
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/creative-studio-release.mjs
 
       - name: Verify Turnstile safe readiness
         env:

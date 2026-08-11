@@ -1,0 +1,62 @@
+{
+  "project_id": "jshmidfpqrajxtukzges",
+  "captured_at": "2026-08-10T23:05:00Z",
+  "functions": [
+    {
+      "slug": "dj-tube-discovery",
+      "version": 8,
+      "verify_jwt": false,
+      "ezbr_sha256": "6b7db32db56bfce5fdfd9e40c287ee25d84a2f4850c04ed5c1adba6ef9117335",
+      "updated_at": 1786347883833,
+      "status": "ACTIVE"
+    },
+    {
+      "slug": "ftn-live-sources",
+      "version": 5,
+      "verify_jwt": false,
+      "ezbr_sha256": "fb196978be3b38d4600aa3ff01d01779bff6cda402fc26d343086846ea0fdcf1",
+      "updated_at": 1786352324303,
+      "status": "ACTIVE"
+    },
+    {
+      "slug": "ftn-opportunities",
+      "version": 4,
+      "verify_jwt": false,
+      "ezbr_sha256": "920b6e5b6992b6b169ac0c4fee80b5dd47a81269c8d4ed8221149b1483bfd705",
+      "updated_at": 1786336298426,
+      "status": "ACTIVE"
+    },
+    {
+      "slug": "ftn-news-sources",
+      "version": 5,
+      "verify_jwt": false,
+      "ezbr_sha256": "43913853a86b89e4cc5b7a2f7a0ba4ef5bd2f524e88d21ada96300f6fd51c56a",
+      "updated_at": 1786348064821,
+      "status": "ACTIVE"
+    },
+    {
+      "slug": "ftn-transactions",
+      "version": 5,
+      "verify_jwt": false,
+      "ezbr_sha256": "8e9241f2271a71f632f6753b0b8e5aa8eed5932fd0227003eee77b3d36ccefbf",
+      "updated_at": 1786325133679,
+      "status": "ACTIVE"
+    },
+    {
+      "slug": "ibis-query",
+      "version": 2,
+      "verify_jwt": true,
+      "ezbr_sha256": "ee5955a1c9f53e1b9b7a50770c21c9b079839784f3b49f49dd4db1c7acdd010a",
+      "updated_at": 1786387811959,
+      "status": "ACTIVE"
+    },
+    {
+      "slug": "dj-tube-stems",
+      "version": 4,
+      "verify_jwt": true,
+      "ezbr_sha256": "51f09915f77c1f8724cd3c1e965cc3a822f7d506787154271d325b4c54ef26c2",
+      "updated_at": 1786205143577,
+      "status": "ACTIVE"
+    }
+  ]
+}

@@ -43,6 +43,13 @@ const rows=[];
 
 for(const route of routes){
   const context=await browser.newContext({viewport:{width:1280,height:900}});
+  // Keep this owned-code budget deterministic: provider latency and scripts have their
+  // own staging checks and must not be attributed to FTN's transfer/long-task budget.
+  await context.route('https://fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+  await context.route('https://fonts.gstatic.com/**',r=>r.fulfill({status:200,contentType:'font/woff2',body:Buffer.alloc(0)}));
+  await context.route('https://www.youtube.com/iframe_api',r=>r.fulfill({status:200,contentType:'application/javascript',body:'window.YT={PlayerState:{ENDED:0,PLAYING:1,PAUSED:2},Player:function(){}};'}));
+  await context.route(/https:\/\/www\.youtube(?:-nocookie)?\.com\/embed\/.*/,r=>r.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Provider fixture</title>'}));
+  await context.route('**/functions/v1/**',r=>{const u=r.request().url();var body={};if(u.includes('dj-tube-discovery'))body={results:[],providers:{fixture:true},fetchedAt:'2026-08-10T12:00:00Z'};else if(u.includes('ftn-opportunities'))body={items:[],warnings:[],fetchedAt:'2026-08-10T12:00:00Z'};else if(u.includes('ftn-news-sources'))body={items:[],fetchedAt:'2026-08-10T12:00:00Z'};else if(u.includes('ftn-live-sources'))body={satellite:{sourceUrl:'https://www.star.nesdis.noaa.gov/',sourceTimestamp:'fixture'}};r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});});
   const page=await context.newPage();
   const requests=new Map();
   const cdp=await context.newCDPSession(page);
@@ -52,7 +59,7 @@ for(const route of routes){
   await page.addInitScript(()=>{
     window.__ftnLongTasks=[];
     try{
-      new PerformanceObserver(list=>{for(const e of list.getEntries())window.__ftnLongTasks.push({start:e.startTime,duration:e.duration});}).observe({entryTypes:['longtask']});
+      new PerformanceObserver(list=>{for(const e of list.getEntries())window.__ftnLongTasks.push({start:e.startTime,duration:e.duration,name:e.name});}).observe({entryTypes:['longtask']});
     }catch{}
   });
   try{
@@ -69,7 +76,7 @@ for(const route of routes){
       const scripts=[...document.scripts];
       const styles=[...document.querySelectorAll('link[rel="stylesheet"],style')];
       const iframes=[...document.querySelectorAll('iframe')];
-      const longTasks=window.__ftnLongTasks||[];
+      const longTasks=(window.__ftnLongTasks||[]).filter(x=>x.name==='self'||String(x.name).startsWith('same-origin'));
       return {
         domNodes:document.getElementsByTagName('*').length,
         scripts:scripts.length,

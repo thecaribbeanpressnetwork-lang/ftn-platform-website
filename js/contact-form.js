@@ -1,10 +1,5 @@
 // FTN Platform Website — contact form handling.
-// There is no backend to submit to yet, so this deliberately does not fake a
-// "message sent" confirmation. It validates client-side, saves the message locally via the
-// Integration Adapter Layer (the same convention every product workspace's intake tools already
-// use, Sprint 1 Wave 1/2), and tells the user honestly that a real pipeline isn't wired up yet --
-// consistent with every other "no backend yet" moment on the site, instead of silently discarding
-// the message the visitor just wrote. Replace this once a real submission endpoint exists.
+// Consequential contact submissions use the shared protected transaction pipeline.
 (function () {
   // Inquiry-category cards jump to the form with the matching category
   // already selected -- a real, working shortcut (not a claim that the
@@ -60,6 +55,7 @@
       email: form.email.value.trim(),
       category: form.category.value,
       message: form.message.value.trim(),
+      authorityConfirmed: !!form.authority.checked,
     };
 
     function showSaved(message) {
@@ -68,11 +64,14 @@
     }
 
     if (window.FTN && window.FTN.IntegrationAdapter) {
-      window.FTN.IntegrationAdapter.submit('contact', payload).then(function () {
-        showSaved('Saved in this browser -- this form is not yet connected to a real submission pipeline, so nothing was sent. For a response now, please use the direct contact details below instead.');
+      var token = form.querySelector('[name="cf-turnstile-response"]');
+      window.FTN.IntegrationAdapter.submit('contact', payload, { transaction:true, transactionType:'contact_enquiry', turnstileToken:token ? token.value : '' }).then(function (result) {
+        if (!result.ok) { showSaved(result.message + ' No message was claimed as sent; use the email fallback if needed.'); return; }
+        showSaved('FTN received this enquiry for review. Keep transaction ID ' + result.record.transactionId + '.');
+        form.reset();
       });
     } else {
-      showSaved('This form is not yet connected to a backend, so this message was not sent. Please use the direct contact details below instead.');
+      showSaved('The secure submission service did not load, so this message was not sent. Please use the email fallback.');
     }
   });
 })();

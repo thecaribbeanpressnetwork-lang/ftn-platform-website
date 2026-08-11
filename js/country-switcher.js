@@ -105,9 +105,8 @@
     }
     updateHeaderLabel();
 
-    if (global.FTN && global.FTN.Country && !global.FTN.Country.hasExplicitSelection()) {
-      open(true);
-    }
+    // The default context remains Trinidad & Tobago, but country choice is never forced.
+    // Visitors can open the header control at any time and still browse every Caribbean route.
   }
 
   if (document.readyState === 'loading') {
