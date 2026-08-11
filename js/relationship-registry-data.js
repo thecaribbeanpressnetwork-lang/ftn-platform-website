@@ -21,6 +21,19 @@
       opportunity: { type: 'affiliate', state: 'active' }
     },
     {
+      id: 'tolt',
+      name: 'Tolt',
+      relationshipType: 'affiliate',
+      status: 'confirmed',
+      publicUrl: 'https://tolt.link/facethenationtt',
+      disclosure: 'FTN may earn a referral commission if you become a customer through this link.',
+      capabilities: ['affiliate-program-management', 'referral-tracking', 'saas-growth'],
+      ecosystemUses: ['top-picks', 'face-the-nation', 'bossfinds'],
+      ownership: 'external-provider',
+      providerClass: 'external-provider',
+      opportunity: { type: 'affiliate', state: 'active' }
+    },
+    {
       id: 'patreon',
       name: 'Patreon',
       relationshipType: 'support',
