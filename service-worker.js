@@ -1,6 +1,9 @@
 /* FTN public-shell service worker. Private/account/AI/Community data is deliberately excluded. */
 'use strict';
-var VERSION='ftn-public-v2.0.0-rc1';
+// Bump this value for every production shell release. A new cache namespace makes
+// sure a browser that previously installed FTN does not continue rendering an
+// obsolete HTML/CSS/JS shell after Cloudflare has deployed a repair.
+var VERSION='ftn-public-v2.0.1';
 var SHELL=[
   '/','/offline/','/manifest.webmanifest','/css/tokens.css','/css/base.css',
   '/css/components/buttons.css','/css/components/nav.css','/css/components/nexus-foundation.css',
