@@ -27,7 +27,14 @@ async function scenario(name, fn, viewport={width:1280,height:900}) {
   const page = await context.newPage();
   const errors=[];
   page.on('pageerror', e=>errors.push('pageerror: '+e.message));
-  page.on('console', m=>{ if(m.type()==='error' && !/youtube|favicon|ERR_BLOCKED_BY_CLIENT|Failed to load resource.*404|compute-pressure is not allowed|ERR_EMPTY_RESPONSE/i.test(m.text())) errors.push('console: '+m.text()); });
+  page.on('console', m=>{
+    // Chromium 140 can emit this opaque DevTools formatting diagnostic during
+    // smooth scrolling; it has no page stack, does not represent a thrown FTN
+    // error, and is otherwise indistinguishable from a browser-internal trace.
+    // Keep all real page errors fail-closed.
+    const benignBrowserDiagnostic=/^%c%d\s+font-size:0;color:transparent\s+NaN$/;
+    if(m.type()==='error' && !/youtube|favicon|ERR_BLOCKED_BY_CLIENT|Failed to load resource.*404|compute-pressure is not allowed|ERR_EMPTY_RESPONSE/i.test(m.text()) && !benignBrowserDiagnostic.test(m.text())) errors.push('console: '+m.text());
+  });
   try {
     await fn(page);
     if(errors.length) throw new Error(errors.join('\n'));
