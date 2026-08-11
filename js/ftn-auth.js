@@ -12,7 +12,11 @@ function script(){return new Promise(function(resolve,reject){
   if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',reject,{once:true});return;}
   var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@'+VERSION+'/dist/umd/supabase.min.js';s.async=true;s.crossOrigin='anonymous';s.setAttribute('data-ftn-supabase',VERSION);s.onload=resolve;s.onerror=function(){reject(new Error('FTN Account could not load its authentication client.'));};document.head.appendChild(s);
 });}
-function client(){if(!clientPromise)clientPromise=script().then(function(){return global.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});});return clientPromise;}
+function client(){if(!clientPromise)clientPromise=script().then(function(){return global.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,flowType:'pkce'}});});return clientPromise;}
+// Supabase returns an authorization code after a user opens an email magic link.
+// The account page is the single callback owner. Disabling SDK auto-detection prevents
+// two concurrent exchanges from consuming the same one-time authorization code.
+async function completeEmailLink(){var code='';try{code=new URL(global.location.href).searchParams.get('code')||'';}catch(e){}if(!code)return null;var c=await client(),result=await c.auth.exchangeCodeForSession(code);if(result.error)throw result.error;try{var u=new URL(global.location.href);u.searchParams.delete('code');global.history.replaceState({},document.title,u.pathname+(u.search||'')+(u.hash||''));}catch(e){}return result.data.session||null;}
 function safeReturn(value){try{var u=new URL(value||'/',location.origin);if(u.origin!==location.origin)return'/';if(/^\/(account|god-mode)(\/|$)/.test(u.pathname))return'/';return u.pathname+u.search+u.hash;}catch(e){return'/';}}
 function returnPath(){var p=new URLSearchParams(location.search);return safeReturn(p.get('return')||sessionStorage.getItem('ftn.auth.return')||'/');}
 function rememberReturn(value){var safe=safeReturn(value);try{sessionStorage.setItem('ftn.auth.return',safe);}catch(e){}return safe;}
@@ -25,5 +29,5 @@ async function signOut(){var c=await client();var result=await c.auth.signOut({s
 async function invoke(name,body){var c=await client();var result=await c.functions.invoke(name,{body:body||{}});if(result.error)throw result.error;return result.data;}
 async function ownerAccess(){try{return await invoke('ftn-owner-control',{action:'authorize'});}catch(e){return{allowed:false,error:e.message||'Owner authorization unavailable.'};}}
 function onChange(callback){client().then(function(c){c.auth.onAuthStateChange(function(event,session){callback(event,session);});});}
-global.FTN=global.FTN||{};global.FTN.Auth={ready:client,getSession:getSession,getAccessToken:getAccessToken,getVerifiedUser:getVerifiedUser,signInWithEmail:signInWithEmail,verifyEmailOtp:verifyEmailOtp,signOut:signOut,invoke:invoke,ownerAccess:ownerAccess,onChange:onChange,safeReturn:safeReturn,rememberReturn:rememberReturn,returnPath:returnPath};
+global.FTN=global.FTN||{};global.FTN.Auth={ready:client,completeEmailLink:completeEmailLink,getSession:getSession,getAccessToken:getAccessToken,getVerifiedUser:getVerifiedUser,signInWithEmail:signInWithEmail,verifyEmailOtp:verifyEmailOtp,signOut:signOut,invoke:invoke,ownerAccess:ownerAccess,onChange:onChange,safeReturn:safeReturn,rememberReturn:rememberReturn,returnPath:returnPath};
 })(window);
