@@ -1,4 +1,8 @@
 {
   "schemaVersion": 1,
-  "turnstileSiteKey": "0x4AAAAAAEMEmdrltqzhH5ZY"
+  "turnstileSiteKey": "0x4AAAAAAEMEmdrltqzhH5ZY",
+  "supabase": {
+    "url": "https://jshmidfpqrajxtukzges.supabase.co",
+    "publishableKey": "sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z"
+  }
 }
