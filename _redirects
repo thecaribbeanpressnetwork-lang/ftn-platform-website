@@ -1,2 +1,8 @@
 /news/ /kaiso/ 301
 /news /kaiso/ 301
+
+# Supabase source, migrations and internal engineering records are Git-owned
+# deployment inputs, never public website content. Cloudflare Pages evaluates
+# these rules before serving the static file tree.
+/supabase/* /404.html 404
+/GOVERNANCE/* /404.html 404

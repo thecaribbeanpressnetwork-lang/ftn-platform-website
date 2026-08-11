@@ -19,6 +19,13 @@ const functions = [
 const files = functions.map(name => path.join('supabase','functions',name,'index.ts'));
 for (const file of files) assert(fs.existsSync(file),`Missing Git-owned Edge Function source: ${file}`);
 assert(fs.existsSync('supabase/README.md'),'Missing Supabase ownership/deployment record');
+const redirects = fs.readFileSync('_redirects','utf8');
+assert.match(redirects,/^\/supabase\/\*\s+\/404\.html\s+404$/m,'Supabase source and migrations must not be publicly served by Cloudflare Pages');
+assert.match(redirects,/^\/GOVERNANCE\/\*\s+\/404\.html\s+404$/m,'Internal governance records must not be publicly served by Cloudflare Pages');
+const headers = fs.readFileSync('_headers','utf8');
+for (const header of ['X-Content-Type-Options: nosniff','Referrer-Policy: strict-origin-when-cross-origin','X-Frame-Options: DENY','Permissions-Policy:','Cross-Origin-Opener-Policy: same-origin']) {
+  assert(headers.includes(header),`Cloudflare Pages security header missing: ${header}`);
+}
 
 for (const migration of [
   'supabase/migrations/20260810012120_add_ftn_platform_transactions.sql',
@@ -26,6 +33,8 @@ for (const migration of [
   'supabase/migrations/20260810081201_fix_shared_updated_at_search_path.sql',
   'supabase/migrations/20260810130000_master_build_shared_identity_controls.sql',
   'supabase/migrations/20260810150000_ibis_creative_cost_controls.sql',
+  'supabase/migrations/20260811100000_community_connect_storage_and_integrity.sql',
+  'supabase/migrations/20260811101000_revoke_auto_rls_helper.sql',
 ]) {
   assert(fs.existsSync(migration),`Missing FTN-owned applied migration record: ${migration}`);
 }
@@ -95,12 +104,18 @@ assert.match(love,/adult\(/,'FTN Love must retain a server-side adult gate');
 assert.match(love,/ftn_love_blocks/,'FTN Love must enforce block controls');
 assert.match(love,/ftn_love_reports/,'FTN Love must provide a server-side report path');
 assert.match(love,/reverse/,'FTN Love must require reciprocal interest before creating a match');
+assert.match(love,/match\.status!=="ACTIVE"/,'Blocked or closed FTN Love matches must not expose message history');
+assert.match(love,/from\("ftn_love_interests"\)\.delete/,'Blocking must remove pending reciprocal interests');
+assert.match(love,/from\("ftn_love_matches"\)\.delete/,'Profile deletion must remove related matches and their cascade-owned messages');
 
 const sharedMigration = fs.readFileSync('supabase/migrations/20260810130000_master_build_shared_identity_controls.sql','utf8');
 for (const table of ['ftn_user_preferences','ftn_saved_items','ftn_operator_roles','ftn_control_journal','ftn_love_profiles','ftn_love_messages']) {
   assert.match(sharedMigration,new RegExp(`alter table public\\.${table} enable row level security`,'i'),`${table} must enable RLS`);
 }
 assert.match(sharedMigration,/security_invoker\s*=\s*true/i,'Community public views must use invoker security');
+assert.match(sharedMigration,/revoke select on public\.issues from anon, authenticated/i,'Community source records must not grant browser roles every issue column');
+assert.match(sharedMigration,/null::text as photo_data_url/i,'The public issues view must redact embedded report evidence');
+assert.match(sharedMigration,/'\{\}'::jsonb as metadata/i,'The public issues view must redact raw report metadata');
 
 const creative=fs.readFileSync('supabase/functions/ibis-creative-control/index.ts','utf8');
 assert.match(creative,/const adapters:Record<string,ProviderAdapter>\s*=\s*\{\}/,'Paid creative adapters must ship empty until a provider passes approval');
@@ -115,6 +130,17 @@ assert.match(creativeMigration,/for update/i,'ibis Credits reservation must lock
 assert.match(creativeMigration,/ftn_reserve_ai_credits\(\s*p_user_id uuid[\s\S]*grant execute on function public\.ftn_reserve_ai_credits\(uuid,text,text,uuid,text,text\) to service_role/i,'Only the service role may reserve ibis Credits for an explicitly verified user');
 assert.match(stems,/p_user_id:user\.id/i,'Stem reservation must bind the server-verified Auth user to the credit RPC');
 assert.match(creativeMigration,/storage\.buckets[\s\S]*ftn-private-audio/i,'Private FTN audio storage bucket missing');
+
+const communityIntegrityMigration=fs.readFileSync('supabase/migrations/20260811100000_community_connect_storage_and_integrity.sql','utf8');
+assert.match(communityIntegrityMigration,/community-report-evidence/,'Community Connect needs a private evidence bucket');
+assert.match(communityIntegrityMigration,/community_issue_media/,'Community Connect needs a durable evidence metadata table');
+assert.match(communityIntegrityMigration,/enable row level security/i,'Community evidence metadata must be RLS-protected');
+assert.match(communityIntegrityMigration,/issue_confirmations_case_number_fkey/,'Issue confirmations need a case-number relationship');
+assert.match(communityIntegrityMigration,/issue_verifications_case_number_fkey/,'Issue verifications need a case-number relationship');
+assert.match(communityIntegrityMigration,/ftn_enforce_one_dj_profile/,'Duplicate DJ profiles must be blocked at write time');
+
+const rlsHelperMigration=fs.readFileSync('supabase/migrations/20260811101000_revoke_auto_rls_helper.sql','utf8');
+assert.match(rlsHelperMigration,/revoke execute on function public\.rls_auto_enable\(\) from public, anon, authenticated/i,'The automatic-RLS helper must not remain publicly executable');
 
 console.log(`${files.length}/${functions.length} FTN Edge Functions are versioned in Git and passed the ownership/secret audit.`);
 console.log('POE Gmail path is draft-only, Turnstile-bound, hostname/action validated and rate-limited; no automatic Gmail send endpoint is present.');
