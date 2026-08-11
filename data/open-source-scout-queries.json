@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sources": ["github", "huggingface", "npm"],
+  "limitPerQuery": 10,
+  "queries": [
+    {
+      "area": "FTN Riddim · Fire",
+      "terms": ["web audio sequencer", "browser drum machine"],
+      "why": "Improve browser-local creation, export and interoperability without uploading a creator's audio."
+    },
+    {
+      "area": "FTN Riddim · DAW / DJ",
+      "terms": ["audio waveform javascript", "audio stem separation"],
+      "why": "Improve processing, analysis and local-audio workflows while keeping streamed media rights-safe."
+    },
+    {
+      "area": "ibis.ai",
+      "terms": ["agent orchestration typescript", "retrieval provenance"],
+      "why": "Strengthen the FTN dispatcher, provenance and Caribbean-relevant intelligence interfaces."
+    },
+    {
+      "area": "Shared FTN foundation",
+      "terms": ["privacy preserving analytics javascript", "progressive web app offline"],
+      "why": "Improve trust, performance, accessibility and FTN-owned data interfaces across nodes."
+    }
+  ]
+}

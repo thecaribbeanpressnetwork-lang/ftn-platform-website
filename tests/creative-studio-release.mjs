@@ -29,7 +29,9 @@ await scenario('fire-flow-music-instrumental-handoff',async page=>{
   assert.match(await page.locator('.fire-boundary').innerText(),/Instrumentals only/i);
   await page.fill('#fire-prompt','Make me a dark 105 BPM soca instrumental with heavy bass, percussion and steelpan-inspired melodies.');
   await page.selectOption('#fire-bars','4');await page.check('#fire-originality');
-  const popup=page.waitForEvent('popup');await page.locator('#fire-form').evaluate(form=>form.requestSubmit());const flow=await popup;
+  await page.locator('#fire-form').evaluate(form=>form.requestSubmit());
+  await page.waitForSelector('#fire-flow-prompt');
+  const popup=page.waitForEvent('popup');await page.click('#fire-open-flow');const flow=await popup;
   await flow.waitForLoadState('domcontentloaded');
   assert.match(flow.url(),/flowmusic\.app/);
   await page.waitForSelector('#fire-flow-prompt');

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">FTN Platform</title>
+  <desc id="desc">FTN Platform identity mark: bold white F and N with FTN red T on a premium black field.</desc>
+  <rect width="512" height="512" rx="96" fill="#050506"/>
+  <rect x="30" y="30" width="452" height="452" rx="70" fill="none" stroke="#25252A" stroke-width="4"/>
+  <path d="M86 116h128v58h-66v46h60v57h-60v119H86V116Z" fill="#FFFFFF"/>
+  <path d="M205 116h103v58h-21v222h-62V174h-20v-58Z" fill="#E10613"/>
+  <path d="M317 116h43l63 125V116h62v280h-43l-63-124v124h-62V116Z" fill="#FFFFFF"/>
+  <rect x="86" y="426" width="340" height="10" rx="5" fill="#E10613"/>
+  <text x="256" y="468" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="7" fill="#FFFFFF">PLATFORM</text>
+</svg>

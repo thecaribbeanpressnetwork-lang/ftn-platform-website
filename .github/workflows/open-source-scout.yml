@@ -1,0 +1,45 @@
+name: FTN Open-Source Scout
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 13 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify the ownership and licence gate
+        run: node scripts/ftn-open-source-scout.mjs --self-test
+      - name: Research public registries
+        env:
+          # GitHub's ephemeral workflow token improves rate limits. The script
+          # works without it and never writes it into a report.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/ftn-open-source-scout.mjs --out /tmp/FTN_Open_Source_Scout_Report.md
+      - name: Report founder email configuration gap
+        if: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_ID == '' || secrets.FTN_SCOUT_GMAIL_CLIENT_SECRET == '' || secrets.FTN_SCOUT_GMAIL_REFRESH_TOKEN == '' || secrets.FTN_SCOUT_EMAIL_TO == '' }}
+        run: |
+          echo "::warning::Scout report was created but email delivery is not configured. Add the four FTN_SCOUT_* GitHub Actions secrets before relying on the weekly email."
+      - name: Send founder review email
+        if: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_ID != '' && secrets.FTN_SCOUT_GMAIL_CLIENT_SECRET != '' && secrets.FTN_SCOUT_GMAIL_REFRESH_TOKEN != '' && secrets.FTN_SCOUT_EMAIL_TO != '' }}
+        env:
+          FTN_SCOUT_GMAIL_CLIENT_ID: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_ID }}
+          FTN_SCOUT_GMAIL_CLIENT_SECRET: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_SECRET }}
+          FTN_SCOUT_GMAIL_REFRESH_TOKEN: ${{ secrets.FTN_SCOUT_GMAIL_REFRESH_TOKEN }}
+          FTN_SCOUT_EMAIL_TO: ${{ secrets.FTN_SCOUT_EMAIL_TO }}
+        run: node scripts/ftn-scout-email.mjs /tmp/FTN_Open_Source_Scout_Report.json
+      - name: Retain founder review report
+        uses: actions/upload-artifact@v4
+        with:
+          name: FTN-Open-Source-Scout-Report
+          path: /tmp/FTN_Open_Source_Scout_Report.md
+          retention-days: 90

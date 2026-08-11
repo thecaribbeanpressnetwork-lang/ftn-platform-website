@@ -15,7 +15,7 @@ function product(config){
     primaryJourney:'Open the product and complete its bounded public task.',
     callsToAction:[{label:'Open',route:config.route}],
     visualMnemonic:'FTN signal node',
-    icon:'/assets/icons/favicon.svg',
+    icon:'/assets/icons/ftn-shortcut-mark.svg?v=20260811.2',
     heroAsset:config.panelAsset||null,
     dataSources:[],
     accessRules:['guest'],

@@ -163,7 +163,11 @@ await scenario('daw-live-audio', async page=>{
   await page.locator('#gain').evaluate(el=>{el.value='6';el.dispatchEvent(new Event('input',{bubbles:true}));});
   await page.waitForTimeout(150);
   assert.match(await page.locator('#gainVal').innerText(),/6/);
+  assert.match(await page.locator('#status').innerText(),/Live change applied: gain/i,'DAW did not acknowledge the active processing change');
   assert(!/restart playback/i.test(await page.locator('#status').innerText()),'DAW still requires restart');
+  const downloadEvent=page.waitForEvent('download');await page.click('#mp3');const download=await downloadEvent;
+  assert.match(download.suggestedFilename(),/\.mp3$/i,'DAW did not produce an MP3 download');
+  await page.waitForFunction(()=>/Processed MP3 downloaded/i.test(document.querySelector('#status')?.textContent||''),{timeout:12000});
 });
 
 await scenario('screen-view-and-festival', async page=>{

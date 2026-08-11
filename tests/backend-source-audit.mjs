@@ -14,6 +14,7 @@ const functions = [
   'ftn-account-control',
   'ftn-love-control',
   'ibis-creative-control',
+  'ftn-fire-generate',
 ];
 
 const files = functions.map(name => path.join('supabase','functions',name,'index.ts'));
@@ -35,6 +36,7 @@ for (const migration of [
   'supabase/migrations/20260810150000_ibis_creative_cost_controls.sql',
   'supabase/migrations/20260811100000_community_connect_storage_and_integrity.sql',
   'supabase/migrations/20260811101000_revoke_auto_rls_helper.sql',
+  'supabase/migrations/20260811110000_ftn_fire_managed_generation.sql',
 ]) {
   assert(fs.existsSync(migration),`Missing FTN-owned applied migration record: ${migration}`);
 }
@@ -141,6 +143,22 @@ assert.match(communityIntegrityMigration,/ftn_enforce_one_dj_profile/,'Duplicate
 
 const rlsHelperMigration=fs.readFileSync('supabase/migrations/20260811101000_revoke_auto_rls_helper.sql','utf8');
 assert.match(rlsHelperMigration,/revoke execute on function public\.rls_auto_enable\(\) from public, anon, authenticated/i,'The automatic-RLS helper must not remain publicly executable');
+
+const fire=fs.readFileSync('supabase/functions/ftn-fire-generate/index.ts','utf8');
+assert.match(fire,/FTN_FIRE_INFERENCE_TOKEN/,'Fire gateway token must remain server-side');
+assert.match(fire,/auth\.getUser\(token\)/,'Fire must verify the requesting user with Auth');
+assert.match(fire,/FTN_CREATIVE_GENERATION_ENABLED/,'Fire must retain the global paid-generation switch');
+assert.match(fire,/FTN_FIRE_GENERATION_ENABLED/,'Fire must retain its product-specific paid-generation switch');
+assert.match(fire,/ftn_reserve_ai_credits/,'Fire must reserve credits before gateway submission');
+assert.match(fire,/ftn_refund_ai_job/,'Fire must refund credits when gateway submission or verified processing fails');
+assert.match(fire,/FTN_FIRE_OUTPUT_ALLOWED_HOSTS/,'Fire must allow-list provider output hosts before downloading audio');
+assert.match(fire,/createSignedUrl\(path,300\)/,'Fire output must use short-lived private download URLs');
+assert.match(fire,/rightsConfirmed!==true.*noArtistImitation!==true/,'Fire must require original-direction and no-imitation confirmation');
+const fireMigration=fs.readFileSync('supabase/migrations/20260811110000_ftn_fire_managed_generation.sql','utf8');
+assert.match(fireMigration,/stable-audio-3-medium/,'Fire must record the full-instrumental model separately');
+assert.match(fireMigration,/stable-audio-3-small-sfx/,'Fire must record the SFX model separately');
+assert.match(fireMigration,/ftn-fire-output/,'Fire outputs need a private FTN storage bucket');
+assert.match(fireMigration,/ftn-fire-output',false/,'Fire output storage must never be public');
 
 console.log(`${files.length}/${functions.length} FTN Edge Functions are versioned in Git and passed the ownership/secret audit.`);
 console.log('POE Gmail path is draft-only, Turnstile-bound, hostname/action validated and rate-limited; no automatic Gmail send endpoint is present.');

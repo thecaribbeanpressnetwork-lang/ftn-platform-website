@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">FTN Platform</title>
+  <rect width="64" height="64" rx="16" fill="#08090B"/>
+  <text x="8" y="41" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="900" letter-spacing="-3">F</text>
+  <text x="25" y="41" fill="#E10613" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="900" letter-spacing="-3">T</text>
+  <text x="41" y="41" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="900" letter-spacing="-3">N</text>
+  <rect x="9" y="48" width="46" height="2" rx="1" fill="#E10613"/>
+</svg>

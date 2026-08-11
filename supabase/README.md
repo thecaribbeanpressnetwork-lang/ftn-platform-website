@@ -17,6 +17,7 @@ The repository stores **source code and public configuration contracts only**. P
 | `ftn-opportunities` | Current official Caribbean opportunity indexing | off | FTN origin allowlist + publishable key |
 | `ftn-news-sources` | Kaiso institutional-source radar | off | FTN origin allowlist + publishable key |
 | `ftn-transactions` | Consequential FTN transaction escrow and optional founder-review Gmail draft creation | off | production FTN origin + Cloudflare Turnstile + server-side service role |
+| `ftn-fire-generate` | Private, authenticated FTN Fire instrumental jobs | on | user JWT + dual server-side generation switches + atomic credits + private output storage |
 
 `verify_jwt=false` is deliberate for these public-web endpoints. It does **not** mean unrestricted access: each function implements its own origin, client-key, input, workload and/or human-verification boundary appropriate to its purpose.
 
@@ -45,6 +46,9 @@ FTN/provider values used when configured:
 - `GMAIL_CLIENT_SECRET` — future/optional founder-review draft integration.
 - `GMAIL_REFRESH_TOKEN` — future/optional founder-review draft integration; authorize only the FTN mailbox intended to own draft escrow.
 - `FTN_REVIEW_CC` — optional non-secret review-copy address; defaults in code to `facethenationtt@gmail.com`.
+- `FTN_FIRE_INFERENCE_URL` / `FTN_FIRE_INFERENCE_TOKEN` — FTN-owned private Fire gateway only; never expose a Hugging Face token to a browser.
+- `FTN_FIRE_OUTPUT_ALLOWED_HOSTS` — exact comma-separated hosts the gateway may return as completion output URLs.
+- `FTN_CREATIVE_GENERATION_ENABLED` and `FTN_FIRE_GENERATION_ENABLED` — both must be exactly `true` before Fire can reserve credits or call its gateway. Keep disabled until the Fire runbook is complete.
 
 For Gmail draft escrow, the OAuth grant should use the narrowest practical scope: `https://www.googleapis.com/auth/gmail.compose`. The function creates a **draft only**; it never calls the Gmail send endpoint.
 
