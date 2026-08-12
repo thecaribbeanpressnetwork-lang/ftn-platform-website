@@ -3,14 +3,14 @@
 // Bump this value for every production shell release. A new cache namespace makes
 // sure a browser that previously installed FTN does not continue rendering an
 // obsolete HTML/CSS/JS shell after Cloudflare has deployed a repair.
-var VERSION='ftn-public-v2.1.1';
+var VERSION='ftn-public-v2.2.0';
 var SHELL=[
   '/','/offline/','/manifest.webmanifest','/css/tokens.css','/css/base.css',
   '/css/components/buttons.css','/css/components/nav.css','/css/components/nexus-foundation.css',
   '/js/nav.js','/js/platform-foundation.js','/js/product-registry-data.js','/js/product-registry.js',
   '/assets/icons/ftn-shortcut-mark.svg?v=20260811.2','/assets/icons/ftn-shortcut-mark-192.png?v=20260811.2','/assets/icons/ftn-shortcut-mark-512.png?v=20260811.2'
 ];
-var PRIVATE=/^\/(god-mode|account|love|ibis-ai)(\/|$)/;
+var PRIVATE=/^\/(god-mode|mission-control|account|love|ibis-ai)(\/|$)/;
 var NEVER=/^\/(community-connect\/app|auth|api)(\/|$)/;
 self.addEventListener('install',function(event){event.waitUntil(caches.open(VERSION).then(function(cache){return cache.addAll(SHELL);}).then(function(){return self.skipWaiting();}));});
 self.addEventListener('activate',function(event){event.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==VERSION;}).map(function(k){return caches.delete(k);}));}).then(function(){return self.clients.claim();}));});

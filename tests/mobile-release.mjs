@@ -30,7 +30,7 @@ const surfaces=[
   ['/riddim/daw/','#mPlay'],
   ['/screen/','.screen-catalog'],
   ['/tv/','.tv-player'],
-  ['/kaiso/','#kaiso-live-search'],
+  ['/kaiso/','#kaiso-local-feed'],
   ['/display-network/','#dn-add-content']
 ];
 for(const [path,selector] of surfaces){await open(path,selector);console.log('MOBILE PASS',path);}

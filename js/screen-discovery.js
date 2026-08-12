@@ -1,7 +1,7 @@
 // FTN Screen source-backed discovery. Records link to their authorized destination; FTN does not restream them.
 (function(global){
 'use strict';
-var CHECKED='2026-08-10',STORE='ftn.screen.saved.v1',PAVILION='https://pavilionplus.co/';
+var CHECKED='2026-08-12',STORE='ftn.screen.saved.v1',PAVILION='https://pavilionplus.co/';
 var titles=[
  {id:'business-of-carnival',title:'The Business of Carnival',format:'Series',country:'Caribbean · specific territory not stated by source',year:'Not stated',credits:'Created by entertainment and sports lawyer Carla Parris',rating:'All',holder:'Creator/distributor details shown by Pavilion+',availability:'Pavilion+ catalogue destination; account or regional availability may apply.',summary:'An educational series about intellectual-property law and the business of the creative sector and Carnival.',url:PAVILION},
  {id:'rodey-show',title:'The Ro’dey Show',format:'Series',country:'Caribbean · specific territory not stated by source',year:'Not stated',credits:'Created by Blu Moon Productions and Star Global Production Studios',rating:'All',holder:'Blu Moon Productions / Star Global Production Studios',availability:'Pavilion+ catalogue destination; account or regional availability may apply.',summary:'A Caribbean sketch-comedy series built around Ro’dey characters and everyday cultural scenarios.',url:PAVILION},

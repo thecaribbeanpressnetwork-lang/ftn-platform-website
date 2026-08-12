@@ -4,6 +4,7 @@ User-agent: *
 Allow: /
 Disallow: /account/
 Disallow: /god-mode/
+Disallow: /mission-control/
 Disallow: /*?*token=
 Disallow: /*?*code=
 Disallow: /*?*return=

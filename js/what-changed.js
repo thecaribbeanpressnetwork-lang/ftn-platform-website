@@ -22,6 +22,6 @@
 
   // FTN Live bootstrap: the public live surface opens with current source-backed
   // Caribbean satellite imagery before the modelled/derived indicator wall.
-  function loadSatellite(){if(document.querySelector('script[data-ftn-live-satellite]'))return;var s=document.createElement('script');s.src='/js/ftn-live-satellite.js';s.defer=true;s.setAttribute('data-ftn-live-satellite','true');document.head.appendChild(s);}
+  function loadSatellite(){if(document.querySelector('script[data-ftn-live-satellite]'))return;var s=document.createElement('script');s.src='/js/ftn-live-satellite.js?v=20260812.2';s.defer=true;s.setAttribute('data-ftn-live-satellite','true');document.head.appendChild(s);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadSatellite);else loadSatellite();
 })(window);

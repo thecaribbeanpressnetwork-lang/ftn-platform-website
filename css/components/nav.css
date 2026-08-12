@@ -266,7 +266,7 @@
   display: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1240px) {
   .site-nav {
     display: block;
   }
@@ -276,3 +276,5 @@
     display: none !important;
   }
 }
+
+@media (min-width:1240px) and (max-width:1439px){.site-header__bar{gap:8px}.site-header__logo{max-width:170px}.site-nav__list{gap:0}.site-nav__trigger{padding:7px 5px;font-size:11px}.site-header__actions{gap:7px}.country-switcher-trigger__label{display:none}}

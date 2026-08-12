@@ -7,6 +7,14 @@
   // honestly unwired, see below).
   var categorySelect = document.getElementById('cf-category');
   if (categorySelect) {
+    var params = new URLSearchParams(window.location.search);
+    var requestedCategory = params.get('category');
+    if (requestedCategory && categorySelect.querySelector('option[value="' + CSS.escape(requestedCategory) + '"]')) {
+      categorySelect.value = requestedCategory;
+    }
+    var requestedSubject = (params.get('subject') || '').trim();
+    var messageField = document.getElementById('cf-message');
+    if (requestedSubject && messageField && !messageField.value) messageField.value = requestedSubject + '\n\n';
     Array.prototype.forEach.call(document.querySelectorAll('[data-select-category]'), function (card) {
       card.addEventListener('click', function () {
         categorySelect.value = card.getAttribute('data-select-category');

@@ -23,7 +23,7 @@ await scenario('ibis-provider-transparent-studio',async page=>{
 
 await scenario('fire-flow-music-instrumental-handoff',async page=>{
   await page.context().grantPermissions(['clipboard-read','clipboard-write'],{origin:BASE});
-  await page.route('https://www.flowmusic.app/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Flow Music fixture</title>'}));
+  await page.addInitScript(()=>{window.__ftnExternalOpen='';window.open=function(url){window.__ftnExternalOpen=String(url);return{opener:null};};});
   await open(page,'/riddim/fire/');
   assert.match(await page.locator('h1').innerText(),/FTN\s*FIRE/i);
   assert.match(await page.locator('.fire-boundary').innerText(),/Instrumentals only/i);
@@ -33,9 +33,8 @@ await scenario('fire-flow-music-instrumental-handoff',async page=>{
   await page.waitForFunction(()=>Boolean(document.querySelector('#fire-flow-prompt')?.value));
   await page.locator('.fire-ai summary').click();
   await page.waitForSelector('#fire-flow-prompt');
-  const popup=page.waitForEvent('popup');await page.click('#fire-open-flow');const flow=await popup;
-  await flow.waitForLoadState('domcontentloaded');
-  assert.match(flow.url(),/flowmusic\.app/);
+  await page.click('#fire-open-flow');
+  assert.match(await page.evaluate(()=>window.__ftnExternalOpen),/^https:\/\/www\.flowmusic\.app\/$/);
   await page.waitForSelector('#fire-flow-prompt');
   const brief=await page.locator('#fire-flow-prompt').inputValue();
   assert.match(brief,/original instrumental only/i);assert.match(brief,/105 BPM/i);assert.match(brief,/No vocals, lyrics/i);

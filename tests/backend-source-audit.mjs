@@ -37,6 +37,9 @@ for (const migration of [
   'supabase/migrations/20260811100000_community_connect_storage_and_integrity.sql',
   'supabase/migrations/20260811101000_revoke_auto_rls_helper.sql',
   'supabase/migrations/20260811110000_ftn_fire_managed_generation.sql',
+  'supabase/migrations/20260812120000_founder_device_authorization.sql',
+  'supabase/migrations/20260812123000_founder_action_register.sql',
+  'supabase/migrations/20260812130000_enforce_community_public_view_boundaries.sql',
 ]) {
   assert(fs.existsSync(migration),`Missing FTN-owned applied migration record: ${migration}`);
 }
@@ -95,11 +98,31 @@ assert.match(stems,/ftn_reserve_ai_credits/,'stem processing must reserve custom
 assert.match(stems,/ftn_refund_ai_job/,'stem processing must refund a failed provider submission');
 
 const owner = fs.readFileSync('supabase/functions/ftn-owner-control/index.ts','utf8');
-assert.match(owner,/FTN_OWNER_USER_ID/,'God Mode must bind owner access to an immutable server-side user ID');
+assert.match(owner,/auth\.getUser\(token\)/,'God Mode must verify the access token with Supabase Auth');
+assert.match(owner,/ftn_founder_identities/,'God Mode must require the private exact-email founder record');
+assert.match(owner,/approved_email.*email/s,'God Mode must compare the verified email to its exact founder record');
+assert.match(owner,/isGoogleIdentity\(user\)/,'God Mode must require the approved founder to use a Google identity');
+assert.match(owner,/ftn_owner_session_active/,'God Mode must verify the JWT session against active server sessions');
+assert.match(owner,/x-ftn-device-credential/,'God Mode must require a revocable server-issued device credential');
+assert.match(owner,/credential_hash.*hashToken/s,'God Mode must compare only a hash of the device credential');
+assert.match(owner,/APPROVED_PENDING_CLAIM/,'New founder devices must remain blocked until approval and one-time claim');
+assert.match(owner,/status:\s*"REVOKED", credential_hash:\s*null/,'Revoked devices must lose their credential server-side');
+assert.match(owner,/IDENTITY_DENIED|IMMUTABLE_ID_MISMATCH/,'Denied founder identity attempts must be audited');
+assert.match(owner,/DEVICE_CREDENTIAL_REQUIRED|DEVICE_CLAIM_DENIED/,'Denied device attempts must be audited');
 assert.match(owner,/ftn_operator_roles/,'God Mode must also require a protected server-side owner role');
 assert.match(owner,/ftn_control_journal/,'God Mode actions must retain an append-only journal');
 assert.match(owner,/dryRun/,'God Mode emergency controls must support non-mutating staging simulations');
 assert.match(owner,/FTN_EMERGENCY_CONTROLS_ENABLED/,'Production emergency mutations must fail closed behind explicit configuration');
+const founderMigration=fs.readFileSync('supabase/migrations/20260812120000_founder_device_authorization.sql','utf8');
+for(const table of ['ftn_founder_identities','ftn_founder_devices','ftn_owner_access_audit','ftn_user_access_grants','ftn_source_controls','ftn_external_link_health','ftn_integration_readiness','ftn_deployment_health']){
+  assert.match(founderMigration,new RegExp(`alter table public\\.${table} enable row level security`,'i'),`${table} must enable RLS`);
+  assert.match(founderMigration,new RegExp(`revoke all on public\\.${table} from anon, authenticated`,'i'),`${table} must have no direct browser privileges`);
+}
+assert.match(founderMigration,/ftn_owner_session_active[\s\S]*grant execute[\s\S]*to service_role/i,'Only the service role may validate owner sessions');
+const communityViewBoundary=fs.readFileSync('supabase/migrations/20260812130000_enforce_community_public_view_boundaries.sql','utf8');
+for(const view of ['issues_public','issue_confirmation_counts','issue_verification_counts'])assert.match(communityViewBoundary,new RegExp(`view public\\.${view} with \\(security_invoker = true\\)`,'i'),`${view} must run with caller permissions`);
+assert.match(communityViewBoundary,/null::text as photo_data_url/i,'Community public view must redact legacy embedded evidence');
+assert.match(communityViewBoundary,/'\{\}'::jsonb as metadata/i,'Community public view must redact raw report metadata');
 
 const love = fs.readFileSync('supabase/functions/ftn-love-control/index.ts','utf8');
 assert.match(love,/adult\(/,'FTN Love must retain a server-side adult gate');

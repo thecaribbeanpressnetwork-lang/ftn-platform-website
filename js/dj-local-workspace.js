@@ -1,4 +1,4 @@
-// FTN DJ local-audio mode. Streamed media in the embedded reference controller is never extracted.
+// FTN DJ Tube local-audio mode. Streamed media in the embedded reference controller is never extracted.
 (function(global){
 'use strict';
 var MAX_BYTES=50*1024*1024,MAX_SECONDS=10*60,STORE='ftn.dj.local-project.v1',ctx=null,master=null,decks={A:deck('A'),B:deck('B')};
