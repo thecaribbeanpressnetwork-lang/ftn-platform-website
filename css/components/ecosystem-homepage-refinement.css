@@ -1,1 +1,30 @@
-.eco-constellation__intro{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.eco-constellation__stage{margin:auto}@media(max-width:720px){.eco-constellation__intro{position:absolute}.eco-constellation__stage{margin:0 -2px}}
+.eco-constellation__intro{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.eco-constellation__stage{margin:auto}
+
+/* The artwork contains shortened legacy captions. These visible interaction labels
+   cover them with the complete public FTN product names. */
+.eco-door span{position:absolute;inset:auto 0 0;width:auto;height:auto;box-sizing:border-box;padding:28px 12px 10px;margin:0;overflow:visible;clip:auto;white-space:nowrap;border:0;background:#030303;color:#fff;font:750 clamp(9px,.78vw,12px)/1.15 Inter,Arial,sans-serif;letter-spacing:.015em;text-shadow:0 1px 3px #000;transition:color .2s ease,background .2s ease}
+.eco-door:hover span,.eco-door:focus-visible span{color:#fff;background:#111}
+.eco-door--screen span,.eco-door--opportunities span,.eco-door--dj span,.eco-door--daw span{left:-.8vw}
+
+.eco-civic-links{position:absolute;z-index:4;left:50%;top:27.25%;display:grid;grid-template-columns:repeat(2,minmax(190px,1fr));gap:8px;width:min(460px,46%);transform:translate(-50%,-50%)}
+.eco-civic-link{display:grid;gap:2px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(5,8,13,.82);box-shadow:0 9px 28px rgba(0,0,0,.38);padding:9px 12px;color:#fff;text-decoration:none;backdrop-filter:blur(10px);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.eco-civic-link strong{font:800 12px/1.15 Montserrat,Inter,sans-serif}
+.eco-civic-link span{color:#b8c0ca;font-size:9px;line-height:1.25}
+.eco-civic-link--live{border-color:rgba(73,200,255,.42)}
+.eco-civic-link--parliament{border-color:rgba(201,164,92,.5)}
+.eco-civic-link:hover,.eco-civic-link:focus-visible{transform:translateY(-2px);border-color:#fff;box-shadow:0 13px 34px rgba(0,0,0,.5)}
+
+.eco-intent__link{display:inline-grid;gap:1px;align-items:center;border-radius:12px;font-size:inherit}
+.eco-intent__link strong{font-size:11px;line-height:1.2}
+.eco-intent__link span{color:#9299a4;font-size:9px;line-height:1.2}
+
+@media(max-width:720px){
+  .eco-constellation__intro{position:absolute}
+  .eco-constellation__stage{margin:0 -2px}
+  .eco-door span{padding:18px 4px 5px;font-size:7px;white-space:normal}
+  .eco-civic-links{position:relative;left:auto;top:auto;grid-template-columns:1fr 1fr;gap:7px;width:auto;margin:8px 8px 2px;transform:none}
+  .eco-civic-link{padding:10px}
+  .eco-civic-link strong{font-size:11px}
+  .eco-intent__link{min-width:max-content;white-space:normal}
+}
