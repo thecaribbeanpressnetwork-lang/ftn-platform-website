@@ -2,6 +2,7 @@
 (function(global){
 'use strict';
 var NEWS_ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-news-sources',PUBLISHABLE_KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+NEWS_ENDPOINT+='?sourceVersion=10';
 var BEATS=['Politics & Government','Crime & Justice','Corruption & Accountability','Environment & Climate','Weather & Disasters','Business & Economy','Health','Education','Technology','Culture & Entertainment','Sports','Community Issues','Immigration & Diaspora','International'];
 function esc(v){return global.FTN.WorkspaceShell.escapeHtml(String(v==null?'':v));}
 function country(){return global.FTN.Country&&global.FTN.Country.get?global.FTN.Country.get().name:'Trinidad & Tobago';}
