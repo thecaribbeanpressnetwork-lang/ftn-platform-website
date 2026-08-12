@@ -4,7 +4,7 @@
   function ready(fn){if(document.readyState!=='loading')fn();else document.addEventListener('DOMContentLoaded',fn);}
   (function loadRouteEnhancements(){
     var path=global.location.pathname,sources=[];
-    if(path==='/')sources.push('/js/home-live-rail.js');
+    if(path==='/')sources.push('/js/home-live-rail.js?v=20260812.1');
     if(path.indexOf('/scenario-workspace/')===0)sources.push('/js/mission-control-functional.js');
     if(path.indexOf('/observatory/')===0)sources.push('/js/observatory-functional.js');
     if(path.indexOf('/display-network/')===0)sources.push('/js/display-network-preview.js');

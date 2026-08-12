@@ -14,7 +14,7 @@
 
   loadOnce('/js/smart-export.js', 'data-ftn-smart-export');
   loadOnce('/js/ux-primitives.js', 'data-ftn-ux-primitives');
-  loadOnce('/js/platform-foundation.js', 'data-ftn-platform-foundation');
+  loadOnce('/js/platform-foundation.js?v=20260812.1', 'data-ftn-platform-foundation');
 
   if (location.pathname.indexOf('/radio') === 0) loadOnce('/js/radio-airtime.js', 'data-ftn-radio-airtime');
   if (location.pathname.indexOf('/screen') === 0) loadOnce('/js/screen-festival-package.js', 'data-ftn-screen-festival');
