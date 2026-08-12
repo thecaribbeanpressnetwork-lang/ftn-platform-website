@@ -43,7 +43,7 @@ Fresh verification on the release code commit established:
 - **2,287 local HTML references resolved** across 54 HTML files.
 - Ten release-critical routes passed an axe-core WCAG 2 A/AA sweep with no serious or critical violations.
 - Turnstile client/server contracts and Screen/Face The Nation moderation gates passed.
-- Production `ftn-news-sources` is active at version 9 and the exact deployed source is versioned in both Git source and deployed snapshots.
+- Production `ftn-news-sources` is active at version 10 and the exact deployed source is versioned in both Git source and deployed snapshots.
 
 ### Supersession
 

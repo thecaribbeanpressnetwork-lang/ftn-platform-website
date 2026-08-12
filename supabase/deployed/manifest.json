@@ -1,6 +1,6 @@
 {
   "project_id": "jshmidfpqrajxtukzges",
-  "captured_at": "2026-08-12T05:52:36Z",
+  "captured_at": "2026-08-12T05:57:28Z",
   "functions": [
     {
       "slug": "dj-tube-discovery",
@@ -28,10 +28,10 @@
     },
     {
       "slug": "ftn-news-sources",
-      "version": 9,
+      "version": 10,
       "verify_jwt": false,
-      "ezbr_sha256": "b833d72bf3ad6ab4bb1fa0192ad84d00dea0801e00abc330bb206214def759e4",
-      "updated_at": 1786513904047,
+      "ezbr_sha256": "50dc1ba8021f2d13058262f022916c25e5892159e77d3b22876cae6cf77ccd70",
+      "updated_at": 1786514227338,
       "status": "ACTIVE"
     },
     {

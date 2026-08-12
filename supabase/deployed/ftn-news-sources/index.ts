@@ -140,7 +140,8 @@ function itemFromAnchor(html: string, source: Source, match: RegExpExecArray, se
   if (url.protocol !== "https:" || url.hostname.replace(/^www\./, "") !== source.host || !source.accepts(url)) return null;
   url.hash = "";
   const normalized = url.href;
-  const title = clean(match[2]);
+  const heading = match[2].match(/<h[1-4]\b[^>]*>([\s\S]*?)<\/h[1-4]>/i);
+  const title = clean(heading?.[1] || match[2]);
   if (!validStoryTitle(title) || seen.has(normalized)) return null;
   const publishedAt = dateNear(html, match.index || 0);
   if (!publishedAt) return null;
