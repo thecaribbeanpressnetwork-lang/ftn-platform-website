@@ -1,8 +1,8 @@
-// FTN Platform Website — Mission Control Interactive Demonstration data.
-// Everything here is scripted demonstration content for a public-facing
+// FTN Platform Website — Mission Control Interactive Illustrative data.
+// Everything here is scripted illustrative content for a public-facing
 // preview of Mission Control. It is not the secure production application,
 // not real government data, and not a live AI system. See CLAUDE.md and
-// ANALYTICS_STANDARD.md for the rules this demo is built to respect.
+// ANALYTICS_STANDARD.md for the rules this illustrative is built to respect.
 (function (global) {
   'use strict';
 
@@ -113,34 +113,34 @@
   MC.evidenceChains = {
     'infrastructure-pressure': {
       title: 'Infrastructure Pressure Index',
-      sourceRecords: '1,204 open road-condition reports, 312 drainage reports (demo)',
-      communityObservations: '412 photo-verified community reports in the last 30 days (demo)',
-      newsEvents: ['Drainage upgrade programme expands to three more communities (demo)'],
-      historicalEvents: ['2024 Q3: Major culvert replacement programme completed in 6 communities (demo)'],
+      sourceRecords: '1,204 open road-condition reports, 312 drainage reports (illustrative)',
+      communityObservations: '412 photo-verified community reports in the last 30 days (illustrative)',
+      newsEvents: ['Drainage upgrade programme expands to three more communities (illustrative)'],
+      historicalEvents: ['2024 Q3: Major culvert replacement programme completed in 6 communities (illustrative)'],
       methodology: 'Weighted index combining open report volume, average report age, and verified-resolution rate.',
     },
     'household-pressure': {
       title: 'Household Financial Pressure Index',
-      sourceRecords: 'Cost-of-living index, unemployment rate, fuel price series (demo)',
-      communityObservations: 'Not directly observed — derived from economic indicators (demo)',
-      newsEvents: ['Central Bank holds policy rate steady amid regional pressures (demo)'],
-      historicalEvents: ['2025 Q1: Fuel subsidy adjustment (demo)'],
+      sourceRecords: 'Cost-of-living index, unemployment rate, fuel price series (illustrative)',
+      communityObservations: 'Not directly observed — derived from economic indicators (illustrative)',
+      newsEvents: ['Central Bank holds policy rate steady amid regional pressures (illustrative)'],
+      historicalEvents: ['2025 Q1: Fuel subsidy adjustment (illustrative)'],
       methodology: 'Composite index normalizing cost-of-living, unemployment, and fuel-price trends against a 2020 baseline.',
     },
     'community-participation': {
       title: 'Community Participation Index',
-      sourceRecords: 'Community Connect report and follow activity (demo)',
-      communityObservations: '24,851 total reports, 1,275 verified, 66 index score (demo)',
-      newsEvents: ['Most-active-community recognition programme launches (demo)'],
-      historicalEvents: ['2025: Community Connect crosses 20,000 cumulative reports (demo)'],
+      sourceRecords: 'Community Connect report and follow activity (illustrative)',
+      communityObservations: '24,851 total reports, 1,275 verified, 66 index score (illustrative)',
+      newsEvents: ['Most-active-community recognition programme launches (illustrative)'],
+      historicalEvents: ['2025: Community Connect crosses 20,000 cumulative reports (illustrative)'],
       methodology: 'Derived from report volume per capita, follow-through rate, and repeat engagement.',
     },
     'service-reliability': {
       title: 'Service Reliability Index',
-      sourceRecords: 'Utility outage logs, water-supply disruption reports (demo)',
-      communityObservations: '9 areas with active water-supply disruptions (demo)',
-      newsEvents: ['Utility provider announces maintenance schedule (demo)'],
-      historicalEvents: ['2024: Major grid resilience upgrade (demo)'],
+      sourceRecords: 'Utility outage logs, water-supply disruption reports (illustrative)',
+      communityObservations: '9 areas with active water-supply disruptions (illustrative)',
+      newsEvents: ['Utility provider announces maintenance schedule (illustrative)'],
+      historicalEvents: ['2024: Major grid resilience upgrade (illustrative)'],
       methodology: 'Weighted average of outage frequency, outage duration, and restoration-time trends.',
     },
   };
@@ -148,66 +148,66 @@
   // ---------------------------------------------------------------- Strategic Advisor
   MC.advisorScripts = {
     flooding: {
-      situationSummary: 'Flood-related community reports have risen in the areas selected, correlating with above-normal rainfall and open drainage-maintenance backlogs (demonstration correlation: +0.82).',
+      situationSummary: 'Flood-related community reports have risen in the areas selected, correlating with above-normal rainfall and open drainage-maintenance backlogs (illustrative correlation: +0.82).',
       evidence: 'Reality Graph: Rainfall → Flooding → Road Access → School/Work Attendance → Economic Output.',
-      historicalPatterns: 'Demonstration pattern: past drainage-investment increases in comparable areas preceded a measurable reduction in flood reports within 2–3 quarters.',
-      contributingFactors: ['Above-normal rainfall (demo)', 'Open drainage-maintenance backlog (demo)', 'Aging culvert infrastructure in older districts (demo)'],
+      historicalPatterns: 'Illustrative pattern: past drainage-investment increases in comparable areas preceded a measurable reduction in flood reports within 2–3 quarters.',
+      contributingFactors: ['Above-normal rainfall (illustrative)', 'Open drainage-maintenance backlog (illustrative)', 'Aging culvert infrastructure in older districts (illustrative)'],
       options: [
         { name: 'Option A — Targeted Drainage Investment', summary: 'Prioritize drainage maintenance in the highest-report areas first.', tradeoffs: 'Faster localized relief; does not address national backlog.', confidence: 'Medium' },
         { name: 'Option B — National Drainage Programme', summary: 'Broad, phased national drainage upgrade.', tradeoffs: 'Larger long-term benefit; slower to show local results, higher cost.', confidence: 'Medium' },
         { name: 'Option C — Early-Warning + Response Focus', summary: 'Invest in flood alerts and rapid response rather than infrastructure first.', tradeoffs: 'Lower upfront cost; does not reduce underlying flood risk.', confidence: 'Low' },
       ],
       monitoringIndicators: ['Open drainage reports', 'Flood alerts issued', 'School attendance in affected areas'],
-      missingInformation: ['Culvert-by-culvert condition assessment (not available in this demo)', 'Insurance claims data (not integrated)'],
+      missingInformation: ['Culvert-by-culvert condition assessment (not available in this illustrative)', 'Insurance claims data (not integrated)'],
     },
     employment: {
-      situationSummary: 'Household financial pressure is trending up alongside unemployment in the areas selected (demonstration correlation: +0.66).',
+      situationSummary: 'Household financial pressure is trending up alongside unemployment in the areas selected (illustrative correlation: +0.66).',
       evidence: 'Reality Graph: Employment → Household Financial Pressure → Health & Wellbeing.',
-      historicalPatterns: 'Demonstration pattern: tourism-linked employment initiatives in comparable areas showed measurable regional employment gains within 2–4 quarters.',
-      contributingFactors: ['Softer tourism season (demo)', 'Rising fuel and transport costs (demo)', 'Limited public transport access to employment centers (demo)'],
+      historicalPatterns: 'Illustrative pattern: tourism-linked employment initiatives in comparable areas showed measurable regional employment gains within 2–4 quarters.',
+      contributingFactors: ['Softer tourism season (illustrative)', 'Rising fuel and transport costs (illustrative)', 'Limited public transport access to employment centers (illustrative)'],
       options: [
         { name: 'Option A — Tourism Activity Support', summary: 'Targeted support for tourism-linked employment.', tradeoffs: 'Faster regional impact; concentrated in tourism-dependent areas.', confidence: 'Medium' },
         { name: 'Option B — Public Transport Investment', summary: 'Improve access between residential areas and employment centers.', tradeoffs: 'Broader benefit; longer lead time.', confidence: 'Medium' },
         { name: 'Option C — Direct Household Support', summary: 'Direct relief for household financial pressure.', tradeoffs: 'Immediate relief; does not address underlying employment gap.', confidence: 'Low' },
       ],
       monitoringIndicators: ['Unemployment rate', 'Household financial pressure index', 'Tourism receipts'],
-      missingInformation: ['Sector-level employment breakdown (not available in this demo)'],
+      missingInformation: ['Sector-level employment breakdown (not available in this illustrative)'],
     },
     healthcare: {
-      situationSummary: 'Healthcare-demand pressure is elevated in the areas selected, plausibly linked to migration-related population change (demonstration estimate).',
+      situationSummary: 'Healthcare-demand pressure is elevated in the areas selected, plausibly linked to migration-related population change (illustrative estimate).',
       evidence: 'Reality Graph: (external) Migration → Healthcare-Demand Pressure.',
-      historicalPatterns: 'Demonstration pattern: capacity investments in comparable facilities reduced average wait times within 1–2 years.',
-      contributingFactors: ['Population growth in the selected area (demo)', 'Aging facility infrastructure (demo)'],
+      historicalPatterns: 'Illustrative pattern: capacity investments in comparable facilities reduced average wait times within 1–2 years.',
+      contributingFactors: ['Population growth in the selected area (illustrative)', 'Aging facility infrastructure (illustrative)'],
       options: [
         { name: 'Option A — Facility Capacity Expansion', summary: 'Expand capacity at the most-pressured facilities.', tradeoffs: 'High cost; durable long-term relief.', confidence: 'Medium' },
         { name: 'Option B — Staffing &amp; Scheduling Optimization', summary: 'Optimize staffing and scheduling before capital investment.', tradeoffs: 'Lower cost; smaller impact ceiling.', confidence: 'Medium' },
         { name: 'Option C — Community Health Outreach', summary: 'Shift pressure upstream via preventive outreach.', tradeoffs: 'Long-term benefit; slow to show measurable results.', confidence: 'Low' },
       ],
-      monitoringIndicators: ['Healthcare-demand pressure index', 'Facility wait times (not integrated in this demo)'],
-      missingInformation: ['Facility-level capacity data (not available in this demo)'],
+      monitoringIndicators: ['Healthcare-demand pressure index', 'Facility wait times (not integrated in this illustrative)'],
+      missingInformation: ['Facility-level capacity data (not available in this illustrative)'],
     },
     attendance: {
-      situationSummary: 'School attendance in the areas selected is sensitive to road access disruptions, particularly following flood events (demonstration correlation: -0.48).',
+      situationSummary: 'School attendance in the areas selected is sensitive to road access disruptions, particularly following flood events (illustrative correlation: -0.48).',
       evidence: 'Reality Graph: Flooding → Road Access → School Attendance → Economic Output.',
-      historicalPatterns: 'Demonstration pattern: road-access improvements in comparable districts preceded measurable attendance recovery within one term.',
-      contributingFactors: ['Recurring flood-related road closures (demo)', 'Limited alternate routes in affected districts (demo)'],
+      historicalPatterns: 'Illustrative pattern: road-access improvements in comparable districts preceded measurable attendance recovery within one term.',
+      contributingFactors: ['Recurring flood-related road closures (illustrative)', 'Limited alternate routes in affected districts (illustrative)'],
       options: [
         { name: 'Option A — Road Access Resilience', summary: 'Prioritize resilience upgrades on school-access routes.', tradeoffs: 'Directly targets the mechanism; higher cost.', confidence: 'Medium' },
         { name: 'Option B — Transport Support', summary: 'Provide alternate transport during disruption events.', tradeoffs: 'Lower cost; addresses symptom, not cause.', confidence: 'Medium' },
         { name: 'Option C — Remote-Learning Contingency', summary: 'Build remote-learning contingency for disruption days.', tradeoffs: 'Low cost; uneven effectiveness across households.', confidence: 'Low' },
       ],
       monitoringIndicators: ['School attendance rate', 'Flood-related road closures', 'Road-access index'],
-      missingInformation: ['Household-level connectivity data for remote-learning feasibility (not available in this demo)'],
+      missingInformation: ['Household-level connectivity data for remote-learning feasibility (not available in this illustrative)'],
     },
   };
 
   // ---------------------------------------------------------------- Timeline & Institutional Memory
   MC.timeline = [
-    { date: '2024-03', category: 'Infrastructure', event: 'Major culvert replacement programme begins in 6 communities (demo).', intervention: 'Drainage capital investment', expected: 'Reduce flood reports by ~20% in affected areas within 2 quarters', observed: 'Flood reports fell ~17% in affected areas over the following 2 quarters', assessment: 'Close to expected — treated as a partial confirmation, not a full validation.' },
-    { date: '2024-07', category: 'Weather', event: 'Above-normal rainfall season recorded nationally (demo).', intervention: 'None (external event)', expected: 'n/a', observed: 'Flood reports rose 34% nationally over the season', assessment: 'Logged as context for later interventions, not attributed to any single cause.' },
-    { date: '2024-11', category: 'Economy', event: 'Regional tourism support initiative launched in Tobago (demo).', intervention: 'Tourism activity support', expected: 'Measurable regional employment gain within 2-4 quarters', observed: 'Regional employment rose modestly; attribution uncertain given seasonal effects', assessment: 'Inconclusive — flagged for a longer observation window before drawing conclusions.' },
-    { date: '2025-02', category: 'Community', event: 'Community Connect crosses 20,000 cumulative reports (demo).', intervention: 'n/a', expected: 'n/a', observed: 'Verified-report rate improved alongside volume growth', assessment: 'Positive signal for data quality as adoption grows.' },
-    { date: '2025-06', category: 'Infrastructure', event: 'National drainage programme Phase 1 approved (demo).', intervention: 'Drainage capital investment (national)', expected: 'Reduce national flood-report growth rate by ~15% over 3 years', observed: 'Too early to assess', assessment: 'Actively monitored — added to Decision Journal for future review.' },
+    { date: '2024-03', category: 'Infrastructure', event: 'Major culvert replacement programme begins in 6 communities (illustrative).', intervention: 'Drainage capital investment', expected: 'Reduce flood reports by ~20% in affected areas within 2 quarters', observed: 'Flood reports fell ~17% in affected areas over the following 2 quarters', assessment: 'Close to expected — treated as a partial confirmation, not a full validation.' },
+    { date: '2024-07', category: 'Weather', event: 'Above-normal rainfall season recorded nationally (illustrative).', intervention: 'None (external event)', expected: 'n/a', observed: 'Flood reports rose 34% nationally over the season', assessment: 'Logged as context for later interventions, not attributed to any single cause.' },
+    { date: '2024-11', category: 'Economy', event: 'Regional tourism support initiative launched in Tobago (illustrative).', intervention: 'Tourism activity support', expected: 'Measurable regional employment gain within 2-4 quarters', observed: 'Regional employment rose modestly; attribution uncertain given seasonal effects', assessment: 'Inconclusive — flagged for a longer observation window before drawing conclusions.' },
+    { date: '2025-02', category: 'Community', event: 'Community Connect crosses 20,000 cumulative reports (illustrative).', intervention: 'n/a', expected: 'n/a', observed: 'Verified-report rate improved alongside volume growth', assessment: 'Positive signal for data quality as adoption grows.' },
+    { date: '2025-06', category: 'Infrastructure', event: 'National drainage programme Phase 1 approved (illustrative).', intervention: 'Drainage capital investment (national)', expected: 'Reduce national flood-report growth rate by ~15% over 3 years', observed: 'Too early to assess', assessment: 'Actively monitored — added to Decision Journal for future review.' },
   ];
 
   // ---------------------------------------------------------------- External Influence Monitor

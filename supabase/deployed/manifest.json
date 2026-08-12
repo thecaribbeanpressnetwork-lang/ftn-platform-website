@@ -28,10 +28,10 @@
     },
     {
       "slug": "ftn-news-sources",
-      "version": 5,
+      "version": 7,
       "verify_jwt": false,
-      "ezbr_sha256": "43913853a86b89e4cc5b7a2f7a0ba4ef5bd2f524e88d21ada96300f6fd51c56a",
-      "updated_at": 1786348064821,
+      "ezbr_sha256": "a4aa00a217661a6dd0181cd88e446a1d7d154ff5ebff78768db0d8617a9ac674",
+      "updated_at": 1786495148834,
       "status": "ACTIVE"
     },
     {

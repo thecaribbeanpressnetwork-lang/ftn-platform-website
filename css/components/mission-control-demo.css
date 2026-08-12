@@ -182,7 +182,7 @@ body.mc-tabs-active .mc-panel {
   margin-top: var(--space-4);
 }
 
-.mc-kpi-card__trend--up { color: #16A34A; }
+.mc-kpi-card__trend--up { color: #0B6B2D; }
 .mc-kpi-card__trend--down { color: #DC2626; }
 
 /* Correlation Engine */

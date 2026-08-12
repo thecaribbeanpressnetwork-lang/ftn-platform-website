@@ -60,7 +60,7 @@
         insights.push({
           id: 'rel-' + r.id,
           category: 'Relationships',
-          text: r.fromLabel + ' and ' + r.toLabel + ' show a ' + pct(r.strength) + ' ' + r.direction + ' relationship in this demonstration (' + r.confidence.toLowerCase() + ' confidence).',
+          text: r.fromLabel + ' and ' + r.toLabel + ' show a ' + pct(r.strength) + ' ' + r.direction + ' relationship in this illustrative (' + r.confidence.toLowerCase() + ' confidence).',
           supportedBy: [r.id],
           type: 'relationship',
         });

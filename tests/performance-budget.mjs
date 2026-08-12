@@ -6,7 +6,7 @@ const browser=await chromium.launch({headless:true});
 const routes=[
   '/',
   '/ibis-ai/',
-  '/mission-control/demo/',
+  '/scenario-workspace/',
   '/observatory/',
   '/events/',
   '/opportunities/',

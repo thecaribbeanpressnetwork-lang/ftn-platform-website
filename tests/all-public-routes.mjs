@@ -22,6 +22,8 @@ for(const path of paths){
     assert(width<=3,`${path} horizontal overflow ${width}px`);
     const body=(await page.locator('body').innerText()).trim();
     assert(body.length>80,`${path} appears empty`);
+    assert(!/\bBETA\b/.test(body),`${path} exposes a stale BETA product state`);
+    assert(!/Mission Control Demo/i.test(body),`${path} exposes the retired public Mission Control Demo name`);
     console.log('ROUTE PASS',path);
   }catch(e){failures.push(`${path}: ${e.message}`);console.error('ROUTE FAIL',path,e.message);}
 }

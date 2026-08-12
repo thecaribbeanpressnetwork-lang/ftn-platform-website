@@ -13,3 +13,11 @@
 # these rules before serving the static file tree.
 /supabase/* /404.html 404
 /GOVERNANCE/* /404.html 404
+/support /invest/ 301
+/support/ /invest/ 301
+/investor-room /invest/ 301
+/investor-room/ /invest/ 301
+/mission-control /scenario-workspace/ 301
+/mission-control/ /scenario-workspace/ 301
+/mission-control/demo /scenario-workspace/ 301
+/mission-control/demo/ /scenario-workspace/ 301

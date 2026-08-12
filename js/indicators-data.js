@@ -1,4 +1,4 @@
-// FTN Platform Website — indicator registry (demonstration data).
+// FTN Platform Website — indicator registry (illustrative data).
 //
 // Values remain illustrative — nothing here is a live feed. But as of Phase
 // 3.5, every indicator that has a genuine authoritative source page now
@@ -7,11 +7,11 @@
 // page rather than a generic placeholder. Indicators with no supplied source
 // mapping (composite FTN indices, global/international prices with no named
 // T&T-specific page) correctly have no sourceId and stay classified
-// Demonstration — see ANALYTICS_STANDARD.md §1: never attach a source that
+// Illustrative — see ANALYTICS_STANDARD.md §1: never attach a source that
 // wasn't actually supplied.
 //
 // Classification vocabulary (mandatory, see ANALYTICS_STANDARD.md §1):
-//   Official | Sourced | FTN Derived | FTN Estimated | FTN Modelled | Demonstration
+//   Official | Sourced | FTN Derived | FTN Estimated | FTN Modelled | Illustrative
 
 (function (global) {
   'use strict';
@@ -32,19 +32,19 @@
       previousValue: null,
       changeLabel: '',
       status: 'normal',
-      classification: 'Demonstration',
+      classification: 'Illustrative',
       sourceId: null,
       secondarySourceId: null,
       comparisonSourceId: null,
-      sourceName: 'FTN demonstration dataset',
+      sourceName: 'FTN illustrative dataset',
       updateFrequency: 'Static',
       lastUpdated: '2026-07-01',
       methodology: 'Illustrative value chosen to be plausible in order of magnitude for Trinidad and Tobago; not derived from a live source.',
-      confidence: 'Demonstration',
+      confidence: 'Illustrative',
       sampleSize: '',
       timeCoverage: '',
       geoCoverage: 'National',
-      limitations: 'Demonstration value — do not cite as an official statistic.',
+      limitations: 'Illustrative value — do not cite as an official statistic.',
       history: [],
       related: [],
       relatedNews: [],
@@ -120,14 +120,14 @@
       trend: 'up', changeLabel: '+0.6pp vs last quarter', status: 'watch',
       history: spark(67, 12, 0.3, 0.1), isLiveClock: true, clock: { kind: 'debt-to-gdp', baseValue: 68.4, ratePerSecond: 0.0000009 },
       sourceId: 'tt-mof-roe-2025', comparisonSourceId: 'worldbank-tt',
-      methodology: 'FTN Modelled: demonstration ratio, interpolated between quarterly demo benchmarks using a constant assumed growth rate. Benchmark anchor and rate are illustrative pending an actual Review of the Economy figure.',
+      methodology: 'FTN Modelled: illustrative ratio, interpolated between quarterly illustrative benchmarks using a constant assumed growth rate. Benchmark anchor and rate are illustrative pending an actual Review of the Economy figure.',
       classification: 'FTN Modelled',
     }),
     ind('national-debt', 'National Economy', 'National Debt', '19.4B', 'TTD', {
       trend: 'up', changeLabel: 'rising', isLiveClock: true,
       clock: { kind: 'currency', baseValue: 19400000000, ratePerSecond: 620 },
       classification: 'FTN Modelled', sourceId: 'tt-mof-roe-2025',
-      methodology: 'FTN Modelled: demonstration debt clock. Interpolates between a fixed benchmark and an assumed borrowing rate for visual effect — see Trust Card. Benchmark value is illustrative pending the actual published annual figure.',
+      methodology: 'FTN Modelled: illustrative debt clock. Interpolates between a fixed benchmark and an assumed borrowing rate for visual effect — see Trust Card. Benchmark value is illustrative pending the actual published annual figure.',
     }),
     ind('debt-per-citizen', 'National Economy', 'Debt per Citizen', '13,050', 'TTD', {
       trend: 'up', isLiveClock: true, clock: { kind: 'currency', baseValue: 13050, ratePerSecond: 0.0004 },
@@ -196,7 +196,7 @@
     ind('official-departures', 'Migration & Border Pressure', 'Official Departures (monthly)', '94,100', 'people', { trend: 'up', sourceId: 'tt-cso-travel' }),
     ind('registered-migrants', 'Migration & Border Pressure', 'Registered Migrants (cumulative)', '18,500 – 24,000', 'people (range)', {
       classification: 'FTN Estimated', confidence: 'Low',
-      methodology: 'Range reflects genuine uncertainty in a demonstration estimate — deliberately not presented as a single precise figure. No single authoritative registry page is publicly linkable for this figure.',
+      methodology: 'Range reflects genuine uncertainty in a illustrative estimate — deliberately not presented as a single precise figure. No single authoritative registry page is publicly linkable for this figure.',
       limitations: 'Wide range reflects the inherent difficulty of estimating undocumented population in any jurisdiction; treat as illustrative only.',
     }),
     ind('school-capacity-pressure', 'Migration & Border Pressure', 'School-Capacity Pressure Index', '61', 'index (0-100)', { trend: 'up', status: 'watch', classification: 'FTN Derived', methodology: 'FTN Derived composite — no single external source.' }),
@@ -224,7 +224,7 @@
     ind('community-reports-verified', 'Community', 'Verified Reports', '1,275', 'reports', { trend: 'up' }),
     ind('community-reports-resolved', 'Community', 'Resolved Reports', '18,940', 'reports', { trend: 'up', changeLabel: '98% resolution rate' }),
     ind('community-participation', 'Community', 'Community Participation Index', '66', 'index (0-100)', { trend: 'up', classification: 'FTN Derived' }),
-    ind('most-active-community', 'Community', 'Most Active Community', 'San Fernando', '', { trend: 'flat', classification: 'Demonstration', communityProfileKey: 'san-fernando' }),
+    ind('most-active-community', 'Community', 'Most Active Community', 'San Fernando', '', { trend: 'flat', classification: 'Illustrative', communityProfileKey: 'san-fernando' }),
     ind('service-reliability', 'Community', 'Service Reliability Index', '71', 'index (0-100)', { trend: 'flat', classification: 'FTN Derived' })
   );
 
@@ -237,7 +237,7 @@
       trend: 'up', classification: 'FTN Derived', sourceId: 'tt-met',
       methodology: 'FTN Derived: calculated from the calendar position within the Jun 1 – Nov 30 Atlantic hurricane season — a pure calendar rule.',
     }),
-    ind('enso-status', 'Weather & Environment', 'ENSO Status', 'Neutral', '', { trend: 'flat', sourceId: 'tt-met-enso', classification: 'Demonstration' }),
+    ind('enso-status', 'Weather & Environment', 'ENSO Status', 'Neutral', '', { trend: 'flat', sourceId: 'tt-met-enso', classification: 'Illustrative' }),
     ind('saharan-dust', 'Weather & Environment', 'Saharan Dust Concentration', 'Moderate', '', { trend: 'flat', sourceId: 'tt-met' }),
     ind('drought-index', 'Weather & Environment', 'Drought Index', '22', 'index (0-100)', { trend: 'down', sourceId: 'tt-met-drought' }),
     ind('river-levels', 'Weather & Environment', 'River Levels (Caroni, illustrative)', 'Normal', '', { trend: 'flat', sourceId: 'tt-met-forecast' })
@@ -255,7 +255,7 @@
   // ---------------------------------------------------------------- Public Sector & National Life
   // No authoritative subject page was supplied for these three, so — per the
   // "do not fabricate a source where none was given" rule — they stay
-  // sourceless and Demonstration rather than being attached to a guessed page.
+  // sourceless and Illustrative rather than being attached to a guessed page.
   indicators.push(
     ind('parliamentary-activity', 'Public Sector & National Life', 'Bills Under Consideration', '11', 'bills', { trend: 'flat' }),
     ind('procurement-activity', 'Public Sector & National Life', 'Active Public Procurement Notices', '46', 'notices', { trend: 'up' }),
@@ -275,7 +275,7 @@
     // pace are intentionally separate fields (per §4) so a founder-supplied
     // benchmark can be dropped in without any component changes.
     ind('recorded-murders', 'Public Sector & National Life', 'Recorded Murders (current year)', '—', 'recorded', {
-      classification: 'Demonstration', sourceId: 'tt-ttps', secondarySourceId: 'tt-cso-crime', confidence: 'Demonstration',
+      classification: 'Illustrative', sourceId: 'tt-ttps', secondarySourceId: 'tt-cso-crime', confidence: 'Illustrative',
       methodology: 'Structural placeholder only. This indicator is designed to hold a manually-verified current-year total (recordedTotal) separate from a derived annual pace (recordedPace) — the pace must never overwrite the recorded total. No current total is published here because it has not been supplied by the founder; a fabricated figure for a sensitive public-safety statistic would misrepresent real crime data.',
       limitations: 'No live value. Requires a founder- or news-verified benchmark before this card can show a number.',
     })
@@ -284,7 +284,7 @@
   // ---------------------------------------------------------------- International Context
   // None of these have a T&T-specific authoritative page in the supplied
   // registry — they are genuinely global figures, so they remain
-  // Demonstration with no sourceId rather than attached to a guessed source.
+  // Illustrative with no sourceId rather than attached to a guessed source.
   indicators.push(
     ind('global-oil-price', 'International Context', 'Global Oil Price (Brent, illustrative)', '82.10', 'USD/bbl', { trend: 'down' }),
     ind('global-gas-price', 'International Context', 'Global Gas Price (TTF, illustrative)', '9.40', 'USD/MMBtu', { trend: 'up' }),
@@ -302,13 +302,13 @@
   // (Phase 3.5 §4) — none are folded silently into the headline number.
   indicators.push(
     ind('pure-alcohol-consumption', 'Population & Life', 'Pure Alcohol Consumption (per capita, annual)', '5.8', 'litres/year', {
-      classification: 'Demonstration', sourceId: 'who-tt', confidence: 'Demonstration',
+      classification: 'Illustrative', sourceId: 'who-tt', confidence: 'Illustrative',
       methodology: 'Illustrative per-capita pure-alcohol benchmark in the plausible range for the region — not the current published WHO figure. See Beer-Equivalent and Rum-Equivalent counters for how this benchmark is converted into a beverage-volume estimate.',
     }),
     ind('beer-equivalent-counter', 'Population & Life', 'Beer-Equivalent Consumption (illustrative)', '—', 'bottles today', {
       isLiveClock: true, clock: { kind: 'day-counter', perYear: 1531000 * 5.8 / 0.046 }, classification: 'FTN Estimated', sourceId: 'who-tt',
       paceUnitLabel: 'bottles',
-      methodology: 'FTN Estimated, built from four separately disclosed assumptions — none hidden inside the headline number: (1) pure-alcohol benchmark 5.8 L/person/year (illustrative, see Pure Alcohol Consumption); (2) assumed average beverage strength 5% ABV; (3) assumed bottle size 330mL, giving ~0.0165L pure alcohol per bottle; (4) participating population = full national population estimate (a simplification — no drinking-age adjustment applied in this demonstration).',
+      methodology: 'FTN Estimated, built from four separately disclosed assumptions — none hidden inside the headline number: (1) pure-alcohol benchmark 5.8 L/person/year (illustrative, see Pure Alcohol Consumption); (2) assumed average beverage strength 5% ABV; (3) assumed bottle size 330mL, giving ~0.0165L pure alcohol per bottle; (4) participating population = full national population estimate (a simplification — no drinking-age adjustment applied in this illustrative).',
       limitations: 'A "how fast" novelty counter, not a health-policy statistic. Does not adjust for drinking-age population, non-drinkers, or under-reporting.',
     }),
     ind('rum-equivalent-counter', 'Population & Life', 'Rum-Equivalent Consumption (illustrative)', '—', 'bottles today', {

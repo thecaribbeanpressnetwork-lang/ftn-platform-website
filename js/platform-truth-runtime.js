@@ -12,7 +12,7 @@ function globalTruth(){
 function aboutTruth(){
   var map={
     'Community Connect':['Flagship App','Connect. Report. Improve.'],
-    'Mission Control':['Working Demonstration','Evidence, calculated relationships and scenario exploration.'],
+    'Mission Control':['Working Illustrative','Evidence, calculated relationships and scenario exploration.'],
     'Face The Nation':['Programme Hub','Interviews, public affairs and national conversation.'],
     'FTN Live':['Working Foundation','Current Caribbean satellite imagery, source-backed signals and change radar.'],
     'FTN Events':['Working MVP','Plan, procure and operate Caribbean events.'],
@@ -47,8 +47,8 @@ function insightsTruth(){
   if(community)community.innerHTML='<p><strong>Community data stays permission-aware.</strong> Community Connect information is not automatically published into Insights or Mission Control. When FTN presents aggregated community patterns here, the view must identify its source, date, classification and privacy boundary.</p><p class="u-mt-16"><a href="/kaiso/">Open FTN Kaiso for current source discovery and newsroom verification →</a></p>';
   var live=document.querySelector('a.module-card[href="/observatory/"] p');
   if(live)live.textContent='Current Caribbean satellite imagery, connected public sources and clearly classified national indicator context.';
-  var mc=document.querySelector('a.module-card[href="/mission-control/demo/"] p');
-  if(mc)mc.textContent='Calculate relationships in loaded indicator histories, inspect evidence and test disclosed demonstration scenarios.';
+  var mc=document.querySelector('a.module-card[href="/scenario-workspace/"] p');
+  if(mc)mc.textContent='Calculate relationships in loaded indicator histories, inspect evidence and test disclosed illustrative scenarios.';
 }
 function resourcesTruth(){
   var lede=document.querySelector('.page-hero__lede');
@@ -56,7 +56,7 @@ function resourcesTruth(){
   document.querySelectorAll('.faq-item').forEach(function(item){var q=item.querySelector('summary'),a=item.querySelector('.faq-item__answer');if(!q||!a)return;var t=(q.textContent||'').trim();
     if(t==='What is FTN Platform?')a.innerHTML='<p>FTN Platform is a Caribbean-first digital infrastructure ecosystem spanning civic participation, intelligence, public affairs, journalism, music, radio, film, events, opportunities, live information and controlled display distribution. <a href="/applications/">Explore the product map</a>.</p>';
     if(t==="What's the difference between Community Connect and Mission Control?")a.innerHTML='<p>Community Connect is the public civic participation product. Mission Control is the institutional decision-support and operations layer. Permission-appropriate, structured Community Connect information may support Mission Control, but private user data is not automatically shared across products.</p>';
-    if(t==='Who can access Mission Control?')a.innerHTML='<p>The public <a href="/mission-control/demo/">Mission Control workspace</a> demonstrates evidence, scenarios and calculated relationships. Any real institutional deployment requires organization-specific identity, permissions, governance and data access.</p>';
+    if(t==='Who can access Mission Control?')a.innerHTML='<p>The public <a href="/scenario-workspace/">Mission Control workspace</a> demonstrates evidence, scenarios and calculated relationships. Any real institutional deployment requires organization-specific identity, permissions, governance and data access.</p>';
     if(t==='How is my data used?')a.innerHTML='<p>See the <a href="/legal/privacy-policy/">Privacy Policy</a> and the privacy information inside the product you are using. FTN connections are governed by purpose, consent, permissions and public/private boundaries; data does not become universally shared merely because products belong to one ecosystem.</p>';
   });
   var doc=document.querySelector('#documentation .u-text-silver');

@@ -17,7 +17,7 @@ async function installDeterministicProviderFixtures(context){
   await context.route(/https:\/\/www\.youtube(?:-nocookie)?\.com\/embed\/.*/,route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Authorized fixture embed</title>'}));
   await context.route('**/functions/v1/dj-tube-discovery',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({results:fixtureTracks,providers:{fixture:true},fetchedAt:'2026-08-10T12:00:00Z'})}));
   await context.route('**/functions/v1/ftn-opportunities*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-08-10T12:00:00Z',warnings:[],items:[{title:'Caribbean Climate Programme Call',organization:'CARICOM Fixture Authority',country:'Regional',type:'Programme',sector:'Climate',summary:'Deterministic release-test record from an official-source adapter fixture.',deadline:'2026-12-15',sourceUrl:'https://caricom.org/',lastVerified:'2026-08-10T12:00:00Z'},{title:'Caribbean Development Procurement Notice',organization:'Caribbean Development Bank',country:'Barbados',type:'Tender',sector:'Procurement',summary:'Deterministic release-test record from the CDB adapter fixture.',deadline:'2026-11-30',sourceUrl:'https://www.caribank.org/',lastVerified:'2026-08-10T12:00:00Z'}]})}));
-  await context.route('**/functions/v1/ftn-news-sources*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-08-10T12:00:00Z',items:[{title:'CARICOM institutional release fixture',publisher:'CARICOM',classification:'Official release',publishedAt:'2026-08-09',excerpt:'Deterministic source-adapter fixture used only by the functional release test.',url:'https://caricom.org/category/pressreleases/'}]})}));
+  await context.route('**/functions/v1/ftn-news-sources*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-08-11T12:00:00Z',items:[{title:'CARICOM institutional release fixture',publisher:'CARICOM',classification:'Official release',publishedAt:'2026-08-09',excerpt:'Deterministic source-adapter fixture used only by the functional release test.',url:'https://caricom.org/category/pressreleases/'}],localItems:[{title:'Trinidad and Tobago local headline fixture',publisher:'Trinidad & Tobago Guardian',classification:'Publisher headline',publishedAt:'2026-08-11',verificationState:'Attributed publisher headline; FTN has not independently verified the report',url:'https://www.guardian.co.tt/news/local-fixture-6.2.1.test'}]})}));
   await context.route('**/functions/v1/ftn-live-sources*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({satellite:{imageUrl:'https://fixtures.ftn.invalid/noaa.png',sourceUrl:'https://www.star.nesdis.noaa.gov/GOES/sector.php?sat=G19&sector=car&src=nav',sourceTimestamp:'2026-08-10 12:00 UTC'}})}));
 }
 
@@ -65,8 +65,8 @@ function wavBuffer(seconds=1,sampleRate=8000){
   const s=x=>{b.write(x,o,'ascii');o+=x.length};s('RIFF');b.writeUInt32LE(36+dataSize,o);o+=4;s('WAVE');s('fmt ');b.writeUInt32LE(16,o);o+=4;b.writeUInt16LE(1,o);o+=2;b.writeUInt16LE(1,o);o+=2;b.writeUInt32LE(sampleRate,o);o+=4;b.writeUInt32LE(sampleRate*2,o);o+=4;b.writeUInt16LE(2,o);o+=2;b.writeUInt16LE(16,o);o+=2;s('data');b.writeUInt32LE(dataSize,o);o+=4;for(let i=0;i<samples;i++){b.writeInt16LE(Math.round(Math.sin(2*Math.PI*440*i/sampleRate)*9000),o);o+=2;}return b;
 }
 
-await scenario('home-desktop', async page=>{await open(page,'/');await page.waitForSelector('#find-your-path',{timeout:10000});assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/riddim/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);assert(await page.locator('.eco-live-rail').count()===1,'home live tools rail missing');assert.equal(await page.locator('.country-switcher-dialog.is-open').count(),0,'country selection must not be forced');});
-await scenario('home-mobile', async page=>{await open(page,'/');assert(await page.locator('.eco-live-rail').count()===1);},{width:390,height:844});
+await scenario('home-desktop', async page=>{await open(page,'/');await page.waitForSelector('#find-your-path',{timeout:10000});assert(await page.locator('a[href="/ibis-ai/"]').count()>0);assert(await page.locator('a[href="/govern/"]').count()>0);assert(await page.locator('a[href="/riddim/daw/"]').count()>0);assert(await page.locator('a[href="/riddim/dj/"]').count()>0);assert.equal(await page.locator('.eco-panel').count(),0,'homepage duplicated the full product directory');assert(await page.locator('.eco-live-rail').count()===1,'home live tools rail missing');assert.equal(await page.locator('.country-switcher-dialog.is-open').count(),0,'country selection must not be forced');});
+await scenario('home-mobile', async page=>{await open(page,'/');assert(await page.locator('.eco-live-rail').count()===1);assert(await page.locator('.eco-door').count()>5,'constellation doors disappeared on touch layouts');const pulse=await page.locator('.eco-constellation__pulse').boundingBox(),stage=await page.locator('.eco-constellation__stage').boundingBox();assert(pulse&&stage&&pulse.width<stage.width*.7,'constellation uses a full-screen invisible touch target');},{width:390,height:844});
 
 await scenario('ibis-visual-and-handoff', async page=>{
   await open(page,'/ibis-ai/?prompt=create%20a%20visual%20for%20a%20Caribbean%20film');
@@ -81,8 +81,8 @@ await scenario('ibis-visual-and-handoff', async page=>{
   assert(await page.locator('.ibis-visual-result a[download]').count()===1,'ibis visual download missing');
 });
 
-await scenario('mission-control-calculation', async page=>{
-  await open(page,'/mission-control/demo/#correlation-engine');
+await scenario('scenario-workspace-calculation', async page=>{
+  await open(page,'/scenario-workspace/#correlation-engine');
   await page.waitForSelector('.mc-live-engine',{timeout:10000});
   const before=await page.locator('#mc-corr-result').innerText();
   const opts=await page.locator('#mc-corr-b option').count(); assert(opts>2,'not enough correlation variables');
@@ -142,9 +142,11 @@ await scenario('radio-catalog', async page=>{
   await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>10 || /failed|unavailable|error/i.test(document.querySelector('#ftn-radio-status')?.innerText||''),{timeout:45000});
   const n=await page.locator('.ftn-radio-live__track').count();assert(n>10,`radio only loaded ${n} tracks`);
   const titles=(await page.locator('.ftn-radio-live__track').allInnerTexts()).slice(0,30).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix|roadmix/i.test(titles),'radio mix exclusion failed');
-  assert.match(await page.locator('.ftn-radio-live').innerText(),/Programme owner: FTN.*Last verified: 2026-08-10/is);
+  assert.match(await page.locator('.ftn-radio-live').innerText(),/Programme owner: FTN.*Last verified: 2026-08-11/is);
   await page.locator('.ftn-radio-live__track').first().click();await page.click('#ftn-radio-favourite');assert.equal(await page.locator('#ftn-radio-favourite').innerText(),'SAVED');assert(await page.locator('#ftn-radio-share').count()===1,'Radio share control missing');
 });
+
+await scenario('radio-creator-delivery',async page=>{await open(page,'/radio/');await page.waitForSelector('#radio-submit-form');assert.equal(await page.locator('text=Programming Desk').count(),0);assert.equal(await page.locator('#radio-submit-form [name="delivery"]').count(),1);assert.equal(await page.locator('#radio-submit-form [name="origin"]').count(),1);assert.match(await page.locator('.radio-submit-dock').innerText(),/Submit a track/i);});
 
 await scenario('dj-discovery-and-controls', async page=>{
   await open(page,'/dj-tube-prototype/?ftn=1');
@@ -190,7 +192,7 @@ await scenario('ftn-tv-on-air', async page=>{
   await open(page,'/tv/');
   await page.waitForFunction(()=>{const f=document.querySelector('.tv-player iframe');const s=document.querySelector('#tv-status')?.textContent||'';return (f&&f.src&&/youtube/.test(f.src))||/No embeddable|failed|unavailable|error/i.test(s);},{timeout:45000});
   const src=await page.locator('.tv-player iframe').getAttribute('src');assert(src&&/youtube/.test(src),'FTN TV did not tune a YouTube source');
-  assert(await page.locator('.tv-guide__row button').count()>0,'TV tune buttons missing');
+  assert(await page.locator('.tv-guide__row button').count()>0,'TV tune buttons missing');assert.equal(await page.locator('.tv-parliament-source a[href*="ttparliament.org"]').count(),1,'official Parliament TV source missing');
 });
 
 await scenario('face-the-nation-programme-hub', async page=>{
@@ -209,22 +211,26 @@ await scenario('kaiso-newsroom', async page=>{
   await open(page,'/kaiso/');
   await page.waitForFunction(()=>document.querySelectorAll('.kaiso-story').length>0 || document.querySelectorAll('.kaiso-video').length>5 || /unavailable|failed|error/i.test((document.querySelector('#kaiso-source-status')?.innerText||'')+' '+(document.querySelector('#kaiso-video-status')?.innerText||'')),{timeout:45000});
   assert((await page.locator('.kaiso-story').count())+(await page.locator('.kaiso-video').count())>0,'Kaiso source radar empty');
-  assert(!/Invalid Date/i.test(await page.locator('#kaiso-video-feed').innerText()),'Kaiso rendered an invalid provider date');
+  assert(!/Invalid Date/i.test(await page.locator('#kaiso-video-feed').innerText()),'Kaiso rendered an invalid provider date');assert.match(await page.locator('#kaiso-local-feed').innerText(),/Guardian.*Attributed publisher headline/is);assert.equal(await page.locator('a[href*="trinidadexpress.com"]').count(),1,'Express direct source missing');assert.equal(await page.locator('a[href*="youtube.com/c/IanAlleyne"]').count(),1,'Ian Alleyne source lane missing');
   const f=page.locator('.kaiso-tip-form');await f.locator('input[name="headline"]').fill('FTN test story');await f.locator('textarea[name="summary"]').fill('Testing newsroom draft and verification workflow.');await f.locator('input[name="consent"]').check();await f.evaluate(el=>el.requestSubmit());await page.waitForTimeout(200);assert.match(await page.locator('#kaiso-history-list').innerText(),/FTN test story/i);
 });
 
 await scenario('display-network-studio', async page=>{
   await open(page,'/display-network/');await page.waitForSelector('#dn-add-content',{timeout:10000});
-  await page.fill('#dn-content-title','Flood warning test');await page.fill('#dn-content-message','Avoid the low-lying road until cleared.');await page.click('#dn-add-content');assert.match(await page.locator('#dn-preview').innerText(),/Flood warning test/);assert(await page.locator('.dn-item').count()>0);
+  assert.match(await page.locator('.dn-opening-actions').innerText(),/Host a screen.*verified message/is);await page.fill('#dn-content-title','Flood warning test');await page.fill('#dn-content-message','Avoid the low-lying road until cleared.');await page.click('#dn-add-content');assert.match(await page.locator('#dn-preview').innerText(),/Flood warning test/);assert(await page.locator('.dn-item').count()>0);
 });
 
 await scenario('love-public-entry-fails-closed-for-guest', async page=>{
   await mockGuestAuth(page);await open(page,'/love/');await page.waitForSelector('#love-private-root .nexus-card',{timeout:10000});assert.match(await page.locator('#love-private-root').innerText(),/Private access unavailable/i);assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'),'index,follow');
 });
 
-await scenario('parliament-source-directory', async page=>{await open(page,'/parliament/');assert.equal(await page.locator('.ftn-source-card').count(),4);await page.fill('#parliament-search','committee');assert.equal(await page.locator('.ftn-source-card').count(),1);assert.match(await page.locator('.ftn-source-card').innerText(),/Parliament of Trinidad and Tobago.*2026-08-10/is);});
+await scenario('govern-official-pathways',async page=>{await open(page,'/govern/');assert.equal(await page.locator('.govern-card').count(),4);assert.equal(await page.locator('a[href="https://ttconnect.gov.tt/"]').count(),2);assert.match(await page.locator('main').innerText(),/not a government department/i);});
 
-await scenario('invest-learning-watchlist', async page=>{await open(page,'/invest/');assert.equal(await page.locator('#invest-sources .nexus-card').count(),3);await page.locator('[data-watch]').first().click();assert.match(await page.locator('#invest-watchlist').innerText(),/Investor education/i);assert.match(await page.locator('main').innerText(),/not (?:investment |personalized )?advice|not brokerage/i);});
+await scenario('applications-progressive-directory',async page=>{await open(page,'/applications/');assert(await page.locator('.ftn-registry-card').count()>=20);assert.equal(await page.locator('.ftn-registry-card[href="/love/"]').count(),1);assert.equal(await page.locator('.ftn-registry-card[href="/govern/"]').count(),1);assert.doesNotMatch(await page.locator('main').innerText(),/\bBETA\b/);});
+
+await scenario('parliament-source-directory', async page=>{await open(page,'/parliament/');assert.equal(await page.locator('.ftn-source-card').count(),6);await page.fill('#parliament-search','committee');assert.equal(await page.locator('.ftn-source-card').count(),1);assert.match(await page.locator('.ftn-source-card').innerText(),/Parliament of Trinidad and Tobago.*2026-08-11/is);});
+
+await scenario('investin-support-and-learning', async page=>{await open(page,'/invest/');assert.equal(await page.locator('#invest-sources .nexus-card').count(),4);await page.locator('[data-watch]').first().click();assert.match(await page.locator('#invest-watchlist').innerText(),/Official market reports/i);assert.match(await page.locator('main').innerText(),/Not a public securities offering/i);assert.match(await page.locator('main').innerText(),/not (?:investment |personalized )?advice|not brokerage/i);});
 
 await scenario('health-phase-two-only', async page=>{await open(page,'/health/');assert.match(await page.locator('main').innerText(),/PHASE 2/i);assert.equal(await page.locator('main input,main textarea,main select').count(),0,'Health preview must not collect health data');assert.match(await page.locator('main').innerText(),/not (?:a )?(?:live )?health|does not provide medical/i);});
 

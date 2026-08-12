@@ -185,7 +185,7 @@
       org: 'Trinidad and Tobago Tourism Industry Development Company',
     },
     'ftn-demo': {
-      name: 'FTN demonstration dataset',
+      name: 'FTN illustrative dataset',
       url: '',
       org: 'RealityArtTV Media / FTN Platform',
     },

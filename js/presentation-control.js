@@ -5,7 +5,7 @@
   (function loadRouteEnhancements(){
     var path=global.location.pathname,sources=[];
     if(path==='/')sources.push('/js/home-live-rail.js');
-    if(path.indexOf('/mission-control/demo/')===0)sources.push('/js/mission-control-functional.js');
+    if(path.indexOf('/scenario-workspace/')===0)sources.push('/js/mission-control-functional.js');
     if(path.indexOf('/observatory/')===0)sources.push('/js/observatory-functional.js');
     if(path.indexOf('/display-network/')===0)sources.push('/js/display-network-preview.js');
     if(path.indexOf('/radio/')===0)sources.push('/js/radio-submission-fallback.js');

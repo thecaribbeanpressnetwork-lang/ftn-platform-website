@@ -3,7 +3,7 @@
 // visibility, access and public claims. Consumers must use js/product-registry.js.
 (function(global){
 'use strict';
-var RELEASE='2.0.0-rc.1',VERIFIED='2026-08-10',OWNER='RealityArtTV Media';
+var RELEASE='2.1.0',VERIFIED='2026-08-11',OWNER='RealityArtTV Media';
 function product(config){
   var accent=config.accent||'var(--color-red-on-dark)';
   return Object.assign({
@@ -43,7 +43,7 @@ product({
 }),
 product({
   id:'community-connect',name:'Community Connect',shortName:'Community',tagline:'Connect. Report. Improve.',
-  description:'FTN’s protected citizen-reporting application for documenting local issues and following community action without implying government endorsement or automatic resolution.',route:'/community-connect/',status:'BETA',
+  description:'FTN’s protected citizen-reporting application for documenting local issues and following community action without implying government endorsement or automatic resolution.',route:'/community-connect/',status:'AVAILABLE',
   primaryUser:'Residents and community participants',primaryJourney:'Review the evidence and privacy terms, then continue to the protected web app or verified Android release.',
   callsToAction:[{label:'Open Community Connect',route:'/community-connect/#launch'},{label:'Android release',route:'/community-connect/#download'}],visualMnemonic:'Community pin and verified report',
   panelAsset:'/assets/panels/01-community-connect.png',panelRow:1,accent:'var(--color-red)',atmosphere:{accent:'var(--color-red)',background:'photo',motionProfile:'none',heroStyle:'photo-real'},
@@ -52,16 +52,32 @@ product({
   keywords:['report','issue','pothole','community','neighbourhood','infrastructure','complaint'],capabilities:['verified-release-handoff','reporting-handoff','public-boundary-notice']
 }),
 product({
-  id:'mission-control',name:'Mission Control',shortName:'Mission Control',tagline:'See what is happening. Understand why. Coordinate what happens next.',
-  description:'A transparent public decision-support demonstration with calculated comparisons, evidence views and scenarios; it is not a live government operations system.',route:'/mission-control/',status:'BETA',
-  primaryUser:'Public-interest teams and institutional evaluators',primaryJourney:'Explore supplied evidence, run a calculation and export a clearly labelled demonstration brief.',
-  callsToAction:[{label:'Open public demonstration',route:'/mission-control/demo/'}],visualMnemonic:'Command radar sweep',panelAsset:'/assets/panels/02-mission-control.png',panelRow:1,accent:'var(--color-mission-control)',atmosphere:{accent:'var(--color-mission-control)',background:'dark-grid',motionProfile:'radar-sweep',heroStyle:'operations-center'},
-  dataSources:['labelled demonstration dataset'],accessRules:['guest demonstration'],featureFlags:['mission-control-demo'],relatedProducts:['parliament','events','opportunities','facethenation'],
-  legalNotices:['Demonstration data notice','No institutional endorsement'],keywords:['government','agency','dashboard','analytics','decisions','evidence','correlation','scenario'],capabilities:['calculated-change-analysis','calculated-correlation','scenario-demonstration','evidence-explorer','relationship-graph']
+  id:'mission-control',name:'Mission Control',shortName:'Mission Control',tagline:'Private institutional operations.',
+  description:'A private institutional decision-support and operations product. It is not a public government system.',route:'/mission-control/',status:'PRIVATE',publicVisibility:false,
+  primaryUser:'Authorized institutional teams',primaryJourney:'Enter through an organization-specific authenticated deployment.',
+  callsToAction:[],visualMnemonic:'Private command layer',panelAsset:'/assets/panels/02-mission-control.png',panelRow:null,accent:'var(--color-mission-control)',atmosphere:{accent:'var(--color-mission-control)',background:'dark-grid',motionProfile:'radar-sweep',heroStyle:'operations-center'},
+  dataSources:['organization-authorized sources'],accessRules:['private organization deployment'],featureFlags:['mission-control-private'],relatedProducts:['scenario-workspace','parliament','events','opportunities'],
+  legalNotices:['Private access only','No institutional endorsement'],keywords:['institutional','operations','decisions','evidence'],capabilities:['private-decision-support']
+}),
+product({
+  id:'scenario-workspace',name:'FTN Scenario Workspace',shortName:'Scenarios',tagline:'Explore evidence. Test assumptions. Keep the limits visible.',
+  description:'A public scenario workspace with calculated comparisons, evidence views and clearly labelled illustrative datasets; it is not a live operations system.',route:'/scenario-workspace/',status:'AVAILABLE',
+  primaryUser:'Public-interest teams, researchers and institutional evaluators',primaryJourney:'Explore supplied evidence, run a calculation and export a clearly labelled scenario brief.',
+  callsToAction:[{label:'Open Scenario Workspace',route:'/scenario-workspace/'}],visualMnemonic:'Evidence radar',panelAsset:'/assets/panels/02-mission-control.png',panelRow:1,accent:'var(--color-mission-control)',atmosphere:{accent:'var(--color-mission-control)',background:'dark-grid',motionProfile:'radar-sweep',heroStyle:'operations-center'},
+  dataSources:['labelled illustrative dataset'],accessRules:['guest scenario workspace'],featureFlags:['scenario-workspace'],relatedProducts:['parliament','events','opportunities','facethenation'],
+  legalNotices:['Illustrative data notice','No institutional endorsement'],keywords:['scenario','analytics','decisions','evidence','correlation'],capabilities:['calculated-change-analysis','calculated-correlation','scenario-exploration','evidence-explorer','relationship-graph']
+}),
+product({
+  id:'govern',name:'FTN Govern',shortName:'Govern',tagline:'Find the official path. Follow the public record.',
+  description:'An independent civic gateway to official Trinidad and Tobago government services, Parliament, departments and public-information sources.',route:'/govern/',status:'AVAILABLE',
+  primaryUser:'Residents and civic-information seekers',primaryJourney:'Choose a civic task, see the source owner and continue to the official destination.',
+  callsToAction:[{label:'Open FTN Govern',route:'/govern/'}],visualMnemonic:'Civic gateway',accent:'#c9a45c',atmosphere:{accent:'#c9a45c',background:'dark-civic',motionProfile:'none',heroStyle:'civic-gateway'},
+  dataSources:['ttconnect','Parliament of Trinidad and Tobago'],accessRules:['guest source gateway'],featureFlags:['govern-gateway'],relatedProducts:['parliament','community-connect','facethenation'],
+  legalNotices:['Independent non-government service','Official destinations remain source-owned'],keywords:['government','service','department','parliament','public notice','civic'],capabilities:['official-source-gateway','country-boundary','service-routing']
 }),
 product({
   id:'ibis-ai',name:'ibis.ai',shortName:'ibis',tagline:'Built for the Caribbean.',
-  description:'FTN’s Caribbean-first intelligence and creative orchestration workspace for task routing, analysis, image/video project planning and provider-transparent production.',route:'/ibis-ai/',status:'BETA',
+  description:'FTN’s Caribbean-first intelligence and creative orchestration workspace for task routing, analysis, image/video project planning and provider-transparent production.',route:'/ibis-ai/',status:'AVAILABLE',
   primaryUser:'People trying to complete or create something across FTN',primaryJourney:'Describe the outcome, choose an intelligence or creative mode, inspect the source/provider/cost boundary and continue with an exportable project.',
   callsToAction:[{label:'Ask ibis',route:'/ibis-ai/'},{label:'Open Creative Studio',route:'/ibis-ai/#ibis-creative-studio'}],visualMnemonic:'Ibis creative command node',panelAsset:'/assets/panels/05-ibis-ai.png',panelRow:1,accent:'var(--color-ibis)',atmosphere:{accent:'var(--color-ibis)',background:'dark-minimal',motionProfile:'node-pulse',heroStyle:'calm-focused'},
   dataSources:['FTN Product Registry','FTN public source functions','authenticated approved AI provider','verified creative-provider registry'],accessRules:['guest deterministic tools','authenticated server AI','paid provider calls disabled until credits and server approval'],featureFlags:['ibis-router','ibis-visual','ibis-authenticated-ai','ibis-creative-studio','provider-cost-lock'],
@@ -70,7 +86,7 @@ product({
 }),
 product({
   id:'parliament',name:'FTN Parliament',shortName:'Parliament',tagline:'Public records. Clear sources. Civic context.',
-  description:'An independent source directory for Parliament of Trinidad and Tobago records, with visible jurisdiction, source and verification dates.',route:'/parliament/',status:'BETA',
+  description:'An independent source directory for Parliament of Trinidad and Tobago records, with visible jurisdiction, source and verification dates.',route:'/parliament/',status:'AVAILABLE',
   primaryUser:'Residents, researchers and public-affairs audiences',primaryJourney:'Search a record category, open the official source, save/share it or report a broken source.',
   callsToAction:[{label:'Find a public record',route:'/parliament/#records'}],visualMnemonic:'Civic columns and source seal',dataSources:['Parliament of Trinidad and Tobago official website'],
   accessRules:['guest directory'],featureFlags:['parliament-directory'],relatedProducts:['facethenation','community-connect','mission-control'],legalNotices:['Independent non-official service','Source and correction notice'],
@@ -78,7 +94,7 @@ product({
 }),
 product({
   id:'facethenation',name:'Face The Nation',shortName:'Face The Nation',tagline:'Every Voice. Every Constituency. Every Truth.',
-  description:'FTN’s public-affairs and constituency programme hub with source-backed episode discovery and moderated participation paths.',route:'/facethenation',status:'BETA',
+  description:'FTN’s public-affairs and constituency programme hub with source-backed episode discovery and moderated participation paths.',route:'/facethenation',status:'AVAILABLE',
   primaryUser:'Public-affairs audiences, guests and constituents',primaryJourney:'Find an authorized episode, view supporting context, share it or submit a moderated question/story.',
   callsToAction:[{label:'Watch and participate',route:'/facethenation#watch'}],visualMnemonic:'Constituency microphone',panelAsset:'/assets/panels/04-face-the-nation.png',panelRow:1,atmosphere:{accent:'var(--color-red-on-dark)',background:'photo',motionProfile:'none',heroStyle:'broadcast'},
   dataSources:['FTN authorized YouTube records','user-consented submissions'],accessRules:['guest discovery','moderated submission'],featureFlags:['face-episodes'],relatedProducts:['parliament','community-connect','tv'],
@@ -86,7 +102,7 @@ product({
 }),
 product({
   id:'events',name:'FTN Events',shortName:'Events',tagline:'Every Event Starts Here.',
-  description:'A Caribbean event discovery, planning and submission workspace with source follow-through and practical preparation tools.',route:'/events/',status:'BETA',
+  description:'A Caribbean event discovery, planning and submission workspace with source follow-through and practical preparation tools.',route:'/events/',status:'AVAILABLE',
   primaryUser:'Event attendees, organizers and production teams',primaryJourney:'Discover or prepare an event, save/export the details and follow a real organizer/source destination.',
   callsToAction:[{label:'Discover or plan an event',route:'/events/'}],visualMnemonic:'Backstage spotlight',panelAsset:'/assets/panels/03-ftn-events.png',panelRow:1,accent:'var(--color-events)',atmosphere:{accent:'var(--color-events)',background:'dark-stage',motionProfile:'spotlight',heroStyle:'backstage'},
   dataSources:['organizer-supplied links','public event sources','local user workspace'],accessRules:['guest discovery and planning','moderated submissions'],featureFlags:['event-planner','event-directory'],relatedProducts:['display-network','opportunities','ftn-live'],
@@ -94,7 +110,7 @@ product({
 }),
 product({
   id:'screen',name:'FTN Screen',shortName:'Screen',tagline:'Where Caribbean Stories Come Alive.',
-  description:'Caribbean film, filmmaker and screen-work discovery with permitted trailers, lawful destinations and festival-package preparation.',route:'/screen/',status:'BETA',
+  description:'Caribbean film, filmmaker and screen-work discovery with permitted trailers, lawful destinations and festival-package preparation.',route:'/screen/',status:'AVAILABLE',
   primaryUser:'Film audiences and screen creators',primaryJourney:'Discover an approved film, inspect rights/source context and follow a permitted watch or creator path.',
   callsToAction:[{label:'Discover Caribbean screen work',route:'/screen/'}],visualMnemonic:'Cinema frame aperture',panelAsset:'/assets/panels/09-ftn-screen.png',panelRow:2,accent:'var(--color-screen)',atmosphere:{accent:'var(--color-screen)',background:'dark-cinematic',motionProfile:'none',heroStyle:'cinematic'},
   dataSources:['authorized public embeds','creator-declared metadata','official festival sources'],accessRules:['guest discovery','creator preparation'],featureFlags:['screen-catalog','festival-package'],relatedProducts:['tv','facethenation'],legalNotices:['Media rights and destination notice'],
@@ -102,14 +118,14 @@ product({
 }),
 product({
   id:'tv',name:'FTN TV',shortName:'TV',tagline:'Caribbean Television, Programmed with Purpose.',
-  description:'A scheduled and on-demand FTN programme surface using authorized sources and honest on-air, replay, off-air and provider-failure states.',route:'/tv/',status:'BETA',parentProduct:'screen',
+  description:'A scheduled and on-demand FTN programme surface using authorized sources and honest on-air, replay, off-air and provider-failure states.',route:'/tv/',status:'AVAILABLE',parentProduct:'screen',
   primaryUser:'Caribbean programme audiences',primaryJourney:'Select a programme, verify its current availability and play an authorized source.',callsToAction:[{label:'Open the programme guide',route:'/tv/'}],visualMnemonic:'Broadcast frame and clock',
   dataSources:['FTN schedule data','authorized YouTube embeds'],accessRules:['guest viewing'],featureFlags:['tv-guide'],relatedProducts:['screen','facethenation','ftn-live'],legalNotices:['Programme rights and source notice'],
   keywords:['television','tv','channel','schedule','guide','watch','programme','replay'],capabilities:['current-programme-resolution','authorized-playback','schedule','tune','failure-state']
 }),
 product({
-  id:'ftn-live',legacyIds:['observatory'],name:'FTN Live',shortName:'Live',tagline:'See the Caribbean as it changes.',
-  description:'A public live-information and scheduled coverage layer with verified source states, Caribbean time handling and explicit fallbacks.',route:'/observatory/',status:'BETA',
+  id:'ftn-live',legacyIds:['observatory'],name:'FTN Live — The Observatory',shortName:'Observatory',tagline:'An observation deck for verified Caribbean signals.',
+  description:'A source-backed Caribbean observation deck for current indicators, scheduled coverage and explicit source states and fallbacks.',route:'/observatory/',status:'AVAILABLE',
   primaryUser:'People following current Caribbean conditions and scheduled coverage',primaryJourney:'Open a current or scheduled signal, inspect its source/time and follow its accurate next state.',
   callsToAction:[{label:'Open FTN Live',route:'/observatory/'}],visualMnemonic:'Caribbean signal constellation',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
   dataSources:['NOAA satellite products','Open-Meteo','World Bank','FTN public source registry'],accessRules:['guest'],featureFlags:['live-sources','satellite'],relatedProducts:['events','tv','mission-control'],
@@ -117,7 +133,7 @@ product({
 }),
 product({
   id:'radio',name:'FTN Radio',shortName:'Radio',tagline:'The Soundtrack of the Caribbean.',
-  description:'Authorized Caribbean audio and programme discovery with creator, programming and FTN EPK preparation workspaces.',route:'/radio/',status:'BETA',
+  description:'Authorized Caribbean audio discovery with rights-aware creator delivery and FTN EPK preparation workspaces.',route:'/radio/',status:'AVAILABLE',
   primaryUser:'Listeners, creators and programmers',primaryJourney:'Discover and play a permitted source, then save/share it or prepare a protected creator submission.',
   callsToAction:[{label:'Listen and discover',route:'/radio/'}],visualMnemonic:'Warm broadcast waveform',panelAsset:'/assets/panels/08-ftn-radio.png',panelRow:2,accent:'var(--color-radio)',atmosphere:{accent:'var(--color-radio)',background:'dark-warm',motionProfile:'waveform',heroStyle:'broadcast-studio'},
   dataSources:['authorized YouTube discovery','creator-declared metadata'],accessRules:['guest listening','Turnstile-protected submission'],featureFlags:['radio-discovery','radio-airtime'],relatedProducts:['riddim','kaiso','tv'],legalNotices:['Media rights and source notice'],
@@ -125,7 +141,7 @@ product({
 }),
 product({
   id:'riddim',name:'FTN Riddim',shortName:'Riddim',tagline:'Powering Caribbean Music.',
-  description:'The Caribbean music ecosystem connecting rights-aware discovery and project metadata to FTN Fire, FTN DAW, FTN DJ Tube and FTN Kaiso.',route:'/riddim/',status:'BETA',
+  description:'The Caribbean music ecosystem connecting rights-aware discovery and project metadata to FTN Fire, FTN DAW, FTN DJ Tube and FTN Kaiso.',route:'/riddim/',status:'AVAILABLE',
   primaryUser:'Artists, producers, DJs and music audiences',primaryJourney:'Start with a rights-aware track, beat or project and continue into the appropriate creation, production, discovery or performance tool.',
   callsToAction:[{label:'Open the music hub',route:'/riddim/'}],visualMnemonic:'Layered riddim waveform',panelAsset:'/assets/panels/06-ftn-riddim.png',panelRow:2,accent:'var(--color-riddim)',atmosphere:{accent:'var(--color-riddim)',background:'dark-studio',motionProfile:'waveform',heroStyle:'studio'},
   dataSources:['user-owned local audio','creator metadata','authorized public sources','on-device Fire synthesis'],accessRules:['guest local projects'],featureFlags:['riddim-hub','ftn-fire'],relatedProducts:['ftn-fire','daw','dj-tube','kaiso','radio'],legalNotices:['Music ownership and licence declaration'],
@@ -133,7 +149,7 @@ product({
 }),
 product({
   id:'ftn-fire',name:'FTN Fire',shortName:'Fire',tagline:'Caribbean riddims. Instrumentals only.',
-  description:'Riddim’s Caribbean-first instrumental creation hand-off: Fire turns a producer brief into a detailed Flow Music prompt without generated lyrics or vocalist.',route:'/riddim/fire/',status:'BETA',parentProduct:'riddim',principal:false,
+  description:'Riddim’s Caribbean-first instrumental creation hand-off: Fire turns a producer brief into a detailed Flow Music prompt without generated lyrics or vocalist.',route:'/riddim/fire/',status:'AVAILABLE',parentProduct:'riddim',principal:false,
   primaryUser:'Caribbean producers, artists and creators who need an original instrumental starting point',primaryJourney:'Describe the riddim, set BPM/key/energy/instruments, open Flow Music with a copied instrumental-only producer prompt, then import rights-cleared audio into FTN DAW.',
   callsToAction:[{label:'Create an instrumental',route:'/riddim/fire/'}],visualMnemonic:'Layered Caribbean flame waveform',atmosphere:{accent:'#ff4d00',background:'dark-fire-studio',motionProfile:'flame-pulse',heroStyle:'producer-deck'},
   dataSources:['user-authored producer brief','user-operated Flow Music hand-off'],accessRules:['guest producer brief','separate Flow Music account required'],featureFlags:['fire-flow-music-handoff'],relatedProducts:['riddim','daw','ibis-ai'],
@@ -141,7 +157,7 @@ product({
 }),
 product({
   id:'kaiso',name:'FTN Kaiso',shortName:'Kaiso',tagline:'Caribbean music, culture and newsroom sources.',
-  description:'A source-backed calypso, soca and Caribbean culture discovery desk with explicit provenance, verification and correction boundaries.',route:'/kaiso/',status:'BETA',
+  description:'A source-backed calypso, soca and Caribbean culture discovery desk with explicit provenance, verification and correction boundaries.',route:'/kaiso/',status:'AVAILABLE',
   primaryUser:'Culture audiences, researchers and editorial contributors',primaryJourney:'Search current sources and permitted media, inspect provenance and submit a correction or story lead.',
   callsToAction:[{label:'Explore Kaiso sources',route:'/kaiso/'}],visualMnemonic:'Editorial rhythm lines',panelAsset:'/assets/panels/07-ftn-kaiso.png',panelRow:2,accent:'var(--color-kaiso)',atmosphere:{accent:'var(--color-kaiso)',background:'dark-editorial',motionProfile:'none',heroStyle:'newsroom'},
   dataSources:['FTN public news-source function','authorized YouTube discovery','user-submitted lead drafts'],accessRules:['guest discovery','consented submission'],featureFlags:['kaiso-source-radar'],relatedProducts:['riddim','radio','facethenation'],legalNotices:['Editorial verification and correction notice'],
@@ -149,21 +165,21 @@ product({
 }),
 product({
   id:'dj-tube',legacyIds:['ftn-dj'],name:'FTN DJ Tube',shortName:'DJ Tube',tagline:'Prepare and perform with audio you have the right to use.',
-  description:'A DJ performance and preparation tool for user-owned or licensed local audio, with protected streaming media kept in reference mode.',route:'/riddim/dj/',status:'BETA',parentProduct:'riddim',
+  description:'A DJ performance and preparation tool for user-owned or licensed local audio, with protected streaming media kept in reference mode.',route:'/riddim/dj/',status:'AVAILABLE',parentProduct:'riddim',
   primaryUser:'DJs and performance creators',primaryJourney:'Confirm rights, load local audio, use real two-deck controls and save or export only supported user-owned output.',
   callsToAction:[{label:'Open FTN DJ Tube',route:'/riddim/dj/'}],visualMnemonic:'Twin decks and crossfader',dataSources:['user-owned local audio','authorized YouTube reference embeds'],accessRules:['guest local workspace','authenticated cloud jobs'],featureFlags:['dj-local-decks','dj-reference-discovery'],relatedProducts:['riddim','daw','radio'],
   legalNotices:['Local-audio rights declaration','Streaming reference-only notice'],analyticsClassification:'creative-private-no-replay',keywords:['dj','decks','mix','crossfade','cue','loop','tempo','local audio'],capabilities:['local-deck-loading','playback','cue','gain','crossfade','reference-discovery']
 }),
 product({
   id:'daw',legacyIds:['ftn-daw'],name:'FTN DAW',shortName:'DAW',tagline:'Make a real mix in your browser.',
-  description:'A bounded browser production workspace for recording or importing permitted audio, arranging edits and exporting supported user-owned mixes.',route:'/riddim/daw/',status:'BETA',parentProduct:'riddim',
+  description:'A bounded browser production workspace for recording or importing permitted audio, arranging edits and exporting supported user-owned mixes.',route:'/riddim/daw/',status:'AVAILABLE',parentProduct:'riddim',
   primaryUser:'Music creators with owned or licensed audio',primaryJourney:'Confirm rights, import audio, apply real browser-audio edits, restore project state and export a supported mix.',
   callsToAction:[{label:'Open FTN DAW',route:'/riddim/daw/'}],visualMnemonic:'Multitrack timeline',dataSources:['user-owned local audio'],accessRules:['guest local workspace'],featureFlags:['daw-browser-audio'],relatedProducts:['riddim','dj-tube'],
   legalNotices:['Audio ownership and contributor declaration','Local-storage limitation'],analyticsClassification:'creative-private-no-replay',keywords:['daw','audio','record','track','arrange','fade','gain','pan','export'],capabilities:['local-audio-import','browser-audio-processing','project-recipe','mix-export']
 }),
 product({
   id:'opportunities',name:'FTN Opportunities',shortName:'Opportunities',tagline:'Find it. Prepare. Move.',
-  description:'Source-backed Caribbean jobs, grants, tenders, scholarships and programme discovery with official destinations and deadline tools.',route:'/opportunities/',status:'BETA',
+  description:'Source-backed Caribbean jobs, grants, tenders, scholarships and programme discovery with official destinations and deadline tools.',route:'/opportunities/',status:'AVAILABLE',
   primaryUser:'Caribbean and diaspora opportunity seekers',primaryJourney:'Filter a current listing, verify issuer/source/eligibility, save its deadline and continue to the official destination.',
   callsToAction:[{label:'Find an opportunity',route:'/opportunities/'}],visualMnemonic:'Rising opportunity line',panelAsset:'/assets/panels/10-ftn-opportunities.png',panelRow:2,accent:'var(--color-opportunities)',atmosphere:{accent:'var(--color-opportunities)',background:'dark-growth',motionProfile:'rising-line',heroStyle:'momentum'},
   dataSources:['FTN opportunities source function','official issuer destinations'],accessRules:['guest discovery and local saves'],featureFlags:['opportunity-sources'],relatedProducts:['events','invest','mission-control'],legalNotices:['No guarantee or endorsement','Official-destination notice'],
@@ -171,30 +187,30 @@ product({
 }),
 product({
   id:'love',name:'FTN Love',shortName:'Love',tagline:'Consent and safety before discovery.',
-  description:'A consent-first relationship-discovery product for adults. Private profiles, discovery, matching, messages, block, report and deletion remain protected behind FTN Account and server-side safety controls.',route:'/love/',status:'BETA',publicVisibility:true,
+  description:'A consent-first relationship-discovery product for adults. Private profiles, discovery, matching, messages, block, report and deletion remain protected behind FTN Account and server-side safety controls.',route:'/love/',status:'AVAILABLE',publicVisibility:true,
   primaryUser:'Adults who explicitly consent to a private relationship journey',primaryJourney:'Authenticate, confirm age and consent, create a private profile, use controlled discovery and retain block/report/delete control.',
   callsToAction:[{label:'Explore FTN Love',route:'/love/'}],visualMnemonic:'Protected heart boundary',panelAsset:'/assets/panels/11-ftn-love.png',panelRow:null,accent:'var(--color-love)',atmosphere:{accent:'var(--color-love)',background:'warm',motionProfile:'heartbeat',heroStyle:'warm-human'},
   dataSources:['user-consented private profile data'],accessRules:['authenticated adult','RLS owner-only profile','mutual match for messaging'],featureFlags:['love-private'],relatedProducts:['account'],legalNotices:['18+ only','Consent and safety','Private-data boundary'],analyticsClassification:'restricted-sensitive-no-replay',
   keywords:['relationship','connection','match','compatibility','consent','safety'],capabilities:['private-onboarding','consent','controlled-discovery','block','report','delete']
 }),
 product({
-  id:'display-network',name:'FTN Display Network',shortName:'Display',tagline:'Approved information. The right screen. The right place.',
-  description:'A business and creator campaign-request workspace for eligible FTN-owned placements, creative preview and honest moderation status.',route:'/display-network/',status:'BETA',
+  id:'display-network',name:'FTN Display Network',shortName:'Display',tagline:'Host a screen or place a verified message.',
+  description:'A business and creator campaign-request workspace for eligible FTN-owned placements, creative preview and honest moderation status.',route:'/display-network/',status:'AVAILABLE',
   primaryUser:'Advertisers, partners and FTN placement operators',primaryJourney:'Review placement rules, prepare and preview creative, submit an honest request and track moderation status.',
   callsToAction:[{label:'Prepare a campaign request',route:'/display-network/'}],visualMnemonic:'Screen grid and approval signal',panelAsset:'/assets/panels/12-display-network.png',panelRow:3,accent:'var(--color-display-network)',atmosphere:{accent:'var(--color-display-network)',background:'dark-infrastructure',motionProfile:'none',heroStyle:'infrastructure'},
   dataSources:['user-provided creative','FTN placement registry'],accessRules:['guest preparation','protected submission','operator approval'],featureFlags:['display-playlist','campaign-request'],relatedProducts:['events','invest'],legalNotices:['Sponsored-content disclosure','Creative rights declaration','No automatic placement'],
   keywords:['signage','display','advertising','campaign','placement','screen','playlist'],capabilities:['campaign-brief','creative-preview','playlist-builder','moderation-request','status']
 }),
 product({
-  id:'invest',name:'FTN Invest',shortName:'Invest',tagline:'Learn first. Verify sources. Decide independently.',
-  description:'Financial education and source-backed business/investment discovery with risk context and a private local watchlist—not brokerage or advice.',route:'/invest/',status:'BETA',
+  id:'invest',name:'FTN InvestIn',shortName:'InvestIn',tagline:'Back Caribbean digital infrastructure. Learn from official market sources.',
+  description:'FTN support and partnership pathways alongside source-backed financial education and a private local watchlist—not a public securities offering, brokerage or advice.',route:'/invest/',status:'AVAILABLE',
   primaryUser:'People building financial literacy or researching public business sources',primaryJourney:'Read an official education source, review risk/conflict context and save a source to a local watchlist.',
-  callsToAction:[{label:'Open financial learning hub',route:'/invest/'}],visualMnemonic:'Verified growth ledger',dataSources:['Trinidad and Tobago Securities and Exchange Commission','Central Bank of Trinidad and Tobago'],accessRules:['guest education and local watchlist'],featureFlags:['invest-learning','invest-watchlist'],relatedProducts:['opportunities','top-picks'],
+  callsToAction:[{label:'Explore support and partnership',route:'/invest/'},{label:'Open market learning',route:'/invest/#market-learning'}],visualMnemonic:'Verified growth ledger',dataSources:['Trinidad and Tobago Securities and Exchange Commission','Central Bank of Trinidad and Tobago'],accessRules:['guest education and local watchlist'],featureFlags:['invest-learning','invest-watchlist'],relatedProducts:['opportunities','top-picks'],
   legalNotices:['Education only—not advice','No trades or custody','Source and conflict disclosure'],keywords:['invest','financial literacy','business','risk','watchlist','securities','education'],capabilities:['official-education-sources','source-profiles','risk-disclosure','local-watchlist']
 }),
 product({
   id:'account',name:'FTN Account',shortName:'Account',tagline:'One account. Clear permissions. Your control.',
-  description:'The shared FTN identity and preference surface for protected saves, projects, consent choices, sessions, export and deletion.',route:'/account/',status:'BETA',
+  description:'The shared FTN identity and preference surface for protected saves, projects, consent choices, sessions, export and deletion.',route:'/account/',status:'AVAILABLE',
   primaryUser:'Returning FTN users and creators',primaryJourney:'Sign in at the point of need, return to the exact task and inspect or revoke account state.',
   callsToAction:[{label:'Open FTN Account',route:'/account/'}],visualMnemonic:'Identity keyring',dataSources:['Supabase Auth','FTN account schema'],accessRules:['guest sign-in','authenticated self-service'],featureFlags:['account-email-auth'],relatedProducts:['ibis-ai','love','opportunities'],legalNotices:['Account privacy','Consent controls','Deletion and retention'],analyticsClassification:'authentication-no-replay',
   keywords:['account','sign in','login','profile','session','saved','consent','delete','export'],capabilities:['email-auth','session','return-to-task','profile','saved-items','sign-out']

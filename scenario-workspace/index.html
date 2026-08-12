@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Control — Interactive Illustrative scenario | FTN Platform</title>
+  <meta name="description" content="A public, illustrative illustrative scenario of Mission Control — the government-facing decision-support environment at the core of FTN Platform.">
+  <link rel="canonical" href="https://ftnplatform.org/scenario-workspace/">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/ftn-shortcut-mark.svg?v=20260811.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/ftn-shortcut-mark-32.png?v=20260811.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/ftn-shortcut-mark-180.png?v=20260811.2">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FTN Platform">
+  <meta property="og:title" content="Mission Control — Interactive Illustrative scenario | FTN Platform">
+  <meta property="og:description" content="A public, illustrative illustrative scenario of Mission Control — the government-facing decision-support environment at the core of FTN Platform.">
+  <meta property="og:url" content="https://ftnplatform.org/scenario-workspace/">
+  <meta property="og:image" content="https://ftnplatform.org/assets/social/og-ftn-platform.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="FTN Platform — The Caribbean Operating System">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mission Control — Interactive Illustrative scenario | FTN Platform">
+  <meta name="twitter:description" content="A public, illustrative illustrative scenario of Mission Control — the government-facing decision-support environment at the core of FTN Platform.">
+  <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-ftn-platform.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components/buttons.css">
+  <link rel="stylesheet" href="/css/components/nav.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/blocks.css">
+  <link rel="stylesheet" href="/css/components/content-sections.css">
+  <link rel="stylesheet" href="/css/components/heritage-layer.css">
+  <link rel="stylesheet" href="/css/components/country-switcher.css">
+  <link rel="stylesheet" href="/css/components/accordion.css">
+  <link rel="stylesheet" href="/css/components/form.css">
+  <link rel="stylesheet" href="/css/components/legal.css">
+  <link rel="stylesheet" href="/css/components/trust-card.css">
+  <link rel="stylesheet" href="/css/components/charts.css">
+  <link rel="stylesheet" href="/css/components/observatory.css">
+  <link rel="stylesheet" href="/css/components/mission-control-demo.css">
+  <link rel="stylesheet" href="/css/components/presentation-control.css">
+  <link rel="stylesheet" href="/css/utilities.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container site-header__bar">
+      <a class="site-header__logo" href="/" aria-label="FTN Platform home">
+        <svg viewBox="0 0 220 64" role="img" aria-labelledby="headerLogoTitle" class="logo-mark">
+          <title id="headerLogoTitle">FTN Platform</title>
+          <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#0B0B0B">F<tspan class="logo-mark__t">T</tspan>N</text>
+          <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#0B0B0B">PLATFORM</text>
+        </svg>
+      </a>
+
+      <nav class="site-nav" aria-label="Primary">
+        <ul class="site-nav__list">
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/">Home</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/about/">About FTN</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/news/">News</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/#commercial">Partners</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/#investors">Investors</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="site-header__actions">
+        <button type="button" class="country-switcher-trigger" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span class="country-switcher-trigger__pin" aria-hidden="true"></span><span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></button>
+        <!-- Sign In: routes to Community Connect's launch flow today, the only FTN product with
+             real user accounts. data-sign-in-entry marks this as the future unified FTN
+             Account/SSO integration point -- swap the href when a real identity service exists,
+             no nav restructure needed. -->
+        <a class="btn btn-primary btn-sm" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
+        <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
+          <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
+          <img class="icon-close" src="/assets/icons/icon-close.svg" alt="" width="20" height="20">
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-nav" id="mobile-nav">
+      <div class="mobile-nav__section">
+        <div class="mobile-nav__links">
+          <a href="/" class="mobile-nav__link--top">Home</a>
+          <a href="/about/" class="mobile-nav__link--top">About FTN</a>
+          <a href="/news/" class="mobile-nav__link--top">News</a>
+          <a href="/contact/#commercial" class="mobile-nav__link--top">Partners</a>
+          <a href="/contact/#investors" class="mobile-nav__link--top">Investors</a>
+          <a href="/contact/" class="mobile-nav__link--top">Contact</a>
+        </div>
+      </div>
+      <div class="mobile-nav__actions">
+        <button type="button" class="mobile-nav__country-switcher" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span><span class="country-switcher-trigger__pin" aria-hidden="true"></span> <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></span><span aria-hidden="true">&rsaquo;</span></button>
+        <a class="btn btn-primary" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="mc-demo-hero">
+      <div class="heritage-layer heritage-layer--on-dark heritage-layer--mission-control" aria-hidden="true">
+        <svg viewBox="0 0 1400 400" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <!-- Same instrument family as the Mission Control marketing page -- radar rings,
+               orbital arcs -- since this is the same product, not a separate identity. -->
+          <g stroke="currentColor" stroke-width="1" transform="translate(1120,200)">
+            <circle class="hl-pulse" r="180" /><circle r="130" /><circle r="80" />
+            <line x1="-180" y1="0" x2="180" y2="0" />
+            <line x1="0" y1="-180" x2="0" y2="180" />
+          </g>
+          <path d="M760,90 C830,40 900,45 940,90" stroke="currentColor" stroke-width="1" stroke-dasharray="3 5" />
+          <circle cx="940" cy="90" r="4" fill="currentColor" stroke="none" />
+        </svg>
+      </div>
+      <div class="container">
+        <span class="page-hero__eyebrow">Mission Control</span>
+        <h1 class="mc-demo-hero__title">Interactive Illustrative scenario</h1>
+        <p class="mc-demo-hero__lede">
+          Mission Control is an evidence-based decision-support environment for authorized leaders.
+          What follows is a public scenario workspace of the concept — built with clearly labelled
+          illustrative scenario data, not the secure production application. Every number, relationship, and
+          recommendation below is illustrative.
+        </p>
+
+        <ul class="mc-philosophy">
+          <li><strong>Reality is the final authority.</strong> Every observation is a clue.</li>
+          <li><strong>Every relationship is a hypothesis.</strong> Every intervention is an experiment.</li>
+          <li><strong>Every outcome becomes new evidence.</strong> Every decision should leave the nation wiser than before.</li>
+        </ul>
+
+        <div class="mc-access-note">
+          <strong>On access:</strong> the production Mission Control platform is designed to be private
+          and access-controlled — built around Founder-controlled administration, organization
+          provisioning, expiring and revocable access codes, permission templates, module-level
+          visibility, audit logs, and role-scoped access packs for ministers, mayors, agencies,
+          researchers, banks, and public-safety organizations. This public scenario workspace has none of
+          that: no accounts, no login, and no real access control. It exists to show what the platform
+          does, not to run it.
+        </div>
+      </div>
+    </section>
+
+    <div class="no-js-notice callout u-max-60ch u-mt-24">
+      This page is far more useful with JavaScript enabled — the sections below become an interactive
+      tabbed illustrative scenario. Every section is still readable in order without it.
+    </div>
+
+    <div class="container">
+      <div class="mc-tablist" id="mc-tablist" role="tablist" aria-label="Scenario Workspace sections">
+        <button type="button" class="mc-tab" role="tab" data-tab-target="exec-dashboard" aria-selected="true">Executive Dashboard</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="correlation-engine" aria-selected="false">Correlation Engine</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="reality-graph" aria-selected="false">Reality Graph</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="scenario-studio" aria-selected="false">Scenario Studio</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="evidence-explorer" aria-selected="false">Evidence Explorer</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="strategic-advisor" aria-selected="false">Strategic Advisor</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="timeline-memory" aria-selected="false">Timeline &amp; Memory</button>
+        <button type="button" class="mc-tab" role="tab" data-tab-target="external-monitor" aria-selected="false">External Influence</button>
+      </div>
+
+      <section class="mc-panel" id="exec-dashboard" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Executive Dashboard</span>
+          <h2>What changed, and where.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">A leadership-level view of national conditions. Select a time range and area to see how the picture shifts — illustrative scenario figures only.</p>
+        </div>
+        <div class="exec-controls">
+          <div class="exec-range-group" role="group" aria-label="Time range">
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">Today</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">Last 7 Days</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="true">Last 30 Days</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">This Quarter</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">This Year</button>
+            <button type="button" class="exec-range-btn" data-range aria-pressed="false">5 Years</button>
+          </div>
+          <label class="u-text-sm">Area:
+            <select id="exec-region">
+              <option>National</option>
+              <option>Port of Spain</option>
+              <option>San Fernando</option>
+              <option>Chaguanas</option>
+              <option>Arima</option>
+              <option>Tobago</option>
+            </select>
+          </label>
+        </div>
+        <p class="u-text-sm u-text-graphite u-mb-16" id="exec-range-label">Showing: Last 30 Days</p>
+        <div class="mc-kpi-grid" id="exec-kpi-grid"></div>
+      </section>
+
+      <section class="mc-panel" id="correlation-engine" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Correlation Engine</span>
+          <h2>Relationships across the systems that shape daily life.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Correlation is not causation. Every relationship below carries a confidence level and a Trust Card explaining method, sample, and limitations.</p>
+        </div>
+        <div id="correlation-list"></div>
+      </section>
+
+      <section class="mc-panel" id="reality-graph" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Reality Graph</span>
+          <h2>How one variable connects to the next.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Select a node to trace its connections. Relationships vary by context — this is one illustrative reading, not a universal rule.</p>
+        </div>
+        <label class="u-text-sm">Filter by category:
+          <select id="graph-category-filter">
+            <option value="all">All categories</option>
+            <option value="Infrastructure">Infrastructure</option>
+            <option value="Economy">Economy</option>
+            <option value="Community">Community</option>
+            <option value="Weather">Weather</option>
+          </select>
+        </label>
+        <div class="reality-graph-wrap u-mt-16" id="reality-graph-svg"></div>
+      </section>
+
+      <section class="mc-panel" id="scenario-studio" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Scenario Studio</span>
+          <h2>Adjust the inputs. See what moves.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Illustrative illustrative scenario scenarios only — not real forecasts. Outcomes are calculated from simple, disclosed weights, not a predictive model.</p>
+        </div>
+        <div class="scenario-studio-layout">
+          <div>
+            <div id="scenario-sliders"></div>
+            <button type="button" class="btn btn-outline btn-sm" id="scenario-reset">Reset to Baseline</button>
+          </div>
+          <div>
+            <p class="u-mb-16 u-font-bold">Projected effects (illustrative)</p>
+            <div class="scenario-outputs" id="scenario-outputs"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mc-panel" id="evidence-explorer" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Evidence Explorer</span>
+          <h2>From a national number down to what's behind it.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Select a metric to see the chain of evidence connecting it to source records, community observations, and news.</p>
+        </div>
+        <label class="u-text-sm">Metric:
+          <select id="evidence-select">
+            <option value="infrastructure-pressure">Infrastructure Pressure Index</option>
+            <option value="household-pressure">Household Financial Pressure Index</option>
+            <option value="community-participation">Community Participation Index</option>
+            <option value="service-reliability">Service Reliability Index</option>
+          </select>
+        </label>
+        <div id="evidence-detail" class="u-mt-16"></div>
+      </section>
+
+      <section class="mc-panel" id="strategic-advisor" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Strategic Advisor</span>
+          <h2>Structured options, not instructions.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">Answer a few qualifying questions first. The Advisor responds with scripted illustrative scenario options, trade-offs, and monitoring indicators — never a single "do this" answer.</p>
+        </div>
+        <form id="advisor-form" class="u-max-640">
+          <div class="form-field">
+            <label for="advisor-outcome">What outcome are you trying to achieve?</label>
+            <select id="advisor-outcome" required>
+              <option value="flooding">Reduce flooding impact</option>
+              <option value="employment">Improve employment</option>
+              <option value="healthcare">Reduce healthcare-system pressure</option>
+              <option value="attendance">Improve school attendance</option>
+            </select>
+          </div>
+          <div class="form-row form-row--2">
+            <div class="form-field">
+              <label for="advisor-area">Geographic area</label>
+              <select id="advisor-area">
+                <option>National</option>
+                <option>Port of Spain</option>
+                <option>San Fernando</option>
+                <option>Chaguanas</option>
+                <option>Arima</option>
+                <option>Tobago</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="advisor-budget">Available budget</label>
+              <select id="advisor-budget">
+                <option>Under $5M TTD</option>
+                <option>$5M – $25M TTD</option>
+                <option>$25M – $100M TTD</option>
+                <option>Over $100M TTD</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="advisor-horizon">Time horizon</label>
+            <select id="advisor-horizon">
+              <option>3 months</option>
+              <option>1 year</option>
+              <option>3 years</option>
+              <option>5+ years</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Get Structured Options</button>
+        </form>
+        <div id="advisor-result" class="u-mt-32" hidden></div>
+      </section>
+
+      <section class="mc-panel" id="timeline-memory" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">Timeline &amp; Institutional Memory</span>
+          <h2>What happened, what we expected, and what actually occurred.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">A Decision Journal concept: comparing expected outcomes against observed outcomes over time, so the system accumulates memory rather than starting over each time.</p>
+        </div>
+        <div id="mc-timeline"></div>
+      </section>
+
+      <section class="mc-panel" id="external-monitor" role="tabpanel">
+        <div class="mc-panel__header">
+          <span class="section__eyebrow">External Influence Monitor</span>
+          <h2>What's happening beyond our borders still reaches here.</h2>
+          <p class="u-text-graphite u-mt-16 u-max-60ch">International developments that plausibly connect to domestic indicators — illustrative unless individually sourced.</p>
+        </div>
+        <div class="module-grid" id="external-monitor-grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__top">
+        <div class="site-footer__brand">
+          <svg viewBox="0 0 220 64" role="img" aria-labelledby="footerLogoTitle" class="logo-mark--footer">
+            <title id="footerLogoTitle">FTN Platform</title>
+            <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#FFFFFF">F<tspan class="logo-mark__t">T</tspan>N</text>
+            <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#FFFFFF">PLATFORM</text>
+          </svg>
+<p class="site-footer__tagline">One Ecosystem. One Mission. Built for the Caribbean.</p>
+          <div class="site-footer__social">
+            <a href="https://x.com/realityarttv" aria-label="FTN Platform on X"><img src="/assets/icons/social-x.svg" alt="" width="16" height="16"></a>
+            <a href="https://facebook.com/realityarttv" aria-label="FTN Platform on Facebook"><img src="/assets/icons/social-facebook.svg" alt="" width="16" height="16"></a>
+            <a href="https://instagram.com/realityarttv" aria-label="FTN Platform on Instagram"><img src="/assets/icons/social-instagram.svg" alt="" width="16" height="16"></a>
+            <a href="https://youtube.com/realityarttv" aria-label="FTN Platform on YouTube"><img src="/assets/icons/social-youtube.svg" alt="" width="16" height="16"></a>
+            <a href="https://linkedin.com/company/realityarttv" aria-label="FTN Platform on LinkedIn"><img src="/assets/icons/social-linkedin.svg" alt="" width="16" height="16"></a>
+          </div>
+        </div>
+
+        <div class="site-footer__columns">
+          <div>
+            <p class="site-footer__heading">Platform</p>
+            <div class="site-footer__links">
+              <a href="/about/">About FTN</a>
+              <a href="/community-connect/">Community Connect</a>
+              <a href="/scenario-workspace/">Mission Control</a>
+              <a href="/events/">FTN Events</a>
+              <a href="/facethenation">Face The Nation</a>
+              <a href="/ibis-ai/">ibis.ai</a>
+              <a href="/riddim/">FTN Riddim</a>
+              <a href="/kaiso/">FTN Kaiso</a>
+              <a href="/radio/">FTN Radio</a>
+              <a href="/screen/">FTN Screen</a>
+              <a href="/opportunities/">FTN Opportunities</a>
+              <a href="/love/">FTN Love</a>
+              <a href="/display-network/">Display Network</a>
+              <a href="/observatory/">FTN Live</a>
+            </div>
+          </div>
+          <div>
+            <p class="site-footer__heading">Resources</p>
+            <div class="site-footer__links">
+              <a href="/insights/">Insights</a>
+              <a href="/news/">News &amp; Stories</a>
+              <a href="/resources/#faq">Help Center</a>
+              <a href="/resources/#documentation">Guides &amp; API Access</a>
+              <a href="/resources/#media-kit">Media Kit</a>
+              <a href="/scenario-workspace/">Scenario Workspace</a>
+            </div>
+          </div>
+          <div>
+            <p class="site-footer__heading">Legal</p>
+            <div class="site-footer__links">
+              <a href="/legal/privacy-policy/">Privacy Policy</a>
+              <a href="/legal/terms-of-service/">Terms of Service</a>
+              <a href="/legal/cookie-policy/">Cookie Policy</a>
+              <a href="/legal/data-retention/">Data Retention</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="site-footer__bottom">
+        <p>&copy; 2026 RealityArtTV Media. All Rights Reserved.</p>
+<div class="site-footer__bottom-links">
+          <a href="/sitemap/">Sitemap</a>
+          <a href="/accessibility/">Accessibility</a>
+          <a href="/applications/">All Platforms</a>
+          <a href="/">English</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/persisted-flag.js"></script>
+  <script src="/js/platform-mode.js"></script>
+  <script src="/js/storage.js"></script>
+  <script src="/js/country.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/country-switcher.js"></script>
+  <script src="/js/source-registry.js"></script>
+  <script src="/js/data-source.js"></script>
+  <script src="/js/indicators-data.js"></script>
+  <script src="/js/relationships-data.js"></script>
+  <script src="/js/mission-control-data.js"></script>
+  <script src="/js/charts.js"></script>
+  <script src="/js/trust-card.js"></script>
+  <script src="/js/mission-control-demo.js"></script>
+  <script src="/js/presentation-control.js"></script>
+</body>
+</html>

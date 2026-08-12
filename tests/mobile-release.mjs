@@ -20,7 +20,8 @@ async function open(path,selector){
 
 const surfaces=[
   ['/ibis-ai/','#ibis-form'],
-  ['/mission-control/demo/#correlation-engine','.mc-live-engine'],
+  ['/scenario-workspace/#correlation-engine','.mc-live-engine'],
+  ['/govern/','.govern-grid'],
   ['/observatory/','.ftn-sat'],
   ['/events/','#events-form'],
   ['/opportunities/','#opp-search'],

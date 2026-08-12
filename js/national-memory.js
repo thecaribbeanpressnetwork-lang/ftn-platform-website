@@ -12,7 +12,7 @@
   'use strict';
 
   // Compares two points in an indicator's existing history array — real
-  // math over real (if demo-scoped) data, not a fabricated date-range query.
+  // math over real (if illustrative-scoped) data, not a fabricated date-range query.
   // offsetFromEnd: 0 = most recent point, 1 = one period back, etc.
   function getHistoricalComparison(indicatorId, offsetA, offsetB) {
     var ind = global.FTN && global.FTN.getIndicator ? global.FTN.getIndicator(indicatorId) : null;
@@ -27,7 +27,7 @@
       pointA: a, pointB: b, delta: Math.round(delta * 100) / 100,
       pctChange: pctChange === null ? null : Math.round(pctChange * 10) / 10,
       periodsApart: Math.abs(offsetA - offsetB),
-      note: 'Computed from the ' + len + '-point demonstration history series, not a dated historical benchmark.',
+      note: 'Computed from the ' + len + '-point illustrative history series, not a dated historical benchmark.',
     };
   }
 

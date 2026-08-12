@@ -1,5 +1,5 @@
-// FTN Platform Website — Mission Control Interactive Demonstration behavior.
-// Public demonstration only — not the secure production Mission Control
+// FTN Platform Website — Mission Control Interactive Illustrative behavior.
+// Public illustrative only — not the secure production Mission Control
 // application. All data comes from js/mission-control-data.js.
 (function (global) {
   'use strict';
@@ -347,7 +347,7 @@
 
       resultMount.hidden = false;
       resultMount.innerHTML =
-        '<div class="callout u-mb-24">Scripted demonstration response — not a live AI system. Generated from a fixed lookup table based on your selections (' + area + ', ' + budget + ', ' + horizon + ').</div>' +
+        '<div class="callout u-mb-24">Scripted illustrative response — not a live AI system. Generated from a fixed lookup table based on your selections (' + area + ', ' + budget + ', ' + horizon + ').</div>' +
         '<h3>Situation Summary</h3><p class="u-text-graphite">' + script.situationSummary + '</p>' +
         '<h3 class="u-mt-24">Evidence</h3><p class="u-text-graphite">' + script.evidence + '</p>' +
         '<h3 class="u-mt-24">Historical Patterns</h3><p class="u-text-graphite">' + script.historicalPatterns + '</p>' +

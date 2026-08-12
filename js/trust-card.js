@@ -60,7 +60,7 @@
       'FTN Derived': 'trust-badge--derived',
       'FTN Estimated': 'trust-badge--estimated',
       'FTN Modelled': 'trust-badge--modelled',
-      'Demonstration': 'trust-badge--demo',
+      'Illustrative': 'trust-badge--demo',
     };
     return map[classification] || 'trust-badge--demo';
   }
@@ -94,7 +94,7 @@
       '<button type="button" class="trust-card__close" data-trust-close aria-label="Close">' +
         '<img src="/assets/icons/icon-close.svg" alt="" width="16" height="16">' +
       '</button>' +
-      '<span class="trust-badge ' + badgeClass + '">' + (data.classification || 'Demonstration') + '</span>' +
+      '<span class="trust-badge ' + badgeClass + '">' + (data.classification || 'Illustrative') + '</span>' +
       '<h2 id="trustCardTitle" class="trust-card__title">' + data.title + '</h2>' +
       (data.value ? '<p class="trust-card__value">' + data.value + (data.units ? ' <span>' + data.units + '</span>' : '') + '</p>' : '') +
       (data.whyItMatters || WHY_IT_MATTERS[data.category]

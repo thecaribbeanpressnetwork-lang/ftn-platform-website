@@ -3,7 +3,7 @@
 // Bump this value for every production shell release. A new cache namespace makes
 // sure a browser that previously installed FTN does not continue rendering an
 // obsolete HTML/CSS/JS shell after Cloudflare has deployed a repair.
-var VERSION='ftn-public-v2.0.2';
+var VERSION='ftn-public-v2.1.0';
 var SHELL=[
   '/','/offline/','/manifest.webmanifest','/css/tokens.css','/css/base.css',
   '/css/components/buttons.css','/css/components/nav.css','/css/components/nexus-foundation.css',
