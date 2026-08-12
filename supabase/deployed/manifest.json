@@ -1,10 +1,10 @@
 {
   "project_id": "jshmidfpqrajxtukzges",
-  "captured_at": "2026-08-10T23:05:00Z",
+  "captured_at": "2026-08-12T05:52:36Z",
   "functions": [
     {
       "slug": "dj-tube-discovery",
-      "version": 8,
+      "version": 9,
       "verify_jwt": false,
       "ezbr_sha256": "6b7db32db56bfce5fdfd9e40c287ee25d84a2f4850c04ed5c1adba6ef9117335",
       "updated_at": 1786347883833,
@@ -12,7 +12,7 @@
     },
     {
       "slug": "ftn-live-sources",
-      "version": 5,
+      "version": 6,
       "verify_jwt": false,
       "ezbr_sha256": "fb196978be3b38d4600aa3ff01d01779bff6cda402fc26d343086846ea0fdcf1",
       "updated_at": 1786352324303,
@@ -20,7 +20,7 @@
     },
     {
       "slug": "ftn-opportunities",
-      "version": 4,
+      "version": 5,
       "verify_jwt": false,
       "ezbr_sha256": "920b6e5b6992b6b169ac0c4fee80b5dd47a81269c8d4ed8221149b1483bfd705",
       "updated_at": 1786336298426,
@@ -28,15 +28,15 @@
     },
     {
       "slug": "ftn-news-sources",
-      "version": 7,
+      "version": 9,
       "verify_jwt": false,
-      "ezbr_sha256": "a4aa00a217661a6dd0181cd88e446a1d7d154ff5ebff78768db0d8617a9ac674",
-      "updated_at": 1786495148834,
+      "ezbr_sha256": "b833d72bf3ad6ab4bb1fa0192ad84d00dea0801e00abc330bb206214def759e4",
+      "updated_at": 1786513904047,
       "status": "ACTIVE"
     },
     {
       "slug": "ftn-transactions",
-      "version": 5,
+      "version": 6,
       "verify_jwt": false,
       "ezbr_sha256": "8e9241f2271a71f632f6753b0b8e5aa8eed5932fd0227003eee77b3d36ccefbf",
       "updated_at": 1786325133679,
@@ -44,7 +44,7 @@
     },
     {
       "slug": "ibis-query",
-      "version": 2,
+      "version": 3,
       "verify_jwt": true,
       "ezbr_sha256": "ee5955a1c9f53e1b9b7a50770c21c9b079839784f3b49f49dd4db1c7acdd010a",
       "updated_at": 1786387811959,
@@ -52,7 +52,7 @@
     },
     {
       "slug": "dj-tube-stems",
-      "version": 4,
+      "version": 5,
       "verify_jwt": true,
       "ezbr_sha256": "51f09915f77c1f8724cd3c1e965cc3a822f7d506787154271d325b4c54ef26c2",
       "updated_at": 1786205143577,

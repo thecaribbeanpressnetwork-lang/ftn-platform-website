@@ -21,7 +21,7 @@ This release reconstructs the lost full public build on the current `main` basel
 - FTN Govern is a first-class, independently attributed civic gateway to ttconnect and Parliament of Trinidad and Tobago sources.
 - Mission Control is private; the public evidence tool is FTN Scenario Workspace. Legacy public URLs redirect to the new route.
 - FTN Parliament exposes six official record categories and FTN TV links to official ParlView coverage.
-- FTN Kaiso consumes production news-source v7: CARICOM institutional releases plus individually isolated Guardian and Newsday headline retrieval, with direct Express and Ian Alleyne source lanes.
+- FTN Kaiso accepts CARICOM institutional releases and local publisher headlines only from Guardian and Trinidad Express, with independent browser-side trust filtering before anything is rendered.
 - FTN InvestIn combines transparent support, sponsorship and partnership paths with official-source market learning. It makes no public securities offering or invented raise/return claim.
 - FTN Radio uses rights-aware creator delivery and no longer exposes the Programming Desk.
 - Applications is a static, grouped, progressively enhanced directory. Public product states are `LIVE`, `AVAILABLE`, `PRIVATE` and `PHASE 2`.
@@ -43,7 +43,7 @@ Fresh verification on the release code commit established:
 - **2,287 local HTML references resolved** across 54 HTML files.
 - Ten release-critical routes passed an axe-core WCAG 2 A/AA sweep with no serious or critical violations.
 - Turnstile client/server contracts and Screen/Face The Nation moderation gates passed.
-- Production `ftn-news-sources` is active at version 7 and the exact deployed source is versioned in both Git source and deployed snapshots.
+- Production `ftn-news-sources` is active at version 9 and the exact deployed source is versioned in both Git source and deployed snapshots.
 
 ### Supersession
 

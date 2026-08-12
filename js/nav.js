@@ -22,36 +22,21 @@
 
   document.querySelectorAll('a[href="/contact/#investors"],a[href="/contact/?#investors"]').forEach(function (a) {
     a.setAttribute('href', '/invest/');
+    a.textContent = 'InvestIn';
   });
 
-  function mountSupportChooser() {
-    if (document.querySelector('[data-ftn-support-trigger]') || location.pathname.indexOf('/support') === 0) return;
-    var mobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
-    var host = mobile ? document.querySelector('.mobile-nav__actions') : document.querySelector('.site-header__actions');
-    host = host || document.querySelector('.nexus-header__actions, .nexus-nav');
-    if (!host) return;
-    var button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'btn btn-outline btn-sm';
-    button.textContent = 'Support Us';
-    button.setAttribute('data-ftn-support-trigger', 'true');
-    button.setAttribute('aria-haspopup', 'dialog');
-    if (mobile) host.appendChild(button); else host.insertBefore(button, host.firstChild);
-
-    var wrap = document.createElement('div');
-    wrap.hidden = true;
-    wrap.setAttribute('data-ftn-support-dialog', 'true');
-    wrap.innerHTML = '<div data-ftn-support-backdrop style="position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.66);backdrop-filter:blur(7px);display:grid;place-items:center;padding:20px"><section role="dialog" aria-modal="true" aria-labelledby="ftn-support-title" style="width:min(440px,100%);background:#0d0e11;color:#fff;border:1px solid #34363d;border-radius:22px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.55)"><p style="margin:0 0 6px;color:#ff4551;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase">Support FTN</p><h2 id="ftn-support-title" style="margin:0 0 8px;font:800 1.45rem/1.15 Montserrat,Inter,sans-serif">Choose how you want to help.</h2><p style="margin:0 0 18px;color:#b8bbc2;line-height:1.55;font-size:.92rem">No pressure. Pick the option that suits you, or simply keep using and sharing FTN.</p><div style="display:grid;gap:10px"><a class="btn btn-primary" href="https://ko-fi.com/facethenationtt" rel="noopener noreferrer">One-time support · Ko-fi</a><a class="btn btn-outline btn-outline--on-dark" href="https://www.patreon.com/cw/FTNPlatform" rel="noopener noreferrer">Ongoing support · Patreon</a><a class="btn btn-outline btn-outline--on-dark" href="/invest/">InvestIn · strategic support or partnership</a></div><button type="button" data-ftn-support-close style="margin-top:16px;border:0;background:none;color:#aeb2ba;cursor:pointer;padding:6px 0;font:700 12px Inter,sans-serif">Not now</button></section></div>';
-    document.body.appendChild(wrap);
-    function close(){wrap.hidden=true;button.setAttribute('aria-expanded','false');button.focus();}
-    button.setAttribute('aria-expanded','false');
-    button.addEventListener('click',function(){wrap.hidden=false;button.setAttribute('aria-expanded','true');var closeBtn=wrap.querySelector('[data-ftn-support-close]');if(closeBtn)closeBtn.focus();});
-    wrap.querySelector('[data-ftn-support-close]').addEventListener('click',close);
-    wrap.querySelector('[data-ftn-support-backdrop]').addEventListener('click',function(e){if(e.target===e.currentTarget)close();});
-    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!wrap.hidden)close();});
+  function mountInvestInEntry() {
+    if (location.pathname.indexOf('/invest') === 0) return;
+    var host = document.querySelector('.nexus-header__actions, .nexus-nav');
+    if (!host || host.querySelector('a[href="/invest/"]')) return;
+    var link = document.createElement('a');
+    link.className = 'btn btn-outline btn-sm';
+    link.href = '/invest/';
+    link.textContent = 'InvestIn';
+    host.insertBefore(link, host.firstChild);
   }
 
-  mountSupportChooser();
+  mountInvestInEntry();
 
   var toggle = document.querySelector('[data-nav-toggle]');
   var mobileNav = document.getElementById('mobile-nav');

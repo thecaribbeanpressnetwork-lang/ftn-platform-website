@@ -60,7 +60,7 @@
           <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/about/">About FTN</a></li>
           <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/news/">News</a></li>
           <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/#commercial">Partners</a></li>
-          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/#investors">Investors</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/invest/">InvestIn</a></li>
           <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/">Contact</a></li>
         </ul>
       </nav>
@@ -86,7 +86,7 @@
           <a href="/about/" class="mobile-nav__link--top">About FTN</a>
           <a href="/news/" class="mobile-nav__link--top">News</a>
           <a href="/contact/#commercial" class="mobile-nav__link--top">Partners</a>
-          <a href="/contact/#investors" class="mobile-nav__link--top">Investors</a>
+          <a href="/invest/" class="mobile-nav__link--top">InvestIn</a>
           <a href="/contact/" class="mobile-nav__link--top">Contact</a>
         </div>
       </div>
@@ -132,15 +132,15 @@
         <div class="observatory-hero__grid">
           <div class="observatory-hero__main">
             <span class="page-hero__eyebrow">FTN Live · The Observatory</span>
-            <h1 class="observatory-hero__title">Trinidad &amp; Tobago, live.</h1>
+            <h1 class="observatory-hero__title">Trinidad &amp; Tobago, in context.</h1>
             <p class="observatory-hero__lede">
-              A source-backed observation deck of national indicators — economy, energy, population, infrastructure,
-              community, weather, tourism, and the international context that shapes all of it. Built
-              on a reusable indicator architecture so real sources can replace demonstration data over
-              time without changing how this page works.
+              A source-aware observation deck of national indicators — economy, energy, population, infrastructure,
+              community, weather, tourism, and the international context that shapes all of it. Current satellite and
+              weather signals sit alongside latest published benchmarks, clearly labelled FTN modelled counters, and
+              illustrative scenarios.
             </p>
             <div class="observatory-controls">
-              <button type="button" id="pause-toggle" class="btn btn-outline btn-outline--on-dark btn-sm" aria-pressed="false">Pause Live Updates</button>
+              <button type="button" id="pause-toggle" class="btn btn-outline btn-outline--on-dark btn-sm" aria-pressed="false">Pause Counter Updates</button>
               <button type="button" id="kiosk-toggle" class="btn btn-outline btn-outline--on-dark" aria-pressed="false">Enter Kiosk Mode</button>
             </div>
             <p class="callout callout--on-dark u-mt-24 u-max-60ch" data-country-scope-notice hidden></p>
@@ -157,11 +157,11 @@
           <div class="observatory-hero__vitals">
             <div class="live-status">
               <div class="live-status__top">
-                <span class="live-status__badge"><span class="live-status__dot" aria-hidden="true"></span>Live</span>
-                <span class="observatory-clock">Refreshed <strong id="last-refresh">—</strong></span>
+                <span class="live-status__badge"><span class="live-status__dot" aria-hidden="true"></span>Current view</span>
+                <span class="observatory-clock">Local time <strong id="last-refresh">—</strong></span>
               </div>
               <p class="live-status__time" id="hero-local-time">—</p>
-              <p class="live-status__sub">Port of Spain &middot; <strong id="hero-indicator-count">—</strong> indicators tracked</p>
+              <p class="live-status__sub">Port of Spain &middot; <strong id="hero-indicator-count">—</strong> indicators catalogued</p>
             </div>
 
             <div class="hero-clocks">
@@ -227,12 +227,10 @@
         <div class="methodology-banner">
           <span aria-hidden="true">&#9432;</span>
           <p>
-            Animated counters are calculated from the latest available annual, quarterly, monthly
-            or daily benchmark figures. Sources, benchmark dates and methods are available in each
-            card's Trust Card. Classifications range from Official benchmark and Published source
-            through to FTN calculated counter, FTN derived indicator, and Demonstration scenario —
-            this build has no live external feeds yet, so nothing here is currently classified
-            Official.
+            The indicator wall is not one official real-time feed. Each card states its own basis and
+            date in a Trust Card: current connected source, latest published benchmark, FTN calculated
+            counter, FTN derived indicator, or illustrative scenario. Modelled and illustrative values
+            are never presented as official measurements.
           </p>
         </div>
       </div>
@@ -334,7 +332,7 @@
             <div class="site-footer__links">
               <a href="/about/">About FTN</a>
               <a href="/community-connect/">Community Connect</a>
-              <a href="/scenario-workspace/">Mission Control</a>
+              <a href="/scenario-workspace/">Scenario Workspace</a>
               <a href="/events/">FTN Events</a>
               <a href="/facethenation">Face The Nation</a>
               <a href="/ibis-ai/">ibis.ai</a>

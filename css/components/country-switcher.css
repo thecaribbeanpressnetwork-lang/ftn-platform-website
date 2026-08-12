@@ -11,7 +11,7 @@
      pin) to stay inside the documented 1024px nav-wrap budget (RELEASE_NOTES_v1.4.md) --
      adding a full text pill here caused real horizontal overflow, not just the
      already-accepted item-wrap. The country name only appears once there's real room, at
-     >=1260px. */
+     >=1440px. */
   display: none;
   align-items: center;
   justify-content: center;
@@ -30,10 +30,10 @@
 }
 
 /* Base state: hidden everywhere the label could show it (mobile nav gets its own always-visible
-   override below). Must come before the 1260px media query below it in source order -- an
+   override below). Must come before the 1440px media query below it in source order -- an
    unscoped rule appearing AFTER a media-query rule of equal specificity wins the cascade
    regardless of the media query, which previously made this permanently display:none at every
-   viewport width including >=1260px (a real bug: fixed here, engineering pass). */
+   viewport width including >=1440px (a real bug: fixed here, engineering pass). */
 .country-switcher-trigger__label {
   display: none;
 }
@@ -44,7 +44,7 @@
   }
 }
 
-@media (min-width: 1260px) {
+@media (min-width: 1440px) {
   .country-switcher-trigger {
     width: auto;
     gap: var(--space-8);

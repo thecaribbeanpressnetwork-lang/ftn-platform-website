@@ -274,11 +274,11 @@
     btn.addEventListener('click', function () {
       if (global.FTN.LiveClocks.isPaused()) {
         global.FTN.LiveClocks.resume();
-        btn.textContent = 'Pause Live Updates';
+        btn.textContent = 'Pause Counter Updates';
         btn.setAttribute('aria-pressed', 'false');
       } else {
         global.FTN.LiveClocks.pause();
-        btn.textContent = 'Resume Live Updates';
+        btn.textContent = 'Resume Counter Updates';
         btn.setAttribute('aria-pressed', 'true');
       }
     });
