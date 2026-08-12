@@ -25,12 +25,25 @@ jobs:
           # works without it and never writes it into a report.
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/ftn-open-source-scout.mjs --out /tmp/FTN_Open_Source_Scout_Report.md
+      - name: Inspect founder email configuration
+        id: email-config
+        env:
+          FTN_SCOUT_GMAIL_CLIENT_ID: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_ID }}
+          FTN_SCOUT_GMAIL_CLIENT_SECRET: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_SECRET }}
+          FTN_SCOUT_GMAIL_REFRESH_TOKEN: ${{ secrets.FTN_SCOUT_GMAIL_REFRESH_TOKEN }}
+          FTN_SCOUT_EMAIL_TO: ${{ secrets.FTN_SCOUT_EMAIL_TO }}
+        run: |
+          if [[ -n "$FTN_SCOUT_GMAIL_CLIENT_ID" && -n "$FTN_SCOUT_GMAIL_CLIENT_SECRET" && -n "$FTN_SCOUT_GMAIL_REFRESH_TOKEN" && -n "$FTN_SCOUT_EMAIL_TO" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Report founder email configuration gap
-        if: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_ID == '' || secrets.FTN_SCOUT_GMAIL_CLIENT_SECRET == '' || secrets.FTN_SCOUT_GMAIL_REFRESH_TOKEN == '' || secrets.FTN_SCOUT_EMAIL_TO == '' }}
+        if: ${{ steps.email-config.outputs.configured != 'true' }}
         run: |
           echo "::warning::Scout report was created but email delivery is not configured. Add the four FTN_SCOUT_* GitHub Actions secrets before relying on the weekly email."
       - name: Send founder review email
-        if: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_ID != '' && secrets.FTN_SCOUT_GMAIL_CLIENT_SECRET != '' && secrets.FTN_SCOUT_GMAIL_REFRESH_TOKEN != '' && secrets.FTN_SCOUT_EMAIL_TO != '' }}
+        if: ${{ steps.email-config.outputs.configured == 'true' }}
         env:
           FTN_SCOUT_GMAIL_CLIENT_ID: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_ID }}
           FTN_SCOUT_GMAIL_CLIENT_SECRET: ${{ secrets.FTN_SCOUT_GMAIL_CLIENT_SECRET }}
