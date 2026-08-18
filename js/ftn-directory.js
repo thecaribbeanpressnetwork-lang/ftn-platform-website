@@ -1,13 +1,12 @@
 (function(global){
 'use strict';
 var GROUPS=[
-  {title:'Civic and public life',ids:['community-connect','govern','parliament','facethenation']},
-  {title:'Information and intelligence',ids:['ftn-live','kaiso','ibis-ai','scenario-workspace']},
-  {title:'Media and culture',ids:['radio','screen','tv']},
-  {title:'Music and creation',ids:['riddim','ftn-fire','dj-tube','daw','epk']},
-  {title:'Opportunities and business',ids:['opportunities','invest','top-picks']},
-  {title:'Community and infrastructure',ids:['events','display-network']},
-  {title:'Shared access',ids:['account'],utility:true}
+  {title:'NOW',ids:['ftn-live','kaiso','scenario-workspace']},
+  {title:'COMMUNITY',ids:['community-connect','govern','parliament','facethenation','events']},
+  {title:'CULTURE',ids:['radio','screen','tv','riddim','ftn-fire','dj-tube','daw','epk']},
+  {title:'OPPORTUNITY',ids:['opportunities','invest','top-picks','display-network']},
+  {title:'MY FTN',ids:['account'],utility:true},
+  {title:'ASK IBIS',ids:['ibis-ai'],utility:true}
 ];
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function announce(message){var live=document.getElementById('ftn-directory-status');if(live)live.textContent=message;}
