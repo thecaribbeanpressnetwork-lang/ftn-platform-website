@@ -20,6 +20,7 @@ walk(root);
 const allowedScriptOrigins = new Set([
   "https://cdn.jsdelivr.net",
   "https://static.cloudflareinsights.com",
+  "https://cloud.umami.is",
 ]);
 const failures = [];
 const headers = fs.readFileSync(path.join(root, "_headers"), "utf8");
@@ -29,7 +30,7 @@ if (/script-src[^;]*'unsafe-inline'/.test(csp)) failures.push("script-src must n
 for (const directive of ["base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'", "upgrade-insecure-requests"]) {
   if (!csp.includes(directive)) failures.push(`CSP is missing ${directive}`);
 }
-for (const origin of ["https://cdn.jsdelivr.net", "https://static.cloudflareinsights.com", "https://challenges.cloudflare.com", "https://www.youtube.com"]) {
+for (const origin of ["https://cdn.jsdelivr.net", "https://static.cloudflareinsights.com", "https://cloud.umami.is", "https://challenges.cloudflare.com", "https://www.youtube.com"]) {
   if (!csp.includes(origin)) failures.push(`CSP is missing reviewed runtime origin ${origin}`);
 }
 const inlineExecutable = [];
