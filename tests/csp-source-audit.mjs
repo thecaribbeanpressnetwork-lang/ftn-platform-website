@@ -22,6 +22,16 @@ const allowedScriptOrigins = new Set([
   "https://static.cloudflareinsights.com",
 ]);
 const failures = [];
+const headers = fs.readFileSync(path.join(root, "_headers"), "utf8");
+const csp = headers.match(/^\s*Content-Security-Policy:\s*(.+)$/m)?.[1] || "";
+if (!csp) failures.push("_headers is missing an enforced Content-Security-Policy");
+if (/script-src[^;]*'unsafe-inline'/.test(csp)) failures.push("script-src must not allow unsafe-inline execution");
+for (const directive of ["base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'", "upgrade-insecure-requests"]) {
+  if (!csp.includes(directive)) failures.push(`CSP is missing ${directive}`);
+}
+for (const origin of ["https://cdn.jsdelivr.net", "https://static.cloudflareinsights.com", "https://challenges.cloudflare.com", "https://www.youtube.com"]) {
+  if (!csp.includes(origin)) failures.push(`CSP is missing reviewed runtime origin ${origin}`);
+}
 const inlineExecutable = [];
 const externalScripts = new Set();
 
