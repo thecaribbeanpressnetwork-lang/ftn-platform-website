@@ -22,7 +22,6 @@ function aboutTruth(){
     'FTN Radio':['Working MVP','Caribbean listening, discovery and creator workflows.'],
     'FTN Screen':['Working Experiment','Caribbean viewing, filmmaker packages and festival matching.'],
     'FTN Opportunities':['Working MVP','Source-backed Caribbean opportunities and application support.'],
-    'FTN Love':['Later Phase','A limited private compatibility tool today; full matching comes after safety infrastructure.'],
     'Display Network':['Working Foundation','Prepare and preview approved screen playlists before network deployment.']
   };
   document.querySelectorAll('.ecosystem__node').forEach(function(node){var h=node.querySelector('h3');if(!h)return;var name=(h.textContent||'').trim();if(name==='Insights'||name==='News & Stories'){node.remove();return;}var spec=map[name];if(!spec)return;var status=node.querySelector('.ecosystem__status'),p=node.querySelector('p');if(status)status.textContent=spec[0];if(p)p.textContent=spec[1];});
@@ -35,7 +34,6 @@ function applicationsTruth(){
     'FTN Screen':'Watch sourced Caribbean films, build filmmaker packages and compare festival readiness.',
     'FTN TV':'Turn on the scheduled Caribbean station, see what is on now and tune the guide.',
     'FTN Opportunities':'Search current official Caribbean opportunities, save them and track your application work.',
-    'FTN Love':'Use the current private compatibility brief; the full matching platform is a later safety-controlled phase.',
     'Display Network':'Build, reorder, preview and export approved screen playlists locally.',
     'FTN Live':'Open with current Caribbean satellite imagery, connected sources and a calculated change radar.'
   };if(copy[name])p.textContent=copy[name];});

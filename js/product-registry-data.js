@@ -3,7 +3,7 @@
 // visibility, access and public claims. Consumers must use js/product-registry.js.
 (function(global){
 'use strict';
-var RELEASE='2.2.0',VERIFIED='2026-08-12',OWNER='RealityArtTV Media';
+var RELEASE='2.2.1',VERIFIED='2026-08-18',OWNER='RealityArtTV Media';
 function product(config){
   var accent=config.accent||'var(--color-red-on-dark)';
   return Object.assign({
@@ -198,10 +198,10 @@ product({
 }),
 product({
   id:'love',name:'FTN Love',shortName:'Love',tagline:'Consent and safety before discovery.',
-  description:'A consent-first relationship-discovery product for adults. Private profiles, discovery, matching, messages, block, report and deletion remain protected behind FTN Account and server-side safety controls.',route:'/love/',status:'AVAILABLE',publicVisibility:true,
-  primaryUser:'Adults who explicitly consent to a private relationship journey',primaryJourney:'Authenticate, confirm age and consent, create a private profile, use controlled discovery and retain block/report/delete control.',
-  callsToAction:[{label:'Explore FTN Love',route:'/love/'}],visualMnemonic:'Protected heart boundary',panelAsset:'/assets/panels/11-ftn-love.png',panelRow:null,accent:'var(--color-love)',atmosphere:{accent:'var(--color-love)',background:'warm',motionProfile:'heartbeat',heroStyle:'warm-human'},
-  dataSources:['user-consented private profile data'],accessRules:['authenticated adult','RLS owner-only profile','mutual match for messaging'],featureFlags:['love-private'],relatedProducts:['account'],legalNotices:['18+ only','Consent and safety','Private-data boundary'],analyticsClassification:'restricted-sensitive-no-replay',
+  description:'Vaulted until FTN independently verifies the complete adult-safety, moderation, deletion and protected server-control release gate.',route:'/love/',status:'VAULTED',publicVisibility:false,visibility:'VAULTED',
+  primaryUser:'FTN product and safety stewards',primaryJourney:'Complete the approved safety case and deployment gate before any public relationship journey is restored.',
+  callsToAction:[],visualMnemonic:'Protected heart boundary',panelAsset:'/assets/panels/11-ftn-love.png',panelRow:null,accent:'var(--color-love)',atmosphere:{accent:'var(--color-love)',background:'warm',motionProfile:'none',heroStyle:'warm-human'},
+  dataSources:[],accessRules:['no public access'],featureFlags:['love-vaulted'],relatedProducts:['account'],legalNotices:['18+ only','Safety review required before release','No public service'],analyticsClassification:'restricted-sensitive-no-replay',
   keywords:['relationship','connection','match','compatibility','consent','safety'],capabilities:['private-onboarding','consent','controlled-discovery','block','report','delete']
 }),
 product({
@@ -228,10 +228,10 @@ product({
 }),
 product({
   id:'health',name:'FTN Health',shortName:'Health',tagline:'A future Caribbean health-information pathway.',
-  description:'PHASE 2 preview only. FTN Health is not a medical service and does not collect symptoms, diagnoses, records or insurance information.',route:'/health/',status:'PHASE 2',
-  primaryUser:'People evaluating the future FTN product direction',primaryJourney:'Read the high-level Phase 2 purpose and continue to a currently available FTN service.',
-  callsToAction:[{label:'View Phase 2 preview',route:'/health/'}],visualMnemonic:'Future care pulse',dataSources:[],accessRules:['guest preview only'],featureFlags:['health-preview'],relatedProducts:['platform-home'],
-  legalNotices:['Phase 2 only','No medical advice','No health-data collection'],analyticsClassification:'public-essential-only',keywords:['health','wellbeing','future','phase 2'],capabilities:['non-clinical-preview']
+  description:'Vaulted until a separately approved clinical-governance, privacy, emergency-boundary and public-information release exists.',route:'/health/',status:'VAULTED',publicVisibility:false,visibility:'VAULTED',
+  primaryUser:'FTN product, privacy and clinical-governance stewards',primaryJourney:'Complete the separately approved governance and safety gate before any public health-information journey is restored.',
+  callsToAction:[],visualMnemonic:'Future care pulse',dataSources:[],accessRules:['no public access'],featureFlags:['health-vaulted'],relatedProducts:['platform-home'],
+  legalNotices:['No medical service','Governance review required before release','No health-data collection'],analyticsClassification:'restricted-sensitive-no-replay',keywords:['health','wellbeing','future'],capabilities:[]
 }),
 product({
   id:'top-picks',name:'FTN Picks',shortName:'Picks',tagline:'Useful tools. Caribbean context.',

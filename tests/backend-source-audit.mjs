@@ -98,6 +98,7 @@ assert.match(stems,/ftn_reserve_ai_credits/,'stem processing must reserve custom
 assert.match(stems,/ftn_refund_ai_job/,'stem processing must refund a failed provider submission');
 
 const owner = fs.readFileSync('supabase/functions/ftn-owner-control/index.ts','utf8');
+assert.match(owner,/statuses\s*=\s*\[[^\]]*["']VAULTED["']/s,'God Mode must support the audited VAULTED lifecycle');
 assert.match(owner,/auth\.getUser\(token\)/,'God Mode must verify the access token with Supabase Auth');
 assert.match(owner,/ftn_founder_identities/,'God Mode must require the private exact-email founder record');
 assert.match(owner,/approved_email.*email/s,'God Mode must compare the verified email to its exact founder record');
@@ -114,6 +115,9 @@ assert.match(owner,/ftn_control_journal/,'God Mode actions must retain an append
 assert.match(owner,/dryRun/,'God Mode emergency controls must support non-mutating staging simulations');
 assert.match(owner,/FTN_EMERGENCY_CONTROLS_ENABLED/,'Production emergency mutations must fail closed behind explicit configuration');
 const founderMigration=fs.readFileSync('supabase/migrations/20260812120000_founder_device_authorization.sql','utf8');
+const vaultMigration=fs.readFileSync('supabase/migrations/20260818110000_add_product_vault_status.sql','utf8');
+assert.match(vaultMigration,/ftn_product_controls_status_check[\s\S]*VAULTED/,'Product controls must accept the VAULTED lifecycle');
+assert.match(vaultMigration,/product_id in \('love', 'health'\)[\s\S]*commit;/i,'Love and Health controls must be vaulted by the release-truth migration');
 for(const table of ['ftn_founder_identities','ftn_founder_devices','ftn_owner_access_audit','ftn_user_access_grants','ftn_source_controls','ftn_external_link_health','ftn_integration_readiness','ftn_deployment_health']){
   assert.match(founderMigration,new RegExp(`alter table public\\.${table} enable row level security`,'i'),`${table} must enable RLS`);
   assert.match(founderMigration,new RegExp(`revoke all on public\\.${table} from anon, authenticated`,'i'),`${table} must have no direct browser privileges`);

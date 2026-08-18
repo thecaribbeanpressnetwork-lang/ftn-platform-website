@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const baseOrigins = ["https://ftnplatform.org", "https://www.ftnplatform.org"];
 const configuredOrigins = (Deno.env.get("FTN_ALLOWED_ORIGINS") || "").split(",").map((x) => x.trim()).filter(Boolean);
 const allowedOrigins = new Set([...baseOrigins, ...configuredOrigins]);
-const statuses = ["LIVE", "AVAILABLE", "PRIVATE", "PHASE 2", "ILLUSTRATIVE", "TEMPORARILY UNAVAILABLE"];
+const statuses = ["LIVE", "AVAILABLE", "PRIVATE", "PHASE 2", "ILLUSTRATIVE", "TEMPORARILY UNAVAILABLE", "VAULTED"];
 
 function headers(origin: string | null) {
   return {
