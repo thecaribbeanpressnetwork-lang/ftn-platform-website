@@ -213,7 +213,7 @@ product({
   keywords:['signage','display','advertising','campaign','placement','screen','playlist'],capabilities:['campaign-brief','creative-preview','playlist-builder','moderation-request','status']
 }),
 product({
-  id:'invest',name:'FTN InvestIn',shortName:'InvestIn',tagline:'Partner with Caribbean-owned digital infrastructure.',
+  id:'invest',name:'FTN Invest-in',shortName:'InvestIn',tagline:'Partner with Caribbean-owned digital infrastructure.',
   description:'The FTN partnership, sponsorship and investment-conversation surface, with a separate directory of official Trinidad and Tobago financial-information sources.',route:'/invest/',status:'AVAILABLE',
   primaryUser:'Potential partners, sponsors, institutions and aligned investors',primaryJourney:'Understand the FTN partnership opportunity, choose a conversation type and submit through the verified FTN contact path.',
   callsToAction:[{label:'Explore FTN partnerships',route:'/invest/'},{label:'Request a conversation',route:'/contact/?subject=FTN%20partnership'}],visualMnemonic:'Verified growth ledger',dataSources:['FTN-owned partnership information','Ministry of Finance','Central Bank of Trinidad and Tobago','Trinidad and Tobago Stock Exchange'],accessRules:['guest partnership information','verified FTN contact path'],featureFlags:['invest-partnerships','official-financial-sources'],relatedProducts:['opportunities','top-picks'],
@@ -235,7 +235,7 @@ product({
 }),
 product({
   id:'top-picks',name:'FTN Picks',shortName:'Picks',tagline:'Useful tools. Caribbean context.',
-  description:'FTN InvestIn’s supporting recommendation capability with free-first guidance and explicit affiliate, support and editorial relationship labels.',route:'/top-picks/',status:'AVAILABLE',parentProduct:'invest',principal:false,
+  description:'FTN Invest-in’s supporting recommendation capability with free-first guidance and explicit affiliate, support and editorial relationship labels.',route:'/top-picks/',status:'AVAILABLE',parentProduct:'invest',principal:false,
   primaryUser:'Creators and small Caribbean teams',primaryJourney:'Compare a disclosed recommendation and continue to the provider independently.',callsToAction:[{label:'Browse FTN Picks',route:'/top-picks/'}],visualMnemonic:'Curated tool marker',
   dataSources:['FTN relationship registry','provider public pages'],accessRules:['guest'],featureFlags:['top-picks'],relatedProducts:['invest'],legalNotices:['Affiliate and relationship disclosure'],keywords:['tools','affiliate','software','creator','recommendation'],capabilities:['recommendations','relationship-disclosure']
 })
