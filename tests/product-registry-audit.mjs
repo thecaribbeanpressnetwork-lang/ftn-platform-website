@@ -62,17 +62,20 @@ assert(navSource.includes('FTN Invest-in'),'Global navigation must use the canon
 assert(fs.existsSync('now/index.html'),'NOW homepage is missing');
 assert(sitemap.includes('https://ftnplatform.org/now/'),'NOW homepage is absent from the sitemap');
 assert(!/PRIMARY_LINKS[^;]+Mission Control/s.test(navSource),'Mission Control must not enter public navigation');
-assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.2\.2'/,'Service-worker cache namespace was not advanced for changed assets');
+assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.2\.3'/,'Service-worker cache namespace was not advanced for changed assets');
 const analyticsSource=fs.readFileSync('js/analytics.js','utf8');
 assert(analyticsSource.includes('6b49afbc-3929-4855-bda8-eff8755f685d'),'Umami website ID is missing');
 assert(analyticsSource.includes("data-exclude-search"),'Analytics must exclude URL search parameters');
 assert(analyticsSource.includes("data-do-not-track"),'Analytics must respect browser do-not-track');
-for(const event of ['navigation_select','product_open','account_action','source_open'])assert(analyticsSource.includes(event),`Safe analytics event missing: ${event}`);
+for(const event of ['navigation_select','product_open','source_open'])assert(analyticsSource.includes(event),`Safe analytics event missing: ${event}`);
+assert(!analyticsSource.includes('account_action'),'Account actions must not be sent to analytics');
+for(const route of ['account','god-mode','love','health','mission-control','ibis-ai'])assert(analyticsSource.includes(route),`Private analytics exclusion missing: ${route}`);
 assert(!/email|access_token|user_id|textContent\s*[,)]/.test(analyticsSource),'Analytics source must not collect identity, tokens or visible text');
 assert(navSource.includes('/js/analytics.js'),'Global navigation must load the shared analytics module');
 
 const htmlFiles=[];function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules'].includes(entry.name))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(entry.name.endsWith('.html'))htmlFiles.push(full);}}walk('.');
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260818.2'),`${file} uses a stale global navigation asset URL`);}
+for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of ['product-registry-data','product-registry','ftn-directory'])if(html.includes(`/js/${asset}.js`))assert(html.includes(`/js/${asset}.js?v=20260818.2`),`${file} uses a stale ${asset} asset URL`);}
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8'),match=html.match(/<link rel=["']canonical["'] href=["']([^"']+)/i);if(match)assert(/^https:\/\/ftnplatform\.org\//.test(match[1]),`${file} has non-apex canonical ${match[1]}`);}
 for(const file of htmlFiles.filter(file=>!['love/index.html','health/index.html'].includes(file))){
   const html=fs.readFileSync(file,'utf8');
