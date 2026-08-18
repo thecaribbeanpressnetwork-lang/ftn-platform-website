@@ -26,6 +26,9 @@ jobs:
       - name: Audit Git-owned FTN backend source
         run: node tests/backend-source-audit.mjs
 
+      - name: Audit CSP dependency and inline-script surface
+        run: node tests/csp-source-audit.mjs
+
       - name: Audit Product Registry and private-route boundaries
         run: node tests/product-registry-audit.mjs
 
