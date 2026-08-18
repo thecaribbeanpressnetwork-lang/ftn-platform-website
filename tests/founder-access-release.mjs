@@ -8,7 +8,7 @@ const browser=await chromium.launch({headless:true});
 
 async function scenario(name,ownerResponse,run){
   const context=await browser.newContext({viewport:{width:1280,height:900}});
-  await context.route(AUTH_SCRIPT,route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.supabase={createClient:function(){return{auth:{getUser:async()=>({data:{user:{id:'11111111-1111-4111-8111-111111111111',email:'founder@example.test',email_confirmed_at:'2026-08-12T00:00:00Z'}},error:null}),getSession:async()=>({data:{session:{access_token:'fixture-access-token'}},error:null}),onAuthStateChange:function(){return{data:{subscription:{unsubscribe:function(){}}}}},signOut:async()=>({error:null})},from:function(){return{upsert:async()=>({error:null})}},functions:{invoke:async()=>({data:{ok:true},error:null})}}}};`}));
+  await context.route(AUTH_SCRIPT,route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.supabase={createClient:function(){return{auth:{exchangeCodeForSession:async(code)=>{window.__ftnExchangedCode=code;return{data:{session:{access_token:'fixture-access-token'}},error:null}},getUser:async()=>({data:{user:{id:'11111111-1111-4111-8111-111111111111',email:'founder@example.test',email_confirmed_at:'2026-08-12T00:00:00Z'}},error:null}),getSession:async()=>({data:{session:{access_token:'fixture-access-token'}},error:null}),onAuthStateChange:function(){return{data:{subscription:{unsubscribe:function(){}}}}},signOut:async()=>({error:null})},from:function(){return{upsert:async()=>({error:null})}},functions:{invoke:async()=>({data:{ok:true},error:null})}}}};`}));
   await context.route(OWNER_ENDPOINT,route=>route.fulfill({status:ownerResponse.status||200,contentType:'application/json',body:JSON.stringify(ownerResponse.body)}));
   const page=await context.newPage();
   try{await run(page);console.log('FOUNDER ACCESS PASS',name);}finally{await context.close();}
@@ -43,5 +43,29 @@ await scenario('revoked-device-direct-route-denied',{status:403,body:{allowed:fa
   assert.match(await page.locator('#god-mode-root').innerText(),/approval required|authorization required/i);
 });
 
+await scenario('oauth-provider-failure-is-visible-and-consumed',{body:{allowed:false}},async page=>{
+  await open(page,'/account/?return=%2Fgod-mode%2F&error=server_error&error_code=unexpected_failure&error_description=Unable%20to%20exchange%20external%20code%3A%20invalid_client');
+  await page.waitForSelector('#account-google');
+  const status=await page.locator('#account-status').innerText();
+  assert.match(status,/Google sign-in is temporarily unavailable/i);
+  assert.match(status,/God Mode remains closed/i);
+  assert.doesNotMatch(status,/invalid_client|external code/i,'raw provider error leaked into the account interface');
+  const current=new URL(page.url());
+  assert.equal(current.searchParams.has('error'),false,'OAuth callback error was left in the URL');
+  assert.equal(current.searchParams.has('error_code'),false,'OAuth callback error code was left in the URL');
+  assert.equal(current.searchParams.has('error_description'),false,'OAuth callback error details were left in the URL');
+  assert.equal(current.searchParams.get('return'),'/god-mode/','safe return path was not preserved');
+});
+
+await scenario('auth-callback-code-is-exchanged-and-return-preserved',{body:{allowed:true,device:{id:'device-1',name:'Current founder machine'}}},async page=>{
+  await open(page,'/account/?return=%2Fgod-mode%2F&code=fixture-auth-code');
+  await page.waitForSelector('#account-signout');
+  assert.equal(await page.evaluate(()=>window.__ftnExchangedCode),'fixture-auth-code','callback code was not exchanged');
+  const current=new URL(page.url());
+  assert.equal(current.searchParams.has('code'),false,'one-time callback code was left in the URL');
+  assert.equal(current.searchParams.get('return'),'/god-mode/','safe return path was not preserved after exchange');
+  assert.equal(await page.locator('a').filter({hasText:'Continue task'}).getAttribute('href'),'/god-mode/');
+});
+
 await browser.close();
-console.log('4/4 founder identity/device client-state scenarios passed; server enforcement is audited separately.');
+console.log('6/6 founder identity/device and auth-callback client-state scenarios passed; server enforcement is audited separately.');

@@ -67,6 +67,11 @@ jobs:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/foundation-release.mjs
 
+      - name: Verify founder access and authentication callbacks
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/founder-access-release.mjs
+
       - name: Verify ibis Creative Studio and FTN Fire
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
