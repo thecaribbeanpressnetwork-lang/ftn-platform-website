@@ -1,6 +1,6 @@
 // FTN Platform — ibis.ai server route.
 // The Gemini credential stays in Supabase secrets; it must never be exposed to the browser.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.112.2";
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 const windows = new Map<string, { count: number; resetAt: number }>();
