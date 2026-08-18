@@ -65,8 +65,8 @@ assert(!/PRIMARY_LINKS[^;]+Mission Control/s.test(navSource),'Mission Control mu
 assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.2\.1'/,'Service-worker cache namespace was not advanced for changed assets');
 const analyticsSource=fs.readFileSync('js/analytics.js','utf8');
 assert(analyticsSource.includes('6b49afbc-3929-4855-bda8-eff8755f685d'),'Umami website ID is missing');
-assert(analyticsSource.includes("data-exclude-search'),'Analytics must exclude URL search parameters');
-assert(analyticsSource.includes("data-do-not-track'),'Analytics must respect browser do-not-track');
+assert(analyticsSource.includes("data-exclude-search"),'Analytics must exclude URL search parameters');
+assert(analyticsSource.includes("data-do-not-track"),'Analytics must respect browser do-not-track');
 for(const event of ['navigation_select','product_open','account_action','source_open'])assert(analyticsSource.includes(event),`Safe analytics event missing: ${event}`);
 assert(!/email|access_token|user_id|textContent\s*[,)]/.test(analyticsSource),'Analytics source must not collect identity, tokens or visible text');
 assert(navSource.includes('/js/analytics.js'),'Global navigation must load the shared analytics module');
