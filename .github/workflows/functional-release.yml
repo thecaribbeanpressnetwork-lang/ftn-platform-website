@@ -120,4 +120,3 @@ jobs:
               sys.exit(1)
           print('No broken local href/src references found.')
           PY
-8ede7d86cfc9545f8192ab9261725200b9a0aa5e
