@@ -3,8 +3,9 @@
   'use strict';
 
   var WEBSITE_ID = '6b49afbc-3929-4855-bda8-eff8755f685d';
-  var ALLOWED_EVENTS = new Set(['navigation_select', 'product_open', 'account_action', 'source_open']);
+  var ALLOWED_EVENTS = new Set(['navigation_select', 'product_open', 'source_open']);
   var ALLOWED_KEYS = new Set(['pillar', 'product', 'action', 'status']);
+  var PRIVATE_PATH = /^\/(?:account|god-mode|love|health|mission-control|ibis-ai)(?:\/|$)/;
 
   function safeValue(value) {
     var normalized = String(value == null ? '' : value).toLowerCase().trim();
@@ -53,6 +54,12 @@
     script.setAttribute('data-exclude-search', 'true');
     script.setAttribute('data-ftn-umami', 'true');
     document.head.appendChild(script);
+  }
+
+  if (PRIVATE_PATH.test(location.pathname)) {
+    global.FTN = global.FTN || {};
+    global.FTN.Analytics = { track: function () { return false; } };
+    return;
   }
 
   document.addEventListener('click', function (event) {
