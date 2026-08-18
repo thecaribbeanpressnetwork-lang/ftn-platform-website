@@ -33,10 +33,15 @@ jobs:
         run: node tests/asset-manifest-audit.mjs
 
       - name: Install Playwright
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
         run: |
           npm init -y >/dev/null 2>&1
           npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
+          # ubuntu-latest already carries Chromium's shared-library dependencies.
+          # Avoid `--with-deps`: it can hang indefinitely when an apt mirror is
+          # unavailable and prevent the browser release gates from running.
+          npx playwright install chromium
 
       - name: Start static FTN server
         run: |

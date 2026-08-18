@@ -1,6 +1,6 @@
 (function(global){
 'use strict';
-var root=document.getElementById('god-mode-root'),STATUS=['LIVE','AVAILABLE','PRIVATE','PHASE 2','ILLUSTRATIVE','TEMPORARILY UNAVAILABLE'];
+var root=document.getElementById('god-mode-root'),STATUS=['LIVE','AVAILABLE','PRIVATE','PHASE 2','ILLUSTRATIVE','TEMPORARILY UNAVAILABLE','VAULTED'];
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function date(s){if(!s)return'Never';try{return new Date(s).toLocaleString();}catch(e){return String(s);}}
 function deny(message){root.innerHTML='<span class="nexus-eyebrow">FTN NEXUS COMMAND · PRIVATE</span><h1>Authorization required.</h1><p>'+esc(message||'Private authorization denied.')+'</p><div class="nexus-actions"><a class="nexus-primary" href="/account/?return=%2Fgod-mode%2F">Open FTN Account</a><a href="/">Return to FTN Platform</a></div><p class="nexus-status">No owner data has been returned to this browser.</p>';}

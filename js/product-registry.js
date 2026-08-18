@@ -32,7 +32,7 @@
   function publicProducts(options) {
     options = options || {};
     return data().filter(function (p) {
-      if (p.publicVisibility === false || p.status === 'PRIVATE' || p.status === 'MAINTENANCE') return false;
+      if (p.publicVisibility === false || ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(p.status) !== -1) return false;
       if (!options.includeSupporting && p.principal === false) return false;
       return true;
     });
