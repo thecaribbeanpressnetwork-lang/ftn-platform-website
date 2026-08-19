@@ -7,21 +7,23 @@ This internal record separates verified production state from prepared work. The
 | Field | Value |
 |---|---|
 | Production branch | `main` |
-| Baseline code commit | `481effc3c2f8a75b77aa0f4c64f15dd71601444d` |
-| Baseline observed | 2026-08-19 |
+| Verified code commit | `0577a72947a83f6dcc7638c760cc67351c4ff55f` |
+| Production verification date | 2026-08-19 |
 | Production workflow | `.github/workflows/static-pages.yml` |
 | Production domain | `ftnplatform.org` |
+| Production shell namespace | `ftn-public-v2.3.0` |
 | Community Connect | Separate protected application and repository |
 
-## Prepared release candidate — v2.3.0
+## Production release — v2.3.0
 
 | Field | Value |
 |---|---|
-| Release state | **Branch release candidate — not deployed until merged and production-verified** |
-| Working branch | `agent/ftn-surface-system` |
+| Release state | **Deployed and verified** |
+| Release pull request | `#42` |
 | Baseline | `481effc3c2f8a75b77aa0f4c64f15dd71601444d` |
-| Prepared date | 2026-08-19 |
-| Candidate shell namespace | `ftn-public-v2.3.0` |
+| Production commit | `0577a72947a83f6dcc7638c760cc67351c4ff55f` |
+| Released date | 2026-08-19 |
+| Production shell namespace | `ftn-public-v2.3.0` |
 
 ### Candidate scope
 
@@ -31,11 +33,12 @@ This internal record separates verified production state from prepared work. The
 - Stops the shared workspace shell from promoting low-resolution directory panels into product heroes.
 - Introduces an explicit approved-image versus interface-led surface contract, provenance records and release gates for desktop, mobile, keyboard and reduced-motion behavior.
 
-### Candidate verification status
+### Verification status
 
-- Product Registry, CSP, backend source, asset-manifest, local-reference and JavaScript syntax audits pass locally.
-- Browser, mobile, accessibility and performance gates run in the GitHub release workflow before merge.
-- Production is not considered released until the merged commit, Pages deployment and apex-domain response are verified.
+- Product Registry, CSP, backend source, asset-manifest, local-reference and JavaScript syntax audits passed.
+- Browser, mobile, accessibility, performance and FTN Surface System gates passed on the pull request and merged commit.
+- GitHub Pages deployment run `32210654253` completed successfully.
+- The apex-domain homepage and registry reveal, plus the interface-led FTN Screen product surface, were verified after deployment.
 
 ## Release rule
 
