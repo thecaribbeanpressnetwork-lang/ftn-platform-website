@@ -1,8 +1,10 @@
 # FTN Surface Repair
 
-Release candidate: v2.3.1  
-Prepared: 2026-08-19  
+Release: v2.3.1
+Deployed and verified: 2026-08-19
 Baseline: `232aab56baff5cb99182587cc3245088d61c3134`
+Production pull request: `#44`
+Production commit: `3b5394c4012fbabbf7d9e5c1984a09e676263896`
 
 ## Public repair
 
@@ -23,3 +25,10 @@ Baseline: `232aab56baff5cb99182587cc3245088d61c3134`
 - Cache namespace advanced to `ftn-public-v2.3.1` and the approved homepage asset is included in the public shell.
 - Static source, registry, asset provenance and local-reference gates pass locally.
 - CI captures the rendered homepage at desktop and mobile widths for blocking visual review before merge.
+
+## Production verification
+
+- Functional release gate run `157` passed.
+- Final desktop/mobile design QA passed and is recorded in `design-qa.md`.
+- `ftnplatform.org` served the v2.3.1 HTML and CSS after merge.
+- The live homepage asset SHA-256 matches the founder-approved source: `3a9c5a50846084d2a5bcf851b55ab21873b869666a98dcfdc7279705d12db324`.

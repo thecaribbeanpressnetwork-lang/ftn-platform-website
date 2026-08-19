@@ -7,11 +7,11 @@ This internal record separates verified production state from prepared work. The
 | Field | Value |
 |---|---|
 | Production branch | `main` |
-| Verified code commit | `0577a72947a83f6dcc7638c760cc67351c4ff55f` |
+| Verified code commit | `3b5394c4012fbabbf7d9e5c1984a09e676263896` |
 | Production verification date | 2026-08-19 |
 | Production workflow | `.github/workflows/static-pages.yml` |
 | Production domain | `ftnplatform.org` |
-| Production shell namespace | `ftn-public-v2.3.0` |
+| Production shell namespace | `ftn-public-v2.3.1` |
 | Community Connect | Separate protected application and repository |
 
 ## Production release — v2.3.0
@@ -40,13 +40,15 @@ This internal record separates verified production state from prepared work. The
 - GitHub Pages deployment run `32210654253` completed successfully.
 - The apex-domain homepage and registry reveal, plus the interface-led FTN Screen product surface, were verified after deployment.
 
-## Repair candidate — v2.3.1
+## Production repair — v2.3.1
 
 | Field | Value |
 |---|---|
-| Release state | **Prepared; production verification pending** |
+| Release state | **Deployed and verified** |
+| Release pull request | `#44` |
 | Baseline | `232aab56baff5cb99182587cc3245088d61c3134` |
-| Prepared date | 2026-08-19 |
+| Production commit | `3b5394c4012fbabbf7d9e5c1984a09e676263896` |
+| Released date | 2026-08-19 |
 | Production shell namespace | `ftn-public-v2.3.1` |
 
 ### Candidate scope
@@ -56,6 +58,12 @@ This internal record separates verified production state from prepared work. The
 - Adds restrained asynchronous signal glimmer with a no-motion alternative.
 - Removes the shared product shell’s forced `cover` crop, 16:9 frame, 230px clamp, perspective tilt and mobile image suppression.
 - Adds cache-safe asset URLs, governed provenance and CI-captured desktop/mobile visual evidence.
+
+### Verification status
+
+- Full functional release gate run `157` passed after merge preparation.
+- Desktop and mobile visual QA passed against the founder-approved board; the evidence is recorded in `design-qa.md` and GitHub Actions artifact `9352180083`.
+- The apex-domain homepage served the v2.3.1 HTML and stylesheet, the exact approved asset hash, the two-action contract and the restored lower living-network section after merge.
 
 ## Release rule
 
