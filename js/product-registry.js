@@ -44,6 +44,21 @@
     });
   }
 
+  function ecosystemGroups() {
+    var groups = (global.FTN && global.FTN.ProductRegistryGroups) || [];
+    return groups.map(function (group) {
+      return {
+        id: group.id,
+        title: group.title,
+        description: group.description,
+        products: group.productIds.map(get).filter(function (product) {
+          return product && product.publicVisibility !== false &&
+            ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(product.status) === -1;
+        })
+      };
+    });
+  }
+
   function accountShortcuts() {
     return publicProducts({ includeSupporting: false }).filter(function (p) {
       return Array.isArray(p.capabilities) && p.capabilities.some(function (capability) {
@@ -103,6 +118,7 @@
     homepagePanels: homepagePanels,
     publicProducts: publicProducts,
     sitemapProducts: sitemapProducts,
+    ecosystemGroups: ecosystemGroups,
     accountShortcuts: accountShortcuts,
     search: search,
   };

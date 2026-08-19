@@ -87,6 +87,11 @@ jobs:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/mobile-release.mjs
 
+      - name: Verify FTN Surface System and ecosystem front door
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/surface-system-release.mjs
+
       - name: Open every indexed public route
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
