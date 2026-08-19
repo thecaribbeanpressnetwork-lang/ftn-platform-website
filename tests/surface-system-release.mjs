@@ -25,10 +25,29 @@ assert(!/scarlet[ -]?ibis/i.test(homepage+homepageCss),'red/scarlet ibis languag
 assert(shell.includes('if(product.heroAsset)'),'shared shell does not gate hero rendering on an approved hero asset');
 assert(!shell.includes('if(product.panelAsset)'),'shared shell still promotes directory panels into heroes');
 assert.match(registry,/heroAsset:null/,'registry fallback must be interface-led unless an asset is explicitly approved');
-assert(!/\.workspace__hero-art img\{[^}]*object-fit:cover/.test(shellCss),'shared product shell still destructively crops approved art');
+assert(!/(?:^|\})\.workspace__hero-art img\{[^}]*object-fit:cover/.test(shellCss),'generic shared product imagery must not be destructively cropped');
 assert(!/\.workspace__hero-art\{[^}]*aspect-ratio:16\/9/.test(shellCss),'shared product shell still forces approved art into a 16:9 frame');
 assert(!/\.workspace__hero-art\{[^}]*max-height:230px/.test(shellCss),'shared product shell still clamps approved art to the broken release height');
 assert.match(shellCss,/\.workspace__hero-art img\{[^}]*object-fit:contain/,'shared product shell must preserve approved image proportions');
+assert.match(shellCss,/data-surface-mode="approved-image"\] \.workspace__hero-art img\{[^}]*object-fit:cover/,'approved high-resolution parent scenes must fill the cinematic hero');
+
+const SURFACE_ASSETS={
+  'community-connect':'assets/heroes/community-connect-report.webp',
+  screen:'assets/heroes/ftn-screen-film-crew.webp',
+  tv:'assets/heroes/ftn-tv-control-room.webp',
+  opportunities:'assets/heroes/ftn-opportunities-port.webp',
+  kaiso:'assets/heroes/ftn-kaiso-newsroom.webp',
+  riddim:'assets/heroes/ftn-riddim-studio.webp',
+  'ftn-fire':'assets/heroes/ftn-fire-producer.webp',
+  'dj-tube':'assets/heroes/ftn-dj-tube-club.webp',
+  account:'assets/heroes/ftn-account-control.webp'
+};
+for(const [productId,asset] of Object.entries(SURFACE_ASSETS)){
+  assert(fs.existsSync(asset),`${productId} approved parent scene is missing`);
+  assert(fs.statSync(asset).size>40_000,`${productId} parent scene is unexpectedly small`);
+}
+const targetSurfaceSource=['community-connect/index.html','account/index.html','riddim/dj/index.html','riddim/fire/index.html','js/product-registry-data.js','js/tv-guide.js','css/components/workspace-shell.css'].map(file=>fs.readFileSync(file,'utf8')).join('\n');
+assert(!/scarlet[ -]?ibis/i.test(targetSurfaceSource),'red/scarlet ibis language must never enter product surfaces');
 
 const browser=await chromium.launch({headless:true});
 async function open(path,viewport={width:1280,height:900},reducedMotion='no-preference'){
@@ -64,14 +83,56 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:320
   await context.close();
 }
 
-for(const path of ['/screen/','/opportunities/','/riddim/','/kaiso/','/events/','/ibis-ai/']){
-  const {context,page}=await open(path);
-  await page.waitForSelector('.workspace[data-surface-mode="interface"]',{timeout:10000});
-  assert.equal(await page.locator('.workspace__hero-art img[src*="/assets/panels/"]').count(),0,`${path} promotes a directory panel into its hero`);
+for(const route of ['/screen/','/opportunities/','/riddim/','/kaiso/']){
+  const {context,page}=await open(route);
+  await page.waitForSelector('.workspace[data-surface-mode="approved-image"]',{timeout:10000});
+  assert.equal(await page.locator('.workspace__hero-art img').count(),1,`${route} is missing its approved production scene`);
+  assert((await page.locator('.workspace__hero-art img').getAttribute('src'))?.startsWith('/assets/heroes/'),`${route} does not use a production parent scene`);
+  assert.equal(await page.locator('.workspace__hero-art img[src*="/assets/panels/"]').count(),0,`${route} promotes a directory panel into its hero`);
   const content=await page.locator('.workspace__content').boundingBox();
-  assert(content&&content.y<650,`${path} delays its functional surface below the first useful viewport`);
+  assert(content&&content.y<650,`${route} delays its functional surface below the first useful viewport`);
+  if(CAPTURE_DIR)await page.screenshot({path:path.join(CAPTURE_DIR,`${route.split('/').filter(Boolean).join('-')}-desktop.png`),fullPage:false});
   await context.close();
 }
 
+for(const route of ['/events/','/ibis-ai/']){
+  const {context,page}=await open(route);
+  await page.waitForSelector('.workspace[data-surface-mode="interface"]',{timeout:10000});
+  assert.equal(await page.locator('.workspace__hero-art').count(),0,`${route} should remain interface-led`);
+  const content=await page.locator('.workspace__content').boundingBox();
+  assert(content&&content.y<650,`${route} delays its functional surface below the first useful viewport`);
+  await context.close();
+}
+
+const customSurfaces=[
+  {path:'/community-connect/',selector:'.cc-live__hero',asset:'community-connect-report.webp'},
+  {path:'/tv/',selector:'.tv-brand-hero',asset:'ftn-tv-control-room.webp'},
+  {path:'/riddim/fire/',selector:'.fire-hero',asset:'ftn-fire-producer.webp'},
+  {path:'/riddim/dj/',selector:'.dj-hero',asset:'ftn-dj-tube-club.webp'},
+  {path:'/account/',selector:'.nexus-hero',asset:'ftn-account-control.webp'}
+];
+for(const surface of customSurfaces){
+  const {context,page}=await open(surface.path);
+  await page.waitForSelector(surface.selector,{timeout:10000});
+  const background=await page.locator(surface.selector).evaluate(el=>getComputedStyle(el).backgroundImage);
+  assert(background.includes(surface.asset),`${surface.path} does not render its approved production scene`);
+  if(surface.path==='/tv/')assert.equal(await page.locator('#tv-frame').count(),1,'FTN TV player disappeared during the visual pass');
+  if(surface.path==='/riddim/dj/')assert.equal(await page.locator('#controller').count(),1,'DJ Tube controller disappeared during the visual pass');
+  if(surface.path==='/riddim/fire/')assert.equal(await page.locator('#fire-form').count(),1,'FTN Fire creation form disappeared during the visual pass');
+  if(surface.path==='/community-connect/')assert.equal(await page.locator('.cc-app__frame').count(),1,'Community Connect app handoff disappeared during the visual pass');
+  if(surface.path==='/account/')assert.equal(await page.locator('#account-state').count(),1,'FTN Account controls disappeared during the visual pass');
+  if(CAPTURE_DIR)await page.screenshot({path:path.join(CAPTURE_DIR,`${surface.path.split('/').filter(Boolean).join('-')}-desktop.png`),fullPage:false});
+  await context.close();
+}
+
+if(CAPTURE_DIR){
+  for(const surface of [{path:'/screen/',selector:'.workspace__header'},...customSurfaces]){
+    const {context,page}=await open(surface.path,{width:390,height:844});
+    await page.waitForSelector(surface.selector,{timeout:10000});
+    await page.screenshot({path:path.join(CAPTURE_DIR,`${surface.path.split('/').filter(Boolean).join('-')}-mobile.png`),fullPage:false});
+    await context.close();
+  }
+}
+
 await browser.close();
-console.log('FTN Surface System passed desktop, 390px, 320px, keyboard, reduced-motion and representative product-shell gates.');
+console.log('FTN Surface System passed homepage, approved documentary heroes, live product controls, desktop, mobile, keyboard and reduced-motion gates.');

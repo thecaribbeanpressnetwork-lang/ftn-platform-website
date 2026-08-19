@@ -3,7 +3,7 @@
 // visibility, access and public claims. Consumers must use js/product-registry.js.
 (function(global){
 'use strict';
-var RELEASE='2.3.0',VERIFIED='2026-08-19',OWNER='RealityArtTV Media';
+var RELEASE='2.4.0',VERIFIED='2026-08-19',OWNER='RealityArtTV Media';
 function product(config){
   var accent=config.accent||'var(--color-red-on-dark)';
   return Object.assign({
@@ -121,6 +121,7 @@ product({
   description:'Caribbean film, filmmaker and screen-work discovery with permitted trailers, lawful destinations and festival-package preparation.',route:'/screen/',status:'AVAILABLE',
   primaryUser:'Film audiences and screen creators',primaryJourney:'Discover an approved film, inspect rights/source context and follow a permitted watch or creator path.',
   callsToAction:[{label:'Discover Caribbean screen work',route:'/screen/'}],visualMnemonic:'Cinema frame aperture',panelAsset:'/assets/panels/09-ftn-screen.png',panelRow:2,accent:'var(--color-screen)',atmosphere:{accent:'var(--color-screen)',background:'dark-cinematic',motionProfile:'none',heroStyle:'cinematic'},
+  heroAsset:'/assets/heroes/ftn-screen-film-crew.webp',heroAlt:'A Caribbean film crew working on location above a coastal town',heroFocalDesktop:'66% 50%',heroFocalMobile:'64% 50%',
   dataSources:['authorized public embeds','creator-declared metadata','official festival sources'],accessRules:['guest discovery','creator preparation'],featureFlags:['screen-catalog','festival-package'],relatedProducts:['tv','facethenation'],legalNotices:['Media rights and destination notice'],
   keywords:['film','movie','cinema','documentary','filmmaker','festival','trailer'],capabilities:['film-discovery','authorized-embedded-playback','film-metadata','festival-readiness','festival-matching','export']
 }),
@@ -152,6 +153,7 @@ product({
   description:'The Caribbean music ecosystem connecting rights-aware discovery and project metadata to FTN Fire, FTN DAW, FTN DJ Tube and FTN Kaiso.',route:'/riddim/',status:'AVAILABLE',
   primaryUser:'Artists, producers, DJs and music audiences',primaryJourney:'Start with a rights-aware track, beat or project and continue into the appropriate creation, production, discovery or performance tool.',
   callsToAction:[{label:'Open the music hub',route:'/riddim/'}],visualMnemonic:'Layered riddim waveform',panelAsset:'/assets/panels/06-ftn-riddim.png',panelRow:2,accent:'var(--color-riddim)',atmosphere:{accent:'var(--color-riddim)',background:'dark-studio',motionProfile:'waveform',heroStyle:'studio'},
+  heroAsset:'/assets/heroes/ftn-riddim-studio.webp',heroAlt:'Caribbean musicians and engineers recording together in a professional studio',heroFocalDesktop:'64% 50%',heroFocalMobile:'66% 50%',
   dataSources:['user-owned local audio','creator metadata','authorized public sources','on-device Fire synthesis'],accessRules:['guest local projects'],featureFlags:['riddim-hub','ftn-fire'],relatedProducts:['ftn-fire','daw','dj-tube','kaiso','radio'],legalNotices:['Music ownership and licence declaration'],
   keywords:['music','artist','producer','release','track','beat','riddim','fire','rights','daw','dj','kaiso'],capabilities:['track-intake','rights-metadata','instrumental-draft','local-media','creative-handoff','export']
 }),
@@ -168,6 +170,7 @@ product({
   description:'A regional current-affairs and news desk for attributed Trinidad and Tobago, Caribbean and internationally relevant reporting.',route:'/kaiso/',status:'AVAILABLE',
   primaryUser:'Caribbean readers and editorial contributors',primaryJourney:'Read current attributed headlines, open the original publisher and submit a correction or story lead.',
   callsToAction:[{label:'Explore Kaiso sources',route:'/kaiso/'}],visualMnemonic:'Editorial rhythm lines',panelAsset:'/assets/panels/07-ftn-kaiso.png',panelRow:2,accent:'var(--color-kaiso)',atmosphere:{accent:'var(--color-kaiso)',background:'dark-editorial',motionProfile:'none',heroStyle:'newsroom'},
+  heroAsset:'/assets/heroes/ftn-kaiso-newsroom.webp',heroAlt:'Caribbean editors reviewing printed stories in a working newsroom',heroFocalDesktop:'67% 50%',heroFocalMobile:'68% 50%',
   dataSources:['Trinidad and Tobago Guardian','Trinidad Express','CARICOM official releases','original international publisher links','user-submitted lead drafts'],accessRules:['guest discovery','consented submission'],featureFlags:['kaiso-source-radar'],relatedProducts:['ftn-live','parliament','facethenation'],legalNotices:['Editorial verification and correction notice'],
   keywords:['kaiso','news','current affairs','Caribbean','Trinidad and Tobago','reporting','headlines','source'],capabilities:['current-source-radar','regional-context','original-publisher-links','story-lead-desk','verification-state']
 }),
@@ -197,6 +200,7 @@ product({
   description:'Source-backed Caribbean jobs, grants, calls, funding, business-acquisition and partnership discovery with official destinations and deadline tools.',route:'/opportunities/',status:'AVAILABLE',
   primaryUser:'Caribbean and diaspora opportunity seekers',primaryJourney:'Filter a current listing, verify issuer/source/eligibility, save its deadline and continue to the official destination.',
   callsToAction:[{label:'Find an opportunity',route:'/opportunities/'}],visualMnemonic:'Rising opportunity line',panelAsset:'/assets/panels/10-ftn-opportunities.png',panelRow:2,accent:'var(--color-opportunities)',atmosphere:{accent:'var(--color-opportunities)',background:'dark-growth',motionProfile:'rising-line',heroStyle:'momentum'},
+  heroAsset:'/assets/heroes/ftn-opportunities-port.webp',heroAlt:'Caribbean logistics professionals reviewing work at a busy container port',heroFocalDesktop:'68% 50%',heroFocalMobile:'66% 50%',
   dataSources:['FTN opportunities source function','official issuer destinations'],accessRules:['guest discovery and local saves'],featureFlags:['opportunity-sources'],relatedProducts:['events','invest','mission-control'],legalNotices:['No guarantee or endorsement','Official-destination notice'],
   keywords:['job','grant','contract','business','career','procurement','funding','scholarship','tender'],capabilities:['official-source-feed','search','filter','save','application-tracker','calendar-export']
 }),
