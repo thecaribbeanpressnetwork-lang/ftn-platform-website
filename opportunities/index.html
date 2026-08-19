@@ -72,7 +72,7 @@
              real user accounts. data-sign-in-entry marks this as the future unified FTN
              Account/SSO integration point -- swap the href when a real identity service exists,
              no nav restructure needed. -->
-        <a class="btn btn-primary btn-sm" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
+        <a class="btn btn-primary btn-sm" href="/account/" data-sign-in-entry>Sign In</a>
         <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
           <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
           <img class="icon-close" src="/assets/icons/icon-close.svg" alt="" width="20" height="20">
@@ -93,12 +93,40 @@
       </div>
       <div class="mobile-nav__actions">
         <button type="button" class="mobile-nav__country-switcher" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span><span class="country-switcher-trigger__pin" aria-hidden="true"></span> <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></span><span aria-hidden="true">&rsaquo;</span></button>
-        <a class="btn btn-primary" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
+        <a class="btn btn-primary" href="/account/" data-sign-in-entry>Sign In</a>
       </div>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
+    <div id="workspace-fallback" class="workspace" data-workspace-bg="dark-growth" data-surface-mode="approved-image" style="--workspace-accent:var(--color-opportunities);--workspace-hero-focal-desktop:68% 50%;--workspace-hero-focal-mobile:66% 50%">
+      <header class="workspace__header">
+        <div class="workspace__header-top"><a class="workspace__back" href="/">&larr; FTN Platform</a></div>
+        <div class="workspace__hero">
+          <div class="workspace__identity">
+            <span class="workspace__eyebrow">FTN Opportunities</span>
+            <h1 class="workspace__title">Search. Identify. Predict. Execute.</h1>
+            <p class="workspace__tagline">Source-backed Caribbean jobs, grants, calls, funding, business-acquisition and partnership discovery with official destinations and deadline tools.</p>
+          </div>
+          <figure class="workspace__hero-art"><img src="/assets/heroes/ftn-opportunities-port.webp" alt="Caribbean logistics professionals reviewing work at a busy container port" loading="eager" decoding="async"><span class="workspace__hero-glow" aria-hidden="true"></span></figure>
+        </div>
+      </header>
+      <section class="workspace__content">
+        <h2 class="workspace-fallback__heading">Three ways to search</h2>
+        <div class="workspace-fallback__grid">
+          <div class="workspace-output"><h3>Jobs and careers</h3><p>Roles, consultancies and career pathways from attributed sources.</p></div>
+          <div class="workspace-output"><h3>Grants, calls and funding</h3><p>Funding calls, grants, fellowships and procurement opportunities.</p></div>
+          <div class="workspace-output"><h3>Business and partnership</h3><p>Acquisition, partnership and business-investment discovery.</p></div>
+        </div>
+        <p class="workspace-fallback__note">The live search and application tracker below need JavaScript. While you wait, or without it, these official sources are open to everyone:</p>
+        <div class="workspace-fallback__grid">
+          <div class="workspace-output"><h3>CARICOM vacancies</h3><p>Official regional job postings from the Caribbean Community.</p><a class="btn btn-outline btn-sm" href="https://caricom.org/vacancies/" target="_blank" rel="noopener noreferrer">Open CARICOM vacancies &rarr;</a></div>
+          <div class="workspace-output"><h3>CDB procurement notices</h3><p>Official procurement and funding notices from the Caribbean Development Bank.</p><a class="btn btn-outline btn-sm" href="https://www.caribank.org/work-with-us/procurement/procurement-notices" target="_blank" rel="noopener noreferrer">Open CDB procurement &rarr;</a></div>
+          <div class="workspace-output"><h3>Trinidad business marketplace</h3><p>SMERGERS is an external commercial marketplace for business acquisition and investment. FTN does not verify its listings or endorse sellers.</p><a class="btn btn-outline btn-sm" href="https://www.smergers.com/businesses-for-sale-and-investment-in-trinidad/c1958b/" target="_blank" rel="noopener noreferrer">Open SMERGERS Trinidad &rarr;</a></div>
+        </div>
+      </section>
+      <footer class="workspace__footer">FTN Opportunities is part of the FTN Platform ecosystem. <a href="/applications/">Explore all products &rarr;</a></footer>
+    </div>
     <div id="workspace-root"></div>
   </main>
 

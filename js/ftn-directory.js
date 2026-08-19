@@ -18,5 +18,23 @@ function mount(host){
   host.querySelectorAll('[data-copy]').forEach(function(button){button.addEventListener('click',function(){copy(button.dataset.copy,button.dataset.product);});});
   host.querySelectorAll('[data-share]').forEach(function(button){button.addEventListener('click',function(){share(button.dataset.share,button.dataset.product,button.dataset.purpose);});});
 }
-document.querySelectorAll('[data-ftn-directory]').forEach(mount);
+function showRetry(host){
+  if(host.parentNode.querySelector('.ftn-directory__notice'))return;
+  var notice=document.createElement('p');
+  notice.className='ftn-directory__notice';
+  notice.setAttribute('role','alert');
+  notice.innerHTML='Live directory data did not load, so this list may be out of date. <button type="button" data-ftn-directory-retry>Retry</button>';
+  host.parentNode.insertBefore(notice,host);
+  notice.querySelector('[data-ftn-directory-retry]').addEventListener('click',function(){location.reload();});
+}
+function boot(host){
+  if(global.FTN&&global.FTN.ProductRegistry){mount(host);return;}
+  // Registry scripts may still be loading (defer) -- give them one tick before treating this
+  // as a real failure, so a normal slow-network load doesn't trip the retry banner needlessly.
+  global.setTimeout(function(){
+    if(global.FTN&&global.FTN.ProductRegistry){mount(host);}
+    else{showRetry(host);}
+  },1500);
+}
+document.querySelectorAll('[data-ftn-directory]').forEach(boot);
 })(window);

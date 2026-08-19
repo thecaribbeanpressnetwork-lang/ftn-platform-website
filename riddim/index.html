@@ -69,16 +69,42 @@
       </nav>
       <div class="site-header__actions">
         <button type="button" class="country-switcher-trigger" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span class="country-switcher-trigger__pin" aria-hidden="true"></span><span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></button>
-        <a class="btn btn-primary btn-sm" href="/community-connect/#launch" data-sign-in-entry>Sign In</a>
+        <a class="btn btn-primary btn-sm" href="/account/" data-sign-in-entry>Sign In</a>
         <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu"><img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20"><img class="icon-close" src="/assets/icons/icon-close.svg" alt="" width="20" height="20"></button>
       </div>
     </div>
     <div class="mobile-nav" id="mobile-nav">
       <div class="mobile-nav__section"><div class="mobile-nav__links"><a href="/" class="mobile-nav__link--top">Home</a><a href="/about/" class="mobile-nav__link--top">About FTN</a><a href="/news/" class="mobile-nav__link--top">News</a><a href="/contact/#commercial" class="mobile-nav__link--top">Partners</a><a href="/invest/" class="mobile-nav__link--top">InvestIn</a><a href="/contact/" class="mobile-nav__link--top">Contact</a></div></div>
-      <div class="mobile-nav__actions"><button type="button" class="mobile-nav__country-switcher" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span><span class="country-switcher-trigger__pin" aria-hidden="true"></span> <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></span><span aria-hidden="true">&rsaquo;</span></button><a class="btn btn-primary" href="/community-connect/#launch" data-sign-in-entry>Sign In</a></div>
+      <div class="mobile-nav__actions"><button type="button" class="mobile-nav__country-switcher" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span><span class="country-switcher-trigger__pin" aria-hidden="true"></span> <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></span><span aria-hidden="true">&rsaquo;</span></button><a class="btn btn-primary" href="/account/" data-sign-in-entry>Sign In</a></div>
     </div>
   </header>
-  <main id="main" tabindex="-1"><div id="workspace-root"></div></main>
+  <main id="main" tabindex="-1">
+    <div id="workspace-fallback" class="workspace" data-workspace-bg="dark-studio" data-surface-mode="approved-image" style="--workspace-accent:var(--color-riddim);--workspace-hero-focal-desktop:64% 50%;--workspace-hero-focal-mobile:66% 50%">
+      <header class="workspace__header">
+        <div class="workspace__header-top"><a class="workspace__back" href="/">&larr; FTN Platform</a></div>
+        <div class="workspace__hero">
+          <div class="workspace__identity">
+            <span class="workspace__eyebrow">FTN Riddim</span>
+            <h1 class="workspace__title">Powering Caribbean Music.</h1>
+            <p class="workspace__tagline">The Caribbean music ecosystem connecting rights-aware discovery and project metadata to FTN Fire, FTN DAW, FTN DJ Tube and FTN Kaiso.</p>
+          </div>
+          <figure class="workspace__hero-art"><img src="/assets/heroes/ftn-riddim-studio.webp" alt="Caribbean musicians and engineers recording together in a professional studio" loading="eager" decoding="async"><span class="workspace__hero-glow" aria-hidden="true"></span></figure>
+        </div>
+      </header>
+      <section class="workspace__content">
+        <h2 class="workspace-fallback__heading">Four ways into FTN Riddim</h2>
+        <div class="workspace-fallback__grid">
+          <div class="workspace-output"><h3>FTN Fire</h3><p>Caribbean riddims. Instrumentals only. Turn a producer brief into a detailed Flow Music prompt&nbsp;&mdash; no generated lyrics or vocalist.</p><a class="btn btn-outline btn-sm" href="/riddim/fire/">Create an instrumental &rarr;</a></div>
+          <div class="workspace-output"><h3>FTN DJ Tube</h3><p>Prepare and perform with audio you have the right to use. Real two-deck controls for user-owned or licensed local audio.</p><a class="btn btn-outline btn-sm" href="/riddim/dj/">Open FTN DJ Tube &rarr;</a></div>
+          <div class="workspace-output"><h3>FTN DAW</h3><p>Make a real mix in your browser. Import permitted audio, arrange edits and export a supported user-owned mix.</p><a class="btn btn-outline btn-sm" href="/riddim/daw/">Open FTN DAW &rarr;</a></div>
+          <div class="workspace-output"><h3>FTN EPK</h3><p>One creator record. Reusable professional presentation&nbsp;&mdash; metadata, credits and press-asset references.</p><a class="btn btn-outline btn-sm" href="/radio/#ftn-epk">Build an FTN EPK &rarr;</a></div>
+        </div>
+        <p class="workspace-fallback__note">The interactive track-metadata workspace below needs JavaScript. The four pathways above work without it.</p>
+      </section>
+      <footer class="workspace__footer">FTN Riddim is part of the FTN Platform ecosystem. <a href="/applications/">Explore all products &rarr;</a></footer>
+    </div>
+    <div id="workspace-root"></div>
+  </main>
   <footer class="site-footer">
     <div class="container">
       <div class="site-footer__top">

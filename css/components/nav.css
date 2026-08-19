@@ -4,8 +4,18 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--color-white);
-  border-bottom: 1px solid var(--color-border);
+  /* v1.9 pass: one black header sitewide (desktop and mobile) replaces the previous
+     white-by-default / black-only-on-homepage split -- see CLAUDE.md FIX 1. */
+  background: rgba(3, 3, 4, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+  backdrop-filter: blur(18px);
+}
+
+.site-header .logo-mark text {
+  /* Overrides the per-page hardcoded fill="#0B0B0B" presentation attribute on the F/N
+     glyphs -- a CSS declaration always wins over a presentation attribute, so this alone
+     is enough to keep the wordmark visible on the header's black background sitewide. */
+  fill: #fff;
 }
 
 .site-header__bar {
@@ -65,7 +75,7 @@
   font-family: var(--font-body);
   font-weight: 700;
   font-size: var(--text-small-size);
-  color: var(--color-black);
+  color: #ececf0;
   border-radius: var(--radius-8);
   cursor: pointer;
   transition: color 0.15s ease;
@@ -92,12 +102,12 @@
 
 .site-nav__trigger:hover,
 .site-nav__item.is-open .site-nav__trigger {
-  background: var(--color-tint);
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .site-nav__trigger--link {
   text-decoration: none;
-  color: var(--color-red);
+  color: #ececf0;
 }
 
 .site-nav__trigger--link::after {
@@ -105,7 +115,7 @@
 }
 
 .site-nav__trigger--link:hover {
-  background: var(--color-tint);
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .site-nav__trigger .chevron {
@@ -165,20 +175,25 @@
   width: 44px;
   height: 44px;
   background: none;
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: var(--radius-8);
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .nav-toggle:hover {
-  border-color: var(--color-black);
-  background: var(--color-tint);
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .nav-toggle svg {
   width: 20px;
   height: 20px;
+}
+
+.nav-toggle img {
+  /* icon-menu.svg/icon-close.svg are dark-line icons; invert to read on the black header. */
+  filter: invert(1);
 }
 
 .nav-toggle .icon-close {
@@ -203,7 +218,8 @@
      here since this is a fixed offset, not something the flexbox layout resolves for us. */
   top: 77px;
   z-index: 40;
-  background: var(--color-white);
+  background: #070708;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   overflow-y: auto;
   padding: var(--space-24) var(--grid-margin) var(--space-48);
 }
@@ -215,7 +231,7 @@
 .mobile-nav__section + .mobile-nav__section {
   margin-top: var(--space-24);
   padding-top: var(--space-24);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mobile-nav__heading {
@@ -223,6 +239,7 @@
   font-weight: 700;
   font-size: var(--text-body-size);
   margin-bottom: var(--space-12);
+  color: #fff;
 }
 
 .mobile-nav__links {
@@ -234,7 +251,7 @@
 .mobile-nav__links a {
   display: block;
   padding: var(--space-8) 0;
-  color: var(--color-graphite);
+  color: #e5e5e8;
   text-decoration: none;
   font-size: var(--text-small-size);
 }
@@ -243,7 +260,7 @@
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: var(--text-body-size);
-  color: var(--color-red) !important;
+  color: #fff !important;
 }
 
 .mobile-nav__actions {

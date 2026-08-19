@@ -37,7 +37,25 @@
   }
   normalizeNavigation();
 
-  function normalizeFooter(){document.querySelectorAll('.site-footer__columns').forEach(function(footer){footer.innerHTML='<div><p class="site-footer__heading">Explore FTN</p><div class="site-footer__links"><a href="/now/">NOW</a><a href="/community-connect/">COMMUNITY</a><a href="/riddim/">CULTURE</a><a href="/opportunities/">OPPORTUNITY</a><a href="/account/">MY FTN</a><a href="/ibis-ai/">ASK IBIS</a></div></div><div><p class="site-footer__heading">Directory</p><div class="site-footer__links"><a href="/applications/">FTN Directory</a><a href="/observatory/">FTN Live</a><a href="/parliament/">FTN Parliament</a><a href="/invest/">FTN Invest-in</a><a href="/about/">About FTN</a><a href="/contact/">Contact</a></div></div><div><p class="site-footer__heading">Legal and access</p><div class="site-footer__links"><a href="/trust/">Trust Centre</a><a href="/legal/privacy-policy/">Privacy</a><a href="/legal/terms-of-service/">Terms</a><a href="/accessibility/">Accessibility</a></div></div>';});document.querySelectorAll('.site-footer__bottom-links').forEach(function(row){row.innerHTML='<a href="/sitemap/">Sitemap</a><a href="/accessibility/">Accessibility</a><a href="/applications/">FTN Directory</a>';});}
+  // Canonical Platform / Company / Legal structure -- one shared footer, same on every
+  // site-footer page (see CLAUDE.md FIX 6). Social icons are normalized separately below
+  // since they live in .site-footer__brand, a sibling this function does not touch.
+  var FOOTER_PLATFORM=[['About FTN','/about/'],['Community Connect','/community-connect/'],['Scenario Workspace','/scenario-workspace/'],['FTN Events','/events/'],['Face The Nation','/facethenation'],['ibis.ai','/ibis-ai/'],['FTN Riddim','/riddim/'],['FTN Kaiso','/kaiso/'],['FTN Radio','/radio/'],['FTN Screen','/screen/'],['FTN Opportunities','/opportunities/'],['Display Network','/display-network/'],['FTN Live','/observatory/']];
+  var FOOTER_COMPANY=[['About FTN','/about/'],['FTN Invest-in','/invest/'],['Contact','/contact/'],['Trust Centre','/trust/']];
+  var FOOTER_LEGAL=[['Privacy Policy','/legal/privacy-policy/'],['Terms of Service','/legal/terms-of-service/'],['Cookie Policy','/legal/cookie-policy/'],['Data Retention','/legal/data-retention/']];
+  var FOOTER_SOCIAL=[['https://x.com/realityarttv','X','social-x.svg'],['https://facebook.com/realityarttv','Facebook','social-facebook.svg'],['https://instagram.com/realityarttv','Instagram','social-instagram.svg'],['https://youtube.com/realityarttv','YouTube','social-youtube.svg'],['https://linkedin.com/company/realityarttv','LinkedIn','social-linkedin.svg']];
+  function footerColumn(title,items){return '<div><p class="site-footer__heading">'+title+'</p><div class="site-footer__links">'+items.map(function(i){return '<a href="'+i[1]+'">'+i[0]+'</a>';}).join('')+'</div></div>';}
+  function normalizeFooter(){
+    document.querySelectorAll('.site-footer__columns').forEach(function(footer){footer.innerHTML=footerColumn('Platform',FOOTER_PLATFORM)+footerColumn('Company',FOOTER_COMPANY)+footerColumn('Legal',FOOTER_LEGAL);});
+    document.querySelectorAll('.site-footer__bottom-links').forEach(function(row){row.innerHTML='<a href="/sitemap/">Sitemap</a><a href="/accessibility/">Accessibility</a><a href="/applications/">FTN Directory</a>';});
+    document.querySelectorAll('.site-footer__brand').forEach(function(brand){
+      if(brand.querySelector('.site-footer__social'))return;
+      var wrap=document.createElement('div');
+      wrap.className='site-footer__social';
+      wrap.innerHTML=FOOTER_SOCIAL.map(function(s){return '<a href="'+s[0]+'" aria-label="FTN Platform on '+s[1]+'"><img src="/assets/icons/'+s[2]+'" alt="" width="16" height="16"></a>';}).join('');
+      brand.appendChild(wrap);
+    });
+  }
   normalizeFooter();
 
   function maybeMountOwnerControl(){var hasSession=false;try{for(var i=0;i<localStorage.length;i++){if(/^sb-.*-auth-token$/.test(localStorage.key(i)||'')){hasSession=true;break;}}}catch(e){}if(!hasSession)return;var script=document.createElement('script');script.src='/js/ftn-auth.js?v=20260812.1';script.onload=function(){if(!globalThis.FTN||!globalThis.FTN.Auth)return;globalThis.FTN.Auth.ownerAccess().then(function(result){if(!result||!result.allowed)return;document.querySelectorAll('.site-header__actions,.nexus-header__bar').forEach(function(host){if(host.querySelector('[data-owner-console]'))return;var link=document.createElement('a');link.href='/god-mode/';link.textContent='God Mode';link.className='btn btn-primary btn-sm';link.setAttribute('data-owner-console','');link.setAttribute('aria-label','Open FTN Nexus Command God Mode');host.appendChild(link);});});};document.head.appendChild(script);}
