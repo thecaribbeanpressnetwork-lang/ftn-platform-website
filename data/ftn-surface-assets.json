@@ -1,5 +1,5 @@
 {
-  "version": "2.3.1",
+  "version": "2.4.0",
   "verified": "2026-08-19",
   "policy": "Directory panels and approved composite boards are reference-only. Only explicit heroAsset entries may render in the shared workspace hero.",
   "surfaces": [
@@ -15,14 +15,14 @@
       "safeArea": "Desktop visual master; live text remains HTML and the approved map/ibis region is protected across breakpoints",
       "approvedForProduction": true
     },
-    {"productId":"community-connect","reference":"approved page reference board","productionAsset":null,"fallback":"interface-led","approvedForProduction":false},
-    {"productId":"screen","reference":"approved page reference board","productionAsset":null,"fallback":"interface-led","approvedForProduction":false},
-    {"productId":"tv","reference":"approved page reference board","productionAsset":null,"fallback":"interface-led","approvedForProduction":false},
-    {"productId":"opportunities","reference":"approved page reference board","productionAsset":null,"fallback":"interface-led","approvedForProduction":false},
-    {"productId":"kaiso","reference":"approved page reference board","productionAsset":null,"fallback":"interface-led","approvedForProduction":false},
-    {"productId":"riddim","reference":"approved page reference board","productionAsset":null,"fallback":"interface-led","approvedForProduction":false},
-    {"productId":"ftn-fire","reference":"approved page reference board","productionAsset":null,"fallback":"interface-led","approvedForProduction":false},
-    {"productId":"dj-tube","reference":"approved page reference board","productionAsset":null,"fallback":"interface-led","approvedForProduction":false},
-    {"productId":"account","reference":"approved page reference board","productionAsset":null,"fallback":"utility-led","approvedForProduction":false}
+    {"productId":"community-connect","reference":"approved page reference board","productionAsset":"/assets/heroes/community-connect-report.webp","source":"High-resolution parent scene generated from the founder-approved Community Connect reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"66% 50%","approvedForProduction":true},
+    {"productId":"screen","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-screen-film-crew.webp","source":"High-resolution parent scene generated from the founder-approved FTN Screen reference","dimensions":"1600x900 WebP","desktopFocalPoint":"66% 50%","mobileFocalPoint":"64% 50%","approvedForProduction":true},
+    {"productId":"tv","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-tv-control-room.webp","source":"High-resolution parent scene generated from the founder-approved FTN TV reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"62% 50%","approvedForProduction":true},
+    {"productId":"opportunities","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-opportunities-port.webp","source":"High-resolution parent scene generated from the founder-approved FTN Opportunities reference","dimensions":"1600x900 WebP","desktopFocalPoint":"68% 50%","mobileFocalPoint":"66% 50%","approvedForProduction":true},
+    {"productId":"kaiso","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-kaiso-newsroom.webp","source":"High-resolution parent scene generated from the founder-approved FTN Kaiso reference","dimensions":"1600x900 WebP","desktopFocalPoint":"67% 50%","mobileFocalPoint":"68% 50%","approvedForProduction":true},
+    {"productId":"riddim","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-riddim-studio.webp","source":"High-resolution parent scene generated from the founder-approved FTN Riddim reference","dimensions":"1600x900 WebP","desktopFocalPoint":"64% 50%","mobileFocalPoint":"66% 50%","approvedForProduction":true},
+    {"productId":"ftn-fire","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-fire-producer.webp","source":"High-resolution parent scene generated from the founder-approved FTN Fire reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"60% 50%","approvedForProduction":true},
+    {"productId":"dj-tube","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-dj-tube-club.webp","source":"High-resolution parent scene generated from the founder-approved FTN DJ Tube reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"58% 50%","approvedForProduction":true},
+    {"productId":"account","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-account-control.webp","source":"High-resolution parent scene generated from the founder-approved FTN Account reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"58% 50%","approvedForProduction":true}
   ]
 }
