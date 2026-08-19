@@ -1,3 +1,42 @@
+## ibis persistent assistant widget — deployment and open items (added later on 2026-08-19)
+
+- **Needs manual Supabase deployment before it will work live.** Per `supabase/README.md`'s own
+  documented deployment rule, nothing in `supabase/functions/` auto-deploys from Git — a human
+  must deploy `ibis-assistant` via the Supabase CLI/dashboard and set the `ANTHROPIC_API_KEY`
+  secret (optionally `ANTHROPIC_MODEL`). Until then the function returns 503 and the widget shows
+  its normal graceful-error bubble — this is the same fail-closed pattern every other paid/AI
+  function in this repo already uses (see `FTN_CREATIVE_GENERATION_ENABLED`,
+  `FTN_FIRE_GENERATION_ENABLED`), not a bug.
+- **Model id needs confirming.** The founder brief specified `claude-sonnet-4-6` as the model.
+  I don't have a way to verify that id is currently valid on the Anthropic API from here — it's
+  wired as an env-overridable default (`ANTHROPIC_MODEL`) specifically so it can be corrected
+  without a code change if it turns out to be wrong.
+- **Not gated behind Community-Connect-style auth**, unlike the existing `ibis-query` function —
+  deliberate, since the ask was for the widget to be usable on every page without friction. It is
+  rate-limited per IP (24 requests / 5 minutes, matching `ibis-query`'s existing limit) as the
+  narrow abuse safeguard instead.
+- **`riddim/fire/`, `riddim/dj/`, `riddim/daw/`** were the only real, current pages missing
+  `nav.js` (and therefore the widget) entirely — added it there. Left `dj-tube-prototype/`
+  untouched: it's embedded via `<iframe>` inside `/riddim/dj/`, not browsed directly, so a second
+  floating widget inside the iframe would just duplicate the parent page's own. Also left
+  `god-mode/`, `mission-control/`, `mission-control/demo/` untouched (explicitly out of scope),
+  and `offline/` untouched (PWA offline fallback — a live AI widget needs the network it doesn't
+  have). `news/index.html` is a real public page missing `nav.js` too, but that looks like a
+  pre-existing, unrelated gap rather than something introduced by this pass — flagging rather than
+  fixing it here to stay scoped to what was asked.
+
+## ibis colour — one real discrepancy found, not yet fixed
+
+`assets/panels/05-ibis-ai.png` is fully purple, no issue. `assets/home/ftn-approved-caribbean-
+ecosystem.png` (the homepage hero) shows a warm pink/salmon tint on the ibis's beak and legs,
+distinct from the purple body/wings — a real, visible departure from "purple only." Not edited:
+this exact file was hash-verified as founder-approved on 2026-08-19 itself (see
+`RELEASE_NOTES_FTN_SURFACE_REPAIR_2026-08-19.md`), and a precise pixel-level recolor of only the
+beak/leg region isn't something I can do reliably without an actual image-editing tool to preview
+against — a blunt scripted hue-shift risks damaging an already-approved, locked brand asset for
+the sake of fixing a small region of it. Needs either a real design tool or explicit founder
+sign-off on the specific replacement colour before touching the pixels.
+
 # Deferred content and scope notes — 2026-08-19 surface repair
 
 Record of what this repair pass did and, per CLAUDE.md's own conventions, what it

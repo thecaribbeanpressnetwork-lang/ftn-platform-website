@@ -1,0 +1,46 @@
+/* FTN Platform — ibis persistent assistant widget. Loaded sitewide by js/ibis-widget.js. */
+.ibis-widget-trigger{position:fixed;right:20px;bottom:20px;z-index:1200;display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;border:1px solid rgba(123,47,190,.5);background:#0b0b0d;box-shadow:0 10px 30px rgba(0,0,0,.4);cursor:pointer;transition:transform .18s ease,border-color .18s ease}
+.ibis-widget-trigger:hover,.ibis-widget-trigger:focus-visible{transform:translateY(-2px);border-color:#a855f7}
+.ibis-widget-trigger:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.ibis-widget-trigger svg{width:28px;height:28px}
+.ibis-widget-trigger__ring{position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(168,85,247,.55);animation:ibisPulse 2.6s ease-out infinite}
+@media(prefers-reduced-motion:reduce){.ibis-widget-trigger__ring{animation:none}.ibis-widget-trigger{transition:none}}
+.ibis-widget-trigger[hidden]{display:none}
+
+.ibis-widget-panel{position:fixed;right:20px;bottom:20px;z-index:1201;display:flex;flex-direction:column;width:min(380px,calc(100vw - 32px));max-height:min(600px,calc(100vh - 40px));border-radius:20px;border:1px solid rgba(225,6,19,.35);background:#08080a;color:#fff;box-shadow:0 24px 64px rgba(0,0,0,.55);overflow:hidden;transform:translateY(12px) scale(.98);opacity:0;pointer-events:none;transition:transform .2s ease,opacity .2s ease}
+.ibis-widget-panel.is-open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+@media(prefers-reduced-motion:reduce){.ibis-widget-panel{transition:none}}
+
+.ibis-widget-panel__head{display:flex;align-items:center;gap:10px;padding:14px 14px 12px;border-bottom:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(225,6,19,.14),transparent)}
+.ibis-widget-panel__head svg{width:22px;height:22px;flex:none}
+.ibis-widget-panel__head h2{margin:0;flex:1;font:800 15px/1.2 Montserrat,Inter,sans-serif;letter-spacing:-.01em}
+.ibis-widget-panel__head span{display:block;color:#9a9ea6;font-size:11px;margin-top:2px}
+.ibis-widget-close{flex:none;width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.14);background:transparent;color:#fff;font-size:16px;line-height:1;cursor:pointer}
+.ibis-widget-close:hover,.ibis-widget-close:focus-visible{border-color:#e10613;background:rgba(225,6,19,.12)}
+
+.ibis-widget-messages{flex:1;min-height:180px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ibis-widget-msg{max-width:88%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.5;white-space:pre-wrap}
+.ibis-widget-msg--user{align-self:flex-end;background:#e10613;color:#fff;border-bottom-right-radius:4px}
+.ibis-widget-msg--assistant{align-self:flex-start;background:#17181c;color:#e7e7ea;border:1px solid rgba(255,255,255,.08);border-bottom-left-radius:4px}
+.ibis-widget-msg--error{align-self:flex-start;background:#1a1214;color:#ffb3b8;border:1px solid rgba(225,6,19,.35)}
+.ibis-widget-msg--thinking{align-self:flex-start;display:flex;align-items:center;gap:8px;color:#c9a8ef;background:#141018;border:1px solid rgba(168,85,247,.3)}
+.ibis-widget-msg--thinking svg{width:16px;height:16px;animation:ibisThink 1.1s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.ibis-widget-msg--thinking svg{animation:none}}
+
+.ibis-widget-form{display:flex;gap:8px;padding:12px;border-top:1px solid rgba(255,255,255,.09)}
+.ibis-widget-input{flex:1;min-height:40px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:#fff;font:500 13px Inter,sans-serif}
+.ibis-widget-input::placeholder{color:#8b8e96}
+.ibis-widget-input:focus-visible{outline:none;border-color:#a855f7;box-shadow:0 0 0 3px rgba(168,85,247,.18)}
+.ibis-widget-send{flex:none;min-width:44px;min-height:40px;border-radius:10px;border:1px solid #e10613;background:#e10613;color:#fff;font-weight:800;cursor:pointer}
+.ibis-widget-send:hover,.ibis-widget-send:focus-visible{background:#b6000b}
+.ibis-widget-send:disabled{opacity:.5;cursor:not-allowed}
+
+@keyframes ibisPulse{0%{transform:scale(1);opacity:.7}70%{transform:scale(1.35);opacity:0}100%{transform:scale(1.35);opacity:0}}
+@keyframes ibisThink{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
+
+@media(max-width:640px){
+  .ibis-widget-trigger{right:14px;bottom:14px}
+  .ibis-widget-panel{right:0;left:0;bottom:0;width:100%;max-height:78vh;border-radius:18px 18px 0 0;border-left:0;border-right:0;border-bottom:0}
+  .ibis-widget-panel.is-open{transform:translateY(0)}
+  .ibis-widget-panel:not(.is-open){transform:translateY(100%)}
+}
