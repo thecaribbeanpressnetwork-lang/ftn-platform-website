@@ -40,6 +40,23 @@ This internal record separates verified production state from prepared work. The
 - GitHub Pages deployment run `32210654253` completed successfully.
 - The apex-domain homepage and registry reveal, plus the interface-led FTN Screen product surface, were verified after deployment.
 
+## Repair candidate — v2.3.1
+
+| Field | Value |
+|---|---|
+| Release state | **Prepared; production verification pending** |
+| Baseline | `232aab56baff5cb99182587cc3245088d61c3134` |
+| Prepared date | 2026-08-19 |
+| Production shell namespace | `ftn-public-v2.3.1` |
+
+### Candidate scope
+
+- Replaces the v2.3.0 flat map mask and hand-built bird with the exact founder-approved Caribbean ecosystem visual.
+- Preserves the black institutional header, two-action hierarchy and purple-only FTN ibis direction.
+- Adds restrained asynchronous signal glimmer with a no-motion alternative.
+- Removes the shared product shell’s forced `cover` crop, 16:9 frame, 230px clamp, perspective tilt and mobile image suppression.
+- Adds cache-safe asset URLs, governed provenance and CI-captured desktop/mobile visual evidence.
+
 ## Release rule
 
 Git history and the verified production response are the final evidence for a live release. Source presence or a passing static audit alone must never be described as deployed functionality.

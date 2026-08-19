@@ -90,7 +90,16 @@ jobs:
       - name: Verify FTN Surface System and ecosystem front door
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
+          FTN_CAPTURE_DIR: test-artifacts
         run: node tests/surface-system-release.mjs
+
+      - name: Upload FTN Surface System visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftn-surface-visual-evidence
+          path: test-artifacts/*.png
+          if-no-files-found: ignore
 
       - name: Open every indexed public route
         env:
