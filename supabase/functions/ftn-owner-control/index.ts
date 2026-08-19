@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
   if (action === "authorize") return reply(origin, { allowed: true, state: current?.mode || "normal", device: { id: device.id, name: device.device_name }, verifiedAt: new Date().toISOString() });
 
   if (action === "dashboard") {
-    const [products, features, auditRows, controlJournal, devices, grants, sources, links, readiness, deployments, founderActions, providers, jobs, credits, affiliateClicks] = await Promise.all([
+    const [products, features, auditRows, controlJournal, devices, grants, sources, links, readiness, deployments, founderActions, providers, jobs, credits, affiliateClicks, issues, requests, savedItems, preferences] = await Promise.all([
       admin.from("ftn_product_controls").select("*").order("product_id"),
       admin.from("ftn_feature_controls").select("*").order("product_id").order("feature_key"),
       admin.from("ftn_owner_access_audit").select("id,user_id,device_id,session_id,action,outcome,reason_code,created_at").order("created_at", { ascending: false }).limit(100),
@@ -190,8 +190,15 @@ Deno.serve(async (req) => {
       admin.from("ftn_ai_jobs").select("id,provider_id,capability,status,reserved_credits,quoted_provider_cost_microusd,actual_provider_cost_microusd,created_at").order("created_at", { ascending: false }).limit(100),
       admin.from("ftn_ai_credit_ledger").select("entry_type,amount,created_at").order("created_at", { ascending: false }).limit(200),
       admin.from("ftn_ai_affiliate_clicks").select("provider_id,campaign,created_at").order("created_at", { ascending: false }).limit(200),
+      admin.from("issues").select("id,category,status,community,created_at").order("created_at", { ascending: false }).limit(100),
+      admin.from("ftn_account_requests").select("id,user_id,request_type,status,requested_at,evidence_hold").in("status", ["PENDING", "IN_REVIEW"]).order("requested_at", { ascending: false }).limit(100),
+      admin.from("ftn_saved_items").select("id", { count: "exact", head: true }),
+      admin.from("ftn_user_preferences").select("user_id", { count: "exact", head: true }),
     ]);
-    return reply(origin, { allowed: true, state: current || { mode: "normal" }, products: products.data || [], features: features.data || [], audit: auditRows.data || [], journal: controlJournal.data || [], devices: devices.data || [], accessGrants: grants.data || [], sources: sources.data || [], linkHealth: links.data || [], readiness: readiness.data || [], deployments: deployments.data || [], founderActions: founderActions.data || [], creative: { providers: providers.data || [], jobs: jobs.data || [], creditLedger: credits.data || [], affiliateClicks: affiliateClicks.data || [], generationGloballyEnabled: Deno.env.get("FTN_CREATIVE_GENERATION_ENABLED") === "true" } });
+    const userPage = await admin.auth.admin.listUsers({ page: 1, perPage: 100 });
+    const rolesByUser = new Map((await admin.from("ftn_operator_roles").select("user_id,role,revoked_at")).data?.filter((x: any) => !x.revoked_at).map((x: any) => [x.user_id, x.role]) || []);
+    const directory = (userPage.data?.users || []).map((x: any) => ({ id: x.id, email: x.email || null, created_at: x.created_at, last_sign_in_at: x.last_sign_in_at, role: rolesByUser.get(x.id) || null }));
+    return reply(origin, { allowed: true, state: current || { mode: "normal" }, products: products.data || [], features: features.data || [], audit: auditRows.data || [], journal: controlJournal.data || [], devices: devices.data || [], accessGrants: grants.data || [], sources: sources.data || [], linkHealth: links.data || [], readiness: readiness.data || [], deployments: deployments.data || [], founderActions: founderActions.data || [], people: { total: userPage.data?.total || directory.length, directory }, mission: { issues: issues.data || [], requests: requests.data || [] }, activity: { reports: issues.count || (issues.data || []).length, savedItems: savedItems.count || 0, preferences: preferences.count || 0 }, creative: { providers: providers.data || [], jobs: jobs.data || [], creditLedger: credits.data || [], affiliateClicks: affiliateClicks.data || [], generationGloballyEnabled: Deno.env.get("FTN_CREATIVE_GENERATION_ENABLED") === "true" } });
   }
 
   if (action === "approve-device") {
