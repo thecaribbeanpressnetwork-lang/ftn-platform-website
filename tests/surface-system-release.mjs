@@ -14,6 +14,7 @@ const shellCss=fs.readFileSync('css/components/workspace-shell.css','utf8');
 assert.match(homepage,/THE CARIBBEAN<br>ECOSYSTEM\./);
 assert.match(homepage,/One connected home for the region’s public life, information, culture and opportunity\./);
 assert.match(homepage,/Every signal connects to something bigger\./);
+assert.match(homepage,/A living network of people,<br>places and purpose\./);
 for(const stale of ['See what is happening now','Strengthen your community','Partner with FTN'])assert(!homepage.includes(stale),`stale homepage action returned: ${stale}`);
 assert.equal((homepage.match(/ecosystem-hero__actions[\s\S]*?<\/div>/)||[''])[0].match(/<(?:a|button)\b/g)?.length,2,'homepage must keep exactly two approved hero actions');
 assert(homepage.includes('/assets/home/ftn-approved-caribbean-ecosystem.png'),'approved homepage visual is not wired into the front door');
