@@ -3,7 +3,7 @@
 // visibility, access and public claims. Consumers must use js/product-registry.js.
 (function(global){
 'use strict';
-var RELEASE='2.2.1',VERIFIED='2026-08-18',OWNER='RealityArtTV Media';
+var RELEASE='2.3.0',VERIFIED='2026-08-19',OWNER='RealityArtTV Media';
 function product(config){
   var accent=config.accent||'var(--color-red-on-dark)';
   return Object.assign({
@@ -19,7 +19,11 @@ function product(config){
     callsToAction:[{label:'Open',route:config.route}],
     visualMnemonic:'FTN signal node',
     icon:'/assets/icons/ftn-shortcut-mark.svg?v=20260811.2',
-    heroAsset:config.panelAsset||null,
+    heroAsset:null,
+    heroAlt:null,
+    heroFocalDesktop:'50% 50%',
+    heroFocalMobile:'50% 50%',
+    surfaceMode:'interface',
     dataSources:[],
     accessRules:['guest'],
     featureFlags:[],
@@ -240,5 +244,15 @@ product({
   dataSources:['FTN relationship registry','provider public pages'],accessRules:['guest'],featureFlags:['top-picks'],relatedProducts:['invest'],legalNotices:['Affiliate and relationship disclosure'],keywords:['tools','affiliate','software','creator','recommendation'],capabilities:['recommendations','relationship-disclosure']
 })
 ];
-global.FTN=global.FTN||{};global.FTN.ProductRegistryData=PRODUCTS;
+var ECOSYSTEM_GROUPS=[
+  {id:'civic-public-life',title:'Civic & public life',description:'Participate, find official paths and follow the public record.',productIds:['community-connect','govern','parliament','facethenation']},
+  {id:'information-intelligence',title:'Information & intelligence',description:'Follow current signals, source-backed reporting and Caribbean-first assistance.',productIds:['ftn-live','kaiso','ibis-ai','scenario-workspace']},
+  {id:'media-culture',title:'Media & culture',description:'Watch, listen and discover Caribbean stories through permitted sources.',productIds:['radio','screen','tv']},
+  {id:'music-creation',title:'Music & creation',description:'Move from a music idea to rights-aware preparation, production and performance.',productIds:['riddim','ftn-fire','dj-tube','daw','epk']},
+  {id:'opportunities-business',title:'Opportunities & business',description:'Find verified paths to work, funding, partnerships and useful tools.',productIds:['opportunities','invest','top-picks']},
+  {id:'community-infrastructure',title:'Community & infrastructure',description:'Plan gatherings and prepare messages for eligible Caribbean placements.',productIds:['events','display-network']}
+];
+global.FTN=global.FTN||{};
+global.FTN.ProductRegistryData=PRODUCTS;
+global.FTN.ProductRegistryGroups=ECOSYSTEM_GROUPS;
 })(window);

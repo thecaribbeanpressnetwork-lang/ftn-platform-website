@@ -46,15 +46,18 @@ for(const file of ['love/index.html','health/index.html'])assert.match(fs.readFi
 
 const publicHtml=['index.html','applications/index.html','js/ftn-directory.js'].map(f=>fs.readFileSync(f,'utf8')).join('\n');
 assert(!/['"](?:love|health)['"]/.test(publicHtml),'Vaulted products must not be advertised by public directory source');
-assert(/['"]govern['"]/.test(publicHtml),'FTN Govern must be advertised in the product directory source');
+assert(context.window.FTN.ProductRegistry.ecosystemGroups().some(group=>group.products.some(product=>product.id==='govern')),'FTN Govern must be advertised in the Product Registry ecosystem groups');
 assert(!/\bBETA\b/.test(publicHtml),'Public release source must not advertise a stale BETA state');
 
 const directorySource=fs.readFileSync('js/ftn-directory.js','utf8');
 const firstClassDirectoryIds=['community-connect','govern','parliament','facethenation','ftn-live','kaiso','ibis-ai','scenario-workspace','radio','screen','tv','riddim','ftn-fire','dj-tube','daw','epk','opportunities','invest','top-picks','events','display-network'];
-for(const id of firstClassDirectoryIds)assert(directorySource.includes(`'${id}'`),`Active product missing from FTN Directory: ${id}`);
+const ecosystemGroups=context.window.FTN.ProductRegistry.ecosystemGroups();
+const groupedIds=ecosystemGroups.flatMap(group=>group.products.map(product=>product.id));
+for(const id of firstClassDirectoryIds)assert(groupedIds.includes(id),`Active product missing from Product Registry ecosystem groups: ${id}`);
+assert(directorySource.includes('Registry.ecosystemGroups()'),'FTN Directory must consume registry-defined ecosystem groups');
 assert(!directorySource.includes("'mission-control'"),'Mission Control must not be exposed in the FTN Directory');
 for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis.ai','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
-for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(directorySource.includes(`'${p.id}'`),`${p.name} has no directory mapping`);
+for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(groupedIds.includes(p.id),`${p.name} has no registry group mapping`);
 
 const navSource=fs.readFileSync('js/nav.js','utf8');
 for(const name of ['NOW','COMMUNITY','CULTURE','OPPORTUNITY','MY FTN','ASK IBIS'])assert(navSource.includes(`'${name}'`),`Global navigation missing canonical pillar ${name}`);
@@ -62,7 +65,7 @@ assert(navSource.includes('FTN Invest-in'),'Global navigation must use the canon
 assert(fs.existsSync('now/index.html'),'NOW homepage is missing');
 assert(sitemap.includes('https://ftnplatform.org/now/'),'NOW homepage is absent from the sitemap');
 assert(!/PRIMARY_LINKS[^;]+Mission Control/s.test(navSource),'Mission Control must not enter public navigation');
-assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.2\.4'/,'Service-worker cache namespace was not advanced for changed assets');
+assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.3\.0'/,'Service-worker cache namespace was not advanced for changed assets');
 const analyticsSource=fs.readFileSync('js/analytics.js','utf8');
 assert(analyticsSource.includes('6b49afbc-3929-4855-bda8-eff8755f685d'),'Umami website ID is missing');
 assert(analyticsSource.includes("data-exclude-search"),'Analytics must exclude URL search parameters');
@@ -75,7 +78,7 @@ assert(navSource.includes('/js/analytics.js?v=20260818.3'),'Global navigation mu
 
 const htmlFiles=[];function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules'].includes(entry.name))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(entry.name.endsWith('.html'))htmlFiles.push(full);}}walk('.');
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260818.3'),`${file} uses a stale global navigation asset URL`);}
-for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of ['product-registry-data','product-registry','ftn-directory'])if(html.includes(`/js/${asset}.js`))assert(html.includes(`/js/${asset}.js?v=20260818.2`),`${file} uses a stale ${asset} asset URL`);}
+for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of ['product-registry-data','product-registry','ftn-directory'])if(html.includes(`/js/${asset}.js`))assert(html.includes(`/js/${asset}.js?v=20260819.1`),`${file} uses a stale ${asset} asset URL`);}
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8'),match=html.match(/<link rel=["']canonical["'] href=["']([^"']+)/i);if(match)assert(/^https:\/\/ftnplatform\.org\//.test(match[1]),`${file} has non-apex canonical ${match[1]}`);}
 for(const file of htmlFiles.filter(file=>!['love/index.html','health/index.html'].includes(file))){
   const html=fs.readFileSync(file,'utf8');

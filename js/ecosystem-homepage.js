@@ -1,25 +1,23 @@
-// FTN ecosystem homepage: immediate feedback without holding navigation hostage.
+// FTN ecosystem front door: one deliberate reveal, native links for every destination.
 (function(){
   'use strict';
-  var stage=document.querySelector('[data-eco-constellation]');
-  if(!stage)return;
-  var pulse=stage.querySelector('.eco-constellation__pulse');
-  function signal(){
-    pulse.classList.remove('is-sending');
-    requestAnimationFrame(function(){pulse.classList.add('is-sending');});
-    setTimeout(function(){pulse.classList.remove('is-sending');},900);
-  }
-  pulse.addEventListener('click',function(){
-    signal();
-    setTimeout(function(){document.querySelector('.eco-intent').scrollIntoView({behavior:'smooth',block:'start'});},320);
-  });
-  stage.querySelectorAll('.eco-door').forEach(function(door){
-    door.addEventListener('click',function(event){
-      if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
-      event.preventDefault();
-      door.classList.add('is-entering');
-      stage.classList.add('is-transitioning');
-      setTimeout(function(){window.location.assign(door.href);},360);
+  var toggle=document.querySelector('[data-ecosystem-toggle]');
+  var reveal=document.querySelector('[data-ecosystem-reveal]');
+  if(!toggle||!reveal)return;
+  var reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  function openEcosystem(){
+    reveal.hidden=false;
+    reveal.classList.remove('is-opening');
+    toggle.setAttribute('aria-expanded','true');
+    requestAnimationFrame(function(){
+      reveal.classList.add('is-opening');
+      reveal.scrollIntoView({behavior:reduceMotion.matches?'auto':'smooth',block:'start'});
+      var heading=reveal.querySelector('h2');
+      if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});}
     });
+  }
+  toggle.addEventListener('click',function(){
+    if(reveal.hidden){openEcosystem();return;}
+    reveal.scrollIntoView({behavior:reduceMotion.matches?'auto':'smooth',block:'start'});
   });
 })();

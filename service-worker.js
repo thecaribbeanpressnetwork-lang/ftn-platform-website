@@ -3,11 +3,13 @@
 // Bump this value for every production shell release. A new cache namespace makes
 // sure a browser that previously installed FTN does not continue rendering an
 // obsolete HTML/CSS/JS shell after Cloudflare has deployed a repair.
-var VERSION='ftn-public-v2.2.4';
+var VERSION='ftn-public-v2.3.0';
 var SHELL=[
   '/','/offline/','/manifest.webmanifest','/css/tokens.css','/css/base.css',
   '/css/components/buttons.css','/css/components/nav.css','/css/components/nexus-foundation.css',
-  '/js/nav.js','/js/platform-foundation.js','/js/product-registry-data.js','/js/product-registry.js',
+  '/css/components/ecosystem-homepage-refinement.css','/css/components/ftn-directory.css',
+  '/js/nav.js','/js/platform-foundation.js','/js/product-registry-data.js','/js/product-registry.js','/js/ftn-directory.js','/js/ecosystem-homepage.js',
+  '/assets/maps/caribbean-natural-earth.svg',
   '/assets/icons/ftn-shortcut-mark.svg?v=20260811.2','/assets/icons/ftn-shortcut-mark-192.png?v=20260811.2','/assets/icons/ftn-shortcut-mark-512.png?v=20260811.2'
 ];
 var PRIVATE=/^\/(god-mode|mission-control|account|love|health|ibis-ai)(\/|$)/;
