@@ -83,24 +83,24 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:320
   await context.close();
 }
 
-for(const path of ['/screen/','/opportunities/','/riddim/','/kaiso/']){
-  const {context,page}=await open(path);
+for(const route of ['/screen/','/opportunities/','/riddim/','/kaiso/']){
+  const {context,page}=await open(route);
   await page.waitForSelector('.workspace[data-surface-mode="approved-image"]',{timeout:10000});
-  assert.equal(await page.locator('.workspace__hero-art img').count(),1,`${path} is missing its approved production scene`);
-  assert((await page.locator('.workspace__hero-art img').getAttribute('src'))?.startsWith('/assets/heroes/'),`${path} does not use a production parent scene`);
-  assert.equal(await page.locator('.workspace__hero-art img[src*="/assets/panels/"]').count(),0,`${path} promotes a directory panel into its hero`);
+  assert.equal(await page.locator('.workspace__hero-art img').count(),1,`${route} is missing its approved production scene`);
+  assert((await page.locator('.workspace__hero-art img').getAttribute('src'))?.startsWith('/assets/heroes/'),`${route} does not use a production parent scene`);
+  assert.equal(await page.locator('.workspace__hero-art img[src*="/assets/panels/"]').count(),0,`${route} promotes a directory panel into its hero`);
   const content=await page.locator('.workspace__content').boundingBox();
-  assert(content&&content.y<650,`${path} delays its functional surface below the first useful viewport`);
-  if(CAPTURE_DIR)await page.screenshot({path:path.join(CAPTURE_DIR,`${path.split('/').filter(Boolean).join('-')}-desktop.png`),fullPage:false});
+  assert(content&&content.y<650,`${route} delays its functional surface below the first useful viewport`);
+  if(CAPTURE_DIR)await page.screenshot({path:path.join(CAPTURE_DIR,`${route.split('/').filter(Boolean).join('-')}-desktop.png`),fullPage:false});
   await context.close();
 }
 
-for(const path of ['/events/','/ibis-ai/']){
-  const {context,page}=await open(path);
+for(const route of ['/events/','/ibis-ai/']){
+  const {context,page}=await open(route);
   await page.waitForSelector('.workspace[data-surface-mode="interface"]',{timeout:10000});
-  assert.equal(await page.locator('.workspace__hero-art').count(),0,`${path} should remain interface-led`);
+  assert.equal(await page.locator('.workspace__hero-art').count(),0,`${route} should remain interface-led`);
   const content=await page.locator('.workspace__content').boundingBox();
-  assert(content&&content.y<650,`${path} delays its functional surface below the first useful viewport`);
+  assert(content&&content.y<650,`${route} delays its functional surface below the first useful viewport`);
   await context.close();
 }
 
