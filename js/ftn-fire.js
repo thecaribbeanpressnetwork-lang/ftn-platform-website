@@ -12,32 +12,102 @@ function note(root,semitones){return root*Math.pow(2,semitones/12);}
 function noiseBuffer(ctx,seed){var state=(seed>>>0)||1,b=ctx.createBuffer(1,Math.floor(ctx.sampleRate*.16),ctx.sampleRate),d=b.getChannelData(0);for(var i=0;i<d.length;i++){state=(Math.imul(state,1664525)+1013904223)>>>0;d[i]=state/2147483648-1;}return b;}
 function drum(ctx,dest,time,type,level,seed){var g=ctx.createGain();g.connect(dest);if(type==='kick'){var o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(145,time);o.frequency.exponentialRampToValueAtTime(46,time+.14);g.gain.setValueAtTime(level,time);g.gain.exponentialRampToValueAtTime(.001,time+.24);o.connect(g);o.start(time);o.stop(time+.25);return;}var n=ctx.createBufferSource();n.buffer=noiseBuffer(ctx,seed);var f=ctx.createBiquadFilter();f.type=type==='hat'?'highpass':'bandpass';f.frequency.value=type==='hat'?6500:1700;f.Q.value=type==='hat'?.6:1.2;g.gain.setValueAtTime(level,time);g.gain.exponentialRampToValueAtTime(.001,time+(type==='hat'?.045:.13));n.connect(f);f.connect(g);n.start(time);n.stop(time+.16);}
 function tone(ctx,dest,time,duration,frequency,type,level,cutoff){var o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();o.type=type||'sine';o.frequency.setValueAtTime(frequency,time);f.type='lowpass';f.frequency.value=cutoff||1800;g.gain.setValueAtTime(.001,time);g.gain.exponentialRampToValueAtTime(level,time+.012);g.gain.exponentialRampToValueAtTime(.001,time+duration);o.connect(f);f.connect(g);g.connect(dest);o.start(time);o.stop(time+duration+.03);}
-function schedule(ctx,dest,spec,start,stem){
+// skipSeconds (Pass 16, seek support): notes whose absolute time falls before start+skipSeconds
+// are simply never scheduled -- the arrangement is fully pre-scheduled up front (see the module
+// header comment), so seeking means re-scheduling from a later point, not pausing a single node.
+function schedule(ctx,dest,spec,start,stem,skipSeconds){
   var beat=60/spec.bpm,step=beat/4,root=ROOTS[spec.key.split(' ')[0]]||220,style=spec.style,instruments=spec.instruments,duration=spec.bars*4*beat,seed=+spec.seed||2608;
   var include=function(name){return !stem||stem===name;};
+  var skipBefore=start+(skipSeconds||0);
   for(var bar=0;bar<spec.bars;bar++){
     var intro=spec.arrangement==='intro-drop'&&bar===0,breakdown=spec.arrangement==='verse-chorus-break'&&bar>=Math.floor(spec.bars*.75);
     if(include('drums'))for(var s=0;s<16;s++){
       var swing=s%2?step*(spec.swing||0)/100:0,t=start+(bar*16+s)*step+swing,accent=s%4===0,kick=false,snare=false;
+      if(t<skipBefore)continue;
       if(style==='reggae'){kick=s===8;snare=s===8;}
       else if(style==='dancehall'){kick=[0,6,10,14].indexOf(s)>=0;snare=[4,7,12,15].indexOf(s)>=0;}
       else if(style==='kompa'||style==='zouk'){kick=[0,4,8,12].indexOf(s)>=0;snare=[4,12].indexOf(s)>=0;}
+      // Pass 16: calypso and chutney previously had no dedicated branch and silently fell into
+      // the generic soca-shaped pattern below, despite both appearing as named, selectable
+      // styles in the UI. Calypso's laid-back, syncopated feel (kick on 1 and 3, snare/rimshot
+      // answering on the offbeats) and chutney's faster, denser dholak-influenced kick pattern
+      // are real, distinct rhythmic characters -- not arbitrary variations.
+      else if(style==='calypso'){kick=[0,8].indexOf(s)>=0;snare=[3,7,11,15].indexOf(s)>=0;}
+      else if(style==='chutney'){kick=[0,3,6,8,11,14].indexOf(s)>=0;snare=[4,12].indexOf(s)>=0;}
       else{kick=[0,4,8,12].indexOf(s)>=0||(style==='power-soca'&&s%2===0);snare=[4,12].indexOf(s)>=0;}
       if(intro&&s<8)kick=false;if(breakdown&&s%4!==0)kick=false;
       if(kick)drum(ctx,dest,t,'kick',.38+.025*spec.energy,seed+bar*37+s);
       if(snare)drum(ctx,dest,t,'snare',.19+.018*spec.energy,seed+bar*41+s);
       if(instruments.indexOf('percussion')>=0&&(s%2===0||((seed+s+bar)%5===0)))drum(ctx,dest,t+(s%3===0?step*.12:0),'hat',accent?.10:.065,seed+bar*43+s);
     }
-    if(include('bass')&&instruments.indexOf('bass')>=0&&!intro){var bassSeq=style==='reggae'?[0,0,7,5]:style==='soca'||style==='power-soca'?[0,7,5,7]:[0,5,7,3];for(var q=0;q<4;q++)tone(ctx,dest,start+(bar*4+q)*beat,beat*.72,note(root/2,bassSeq[(bar+q)%bassSeq.length]),style==='dancehall'?'sine':'sawtooth',.14,style==='dancehall'?260:420);}
-    if(include('harmony')&&(instruments.indexOf('chords')>=0||instruments.indexOf('guitar-keys')>=0)){var chord=[0,3,7],offbeat=style==='reggae'||style==='kompa'||style==='zouk'||instruments.indexOf('guitar-keys')>=0;for(var c=0;c<4;c++){var ct=start+(bar*4+c)*beat+(offbeat?beat*.5:0);chord.forEach(function(n){tone(ctx,dest,ct,beat*.19,note(root,n+(bar%2?5:0)),'triangle',.038,2200);});if(instruments.indexOf('dub-fx')>=0&&c===3)chord.forEach(function(n){tone(ctx,dest,ct+beat*.36,beat*.18,note(root,n+(bar%2?5:0)),'triangle',.018,1500);});}}
-    if(include('melody')&&instruments.indexOf('steelpan')>=0&&!breakdown){var scale=[0,3,5,7,10,12,10,7],base=start+bar*4*beat;for(var m=0;m<8;m++){if((seed+bar+m)%4!==0)tone(ctx,dest,base+m*beat*.5,beat*.28,note(root*2,scale[(m+bar)%scale.length]),'sine',.075,4800);}}
-    if(include('melody')&&instruments.indexOf('brass')>=0&&!intro){for(var br=0;br<2;br++){var bt=start+(bar*4+br*2+1)*beat;tone(ctx,dest,bt,beat*.38,note(root*2,br?7:12),'sawtooth',.055,3100);}}
+    if(include('bass')&&instruments.indexOf('bass')>=0&&!intro){
+      // Pass 16: calypso (walking, more melodic) and chutney (driving, syncopated) get their
+      // own bass sequences instead of inheriting the generic soca-shaped one.
+      var bassSeq=style==='reggae'?[0,0,7,5]:style==='soca'||style==='power-soca'?[0,7,5,7]:style==='calypso'?[0,4,7,9]:style==='chutney'?[0,7,3,10]:[0,5,7,3];
+      for(var q=0;q<4;q++){var bt0=start+(bar*4+q)*beat;if(bt0<skipBefore)continue;tone(ctx,dest,bt0,beat*.72,note(root/2,bassSeq[(bar+q)%bassSeq.length]),style==='dancehall'?'sine':'sawtooth',.14,style==='dancehall'?260:420);}
+    }
+    if(include('harmony')&&(instruments.indexOf('chords')>=0||instruments.indexOf('guitar-keys')>=0)){var chord=[0,3,7],offbeat=style==='reggae'||style==='kompa'||style==='zouk'||instruments.indexOf('guitar-keys')>=0;for(var c=0;c<4;c++){var ct=start+(bar*4+c)*beat+(offbeat?beat*.5:0);if(ct<skipBefore)continue;chord.forEach(function(n){tone(ctx,dest,ct,beat*.19,note(root,n+(bar%2?5:0)),'triangle',.038,2200);});if(instruments.indexOf('dub-fx')>=0&&c===3)chord.forEach(function(n){tone(ctx,dest,ct+beat*.36,beat*.18,note(root,n+(bar%2?5:0)),'triangle',.018,1500);});}}
+    if(include('melody')&&instruments.indexOf('steelpan')>=0&&!breakdown){var scale=[0,3,5,7,10,12,10,7],base=start+bar*4*beat;for(var m=0;m<8;m++){var mt=base+m*beat*.5;if(mt<skipBefore)continue;if((seed+bar+m)%4!==0)tone(ctx,dest,mt,beat*.28,note(root*2,scale[(m+bar)%scale.length]),'sine',.075,4800);}}
+    if(include('melody')&&instruments.indexOf('brass')>=0&&!intro){for(var br=0;br<2;br++){var bt=start+(bar*4+br*2+1)*beat;if(bt<skipBefore)continue;tone(ctx,dest,bt,beat*.38,note(root*2,br?7:12),'sawtooth',.055,3100);}}
   }
   return duration;
 }
 function outputGain(ctx){var compressor=ctx.createDynamicsCompressor(),master=ctx.createGain();master.gain.value=.72;master.connect(compressor);compressor.connect(ctx.destination);return master;}
-function play(){if(!recipe)return;stop();var C=global.AudioContext||global.webkitAudioContext;if(!C){setStatus('BROWSER AUDIO UNAVAILABLE');return;}liveContext=new C();liveMaster=outputGain(liveContext);schedule(liveContext,liveMaster,recipe,liveContext.currentTime+.06);setStatus('PLAYING ON DEVICE');document.getElementById('fire-stop').disabled=false;setTimeout(function(){if(liveContext)setStatus('DRAFT COMPLETE');},recipe.durationMs+200);}
-function stop(){if(liveMaster)try{liveMaster.gain.cancelScheduledValues(0);liveMaster.gain.setValueAtTime(0,liveContext.currentTime);}catch(e){}if(liveContext)try{liveContext.close();}catch(e){}liveContext=null;liveMaster=null;if(recipe)setStatus('STOPPED');}
+// Pass 16: real playhead/pause/seek. The whole arrangement is pre-scheduled up front (every
+// oscillator/buffer node gets an absolute start time when schedule() runs) -- Web Audio has no
+// way to pause an individual already-scheduled node, but AudioContext.suspend()/resume() freezes
+// and resumes ctx.currentTime itself, which correctly freezes every scheduled node in lock-step
+// (they're all timed relative to that same clock). That is what PAUSE actually uses below --
+// not a fake "pause" that just silences the output while audio keeps advancing underneath.
+var playStartedAt=0,playOffsetSeconds=0,playheadTimer=null;
+function scheduleFrom(offsetSeconds){
+  var C=global.AudioContext||global.webkitAudioContext;
+  if(!C){setStatus('BROWSER AUDIO UNAVAILABLE');return false;}
+  liveContext=new C();liveMaster=outputGain(liveContext);
+  var base=liveContext.currentTime+.06;
+  schedule(liveContext,liveMaster,recipe,base,null,Math.max(0,offsetSeconds));
+  playStartedAt=base;playOffsetSeconds=Math.max(0,offsetSeconds);
+  return true;
+}
+function currentPositionSeconds(){
+  if(!liveContext)return playOffsetSeconds;
+  return playOffsetSeconds+Math.max(0,liveContext.currentTime-playStartedAt);
+}
+function updatePlayhead(){
+  if(!recipe)return;
+  var durationSeconds=recipe.durationMs/1000,pos=Math.min(durationSeconds,currentPositionSeconds()),pct=durationSeconds?(pos/durationSeconds)*100:0;
+  var fill=document.getElementById('fire-progress-fill');if(fill)fill.style.width=pct+'%';
+  var bar=document.getElementById('fire-progress');if(bar)bar.setAttribute('aria-valuenow',Math.round(pct));
+  var cur=document.getElementById('fire-time-current');if(cur)cur.textContent=fmtTime(pos);
+  var dur=document.getElementById('fire-time-duration');if(dur)dur.textContent=fmtTime(durationSeconds);
+  if(liveContext&&liveContext.state==='running'&&pos>=durationSeconds){setStatus('DRAFT COMPLETE');document.getElementById('fire-play').textContent='PLAY DRAFT';stopTicker();}
+}
+function fmtTime(s){s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function startTicker(){stopTicker();playheadTimer=setInterval(updatePlayhead,120);}
+function stopTicker(){if(playheadTimer){clearInterval(playheadTimer);playheadTimer=null;}}
+function play(){
+  if(!recipe)return;
+  if(liveContext&&liveContext.state==='suspended'){liveContext.resume();setStatus('PLAYING ON DEVICE');document.getElementById('fire-play').textContent='PAUSE';startTicker();return;}
+  if(!scheduleFrom(0))return;
+  setStatus('PLAYING ON DEVICE');document.getElementById('fire-play').textContent='PAUSE';document.getElementById('fire-stop').disabled=false;
+  startTicker();
+}
+function pauseDraft(){if(!liveContext||liveContext.state!=='running')return;liveContext.suspend();setStatus('PAUSED');document.getElementById('fire-play').textContent='RESUME';}
+function togglePlayPause(){if(liveContext&&liveContext.state==='running')pauseDraft();else play();}
+function seekTo(fraction){
+  if(!recipe)return;
+  var durationSeconds=recipe.durationMs/1000,target=Math.max(0,Math.min(durationSeconds-.05,fraction*durationSeconds));
+  var wasPlaying=!liveContext||liveContext.state==='running';
+  if(liveContext)try{liveContext.close();}catch(e){}
+  liveContext=null;liveMaster=null;
+  if(!scheduleFrom(target))return;
+  if(!wasPlaying)liveContext.suspend();
+  setStatus(wasPlaying?'PLAYING ON DEVICE':'PAUSED');
+  document.getElementById('fire-play').textContent=wasPlaying?'PAUSE':'RESUME';
+  document.getElementById('fire-stop').disabled=false;
+  updatePlayhead();if(wasPlaying)startTicker();
+}
+function stop(){stopTicker();if(liveMaster)try{liveMaster.gain.cancelScheduledValues(0);liveMaster.gain.setValueAtTime(0,liveContext.currentTime);}catch(e){}if(liveContext)try{liveContext.close();}catch(e){}liveContext=null;liveMaster=null;playOffsetSeconds=0;document.getElementById('fire-play').textContent='PLAY DRAFT';updatePlayhead();if(recipe)setStatus('STOPPED');}
 function wav(buffer){var channels=buffer.numberOfChannels,length=buffer.length*channels*2+44,out=new ArrayBuffer(length),v=new DataView(out),pos=0;function str(s){for(var i=0;i<s.length;i++)v.setUint8(pos++,s.charCodeAt(i));}function u16(x){v.setUint16(pos,x,true);pos+=2;}function u32(x){v.setUint32(pos,x,true);pos+=4;}str('RIFF');u32(length-8);str('WAVEfmt ');u32(16);u16(1);u16(channels);u32(buffer.sampleRate);u32(buffer.sampleRate*channels*2);u16(channels*2);u16(16);str('data');u32(length-44);for(var i=0;i<buffer.length;i++)for(var c=0;c<channels;c++){var x=Math.max(-1,Math.min(1,buffer.getChannelData(c)[i]));v.setInt16(pos,x<0?x*32768:x*32767,true);pos+=2;}return out;}
 async function exportWav(){if(!recipe)return;var rate=44100,length=Math.ceil(recipe.durationMs/1000*rate),ctx=new OfflineAudioContext(2,length,rate),master=outputGain(ctx);schedule(ctx,master,recipe,0);setStatus('RENDERING WAV');try{var rendered=await ctx.startRendering(),blob=new Blob([wav(rendered)],{type:'audio/wav'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ftn-fire-'+recipe.style+'-'+recipe.bpm+'bpm.wav';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);setStatus('WAV EXPORTED');}catch(e){setStatus('EXPORT FAILED');}}
 async function renderStem(name){var rate=44100,length=Math.ceil(recipe.durationMs/1000*rate),ctx=new OfflineAudioContext(2,length,rate),master=outputGain(ctx);schedule(ctx,master,recipe,0,name);return new Uint8Array(wav(await ctx.startRendering()));}
@@ -55,8 +125,13 @@ function requestId(){return global.crypto&&crypto.randomUUID?crypto.randomUUID()
 function managedStatus(message){document.getElementById('fire-managed-status').textContent=message;}
 async function checkManagedJob(){if(!managedJobId)return;managedStatus('Checking the private Fire job…');try{var data=await global.FTN.Auth.invoke('ftn-fire-generate',{action:'status',jobId:managedJobId});if(data.downloadUrl){managedStatus('Your private Fire output is ready. The download link expires in five minutes.');var link=document.createElement('a');link.href=data.downloadUrl;link.textContent='DOWNLOAD PRIVATE FIRE OUTPUT';link.className='fire-primary';link.style.display='inline-block';link.style.marginTop='10px';link.download='';var host=document.getElementById('fire-managed-status');host.parentNode.appendChild(link);document.getElementById('fire-managed-check').disabled=true;}else managedStatus(data.notice||data.error||('Fire job status: '+(data.status||'processing')+'.'));}catch(e){managedStatus('Fire job status is unavailable. No output or charge is being claimed.');}}
 async function requestManaged(){if(!recipe)return;managedStatus('Checking your FTN Account and Fire launch controls…');try{var user=await global.FTN.Auth.getVerifiedUser();if(!user){managedStatus('Sign in to FTN Account before requesting managed generation.');global.location.href='/account/?return=%2Friddim%2Ffire%2F';return;}var data=await global.FTN.Auth.invoke('ftn-fire-generate',{action:'generate',prompt:recipe.plainLanguageDirection,style:recipe.style,key:recipe.key,format:'wav',durationSeconds:recipe.bars<=4?15:recipe.bars>=16?45:30,rightsConfirmed:true,noArtistImitation:true,clientRequestId:requestId()});managedJobId=data.jobId||null;document.getElementById('fire-managed-check').disabled=!managedJobId;managedStatus(data.notice||'Fire request accepted. Check job status for the private result.');}catch(e){managedStatus('FTN-managed generation is not enabled yet. No provider was called and no credits were reserved. The Flow Music hand-off remains available.');}}
-function build(event){event.preventDefault();if(!document.getElementById('fire-originality').checked){setStatus('CONFIRM ORIGINALITY FIRST');return;}var prompt=document.getElementById('fire-prompt').value.trim();parsePrompt(prompt);var style=document.getElementById('fire-style').value,bpm=Math.max(60,Math.min(180,+document.getElementById('fire-bpm').value||defaults[style])),bars=+document.getElementById('fire-bars').value,instruments=Array.from(document.querySelectorAll('[name=instrument]:checked')).map(function(x){return x.value;});if(!instruments.length){setStatus('CHOOSE AN INSTRUMENT');return;}recipe={schemaVersion:3,engine:'FTN Fire free on-device procedural sketch',status:'LOCAL_DRAFT_READY',style:style,bpm:bpm,key:document.getElementById('fire-key').value,mood:document.getElementById('fire-mood').value,energy:+document.getElementById('fire-energy').value,bars:bars,arrangement:document.getElementById('fire-arrangement').value,swing:+document.getElementById('fire-swing').value,vibe:document.getElementById('fire-vibe').value,seed:+document.getElementById('fire-seed').value||2608,instruments:instruments,plainLanguageDirection:prompt||'Original '+style+' instrumental',vocals:false,lyrics:false,artistImitation:false,provider:'FTN local browser engine',providerCost:0,durationMs:bars*4*(60/bpm)*1000,createdAt:new Date().toISOString()};recipe.flowPrompt=flowPrompt(recipe);try{var list=JSON.parse(localStorage.getItem(STORE)||'[]');list.push(recipe);localStorage.setItem(STORE,JSON.stringify(list.slice(-20)));}catch(e){}draw(recipe);document.getElementById('fire-title').textContent='Free beat draft ready';document.getElementById('fire-recipe').innerHTML='<p><strong>Your original '+esc(style.replace(/-/g,' '))+' sketch is ready on this device.</strong> Play it, export a WAV, or export four editable stems. Nothing was uploaded or charged.</p>';document.getElementById('fire-flow-prompt').value=recipe.flowPrompt;['fire-play','fire-export-wav','fire-export-stems','fire-copy-flow','fire-open-flow'].forEach(function(id){document.getElementById(id).disabled=false;});setStatus('LOCAL DRAFT READY');}
+function build(event){event.preventDefault();if(!document.getElementById('fire-originality').checked){setStatus('CONFIRM ORIGINALITY FIRST');return;}if(liveContext)stop();var prompt=document.getElementById('fire-prompt').value.trim();parsePrompt(prompt);var style=document.getElementById('fire-style').value,bpm=Math.max(60,Math.min(180,+document.getElementById('fire-bpm').value||defaults[style])),bars=+document.getElementById('fire-bars').value,instruments=Array.from(document.querySelectorAll('[name=instrument]:checked')).map(function(x){return x.value;});if(!instruments.length){setStatus('CHOOSE AN INSTRUMENT');return;}recipe={schemaVersion:3,engine:'FTN Fire free on-device procedural sketch',status:'LOCAL_DRAFT_READY',style:style,bpm:bpm,key:document.getElementById('fire-key').value,mood:document.getElementById('fire-mood').value,energy:+document.getElementById('fire-energy').value,bars:bars,arrangement:document.getElementById('fire-arrangement').value,swing:+document.getElementById('fire-swing').value,vibe:document.getElementById('fire-vibe').value,seed:+document.getElementById('fire-seed').value||2608,instruments:instruments,plainLanguageDirection:prompt||'Original '+style+' instrumental',vocals:false,lyrics:false,artistImitation:false,provider:'FTN local browser engine',providerCost:0,durationMs:bars*4*(60/bpm)*1000,createdAt:new Date().toISOString()};recipe.flowPrompt=flowPrompt(recipe);try{var list=JSON.parse(localStorage.getItem(STORE)||'[]');list.push(recipe);localStorage.setItem(STORE,JSON.stringify(list.slice(-20)));}catch(e){}draw(recipe);document.getElementById('fire-title').textContent='Free beat draft ready';document.getElementById('fire-recipe').innerHTML='<p><strong>Your original '+esc(style.replace(/-/g,' '))+' sketch is ready on this device.</strong> Play it, export a WAV, or export four editable stems. Nothing was uploaded or charged.</p>';document.getElementById('fire-flow-prompt').value=recipe.flowPrompt;['fire-play','fire-export-wav','fire-export-stems','fire-copy-flow','fire-open-flow'].forEach(function(id){document.getElementById(id).disabled=false;});setStatus('LOCAL DRAFT READY');}
 async function askIbis(){if(!recipe)return;var host=document.getElementById('fire-ibis-output');host.textContent='Checking your authenticated ibis route…';try{var user=await global.FTN.Auth.getVerifiedUser();if(!user){host.innerHTML='Sign in before transferring the recipe to the configured text provider. <a href="/account/?return=%2Friddim%2Ffire%2F">Open FTN Account</a>.';return;}var result=await global.FTN.Auth.invoke('ibis-query',{country:'Caribbean',prompt:'Act as a practical Caribbean music producer. Give arrangement notes only for this original instrumental recipe. Do not write lyrics, generate a vocalist, imitate a named artist, claim that audio was generated, or invent commercial rights. Recipe: '+JSON.stringify(recipe)});host.textContent=result&&result.answer?result.answer:'No producer notes were returned. The audio recipe was not changed.';}catch(e){host.textContent='ibis Producer Notes are unavailable. No AI-generated arrangement was claimed. Your local draft remains usable.';}}
-function init(){var form=document.getElementById('fire-form');form.addEventListener('submit',build);document.getElementById('fire-style').onchange=function(){document.getElementById('fire-bpm').value=defaults[this.value];};document.getElementById('fire-swing').oninput=function(){document.getElementById('fire-swing-value').textContent=this.value+'%';};document.getElementById('fire-copy-flow').onclick=copyFlowPrompt;document.getElementById('fire-open-flow').onclick=openFlow;document.getElementById('fire-play').onclick=play;document.getElementById('fire-stop').onclick=function(){stop();this.disabled=true;};document.getElementById('fire-export-wav').onclick=exportWav;document.getElementById('fire-export-stems').onclick=exportStems;document.getElementById('fire-reset').onclick=function(){stop();form.reset();recipe=null;managedJobId=null;document.getElementById('fire-swing-value').textContent='8%';document.getElementById('fire-title').textContent='Ready for your idea';document.getElementById('fire-recipe').innerHTML='<p>Set the groove, then create a free on-device instrumental sketch. You can listen, export WAV, or export individual stems.</p>';document.getElementById('fire-flow-prompt').value='';['fire-play','fire-stop','fire-export-wav','fire-export-stems','fire-copy-flow','fire-open-flow'].forEach(function(id){document.getElementById(id).disabled=true;});var c=document.getElementById('fire-wave');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);setStatus('READY');};}
+function seekFromPointer(clientX){var bar=document.getElementById('fire-progress'),r=bar.getBoundingClientRect(),fraction=Math.max(0,Math.min(1,(clientX-r.left)/r.width));seekTo(fraction);}
+function init(){var form=document.getElementById('fire-form');form.addEventListener('submit',build);document.getElementById('fire-style').onchange=function(){document.getElementById('fire-bpm').value=defaults[this.value];};document.getElementById('fire-swing').oninput=function(){document.getElementById('fire-swing-value').textContent=this.value+'%';};document.getElementById('fire-copy-flow').onclick=copyFlowPrompt;document.getElementById('fire-open-flow').onclick=openFlow;document.getElementById('fire-play').onclick=togglePlayPause;document.getElementById('fire-stop').onclick=function(){stop();this.disabled=true;};document.getElementById('fire-export-wav').onclick=exportWav;document.getElementById('fire-export-stems').onclick=exportStems;
+  var progress=document.getElementById('fire-progress');
+  progress.addEventListener('pointerdown',function(e){if(recipe)seekFromPointer(e.clientX);});
+  progress.addEventListener('keydown',function(e){if(!recipe)return;var durationSeconds=recipe.durationMs/1000,pos=currentPositionSeconds();if(e.key==='ArrowRight'){seekTo(Math.min(1,(pos+5)/durationSeconds));e.preventDefault();}else if(e.key==='ArrowLeft'){seekTo(Math.max(0,(pos-5)/durationSeconds));e.preventDefault();}});
+  document.getElementById('fire-reset').onclick=function(){stop();form.reset();recipe=null;managedJobId=null;document.getElementById('fire-swing-value').textContent='8%';document.getElementById('fire-title').textContent='Ready for your idea';document.getElementById('fire-recipe').innerHTML='<p>Set the groove, then create a free on-device instrumental sketch. You can listen, export WAV, or export individual stems.</p>';document.getElementById('fire-flow-prompt').value='';['fire-play','fire-stop','fire-export-wav','fire-export-stems','fire-copy-flow','fire-open-flow'].forEach(function(id){document.getElementById(id).disabled=true;});var c=document.getElementById('fire-wave');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);document.getElementById('fire-progress-fill').style.width='0%';document.getElementById('fire-progress').setAttribute('aria-valuenow','0');document.getElementById('fire-time-current').textContent='0:00';document.getElementById('fire-time-duration').textContent='0:00';setStatus('READY');};}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(window);
