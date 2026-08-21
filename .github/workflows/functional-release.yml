@@ -41,6 +41,9 @@ jobs:
       - name: Audit ibis local DSP (BPM detection) correctness
         run: node tests/ibis-audio-analysis-audit.mjs
 
+      - name: Audit ibis Caribbean Language ID (cited lexical-marker detection)
+        run: node tests/ibis-caribbean-language-id-audit.mjs
+
       - name: Audit FTN Node Registry derivation
         run: node tests/ftn-node-registry-audit.mjs
 

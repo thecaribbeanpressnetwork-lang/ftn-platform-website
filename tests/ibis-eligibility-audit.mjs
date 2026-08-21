@@ -100,6 +100,11 @@ assert.equal(Eligibility.evaluate('ftn-fire-local-procedural', 'INSTRUMENTAL_GEN
 assert.equal(Eligibility.evaluate('ibis-local-project-qc', 'QC', {}).status, 'ELIGIBLE', 'ibis-local-project-qc is real and live today -- no server, no secrets, no deployment step');
 assert.equal(Eligibility.find('QC', {}).length, 1, 'Exactly one QC provider is eligible: ibis-local-project-qc');
 
+// ibis-local-caribbean-language-id: real, deterministic, zero-cost, genuinely live -- the Phase
+// 13 Caribbean Intelligence capability, same "no server, no secrets" pattern as ibis-local-dsp.
+assert.equal(Eligibility.evaluate('ibis-local-caribbean-language-id', 'CARIBBEAN_LANGUAGE_ID', {}).status, 'ELIGIBLE', 'ibis-local-caribbean-language-id is real and live today -- FTN-owned code, no third-party model or dataset');
+assert.equal(Eligibility.find('CARIBBEAN_LANGUAGE_ID', {}).length, 1, 'Exactly one CARIBBEAN_LANGUAGE_ID provider is eligible: ibis-local-caribbean-language-id');
+
 // Phase 7 provider activation: ibis-local-music-engine and ibis-local-sfx-engine are real,
 // deterministic, zero-cost and genuinely live -- same standard as the local providers above.
 assert.equal(Eligibility.evaluate('ibis-local-music-engine', 'INSTRUMENTAL_GENERATION', {}).status, 'ELIGIBLE', 'ibis-local-music-engine is real and live today');

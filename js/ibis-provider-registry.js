@@ -272,6 +272,23 @@ var providers=[
     note:'Autocorrelation-based tempo (BPM) detection over an onset-strength envelope, entirely FTN-authored, no third-party model or dataset involved. Deliberately not wired into any specific FTN node UI this pass (see IBIS-MAP.md) -- registered and tested as a real, complete, working capability first; /riddim/daw/ integration is the flagged next step, following the same "ship a tested vertical slice, flag the next integration point" pattern already used for TEXT and IMAGE.'
   },
   {
+    // Phase 13 (2026-08-21) Caribbean Intelligence directive: the smallest genuinely eligible
+    // Caribbean capability found after real research (see CARIBBEAN-LEDGER.md) -- every other
+    // serious candidate researched this pass was either AGPL-licensed (ineligible for this
+    // commercial product), hardware-blocked (no GPU/Python for any real Creole ASR/translation
+    // model), or its actual code repository could not be located after a genuine search. This one
+    // needed none of that: a small, cited, deterministic lexical-marker list, same
+    // "prefer local/deterministic operations" philosophy already used for ibis-local-dsp above.
+    id:'ibis-local-caribbean-language-id',name:'ibis local Caribbean Language ID (client-side, no model)',categories:['text'],capabilities:['CARIBBEAN_LANGUAGE_ID'],integration:'LOCAL_DETERMINISTIC_NO_PROVIDER',
+    apiStatus:'LIVE',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:true,costToIbis:'ZERO_COST_TO_IBIS',
+    website:null,apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-21',
+    userAuthorizationRequired:false,
+    weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-caribbean-language-id.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_IN_VISITOR_BROWSER',verificationSource:'js/ibis-caribbean-language-id.js and tests/ibis-caribbean-language-id-audit.mjs (this repository); underlying vocabulary cited from https://en.wikipedia.org/wiki/Trinidadian_Creole and https://en.wikipedia.org/wiki/Trinidadian_and_Tobagonian_English',
+    lifecycleState:'ELIGIBLE',
+    note:'A small (7-term), explicitly-cited lexical-marker detector for Trinidad English/Creole vocabulary, entirely FTN-authored, no third-party model, dataset or weights involved -- so no license firewall issue at all, unlike every other Caribbean candidate researched this pass. Its output is always RESEARCH_DERIVED evidence (never VERIFIED cultural fact) per the Caribbean Evidence/Authenticity System, and it degrades honestly to INSUFFICIENT_EVIDENCE when no marker is found rather than guessing. It only ever analyzes text a caller supplies -- it does not generate or insert Trinidadian expressions into anything, avoiding the directive\'s own stereotyping/fake-authenticity warning by construction. Deliberately not wired into any specific FTN node UI this pass, same honest "tested vertical slice first, integration point flagged next" pattern as ibis-local-dsp -- a real candidate integration point is /facethenation/\'s topic/guest suggestion forms or the ibis widget\'s own language handling, not decided here without a concrete product call.'
+  },
+  {
     // Phase 4 real-code investigation finding: js/ftn-fire.js (read directly, not inferred from
     // the product registry) is a genuine, substantial, zero-cost local INSTRUMENTAL_GENERATION
     // engine -- real WebAudio procedural synthesis per Caribbean style (soca/power-soca/reggae/

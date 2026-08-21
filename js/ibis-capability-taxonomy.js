@@ -69,6 +69,14 @@
     // from parameters (js/ibis-sfx-engine.js); kept deliberately separate from any future audio-
     // processing capability so "processing" is never relabeled as "generation."
     SFX: ['SFX_GENERATION'],
+    // Phase 13 Caribbean Intelligence directive: a single real capability, not one per named
+    // dialect/territory (CARIBBEAN_LANGUAGE_ID/TRINI_LANGUAGE_ID/etc. from the directive's own
+    // list are request-time region parameters to this one capability, the same pattern already
+    // established for VOICE_SYNTHESIS's dialect parameter above -- never a second capability
+    // string per region). Only registered because a real, cited implementation exists
+    // (js/ibis-caribbean-language-id.js, provider ibis-local-caribbean-language-id) -- the
+    // directive's own rule ("do not register capabilities merely because they have been named").
+    CARIBBEAN: ['CARIBBEAN_LANGUAGE_ID'],
   };
 
   // Shipped-string -> canonical-equivalent, or null where the shipped string covers ground the

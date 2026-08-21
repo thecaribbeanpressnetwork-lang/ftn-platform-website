@@ -1588,6 +1588,82 @@ lack of GPU/Python (VIDEO, LIP_SYNC self-host candidates). No new capability in 
 registered as `READY`/`ELIGIBLE`/`DEPLOYED` without real evidence, per the directive's own explicit
 rule.
 
+## 0.22 Phase 13 — capability lifecycle reconciliation, Caribbean Intelligence research, first Caribbean capability (2026-08-21)
+
+Re-detection: `git status` clean, `origin/main` in sync at `91154be` before this pass — no drift.
+
+### Capability lifecycle: reconciled with the existing `lifecycleState` model, not replaced
+
+The Phase 13 directive proposes a named lifecycle: `DISCOVERED → RESEARCHED → VERIFIED →
+LICENSE-CLEARED → TECHNICALLY-ELIGIBLE → REGISTERED → AVAILABLE → TESTED → PRODUCTION`, plus
+terminal states `BLOCKED-LICENSE/BLOCKED-AUTH/BLOCKED-INFRA/BLOCKED-HARDWARE/BLOCKED-COST/
+BLOCKED-QUALITY/DEFERRED/REJECTED`. The registry already implements this concept — every entry in
+`js/ibis-provider-registry.js` has carried a real `lifecycleState` (`DISCOVERED` /
+`LICENSE_VERIFIED` / `EXECUTABLE` / `ELIGIBLE` / `BLOCKED`) plus separate `apiStatus`, `enabled`,
+and free-text `note` fields documenting the exact blocker, since Phase 6. Renaming every existing
+value across dozens of already-tested entries and CI assertions to match the directive's exact
+wording would be a wide, disruptive, purely cosmetic change for no functional benefit — precisely
+what this document's own "do not replace working code merely to make it look different" principle
+(reinforced explicitly in this same Phase 13 directive) warns against. Instead, here is the
+honest mapping, so a future session can translate between the two vocabularies without guessing:
+
+| Directive's term | This registry's real equivalent |
+|---|---|
+| DISCOVERED | `lifecycleState:'DISCOVERED'` |
+| RESEARCHED / VERIFIED | Captured in `lastVerified` + `verificationSource` + `note`, not a separate state |
+| LICENSE-CLEARED | `lifecycleState:'LICENSE_VERIFIED'`, plus `commercialUse`/`redistribution` fields |
+| TECHNICALLY-ELIGIBLE | `lifecycleState:'EXECUTABLE'` (a real generation/test succeeded) |
+| REGISTERED / AVAILABLE | An entry existing in the registry array at all, with `enabled` reflecting whether it's live for real users |
+| TESTED | Covered by a real `tests/*.mjs` file, cross-referenced in `verificationSource` |
+| PRODUCTION | `lifecycleState:'ELIGIBLE'` **and** `enabled:true` together — both are required, never either alone |
+| BLOCKED-LICENSE / BLOCKED-AUTH / BLOCKED-INFRA / BLOCKED-HARDWARE / BLOCKED-COST | `costToIbis` values (`WOULD_REQUIRE_IBIS_COMPUTE_SPEND`, `NOT_APPLICABLE_LICENSE_BLOCKS_USE`, etc.) plus the specific reason always spelled out in `note` — this registry has never used one generic "BLOCKED" without saying why |
+| DEFERRED / REJECTED | Recorded in this document's prose (e.g. Sankofa, §0.21's Fullstack-Agent verdict) or simply not registered, with the reason stated |
+
+No schema change was made — the existing fields already cover every concept the directive names.
+Extending the schema would only be justified by a concrete new field genuinely needed by a real
+capability; none arose this pass.
+
+### Caribbean Intelligence research — see `CARIBBEAN-LEDGER.md`
+
+A full, separate research ledger was created (`CARIBBEAN-LEDGER.md`) rather than folding this into
+an already-large `IBIS-MAP.md` — the same reasoning that already justifies this file's own
+existence as a dedicated provider-research document. It records real, source-verified findings on
+all four named leads (CreoleVal, Sankofa, Isla AI, open-hub) plus three more found during the pass
+(GuyLingo, a Haitian Creole ASR project, TRIDENT) — real repository/license checks, not
+paraphrased assumptions. Headline findings: **Sankofa is AGPLv3** (rejected, same license-firewall
+issue as Phase 12's Fullstack-Agent finding); **GuyLingo (Guyanese Creole↔English, MIT, University
+of Michigan + University of Guyana) is the most commercially clean real Caribbean-language
+resource found**, but hardware-blocked (needs Python/GPU this machine doesn't have — deferred,
+same root cause as every video/lip-sync candidate); **"Isla AI"'s described project is real but its
+actual code repository could not be located** after a genuine search, honestly recorded as
+unverified rather than assumed either way.
+
+### `CARIBBEAN_LANGUAGE_ID` — the one capability actually implemented this pass
+
+New capability group in `js/ibis-capability-taxonomy.js` (`CARIBBEAN: ['CARIBBEAN_LANGUAGE_ID']`)
+and new provider `ibis-local-caribbean-language-id`
+(`js/ibis-caribbean-language-id.js`) — a small, cited (7-term), deterministic lexical-marker
+detector for Trinidad English/Creole vocabulary, sourced directly from two real Wikipedia articles
+fetched during this pass (`Trinidadian_Creole`, `Trinidadian_and_Tobagonian_English`). Chosen
+specifically because it needed none of the blockers everything else in the ledger hit: no license
+firewall question (FTN-owned code, no third-party model/dataset), no GPU, no Python, no external
+credential — the exact same "prefer local/deterministic operations" pattern already proven for
+`ibis-local-dsp`. Its output is always `RESEARCH_DERIVED` evidence (per the Caribbean Evidence/
+Authenticity System the directive asked for — VERIFIED/COMMUNITY-SOURCED/RESEARCH-DERIVED/
+MODEL-INFERRED/CREATIVE), never presented as VERIFIED cultural fact, and degrades honestly to
+`INSUFFICIENT_EVIDENCE` when no marker is found rather than guessing. It only ever analyzes
+caller-supplied text — it does not generate or insert Trinidadian expressions into anything,
+avoiding the directive's own stereotyping/fake-authenticity warning by construction, not by policy
+alone. `lifecycleState:'ELIGIBLE'`, `enabled:true` — genuinely live today. Deliberately not yet
+wired into any specific FTN node UI, same honest pattern as `ibis-local-dsp`'s own unwired status.
+
+Real tests: `tests/ibis-caribbean-language-id-audit.mjs` — positive detection, case/variant-
+insensitivity, a real word-boundary false-positive guard ("sublime" must not trigger "lime"),
+honest degrade on plain Standard English and empty/null input, and a check that every positive
+match carries a real, checkable source URL. Wired into `.github/workflows/functional-release.yml`
+as a new CI step. `tests/ibis-eligibility-audit.mjs` extended with real `ELIGIBLE` assertions for
+the new provider. Full local suite re-run clean.
+
 ## 4. Current provider inventory (every real external AI call in this repo, confirmed by file)
 
 | Function/file | Provider | Auth required | Status |
