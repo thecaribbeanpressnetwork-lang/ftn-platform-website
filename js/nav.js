@@ -27,10 +27,20 @@
     a.textContent = 'FTN Invest-in';
   });
 
-  var PRIMARY_LINKS=[['NOW','/now/'],['COMMUNITY','/community-connect/'],['CULTURE','/riddim/'],['OPPORTUNITY','/opportunities/'],['MY FTN','/account/'],['ASK IBIS','/ibis-ai/']];
-  function links(className){return PRIMARY_LINKS.map(function(item){var current=location.pathname===item[1]||(item[1]!=='/'&&location.pathname.indexOf(item[1])===0);return'<a href="'+item[1]+'"'+(className?' class="'+className+'"':'')+(current?' aria-current="page"':'')+'>'+item[0]+'</a>';}).join('');}
+  // Pass 16 UX Guardian fix (FTN Rule 2, first-time-visitor comprehension): each brand-language
+  // label keeps its identity (do not discard the brand voice), but now carries a real title/
+  // aria-label describing what a visitor who has never seen FTN would actually find there.
+  var PRIMARY_LINKS=[
+    ['NOW','/now/','What is happening right now: live indicators, alerts, and current status'],
+    ['COMMUNITY','/community-connect/','Community Connect — report and track local civic issues'],
+    ['CULTURE','/riddim/','FTN Riddim, Fire, Kaiso, Radio and Screen — Caribbean music and creative tools'],
+    ['OPPORTUNITY','/opportunities/','Jobs, grants and civic opportunities across the region'],
+    ['MY FTN','/account/','Your FTN account, saved work and settings'],
+    ['ASK IBIS','/ibis-ai/','Ask IBIS — FTN’s AI assistant for finding what you need']
+  ];
+  function links(className){return PRIMARY_LINKS.map(function(item){var current=location.pathname===item[1]||(item[1]!=='/'&&location.pathname.indexOf(item[1])===0);return'<a href="'+item[1]+'"'+(className?' class="'+className+'"':'')+(current?' aria-current="page"':'')+' title="'+item[2]+'" aria-label="'+item[0]+' — '+item[2]+'">'+item[0]+'</a>';}).join('');}
   function normalizeNavigation(){
-    document.querySelectorAll('.site-nav').forEach(function(nav){nav.setAttribute('aria-label','Primary');nav.innerHTML='<ul class="site-nav__list">'+PRIMARY_LINKS.map(function(item){return'<li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="'+item[1]+'">'+item[0]+'</a></li>';}).join('')+'</ul>';});
+    document.querySelectorAll('.site-nav').forEach(function(nav){nav.setAttribute('aria-label','Primary');nav.innerHTML='<ul class="site-nav__list">'+PRIMARY_LINKS.map(function(item){var current=location.pathname===item[1]||(item[1]!=='/'&&location.pathname.indexOf(item[1])===0);return'<li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="'+item[1]+'"'+(current?' aria-current="page"':'')+' title="'+item[2]+'" aria-label="'+item[0]+' — '+item[2]+'">'+item[0]+'</a></li>';}).join('')+'</ul>';});
     document.querySelectorAll('.nexus-nav').forEach(function(nav){nav.setAttribute('aria-label','Primary');nav.innerHTML=links('');});
     document.querySelectorAll('.mobile-nav__links').forEach(function(nav){nav.innerHTML=links('mobile-nav__link--top');});
     document.querySelectorAll('[data-sign-in-entry]').forEach(function(a){a.href='/account/';a.textContent='Account';a.setAttribute('aria-label','Open FTN Account');});
@@ -59,8 +69,60 @@
   }
   normalizeFooter();
 
-  function maybeMountOwnerControl(){var hasSession=false;try{for(var i=0;i<localStorage.length;i++){if(/^sb-.*-auth-token$/.test(localStorage.key(i)||'')){hasSession=true;break;}}}catch(e){}if(!hasSession)return;var script=document.createElement('script');script.src='/js/ftn-auth.js?v=20260812.1';script.onload=function(){if(!globalThis.FTN||!globalThis.FTN.Auth)return;globalThis.FTN.Auth.ownerAccess().then(function(result){if(!result||!result.allowed)return;document.querySelectorAll('.site-header__actions,.nexus-header__bar').forEach(function(host){if(host.querySelector('[data-owner-console]'))return;var link=document.createElement('a');link.href='/god-mode/';link.textContent='God Mode';link.className='btn btn-primary btn-sm';link.setAttribute('data-owner-console','');link.setAttribute('aria-label','Open FTN Nexus Command God Mode');host.appendChild(link);});});};document.head.appendChild(script);}
+  // Shared session/auth-loading plumbing (Pass 16) -- reused by both the God Mode owner
+  // control below and the authenticated-identity chip, instead of each independently checking
+  // localStorage and injecting its own copy of ftn-auth.js. This is still Supabase Auth end to
+  // end -- no new auth system, just one shared loader instead of two near-duplicate ones.
+  function hasLikelySession(){var found=false;try{for(var i=0;i<localStorage.length;i++){if(/^sb-.*-auth-token$/.test(localStorage.key(i)||'')){found=true;break;}}}catch(e){}return found;}
+  function ensureAuthLoaded(callback){
+    if(globalThis.FTN&&globalThis.FTN.Auth){callback();return;}
+    if(document.querySelector('script[data-ftn-auth-shared]')){var tries=0;(function poll(){if(globalThis.FTN&&globalThis.FTN.Auth||tries++>80)callback();else setTimeout(poll,25);})();return;}
+    var script=document.createElement('script');script.src='/js/ftn-auth.js?v=20260812.1';script.setAttribute('data-ftn-auth-shared','');script.onload=function(){callback();};script.onerror=function(){callback();};document.head.appendChild(script);
+  }
+
+  function maybeMountOwnerControl(){if(!hasLikelySession())return;ensureAuthLoaded(function(){if(!globalThis.FTN||!globalThis.FTN.Auth)return;globalThis.FTN.Auth.ownerAccess().then(function(result){if(!result||!result.allowed)return;document.querySelectorAll('.site-header__actions,.nexus-header__bar').forEach(function(host){if(host.querySelector('[data-owner-console]'))return;var link=document.createElement('a');link.href='/god-mode/';link.textContent='God Mode';link.className='btn btn-primary btn-sm';link.setAttribute('data-owner-console','');link.setAttribute('aria-label','Open FTN Nexus Command God Mode');host.appendChild(link);});}).catch(function(){});});}
   maybeMountOwnerControl();
+
+  // FTN Rule 4 (authenticated identity): a signed-in user must know they're signed in. Reuses
+  // the exact same Supabase Auth session (FTN.Auth.getVerifiedUser()) already powering /account/
+  // -- no new auth system, no new session store. Replaces the plain "Account" link with a real
+  // identity chip (initials/avatar + name where space permits) carrying a small menu. Guests
+  // (no likely session, or a session that turns out invalid) keep the existing plain link
+  // unchanged -- it already routes to /account/'s own real sign-in flow.
+  function escText(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function chipInitials(user){
+    var name=(user.user_metadata&&(user.user_metadata.full_name||user.user_metadata.name))||'';
+    var parts=String(name).trim().split(/\s+/).filter(Boolean);
+    if(parts.length>=2)return(parts[0][0]+parts[1][0]).toUpperCase();
+    if(parts.length===1)return parts[0].slice(0,2).toUpperCase();
+    var email=user.email||'';
+    return email.slice(0,2).toUpperCase()||'FT';
+  }
+  function mountAccountIdentity(){
+    if(!hasLikelySession())return;
+    ensureAuthLoaded(function(){
+      if(!globalThis.FTN||!globalThis.FTN.Auth)return;
+      globalThis.FTN.Auth.getVerifiedUser().then(function(user){
+        if(!user)return;
+        var label=(user.user_metadata&&(user.user_metadata.full_name||user.user_metadata.name))||user.email||'Signed in';
+        var initials=chipInitials(user);
+        document.querySelectorAll('[data-sign-in-entry]').forEach(function(a){
+          if(!a||a.closest('[data-account-chip]'))return;
+          var chip=document.createElement('div');
+          chip.className='ftn-account-chip';
+          chip.setAttribute('data-account-chip','');
+          chip.innerHTML='<button type="button" class="ftn-account-chip__trigger" aria-haspopup="menu" aria-expanded="false" aria-label="Account menu — signed in as '+escText(label)+'"><span class="ftn-account-chip__avatar" aria-hidden="true">'+escText(initials)+'</span><span class="ftn-account-chip__name">'+escText(label)+'</span></button><div class="ftn-account-chip__menu" role="menu" hidden><p class="ftn-account-chip__signed-in">Signed in as<br><strong>'+escText(label)+'</strong></p><a role="menuitem" href="/account/">Account</a><button role="menuitem" type="button" data-account-sign-out>Sign out</button></div>';
+          a.replaceWith(chip);
+          var trigger=chip.querySelector('.ftn-account-chip__trigger'),menu=chip.querySelector('.ftn-account-chip__menu');
+          trigger.addEventListener('click',function(e){e.stopPropagation();var open=trigger.getAttribute('aria-expanded')==='true';trigger.setAttribute('aria-expanded',String(!open));menu.hidden=open;});
+          chip.querySelector('[data-account-sign-out]').addEventListener('click',function(){globalThis.FTN.Auth.signOut().then(function(){location.href='/account/';});});
+        });
+        document.addEventListener('click',function(e){document.querySelectorAll('[data-account-chip]').forEach(function(chip){if(chip.contains(e.target))return;var trigger=chip.querySelector('.ftn-account-chip__trigger'),menu=chip.querySelector('.ftn-account-chip__menu');if(trigger)trigger.setAttribute('aria-expanded','false');if(menu)menu.hidden=true;});});
+        document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;document.querySelectorAll('[data-account-chip] .ftn-account-chip__menu').forEach(function(m){m.hidden=true;});document.querySelectorAll('[data-account-chip] .ftn-account-chip__trigger').forEach(function(t){t.setAttribute('aria-expanded','false');});});
+      }).catch(function(){});
+    });
+  }
+  mountAccountIdentity();
 
   function mountInvestInEntry() {
     if (location.pathname.indexOf('/invest') === 0) return;

@@ -23,7 +23,11 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-16);
-  padding-block: var(--space-16);
+  /* Pass 16 UX Guardian fix: was --space-16 (16px) top+bottom -- the single largest
+     contributor to header viewport occupancy on laptop/tablet breakpoints. Trimmed to
+     --space-8 without shrinking the 44px nav-toggle touch target (WCAG 2.2 SC 2.5.8),
+     which stays the tallest element and therefore still sets the floor on narrow widths. */
+  padding-block: var(--space-8);
 }
 
 .site-header__logo {
@@ -213,10 +217,10 @@
   display: none;
   position: fixed;
   inset: 0;
-  /* Header height grew from 65px to 77px (44px nav-toggle touch target + 16px/16px bar
-     padding + 1px border) when the nav-toggle was enlarged in the v1.5 pass -- kept in sync
+  /* Pass 16 UX Guardian fix: header height is now 44px nav-toggle touch target + 8px/8px bar
+     padding (trimmed from 16px/16px, see .site-header__bar) + 1px border = 61px. Kept in sync
      here since this is a fixed offset, not something the flexbox layout resolves for us. */
-  top: 77px;
+  top: 61px;
   z-index: 40;
   background: #070708;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -295,3 +299,111 @@
 }
 
 @media (min-width:1240px) and (max-width:1439px){.site-header__bar{gap:8px}.site-header__logo{max-width:170px}.site-nav__list{gap:0}.site-nav__trigger{padding:7px 5px;font-size:11px}.site-header__actions{gap:7px}.country-switcher-trigger__label{display:none}}
+
+/* Pass 16 UX Guardian: authenticated-identity chip (FTN Rule 4). Replaces the plain
+   "Account" link once a real, verified Supabase session is confirmed -- see js/nav.js
+   mountAccountIdentity(). Never shown to a guest; the underlying /account/ link and its own
+   sign-in flow are unchanged for anyone without a session. */
+.ftn-account-chip { position: relative; }
+
+.ftn-account-chip__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 4px var(--space-8) 4px 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ftn-account-chip__trigger:hover,
+.ftn-account-chip__trigger[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.ftn-account-chip__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  flex: none;
+}
+
+.ftn-account-chip__name {
+  font-size: var(--text-small-size);
+  font-weight: 700;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Compact/mobile: avatar/initials alone are sufficient, per Rule 4 -- the name text is the
+   first thing to drop, not the identity affordance itself. */
+@media (max-width: 1439px) {
+  .ftn-account-chip__name { display: none; }
+  .ftn-account-chip__trigger { padding: 4px; }
+}
+
+.ftn-account-chip__menu {
+  position: absolute;
+  top: calc(100% + var(--space-8));
+  right: 0;
+  min-width: 220px;
+  background: #101014;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-12);
+  z-index: 60;
+}
+
+.ftn-account-chip__signed-in {
+  margin: 0 0 var(--space-8);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: var(--text-small-size);
+  color: #b8b8c0;
+}
+
+.ftn-account-chip__signed-in strong {
+  color: #fff;
+  word-break: break-word;
+}
+
+.ftn-account-chip__menu a,
+.ftn-account-chip__menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-8);
+  border: none;
+  background: none;
+  border-radius: var(--radius-8);
+  color: #ececf0;
+  font-size: var(--text-small-size);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ftn-account-chip__menu a:hover,
+.ftn-account-chip__menu button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Mobile drawer context: the chip sits inline in the mobile nav's action row, left-aligned,
+   full name visible since there's no horizontal header-crowding constraint there. */
+.mobile-nav .ftn-account-chip__name { display: inline; max-width: none; }
+.mobile-nav .ftn-account-chip__menu { position: static; margin-top: var(--space-8); box-shadow: none; }

@@ -1,0 +1,1874 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-21T19:09:38.991Z",
+  "base": "http://127.0.0.1:8794",
+  "routes": [
+    "C:/Program Files/Git/",
+    "/account/",
+    "/ibis-ai/",
+    "/observatory/",
+    "/display-network/",
+    "/radio/",
+    "/riddim/dj/",
+    "/riddim/daw/",
+    "/riddim/fire/",
+    "/applications/",
+    "/screen/"
+  ],
+  "findings": [
+    {
+      "route": "C:/Program Files/Git/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794C:/Program Files/Git/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "C:/Program Files/Git/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794C:/Program Files/Git/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "C:/Program Files/Git/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794C:/Program Files/Git/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "C:/Program Files/Git/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794C:/Program Files/Git/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "C:/Program Files/Git/",
+      "breakpoint": "phone-393x852",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794C:/Program Files/Git/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "C:/Program Files/Git/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794C:/Program Files/Git/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (37x38)",
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)"
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#account-google.btn \"Continue with Google\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (37x38)",
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)"
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#account-google.btn \"Continue with Google\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "8 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#account-google.btn \"Continue with Google\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "7 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#account-google.btn \"Continue with Google\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#account-google.btn \"Continue with Google\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/account/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#account-google.btn \"Continue with Google\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (38x38)",
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ibis-new-chat.btn \"+ New chat\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (38x38)",
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ibis-new-chat.btn \"+ New chat\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "8 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ibis-new-chat.btn \"+ New chat\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "7 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ibis-new-chat.btn \"+ New chat\"",
+        "button#ibis-sidebar-toggle.ibis-chat__sidebar-toggle \"Menu\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ibis-new-chat.btn \"+ New chat\"",
+        "button#ibis-sidebar-toggle.ibis-chat__sidebar-toggle \"Menu\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ibis-new-chat.btn \"+ New chat\"",
+        "button#ibis-sidebar-toggle.ibis-chat__sidebar-toggle \"Menu\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-live-sources' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 92.6% of the laptop-1366x768 viewport (budget 75%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 711,
+        "viewportHeight": 768
+      }
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (38x38)",
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ftn-sat-refresh.primary \"Refresh image\"",
+        "button#ftn-sat-loop \"Animate recent imagery\"",
+        "button#pause-toggle.btn \"Pause Counter Updates\"",
+        "button#kiosk-toggle.btn \"Enter Kiosk Mode\"",
+        "button#reality-insight-next.reality-insight__next \"Next observation →\"",
+        "button#obs-refresh-live.btn \"Refresh sources\"",
+        "button#discover-random-indicator.btn \"Random Indicator\"",
+        "button#discover-random-relationship.btn \"Random Relationship\""
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-live-sources' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 98.8% of the small-desktop-1280x720 viewport (budget 75%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 711,
+        "viewportHeight": 720
+      }
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (38x38)",
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ftn-sat-refresh.primary \"Refresh image\"",
+        "button#ftn-sat-loop \"Animate recent imagery\"",
+        "button#pause-toggle.btn \"Pause Counter Updates\"",
+        "button#kiosk-toggle.btn \"Enter Kiosk Mode\"",
+        "button#reality-insight-next.reality-insight__next \"Next observation →\"",
+        "button#obs-refresh-live.btn \"Refresh sources\"",
+        "button#discover-random-indicator.btn \"Random Indicator\"",
+        "button#discover-random-relationship.btn \"Random Relationship\""
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-live-sources' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 100.9% of the small-laptop-1024x768 viewport (budget 75%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 775,
+        "viewportHeight": 768
+      }
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "8 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ftn-sat-refresh.primary \"Refresh image\"",
+        "button#ftn-sat-loop \"Animate recent imagery\"",
+        "button#pause-toggle.btn \"Pause Counter Updates\"",
+        "button#kiosk-toggle.btn \"Enter Kiosk Mode\"",
+        "button#reality-insight-next.reality-insight__next \"Next observation →\"",
+        "button#obs-refresh-live.btn \"Refresh sources\"",
+        "button#discover-random-indicator.btn \"Random Indicator\"",
+        "button#discover-random-relationship.btn \"Random Relationship\""
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-live-sources' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 125.7% of the tablet-portrait-768x1024 viewport (budget 85%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 1287,
+        "viewportHeight": 1024
+      }
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "7 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ftn-sat-refresh.primary \"Refresh image\"",
+        "button#ftn-sat-loop \"Animate recent imagery\"",
+        "button#pause-toggle.btn \"Pause Counter Updates\"",
+        "button#kiosk-toggle.btn \"Enter Kiosk Mode\"",
+        "button#reality-insight-next.reality-insight__next \"Next observation →\"",
+        "button#obs-refresh-live.btn \"Refresh sources\"",
+        "button#discover-random-indicator.btn \"Random Indicator\"",
+        "button#discover-random-relationship.btn \"Random Relationship\""
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "phone-393x852",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-live-sources' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 193.5% of the phone-393x852 viewport (budget 92%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 1649,
+        "viewportHeight": 852
+      }
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ftn-sat-refresh.primary \"Refresh image\"",
+        "button#ftn-sat-loop \"Animate recent imagery\"",
+        "button#pause-toggle.btn \"Pause Counter Updates\"",
+        "button#kiosk-toggle.btn \"Enter Kiosk Mode\"",
+        "button#reality-insight-next.reality-insight__next \"Next observation →\"",
+        "button#obs-refresh-live.btn \"Refresh sources\"",
+        "button#discover-random-indicator.btn \"Random Indicator\"",
+        "button#discover-random-relationship.btn \"Random Relationship\""
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-live-sources' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 218.1% of the phone-small-360x800 viewport (budget 92%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 1745,
+        "viewportHeight": 800
+      }
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/observatory/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ftn-sat-refresh.primary \"Refresh image\"",
+        "button#ftn-sat-loop \"Animate recent imagery\"",
+        "button#pause-toggle.btn \"Pause Counter Updates\"",
+        "button#kiosk-toggle.btn \"Enter Kiosk Mode\"",
+        "button#reality-insight-next.reality-insight__next \"Next observation →\"",
+        "button#obs-refresh-live.btn \"Refresh sources\"",
+        "button#discover-random-indicator.btn \"Random Indicator\"",
+        "button#discover-random-relationship.btn \"Random Relationship\""
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "17 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (38x38)",
+        "button.country-switcher-trigger (36x36)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "8 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#dn-add-content.btn \"Add to playlist\"",
+        "button#dn-clear-content.btn \"Clear playlist\"",
+        "button#dn-play-preview.btn \"Play preview\"",
+        "button#dn-next-preview.btn \"Next\"",
+        "button#dn-export-playlist.btn \"Export JSON\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "17 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (38x38)",
+        "button.country-switcher-trigger (36x36)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "8 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#dn-add-content.btn \"Add to playlist\"",
+        "button#dn-clear-content.btn \"Clear playlist\"",
+        "button#dn-play-preview.btn \"Play preview\"",
+        "button#dn-next-preview.btn \"Next\"",
+        "button#dn-export-playlist.btn \"Export JSON\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "16 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "8 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#dn-add-content.btn \"Add to playlist\"",
+        "button#dn-clear-content.btn \"Clear playlist\"",
+        "button#dn-play-preview.btn \"Play preview\"",
+        "button#dn-next-preview.btn \"Next\"",
+        "button#dn-export-playlist.btn \"Export JSON\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "15 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "8 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#dn-add-content.btn \"Add to playlist\"",
+        "button#dn-clear-content.btn \"Clear playlist\"",
+        "button#dn-play-preview.btn \"Play preview\"",
+        "button#dn-next-preview.btn \"Next\"",
+        "button#dn-export-playlist.btn \"Export JSON\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "14 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "8 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#dn-add-content.btn \"Add to playlist\"",
+        "button#dn-clear-content.btn \"Clear playlist\"",
+        "button#dn-play-preview.btn \"Play preview\"",
+        "button#dn-next-preview.btn \"Next\"",
+        "button#dn-export-playlist.btn \"Export JSON\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "14 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/display-network/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "8 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#dn-add-content.btn \"Add to playlist\"",
+        "button#dn-clear-content.btn \"Clear playlist\"",
+        "button#dn-play-preview.btn \"Play preview\"",
+        "button#dn-next-preview.btn \"Next\"",
+        "button#dn-export-playlist.btn \"Export JSON\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/radio/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/radio/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/radio/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/radio/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/radio/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/radio/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/radio/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/radio/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/radio/",
+      "breakpoint": "phone-393x852",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/radio/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/radio/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/radio/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "3 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/dj-tube-discovery' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "3 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (31x41)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN RIDDIM\"",
+        "button#connect \"CONNECT MIDI\"",
+        "button#openFullscreen.primary \"FULLSCREEN\"",
+        "button#dj-play-A \"PLAY\"",
+        "button#dj-setcue-A \"SET CUE\"",
+        "button#dj-gocue-A \"GO CUE\"",
+        "button#dj-loop-A \"LOOP OFF\"",
+        "button#dj-play-B \"PLAY\""
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/dj-tube-discovery' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "3 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (31x41)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN RIDDIM\"",
+        "button#connect \"CONNECT MIDI\"",
+        "button#openFullscreen.primary \"FULLSCREEN\"",
+        "button#dj-play-A \"PLAY\"",
+        "button#dj-setcue-A \"SET CUE\"",
+        "button#dj-gocue-A \"GO CUE\"",
+        "button#dj-loop-A \"LOOP OFF\"",
+        "button#dj-play-B \"PLAY\""
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/dj-tube-discovery' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "3 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (31x41)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN RIDDIM\"",
+        "button#connect \"CONNECT MIDI\"",
+        "button#openFullscreen.primary \"FULLSCREEN\"",
+        "button#dj-play-A \"PLAY\"",
+        "button#dj-setcue-A \"SET CUE\"",
+        "button#dj-gocue-A \"GO CUE\"",
+        "button#dj-loop-A \"LOOP OFF\"",
+        "button#dj-play-B \"PLAY\""
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/dj-tube-discovery' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "3 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (31x41)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN RIDDIM\"",
+        "button#connect \"CONNECT MIDI\"",
+        "button#openFullscreen.primary \"FULLSCREEN\"",
+        "button#dj-play-A \"PLAY\"",
+        "button#dj-setcue-A \"SET CUE\"",
+        "button#dj-gocue-A \"GO CUE\"",
+        "button#dj-loop-A \"LOOP OFF\"",
+        "button#dj-play-B \"PLAY\""
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "phone-393x852",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/dj-tube-discovery' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "2 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (32x42)"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "14 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN RIDDIM\"",
+        "button#openFullscreen.primary \"FULLSCREEN\"",
+        "button#dj-play-A \"PLAY\"",
+        "button#dj-setcue-A \"SET CUE\"",
+        "button#dj-gocue-A \"GO CUE\"",
+        "button#dj-loop-A \"LOOP OFF\"",
+        "button#dj-play-B \"PLAY\"",
+        "button#dj-setcue-B \"SET CUE\""
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "2 console error(s) during render/interaction",
+      "detail": [
+        "Access to fetch at 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/dj-tube-discovery' from origin 'http://127.0.0.1:8794' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'https://ftnplatform.org' that is not equal to the supplied origin. Have the server send the header with a valid value.",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "2 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (32x42)"
+      ]
+    },
+    {
+      "route": "/riddim/dj/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "14 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN RIDDIM\"",
+        "button#openFullscreen.primary \"FULLSCREEN\"",
+        "button#dj-play-A \"PLAY\"",
+        "button#dj-setcue-A \"SET CUE\"",
+        "button#dj-gocue-A \"GO CUE\"",
+        "button#dj-loop-A \"LOOP OFF\"",
+        "button#dj-play-B \"PLAY\"",
+        "button#dj-setcue-B \"SET CUE\""
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "3 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN Riddim\"",
+        "button#neutral \"RESET CONTROLS\"",
+        "button#starter.primary \"LOAD FTN PRACTICE GROOVE\"",
+        "button#play.primary \"PLAY\"",
+        "button#stop \"STOP\"",
+        "button#original \"ORIGINAL\"",
+        "button#save.primary \"SAVE VERSION\"",
+        "button#wav \"DOWNLOAD WAV\""
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "3 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN Riddim\"",
+        "button#neutral \"RESET CONTROLS\"",
+        "button#starter.primary \"LOAD FTN PRACTICE GROOVE\"",
+        "button#play.primary \"PLAY\"",
+        "button#stop \"STOP\"",
+        "button#original \"ORIGINAL\"",
+        "button#save.primary \"SAVE VERSION\"",
+        "button#wav \"DOWNLOAD WAV\""
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "3 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN Riddim\"",
+        "button#neutral \"RESET CONTROLS\"",
+        "button#starter.primary \"LOAD FTN PRACTICE GROOVE\"",
+        "button#play.primary \"PLAY\"",
+        "button#stop \"STOP\"",
+        "button#original \"ORIGINAL\"",
+        "button#save.primary \"SAVE VERSION\"",
+        "button#wav \"DOWNLOAD WAV\""
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "3 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "15 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN Riddim\"",
+        "button#neutral \"RESET CONTROLS\"",
+        "button#starter.primary \"LOAD FTN PRACTICE GROOVE\"",
+        "button#play.primary \"PLAY\"",
+        "button#stop \"STOP\"",
+        "button#original \"ORIGINAL\"",
+        "button#save.primary \"SAVE VERSION\"",
+        "button#wav \"DOWNLOAD WAV\""
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "2 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "14 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN Riddim\"",
+        "button#neutral \"RESET CONTROLS\"",
+        "button#starter.primary \"LOAD FTN PRACTICE GROOVE\"",
+        "button#wav \"DOWNLOAD WAV\"",
+        "button#mp3 \"DOWNLOAD MP3\"",
+        "button#recipe \"DOWNLOAD RECIPE\"",
+        "button#daw-record \"RECORD TRACK\"",
+        "button#daw-save-project \"SAVE PROJECT\""
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "2 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/riddim/daw/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "14 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#back \"← FTN Riddim\"",
+        "button#neutral \"RESET CONTROLS\"",
+        "button#starter.primary \"LOAD FTN PRACTICE GROOVE\"",
+        "button#wav \"DOWNLOAD WAV\"",
+        "button#mp3 \"DOWNLOAD MP3\"",
+        "button#recipe \"DOWNLOAD RECIPE\"",
+        "button#daw-record \"RECORD TRACK\"",
+        "button#daw-save-project \"SAVE PROJECT\""
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "11 interactive element(s) smaller than 44px",
+      "detail": [
+        "a (27x17)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#fire-reset \"RESET\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "11 interactive element(s) smaller than 44px",
+      "detail": [
+        "a (27x17)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#fire-reset \"RESET\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "11 interactive element(s) smaller than 44px",
+      "detail": [
+        "a (27x17)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#fire-reset \"RESET\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "11 interactive element(s) smaller than 44px",
+      "detail": [
+        "a (27x17)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#fire-reset \"RESET\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#fire-reset \"RESET\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)",
+        "input (13x13)"
+      ]
+    },
+    {
+      "route": "/riddim/fire/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "4 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#fire-reset \"RESET\"",
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 81.9% of the laptop-1366x768 viewport (budget 75%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 629,
+        "viewportHeight": 768
+      }
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (38x38)",
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 83.8% of the small-desktop-1280x720 viewport (budget 75%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 603,
+        "viewportHeight": 720
+      }
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "9 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.site-nav__trigger (38x38)",
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "8 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\"",
+        "button.ftn-ibis-trigger \"Ask ibis\""
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "7 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (31x31)",
+        "button.ibis-widget-send (43x39)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "button.ibis-widget-close (32x32)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "3 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ftn-ibis-trigger \"Ask ibis\"",
+        "button#ibis-widget-trigger.ibis-widget-trigger \"\"",
+        "button.ibis-widget-close \"×\""
+      ]
+    },
+    {
+      "route": "/screen/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/screen/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/screen/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/screen/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/screen/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/screen/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/screen/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/screen/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/screen/",
+      "breakpoint": "phone-393x852",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/screen/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "route": "/screen/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "BLOCKER",
+      "rule": "console-error",
+      "message": "1 console error(s) during render/interaction",
+      "detail": [
+        "Navigation failed: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8794/screen/\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    }
+  ]
+}
