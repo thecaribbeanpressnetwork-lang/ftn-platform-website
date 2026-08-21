@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "lastReviewed": "2026-08-21",
+  "note": "Repo-managed candidate registry for scripts/ftn-scout-candidate-tracker.mjs -- not a database. Full research findings, verification sources and decision rationale for each candidate live in SCOUT-INTELLIGENCE-LEDGER.md; this file carries only the fields the tracker needs to diff a candidate week over week (license, decision, a short summary, security notes, status). None of the candidates below are installed, deployed, or given any FTN credential -- this is a research record, exactly like js/ibis-provider-registry.js entries with enabled:false.",
+  "candidates": [
+    {
+      "id": "hermes-agent",
+      "name": "Hermes Agent",
+      "repository": "github.com/NousResearch/hermes-agent",
+      "lane": "CAPABILITY",
+      "license": "MIT",
+      "decision": "EXPERIMENT_NOW",
+      "summary": "Self-hostable, multi-LLM-provider agent runtime with skills/memory/cron/multi-platform messaging. Real candidate for an orchestration layer underneath ibis -- not a replacement for it. Bring-your-own-keys; no mandatory cloud account.",
+      "securityNotes": "No production credentials required to evaluate. Real trial deployment needs a compute host (VPS/container) FTN has not provisioned -- a small but real new recurring cost requiring founder sign-off before anything beyond local/dev experimentation. Must never receive Supabase service-role, Cloudflare, or founder Gmail credentials; must never be exposed as a public product or renamed to imply it is ibis.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "agent-reach",
+      "name": "Agent Reach",
+      "repository": "github.com/Panniantong/Agent-Reach",
+      "lane": "ARCHITECTURE",
+      "license": "MIT",
+      "decision": "SANDBOX_SECURITY_AUDIT_SELECTIVE_ADOPTION",
+      "summary": "Source-access adapter giving an agent read-only research access to Twitter/X, Reddit, YouTube, GitHub, Bilibili and others. YouTube and public GitHub need no login; X, Reddit, XiaoHongShu, Facebook/Instagram require cookie-based or logged-in sessions. Read-only -- no publishing/account-action capability found in the project itself.",
+      "securityNotes": "The project's own README warns of platform account-restriction risk from cookie login and recommends disposable, non-primary accounts -- exactly the risk this pass's security addendum flags. Selective adoption means: the no-login platforms (YouTube, public GitHub, Bilibili) are safe to sandbox now; the cookie-gated platforms (X, Reddit, XHS, Facebook/Instagram) are OUT OF SCOPE unless a separately-approved, non-founder, disposable account is provisioned -- never founder personal cookies or accounts.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "last30days",
+      "name": "last30days",
+      "repository": "github.com/mvanhorn/last30days-skill",
+      "lane": "CAPABILITY",
+      "license": "MIT",
+      "decision": "EXPERIMENT_NOW",
+      "summary": "A coding-agent skill (not a standalone agent) that researches a topic across Reddit, X, YouTube, Hacker News, GitHub, arXiv and more from the last 30 days, scored by real engagement and synthesized into one cited brief. Reddit/HN/GitHub/arXiv need no credentials; X and several video/social platforms need either cookies or a paid key (ScrapeCreators, 10,000 free calls then pay-as-you-go).",
+      "securityNotes": "Executes real subprocesses (yt-dlp, arxiv-cli, techmeme-cli) and extracts browser cookies from installed browsers for some paid-tier platforms -- both require the least-privilege sandbox boundary from this pass's security addendum (allowlisted subprocesses/paths, no unrestricted filesystem access). Initial experimentation should use only the free, no-cookie data paths (Reddit, HN, GitHub, arXiv, web search).",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "graphiti",
+      "name": "Graphiti",
+      "repository": "github.com/getzep/graphiti",
+      "lane": "ARCHITECTURE",
+      "license": "Apache-2.0",
+      "decision": "PREPARE_NOW",
+      "summary": "Temporal knowledge graph framework for AI-agent memory (Zep's open-source core). Tracks how facts change over time with real provenance to source data -- the real architecture pattern for a future ibis institutional-memory layer.",
+      "securityNotes": "Requires a graph database server (Neo4j, FalkorDB or Amazon Neptune) plus an LLM API key -- genuinely new backend infrastructure this repo (static site + Supabase Edge Functions, no database server) does not have. No safe way to \"experiment\" with it without first provisioning a graph database, which is out of scope for this pass -- resolved to PREPARE_NOW (schema/design thinking only) rather than EXPERIMENT, and flagged as a real Cloudflare/infrastructure-decision STOP CONDITION if pursued further.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "shandu",
+      "name": "Shandu",
+      "repository": "github.com/jolovicdev/shandu",
+      "lane": "PROBLEM",
+      "license": "MIT",
+      "decision": "BORROW_ARCHITECTURE",
+      "summary": "Python deep-research agent: iterative research loops, per-source credibility scoring (source_class + credibility_score), and citation-backed synthesis that explicitly downgrades claims supported only by weak sources. The credibility/confidence-separation pattern this pass's own js/ftn-source-provenance.js borrows and reimplements natively in JS -- Shandu itself (Python, LiteLLM, pipx-installed) is not run or installed.",
+      "securityNotes": "No installation planned -- this decision is architecture-borrowing only, not a code dependency. If ever run directly, it needs an LLM API key and executes real web scraping (trafilatura/readability/BS4, no headless browser) -- would need the same allowlisting discipline as last30days.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "webwright",
+      "name": "Webwright",
+      "repository": "github.com/microsoft/webwright",
+      "lane": "ARCHITECTURE",
+      "license": "MIT",
+      "decision": "WATCH",
+      "summary": "Microsoft Research browser agent that writes and runs real Playwright scripts instead of predicting clicks. Secondary-sweep finding: a genuinely different capability from the 5 primary candidates (code-generating browser automation), potentially relevant to a future Walkthrough rendering pipeline -- but that pipeline is explicitly out of scope for this pass.",
+      "securityNotes": "Not evaluated in security depth this pass -- flagged as WATCH, not evaluated for adoption. Executes generated Playwright/Bash; would need the same sandboxing discipline as any code-executing agent before real use.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "crawl4ai",
+      "name": "Crawl4AI",
+      "repository": "github.com/unclecode/crawl4ai",
+      "lane": "ARCHITECTURE",
+      "license": "Apache-2.0",
+      "decision": "WATCH",
+      "summary": "Mature, popular (#1 trending at time of this research) LLM-ready web crawler turning arbitrary pages into clean Markdown for RAG/agents. Secondary-sweep finding: a more general-purpose, cookie-free alternative to Agent Reach specifically for public, non-authenticated web content -- does not cover the login-gated platforms Agent Reach targets.",
+      "securityNotes": "Not evaluated in security depth this pass. Multi-browser crawling (Chromium/Firefox/WebKit) implies the same subprocess/network allowlisting discipline as any browser-automation tool before real use.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "nanobot-hkuds",
+      "name": "nanobot (HKUDS)",
+      "repository": "github.com/HKUDS/nanobot",
+      "lane": "CAPABILITY",
+      "license": "UNVERIFIED",
+      "decision": "REFERENCE",
+      "summary": "Ultra-lightweight self-hosted Python agent framework (WebUI, MCP, multi-agent workflows). Secondary-sweep finding: real project, but capability materially overlaps Hermes Agent's role (agent runtime/orchestration) without a clearly distinct advantage found this pass -- recorded for reference, not separately pursued, to avoid evaluating two candidates for the same architectural slot.",
+      "securityNotes": "License not independently verified this pass (distinct from the similarly-named github.com/nanobot-ai/nanobot Go MCP host, which is a different project) -- do not treat as license-cleared until verified directly.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "radar-intelligence",
+      "name": "Radar Intelligence",
+      "repository": null,
+      "lane": "CAPABILITY",
+      "license": "UNKNOWN",
+      "decision": "NOT_LOCATED",
+      "summary": "No confident, specific public repository matching this name was located this pass. Search results returned only generically-named, unrelated \"radar\"-themed AI-agent projects (an LLMOps radar, an agentic-security scanner) with no clear connection to the named candidate.",
+      "securityNotes": "Not applicable -- nothing was evaluated.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "prismis",
+      "name": "Prismis",
+      "repository": null,
+      "lane": "CAPABILITY",
+      "license": "UNKNOWN",
+      "decision": "NOT_LOCATED",
+      "summary": "No confident, specific public repository matching this exact name was located this pass. A similarly-named but distinct project (\"prism-ai-deep-research\", a different author/name) surfaced and was deliberately not treated as a match -- recording an unverified guess as if it were the intended candidate would misattribute findings to the wrong project.",
+      "securityNotes": "Not applicable -- nothing was evaluated.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "harken",
+      "name": "Harken",
+      "repository": null,
+      "lane": "CAPABILITY",
+      "license": "UNKNOWN",
+      "decision": "NOT_LOCATED",
+      "summary": "No public repository or project matching this name in a research/intelligence-agent context was located this pass.",
+      "securityNotes": "Not applicable -- nothing was evaluated.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    },
+    {
+      "id": "pith",
+      "name": "Pith",
+      "repository": null,
+      "lane": "CAPABILITY",
+      "license": "UNKNOWN",
+      "decision": "NOT_LOCATED",
+      "summary": "No confident match in a research/intelligence-agent context. The only \"Pith\" project found (mlc-ai/pith-train) is a Mixture-of-Experts model TRAINING system, an unrelated domain -- not recorded as a match to avoid misattributing an ML-training tool as a research/reconnaissance candidate.",
+      "securityNotes": "Not applicable -- nothing was evaluated.",
+      "status": "ACTIVE",
+      "lastVerified": "2026-08-21"
+    }
+  ]
+}

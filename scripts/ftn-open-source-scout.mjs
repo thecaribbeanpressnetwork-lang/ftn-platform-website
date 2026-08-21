@@ -20,6 +20,16 @@ const accepted = new Set(['mit', 'apache-2.0', 'bsd-2-clause', 'bsd-3-clause', '
 const reviewOnly = new Set(['mpl-2.0', 'epl-2.0', 'lgpl-2.1', 'lgpl-3.0']);
 const excluded = new Set(['gpl-2.0', 'gpl-3.0', 'agpl-3.0', 'sspl-1.0', 'busl-1.1']);
 
+// Three-lane reconnaissance model (Pass 15). PROBLEM is the original, sole mode this script
+// shipped with: research tied to an area FTN already has a real product/ticket for. CAPABILITY
+// and ARCHITECTURE are additive lanes -- see data/open-source-scout-queries.json's own "lanes"
+// documentation for what each one is actually for. An area with no recognized lane defaults to
+// PROBLEM (the pre-existing, backward-compatible behavior) rather than failing.
+export const LANES = ['PROBLEM', 'CAPABILITY', 'ARCHITECTURE'];
+export function laneOf(entry) {
+  return LANES.includes(entry && entry.lane) ? entry.lane : 'PROBLEM';
+}
+
 export function licenceGate(value) {
   const licence = String(value || '').trim().toLowerCase();
   if (!licence) return { decision: 'manual-review', reason: 'No machine-readable licence was returned.' };
@@ -113,6 +123,12 @@ async function npm(term, limit) {
   return (data.objects || []).map(({ package: item, score: packageScore }) => score({ source: 'npm', name: item.name, url: item.links?.npm || `https://www.npmjs.com/package/${item.name}`, description: item.description || '', licence: item.license || '', popularity: Math.round((packageScore?.final || 0) * 1000), updatedAt: item.date, homepage: item.links?.homepage || '' }));
 }
 
+const LANE_TITLE = {
+  PROBLEM: 'Lane 1 — Problem Scout',
+  CAPABILITY: 'Lane 2 — Capability Scout',
+  ARCHITECTURE: 'Lane 3 — Architecture Scout',
+};
+
 function markdown(report) {
   const lines = [
     '# FTN Open-Source Scout Report', '',
@@ -124,13 +140,18 @@ function markdown(report) {
     '- **Exclude:** strong-copyleft/source-available licence; do not add to the public FTN website.',
     '- **Manual review:** missing or unclear licence, model/data provenance, or material rights uncertainty.', ''
   ];
-  for (const area of report.areas) {
-    lines.push(`## ${area.area}`, '', area.why, '');
-    const visible = area.candidates.filter(item => item.gate.decision !== 'exclude').slice(0, 12);
-    if (!visible.length) { lines.push('No candidates returned. Retry later; a source may have rate-limited the search.', ''); continue; }
-    lines.push('| Candidate | FTN value | Licence gate | Score | Founder action |', '|---|---|---|---:|---|');
-    for (const item of visible) lines.push(`| [${item.name}](${item.url}) | ${area.why.replaceAll('|', '\\|')} | ${item.gate.decision} | ${item.score} | [${item.actionLabel}](${item.actionUrl}) |`);
-    lines.push('');
+  for (const lane of LANES) {
+    const areasInLane = report.areas.filter(area => area.lane === lane);
+    if (!areasInLane.length) continue;
+    lines.push(`## ${LANE_TITLE[lane]}`, '');
+    for (const area of areasInLane) {
+      lines.push(`### ${area.area}`, '', area.why, '');
+      const visible = area.candidates.filter(item => item.gate.decision !== 'exclude').slice(0, 12);
+      if (!visible.length) { lines.push('No candidates returned. Retry later; a source may have rate-limited the search.', ''); continue; }
+      lines.push('| Candidate | FTN value | Licence gate | Score | Founder action |', '|---|---|---|---:|---|');
+      for (const item of visible) lines.push(`| [${item.name}](${item.url}) | ${area.why.replaceAll('|', '\\|')} | ${item.gate.decision} | ${item.score} | [${item.actionLabel}](${item.actionUrl}) |`);
+      lines.push('');
+    }
   }
   lines.push('## Required adoption gate', '', '1. Verify the upstream licence and release tag directly.', '2. Review code/model/data provenance and contributor rights.', '3. Run dependency/security and performance tests in an isolated branch.', '4. Record attribution, notices and version in FTN governance.', '5. Obtain founder approval before public release.', '');
   if (report.errors.length) lines.push('## Source availability', '', `${report.errors.length} source query/queries did not complete. This is normally a timeout or source rate limit; absence from this report is not a negative finding.`, '');
@@ -164,7 +185,7 @@ export async function run({ configPath = resolve(root, 'data/open-source-scout-q
       }
     }
     const deduped = [...new Map(candidates.map(item => [`${item.source}:${item.name}`, item])).values()].sort((a, b) => b.score - a.score);
-    areas.push({ area: entry.area, why: entry.why, candidates: deduped.map(candidate => recommendation(candidate, entry)) });
+    areas.push({ area: entry.area, lane: laneOf(entry), why: entry.why, candidates: deduped.map(candidate => recommendation(candidate, entry)) });
   }
   const report = { schemaVersion: 1, generatedAt: new Date().toISOString(), sources: config.sources, areas, errors };
   return { report, markdown: markdown(report) };
@@ -177,6 +198,8 @@ async function main() {
     if (score({ licence: 'MIT', popularity: 1000, updatedAt: new Date().toISOString(), description: 'x', homepage: 'x' }).score <= 40) throw new Error('Scoring self-test failed');
     const link = reviewLink({ name: 'Example', url: 'https://example.com', source: 'GitHub', gate: mit, score: 50 }, { area: 'FTN test', why: 'Verify deliberate founder action.' });
     if (!link.includes('/issues/new?') || !link.includes('open-source-scout')) throw new Error('Founder action link self-test failed');
+    if (laneOf({ lane: 'CAPABILITY' }) !== 'CAPABILITY') throw new Error('Lane recognition self-test failed');
+    if (laneOf({ lane: 'not-a-real-lane' }) !== 'PROBLEM' || laneOf({}) !== 'PROBLEM') throw new Error('Lane fail-closed-to-PROBLEM self-test failed');
     console.log('FTN Open-Source Scout self-test passed.');
     return;
   }

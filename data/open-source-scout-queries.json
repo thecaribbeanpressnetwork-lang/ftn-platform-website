@@ -2,26 +2,47 @@
   "schemaVersion": 1,
   "sources": ["github", "huggingface", "npm"],
   "limitPerQuery": 10,
+  "lanes": {
+    "PROBLEM": "Find open-source solutions to problems FTN already has an active ticket/roadmap item for.",
+    "CAPABILITY": "Find emerging open-source capability FTN could use even without a current ticket -- not ranked primarily by star count.",
+    "ARCHITECTURE": "Find infrastructure that could replace a planned build or become shared FTN infrastructure -- \"what are we about to build that already exists?\""
+  },
   "queries": [
     {
       "area": "FTN Riddim · Fire",
+      "lane": "PROBLEM",
       "terms": ["web audio sequencer", "browser drum machine"],
       "why": "Improve browser-local creation, export and interoperability without uploading a creator's audio."
     },
     {
       "area": "FTN Riddim · DAW / DJ",
+      "lane": "PROBLEM",
       "terms": ["audio waveform javascript", "audio stem separation"],
       "why": "Improve processing, analysis and local-audio workflows while keeping streamed media rights-safe."
     },
     {
       "area": "ibis.ai",
+      "lane": "PROBLEM",
       "terms": ["agent orchestration typescript", "retrieval provenance"],
       "why": "Strengthen the FTN dispatcher, provenance and Caribbean-relevant intelligence interfaces."
     },
     {
       "area": "Shared FTN foundation",
+      "lane": "PROBLEM",
       "terms": ["privacy preserving analytics javascript", "progressive web app offline"],
       "why": "Improve trust, performance, accessibility and FTN-owned data interfaces across nodes."
+    },
+    {
+      "area": "Emerging agent & research capability",
+      "lane": "CAPABILITY",
+      "terms": ["autonomous research agent", "source credibility scoring"],
+      "why": "Scan for real capability FTN doesn't have an open ticket for yet, so ibis's own current roadmap isn't the only lens FTN sees new capability through."
+    },
+    {
+      "area": "Planned build vs. existing infrastructure",
+      "lane": "ARCHITECTURE",
+      "terms": ["temporal knowledge graph agent memory", "headless browser video rendering pipeline"],
+      "why": "Before FTN builds a new subsystem from scratch, check whether real, licensable infrastructure already solves it."
     }
   ]
 }

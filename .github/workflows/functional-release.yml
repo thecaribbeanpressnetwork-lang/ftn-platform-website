@@ -47,6 +47,15 @@ jobs:
       - name: Audit FTN Walkthrough Engine data model (no rendering yet)
         run: node tests/ftn-walkthrough-audit.mjs
 
+      - name: Audit FTN Source Gateway provenance and claim-confidence rules
+        run: node tests/ftn-source-provenance-audit.mjs
+
+      - name: Audit FTN Scout candidate tracker diffing
+        run: node tests/ftn-scout-candidate-tracker-audit.mjs
+
+      - name: Audit FTN Open-Source Scout self-test (licence gate, scoring, lane recognition)
+        run: node scripts/ftn-open-source-scout.mjs --self-test
+
       - name: Audit FTN Node Registry derivation
         run: node tests/ftn-node-registry-audit.mjs
 
