@@ -64,6 +64,11 @@
     // (IAN/SARAFINA), with dialect/region/delivery-style as separate request parameters (never a
     // second voice capability per dialect -- see js/ibis-voice-registry.js).
     VOICE: ['VOICE_SYNTHESIS'],
+    // Phase 7 provider-activation directive: SFX had no capability entry anywhere in the
+    // taxonomy -- a real gap, not an oversight left alone. SFX_GENERATION is procedural synthesis
+    // from parameters (js/ibis-sfx-engine.js); kept deliberately separate from any future audio-
+    // processing capability so "processing" is never relabeled as "generation."
+    SFX: ['SFX_GENERATION'],
   };
 
   // Shipped-string -> canonical-equivalent, or null where the shipped string covers ground the

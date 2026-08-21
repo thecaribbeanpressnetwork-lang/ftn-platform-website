@@ -14,7 +14,7 @@ const Taxonomy = context.window.FTN.CapabilityTaxonomy;
 
 // -- Registry shape --------------------------------------------------------
 const all = Providers.all();
-assert(all.length >= 19, 'Expected 18 prior candidates plus ibis-local-project-qc (Phase 6 continuation)');
+assert(all.length >= 23, 'Expected 19 prior candidates plus ibis-local-music-engine, ibis-local-sfx-engine, wav2lip and sadtalker (Phase 7)');
 const VALID_LIFECYCLE_STATES = ['DISCOVERED', 'LICENSE_VERIFIED', 'DEPLOYMENT_READY', 'DEPLOYED', 'HEALTHY', 'EXECUTABLE', 'ELIGIBLE', 'BLOCKED', 'FAILED'];
 for (const p of all) {
   assert(Array.isArray(p.capabilities) && p.capabilities.length > 0, `${p.id} must declare at least one capability`);
@@ -86,6 +86,17 @@ assert.equal(Eligibility.evaluate('ftn-fire-local-procedural', 'INSTRUMENTAL_GEN
 // completing the SCREENWRITING taxonomy group.
 assert.equal(Eligibility.evaluate('ibis-local-project-qc', 'QC', {}).status, 'ELIGIBLE', 'ibis-local-project-qc is real and live today -- no server, no secrets, no deployment step');
 assert.equal(Eligibility.find('QC', {}).length, 1, 'Exactly one QC provider is eligible: ibis-local-project-qc');
+
+// Phase 7 provider activation: ibis-local-music-engine and ibis-local-sfx-engine are real,
+// deterministic, zero-cost and genuinely live -- same standard as the local providers above.
+assert.equal(Eligibility.evaluate('ibis-local-music-engine', 'INSTRUMENTAL_GENERATION', {}).status, 'ELIGIBLE', 'ibis-local-music-engine is real and live today');
+assert.equal(Eligibility.evaluate('ibis-local-sfx-engine', 'SFX_GENERATION', {}).status, 'ELIGIBLE', 'ibis-local-sfx-engine is real and live today');
+// wav2lip is license-blocked outright; sadtalker is license-clean but GPU-blocked -- both must
+// stay correctly INELIGIBLE, proving the license gate and the infrastructure gate are both real,
+// not decorative.
+assert.equal(Eligibility.evaluate('wav2lip', 'LIP_SYNC', {}).status, 'INELIGIBLE', 'wav2lip must stay ineligible -- its own README explicitly prohibits commercial use');
+assert.equal(Eligibility.evaluate('sadtalker', 'LIP_SYNC', {}).status, 'INELIGIBLE', 'sadtalker has a clean Apache 2.0 license but still requires a GPU this environment does not have');
+assert.equal(Eligibility.find('LIP_SYNC', {}).length, 0, 'No LIP_SYNC provider is eligible today -- this is the honest current state, not a bug');
 
 // -- find(): only returns providers that pass every gate -------------------
 assert.equal(Eligibility.find('TEXT', { authenticated: false }).length, 0, 'No TEXT provider is eligible for a guest right now -- this is the honest current state, not a bug');

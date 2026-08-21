@@ -15,6 +15,8 @@ vm.runInContext(fs.readFileSync('js/ibis-provider-registry.js', 'utf8'), context
 vm.runInContext(fs.readFileSync('js/ibis-eligibility.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ibis-capability-taxonomy.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ibis-audio-analysis.js', 'utf8'), context);
+vm.runInContext(fs.readFileSync('js/ibis-music-engine.js', 'utf8'), context);
+vm.runInContext(fs.readFileSync('js/ibis-sfx-engine.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ibis-client.js', 'utf8'), context);
 
 const IbisClient = context.window.FTN.IbisClient;
@@ -71,6 +73,35 @@ assert.equal(bpmResult.provenance.nodeId, 'riddim');
 assert.equal(bpmResult.provenance.costToIbis, 'ZERO_COST_TO_IBIS');
 assert(typeof bpmResult.provenance.requestedAt === 'string' && typeof bpmResult.provenance.respondedAt === 'string');
 
+// -- Phase 7: MUSIC (INSTRUMENTAL_GENERATION) and SFX (SFX_GENERATION) end-to-end through the
+// SAME universal fabric, requested by a different real node (riddim) -- real generated audio,
+// real WAV bytes, real provenance, no mock at any layer of this call.
+const musicResult = await IbisClient.request({
+  nodeId: 'riddim',
+  capability: 'INSTRUMENTAL_GENERATION',
+  payload: { style: 'soca', bars: 2, seed: 42 },
+});
+assert.equal(musicResult.success, true, 'INSTRUMENTAL_GENERATION must genuinely execute through the universal fabric');
+assert.equal(musicResult.provenance.provider, 'ibis-local-music-engine');
+assert.equal(musicResult.provenance.costToIbis, 'ZERO_COST_TO_IBIS');
+assert.equal(musicResult.result.style, 'soca');
+assert.equal(musicResult.result.mimeType, 'audio/wav');
+assert(musicResult.result.audio.length > 44, 'Real WAV audio bytes must be returned, not a placeholder');
+
+const sfxResult = await IbisClient.request({
+  nodeId: 'riddim',
+  capability: 'SFX_GENERATION',
+  payload: { preset: 'chime', seed: 1 },
+});
+assert.equal(sfxResult.success, true, 'SFX_GENERATION must genuinely execute through the universal fabric');
+assert.equal(sfxResult.provenance.provider, 'ibis-local-sfx-engine');
+assert.equal(sfxResult.result.preset, 'chime');
+assert(sfxResult.result.audio.length > 44, 'Real WAV audio bytes must be returned, not a placeholder');
+
+// -- Community Connect stays excluded even for the two newly-activated capabilities -------------
+const ccMusic = await IbisClient.request({ nodeId: 'community-connect', capability: 'INSTRUMENTAL_GENERATION' });
+assert.equal(ccMusic.code, 'NODE_EXCLUDED');
+
 // -- TEXT with no eligible guest provider today must fail honestly, not fabricate an answer -----
 const textResult = await IbisClient.request({ nodeId: 'ibis-ai', capability: 'TEXT', context: { authenticated: false } });
 assert.equal(textResult.success, false);
@@ -120,4 +151,4 @@ for (const node of allNodes) {
 assert(authorizedChecked >= 15, 'Most real nodes should be IBIS-authorized');
 assert(excludedOrPrivateChecked >= 3, 'community-connect + at least 3 private/vaulted nodes must be correctly gated');
 
-console.log(`ibis-client-audit: Community Connect exclusion verified, unknown-node/unknown-capability fail-closed, real local BPM_DETECTION execution verified end-to-end through the universal fabric (provider=ibis-local-dsp, cost=ZERO_COST_TO_IBIS), and all ${allNodes.length} real registered nodes resolved the correct permission outcome (${authorizedChecked} authorized, ${excludedOrPrivateChecked} correctly gated).`);
+console.log(`ibis-client-audit: Community Connect exclusion verified, unknown-node/unknown-capability fail-closed, real local BPM_DETECTION/INSTRUMENTAL_GENERATION/SFX_GENERATION execution verified end-to-end through the universal fabric (real audio bytes, real provenance, zero mocks), and all ${allNodes.length} real registered nodes resolved the correct permission outcome (${authorizedChecked} authorized, ${excludedOrPrivateChecked} correctly gated).`);

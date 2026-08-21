@@ -991,6 +991,103 @@ This was completed while a separate, credential-blocked task (deploying `f918708
 committed and CI-passing but **confirmed via a live production request still running the pre-fix
 code** — not deployed, not live-verified, and not to be described as fixed until it is.
 
+## 0.15 Phase 7 — provider activation: real execution over registry work (2026-08-21)
+
+Directive priority, stated explicitly: "fewer claims, more actual execution." Every infrastructure
+constraint from every prior phase is unchanged (no GPU, no Cloudflare/Anthropic credentials, no
+Supabase deployment credential, no browser for WebAudio verification) — this pass's job was to
+find what could genuinely execute *despite* those constraints, not to work around them.
+
+**Environment checked directly, not assumed.** FFmpeg was not assumed absent — checked directly
+(`ffmpeg`/`ffprobe` via both Bash and PowerShell `Get-Command`) and confirmed genuinely not
+installed. Installing it would be an unrequested environment change, so VIDEO_PROCESSING (trim/
+concat/transcode/subtitle-burn) is honestly `BLOCKED — INFRASTRUCTURE_REQUIRED`, not just
+VIDEO_GENERATION. This closes the one path the directive itself flagged as the likeliest "real
+capability without a GPU" — it genuinely isn't available here, and no workaround was attempted.
+
+### Two new genuinely `ELIGIBLE` capabilities: `INSTRUMENTAL_GENERATION` and `SFX_GENERATION`
+
+**`js/ibis-music-engine.js` (new).** Real, deterministic, zero-dependency procedural instrumental
+synthesis — pure sample-buffer math (sine/triangle oscillators, seeded noise, real exponential
+envelopes), no `AudioContext` of any kind, so it runs identically in a browser and in this
+repository's plain Node CI. This is a **deliberately separate, independently real** engine from
+`js/ftn-fire.js`'s browser-only WebAudio engine (still real, still live at `/riddim/fire/`, still
+not adapter-connected — unchanged from §0.11/§0.13, since Node still has no
+`OfflineAudioContext` to verify an extraction against). Four real, distinct 16-step rhythmic
+patterns (soca/reggae/dancehall/calypso) — honestly scoped as "genuinely distinct, deterministic,
+testable output per style," not a claim of production-grade genre authenticity.
+
+**Real execution test, no mocks** (`tests/ibis-music-engine-audit.mjs`, the directive's own
+explicit requirement for production-eligibility tests): generates actual PCM samples for all four
+styles, WAV-encodes them, **decodes the resulting bytes back out** and verifies real properties —
+correct RIFF/WAVE/fmt/data chunk structure, declared data size matching the real sample count,
+non-silence (RMS energy check — a fabricated empty "success" would be all zeros), no clipping/NaN,
+correct duration from real bar/BPM math, and genuine rhythmic distinctness between styles (soca
+kicks on step 0, so its first-30ms energy is measurably >3x reggae's, which has no kick until step
+8 — a real audio-level consequence of the two styles' different pattern data, not a coarse
+heuristic). Determinism verified: identical seed/spec produces byte-identical audio.
+
+**`js/ibis-sfx-engine.js` (new).** Reuses the music engine's own synthesis primitives (exported as
+`_primitives`, no duplicated DSP code) for four real, distinct, deterministic effect presets
+(chime/riser/blip/thud). Honestly scoped: this is procedural synthesis of specific named shapes,
+not a generative model that can synthesize an arbitrary text-described sound — that would need a
+real audio-generation model this environment cannot deploy. Same real, no-mock execution test
+discipline (`tests/ibis-sfx-engine-audit.mjs`).
+
+**Registered and wired for real, not just added to the table.** Both are `lifecycleState:'ELIGIBLE'`,
+`enabled:true`, `costToIbis:'ZERO_COST_TO_IBIS'` — genuinely live, the fifth and sixth capabilities
+in the registry to earn that status (after `TEXT` authenticated, `BPM_DETECTION`,
+`RUNTIME_ESTIMATION`, `QC`). Real executors added to `js/ibis-client.js`'s `defaultExecutorFor`.
+`tests/ibis-client-audit.mjs` extended to prove real end-to-end execution through the *full*
+universal fabric (not just the standalone engine) — a different node (`riddim`, not `ibis-ai`)
+requesting `INSTRUMENTAL_GENERATION`/`SFX_GENERATION` genuinely receives real WAV audio bytes with
+real provenance, and Community Connect stays excluded from both. Registered generically (not
+Screenwriter-specific), per the directive's explicit "reusable FTN/IBIS capabilities" requirement
+— any authorized node can request them.
+
+**A real, organic signal this actually worked**: `tests/ibis-music-workflow-audit.mjs` (Phase 4)
+was not touched this pass, but its own assertions now report **5 chain steps honestly LIVE**
+(up from 1) purely because `INSTRUMENTAL_GENERATION` became real — the four music-workflow
+scenarios that need it (idea-to-song-concept, lyrics-to-instrumental, vocals-new-beat,
+replace-beat-keep-vocals) now honestly resolve to a genuinely eligible provider, with zero changes
+to that test file. This is the "fewer claims, more actual execution" outcome made concrete and
+self-verifying, not asserted.
+
+### `SFX_GENERATION` capability taxonomy gap closed
+
+`js/ibis-capability-taxonomy.js` had no SFX entry of any kind before this pass — a real gap, now a
+real `SFX` group (`SFX_GENERATION`). Kept deliberately distinct from any future audio-*processing*
+capability, per the directive's explicit "do not rename processing as generation" rule.
+
+### `LIP_SYNC` — real research, both real candidates correctly ineligible for different reasons
+
+Two candidates checked directly against their own official repositories (not aggregators):
+**Wav2Lip** — its own README states plainly "any form of commercial use is strictly prohibited,"
+directing commercial users to the authors' separate paid service. Registered `costToIbis:
+'NOT_APPLICABLE_LICENSE_BLOCKS_USE'`, `lifecycleState:'BLOCKED'` — disqualified by the license gate
+alone, infrastructure never evaluated. **SadTalker** — confirmed relicensed to Apache 2.0 with the
+non-commercial restriction explicitly removed, a real, better candidate found in the same pass
+rather than stopping at the first (disqualified) one. Still `costToIbis:
+'WOULD_REQUIRE_IBIS_COMPUTE_SPEND'`: a talking-head/3D-face-rendering pipeline genuinely needs a
+GPU this environment doesn't have. Both prove the license gate and the infrastructure gate are
+real, independent checks — a clean license does not imply eligibility, and a bad license is
+disqualifying regardless of infrastructure.
+
+### IMAGE and VIDEO_GENERATION — unchanged, correctly still blocked
+
+No new research needed: IMAGE's blocker (Cloudflare `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN`
+not set in this environment, confirmed repeatedly across phases) and VIDEO_GENERATION's blocker
+(`cogvideox-2b`, Apache 2.0-verified on its 2B variant, genuinely needs a GPU) are both already
+correctly documented (§0.9–§0.11). Re-confirmed still accurate; nothing downgraded, nothing
+inflated.
+
+### What this pass explicitly did NOT do (honest gaps)
+
+No IAN/SARAFINA work of any kind — explicitly deferred per this directive's own instruction. No
+FFmpeg installation attempted (unrequested environment change). No `js/ftn-fire.js` adapter
+extraction (still blocked on the same Node/WebAudio verification gap, unchanged from §0.11). No
+attempt to force IMAGE/VIDEO_GENERATION eligible without the credentials/GPU they genuinely need.
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)

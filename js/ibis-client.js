@@ -28,6 +28,8 @@
       AudioAnalysis: FTN.IbisAudioAnalysis || null,
       RuntimeEstimator: FTN.IbisRuntimeEstimator || null,
       ProjectQC: FTN.IbisProjectQC || null,
+      MusicEngine: FTN.IbisMusicEngine || null,
+      SfxEngine: FTN.IbisSfxEngine || null,
       Auth: FTN.Auth || null,
     };
   }
@@ -136,6 +138,34 @@
     return Promise.resolve({ success: true, latencyMs: Date.now() - startedAt, data: result });
   }
 
+  // Phase 7: real, local, zero-cost procedural synthesis -- no network call, same standard as
+  // ibis-local-dsp/ibis-local-script-runtime-estimator/ibis-local-project-qc.
+  function callMusicEngine(provider, payload) {
+    var reg = registries();
+    if (provider.id !== 'ibis-local-music-engine' || !reg.MusicEngine) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var startedAt = Date.now();
+    try {
+      var result = reg.MusicEngine.renderInstrumental(payload || {});
+      var wav = reg.MusicEngine.encodeWav(result);
+      return Promise.resolve({ success: true, latencyMs: Date.now() - startedAt, data: { audio: wav, style: result.style, bpm: result.bpm, key: result.key, bars: result.bars, durationSeconds: result.durationSeconds, mimeType: 'audio/wav' } });
+    } catch (err) {
+      return Promise.resolve({ success: false, latencyMs: Date.now() - startedAt, errorType: 'SERVER_ERROR', errorDetail: err && err.message });
+    }
+  }
+
+  function callSfxEngine(provider, payload) {
+    var reg = registries();
+    if (provider.id !== 'ibis-local-sfx-engine' || !reg.SfxEngine) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var startedAt = Date.now();
+    try {
+      var result = reg.SfxEngine.renderSfx(payload || {});
+      var wav = reg.SfxEngine.encodeWav(result);
+      return Promise.resolve({ success: true, latencyMs: Date.now() - startedAt, data: { audio: wav, preset: result.preset, durationSeconds: result.durationSeconds, mimeType: 'audio/wav' } });
+    } catch (err) {
+      return Promise.resolve({ success: false, latencyMs: Date.now() - startedAt, errorType: 'SERVER_ERROR', errorDetail: err && err.message });
+    }
+  }
+
   function defaultExecutorFor(capability, payload) {
     return function (provider) {
       if (capability === 'TEXT') {
@@ -143,6 +173,8 @@
         if (provider.id === 'ibis-query-gemini') return callGeminiQuery(provider, payload);
       }
       if (capability === 'BPM_DETECTION' && provider.id === 'ibis-local-dsp') return callLocalDsp(provider, payload);
+      if (capability === 'INSTRUMENTAL_GENERATION' && provider.id === 'ibis-local-music-engine') return callMusicEngine(provider, payload);
+      if (capability === 'SFX_GENERATION' && provider.id === 'ibis-local-sfx-engine') return callSfxEngine(provider, payload);
       if (capability === 'RUNTIME_ESTIMATION' && provider.id === 'ibis-local-script-runtime-estimator') return callRuntimeEstimator(provider, payload);
       if (capability === 'QC' && provider.id === 'ibis-local-project-qc') return callProjectQC(provider, payload);
       return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });

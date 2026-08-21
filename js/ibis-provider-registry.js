@@ -249,6 +249,62 @@ var providers=[
     weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-project-qc.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_ANYWHERE_JS_RUNS',verificationSource:'js/ibis-project-qc.js and tests/ibis-project-qc-audit.mjs (this repository)',
     lifecycleState:'ELIGIBLE',
     note:'Checks real project-graph asset state (stage completeness, runtime-target match, continuity-check presence) and returns the directive\'s own status vocabulary -- READY_FOR_REVIEW or NOT_READY_ISSUES_REQUIRE_ATTENTION. Never claims a capability is ready when the underlying assets do not exist.'
+  },
+  {
+    // Phase 7 provider activation: real, deterministic, zero-cost procedural instrumental
+    // synthesis -- see js/ibis-music-engine.js. Deliberately independent of js/ftn-fire.js's
+    // browser-only WebAudio engine (still documented separately, still not adapter-connected --
+    // see ftn-fire-local-procedural below) so that a genuinely testable, Node-verifiable route
+    // exists without waiting on browser verification. Real execution test:
+    // tests/ibis-music-engine-audit.mjs generates actual audio for all 4 styles, WAV-encodes it,
+    // decodes the bytes back and verifies header correctness, non-silence, no clipping,
+    // determinism and genuine rhythmic distinctness between styles.
+    id:'ibis-local-music-engine',name:'ibis local music engine (client-side, no model)',categories:['instrumental'],capabilities:['INSTRUMENTAL_GENERATION'],integration:'LOCAL_DETERMINISTIC_NO_PROVIDER',
+    apiStatus:'LIVE',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:true,costToIbis:'ZERO_COST_TO_IBIS',
+    website:null,apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-21',
+    userAuthorizationRequired:false,
+    weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-music-engine.js',selfHostable:true,deploymentMethod:'BROWSER_OR_NODE_PURE_JAVASCRIPT_NO_AUDIOCONTEXT_NO_SERVER',hardwareRequirements:'NONE_RUNS_ANYWHERE_JS_RUNS',verificationSource:'js/ibis-music-engine.js and tests/ibis-music-engine-audit.mjs (this repository)',
+    lifecycleState:'ELIGIBLE',
+    note:'Four real, distinct 16-step rhythmic patterns (soca/reggae/dancehall/calypso) via pure additive synthesis (sine/triangle oscillators, noise bursts, real exponential envelopes) -- not a claim of production-grade genre authenticity, a claim of genuinely distinct, deterministic, testable output per named style. No AudioContext dependency, so it runs and is verifiable in both the browser and this repository\'s Node-based CI, unlike ftn-fire-local-procedural.'
+  },
+  {
+    // Phase 7 provider activation: the SFX_GENERATION capability had zero providers of any kind
+    // (the taxonomy itself had no SFX entry until this pass). Real procedural synthesis of four
+    // named effect shapes, reusing ibis-music-engine's own synthesis primitives (no duplicated
+    // DSP code) and WAV encoder. tests/ibis-sfx-engine-audit.mjs generates real audio for all 4
+    // presets and verifies the same real properties as the music engine test.
+    id:'ibis-local-sfx-engine',name:'ibis local SFX engine (client-side, no model)',categories:['sample'],capabilities:['SFX_GENERATION'],integration:'LOCAL_DETERMINISTIC_NO_PROVIDER',
+    apiStatus:'LIVE',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:true,costToIbis:'ZERO_COST_TO_IBIS',
+    website:null,apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-21',
+    userAuthorizationRequired:false,
+    weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-sfx-engine.js',selfHostable:true,deploymentMethod:'BROWSER_OR_NODE_PURE_JAVASCRIPT_NO_AUDIOCONTEXT_NO_SERVER',hardwareRequirements:'NONE_RUNS_ANYWHERE_JS_RUNS',verificationSource:'js/ibis-sfx-engine.js and tests/ibis-sfx-engine-audit.mjs (this repository)',
+    lifecycleState:'ELIGIBLE',
+    note:'Four fixed, real, deterministic effect presets (chime/riser/blip/thud) -- honestly scoped as procedural synthesis of specific named shapes, not a generative model that can synthesize an arbitrary text-described sound (that would need a real audio-generation model this environment cannot deploy).'
+  },
+  {
+    // Phase 7 LIP_SYNC research: license-checked directly against the official repository, not an
+    // aggregator. Explicitly, unambiguously commercial-use-prohibited by its own README --
+    // correctly ineligible regardless of any infrastructure question.
+    id:'wav2lip',name:'Wav2Lip',categories:['video'],capabilities:['LIP_SYNC'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'NOT_APPLICABLE_LICENSE_BLOCKS_USE',
+    website:'https://github.com/Rudrabha/Wav2Lip',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'EXPLICITLY_PROHIBITED_BY_OFFICIAL_README',redistribution:'NOT_APPROVED',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_BUT_NONCOMMERCIAL',sourceAvailable:'YES_GITHUB_RUDRABHA',selfHostable:true,deploymentMethod:'PYTHON_SELF_HOST_GPU',hardwareRequirements:'GPU_LIKELY_REQUIRED_NOT_QUANTIFIED_BY_PRIMARY_SOURCE',verificationSource:'https://github.com/Rudrabha/Wav2Lip',
+    lifecycleState:'BLOCKED',
+    note:'The official README states plainly: "any form of commercial use is strictly prohibited" and directs commercial requests to the authors\' separate paid Sync Labs service. LICENSE_BLOCKED, not evaluated for infrastructure feasibility since the license gate alone is disqualifying -- exactly the "do not assume open source = commercially unrestricted" discipline the directive requires.'
+  },
+  {
+    // A real, better-licensed alternative found in the same research pass -- recorded honestly
+    // rather than stopping at the first (disqualified) candidate.
+    id:'sadtalker',name:'SadTalker',categories:['video'],capabilities:['LIP_SYNC'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://github.com/OpenTalker/SadTalker',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'VERIFIED_APACHE_2_0_COMMERCIAL_USE_PERMITTED',redistribution:'APACHE_2_0_PERMITS_REDISTRIBUTION',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_APACHE_2_0_VERIFIED_ON_OFFICIAL_REPOSITORY',sourceAvailable:'YES_GITHUB_OPENTALKER',selfHostable:true,deploymentMethod:'PYTHON_SELF_HOST_GPU',hardwareRequirements:'GPU_REQUIRED_3D_FACE_RENDERING_PIPELINE_EXACT_VRAM_NOT_QUANTIFIED_BY_PRIMARY_SOURCE',verificationSource:'https://github.com/OpenTalker/SadTalker',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'Official repository confirms the non-commercial restriction was explicitly removed and the project relicensed to Apache 2.0 -- a real, commercially-usable candidate, unlike Wav2Lip. Still WOULD_REQUIRE_IBIS_COMPUTE_SPEND: a talking-head/3D-face-rendering pipeline genuinely needs a GPU this environment does not have. Correctly ineligible pending a founder-budgeted GPU decision, not a license problem.'
   }
 ];
 global.FTN=global.FTN||{};

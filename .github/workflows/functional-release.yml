@@ -65,6 +65,12 @@ jobs:
       - name: Audit ibis project QC (real completeness checking)
         run: node tests/ibis-project-qc-audit.mjs
 
+      - name: Audit ibis music engine (real instrumental synthesis)
+        run: node tests/ibis-music-engine-audit.mjs
+
+      - name: Audit ibis SFX engine (real sound-effect synthesis)
+        run: node tests/ibis-sfx-engine-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
