@@ -21,8 +21,20 @@
 //   `capabilities` keywords (e.g. a capability mentioning "visual"/"image" implies IMAGE).
 //   Every real product interface is TEXT at minimum (it's a web UI). This is a documented
 //   heuristic, not an independently fact-checked capability inventory per node.
+//
+// IBIS Phase 4 absolute scope boundary: Community Connect is a separate Capacitor-wrapped
+// application (its own repository, its own APK build, its own Supabase project relationship --
+// see CLAUDE.md Sec 7.11) that this website only links out to via community.ftnplatform.org. It
+// is NOT part of the FTN web platform's shared IBIS capability fabric and must never be treated
+// as an IBIS-routable/IBIS-callable node, even though it legitimately exists in
+// js/product-registry-data.js as a marketing/launch page on THIS site. IBIS_EXCLUDED_NODES is the
+// one, explicit, permanent place that boundary is enforced -- every other private/vaulted
+// exclusion below is status-derived (visibility), this one is a deliberate policy exclusion, so
+// it is called out by name rather than left to fall out of a general rule.
 (function (global) {
   'use strict';
+
+  var IBIS_EXCLUDED_NODES = ['community-connect'];
 
   var TYPE_KEYWORDS = [
     ['AUDIO', /audio|sound|beat|mix|master|deck|dj|instrumental|epk/i],
@@ -52,6 +64,7 @@
   }
 
   function deriveNode(product) {
+    var isExcluded = IBIS_EXCLUDED_NODES.indexOf(product.id) !== -1;
     var isPrivate = product.visibility === 'PRIVATE' || product.visibility === 'VAULTED' || product.publicVisibility === false;
     var isBrain = product.id === 'ibis-ai';
     return {
@@ -62,15 +75,19 @@
       visibility: product.visibility || 'PUBLIC',
       productType: product.productType || 'product',
       parentProduct: product.parentProduct || null,
-      IBISRole: isBrain ? 'BRAIN' : isPrivate ? 'PRIVATE_NOT_ROUTABLE' : 'CONSUMER',
-      canIbisRouteInto: !isPrivate && product.status !== 'VAULTED' && !!product.route,
-      canCallIbisCapabilities: !isPrivate,
-      primaryCapabilities: (product.capabilities || []).slice(),
+      IBISRole: isExcluded ? 'EXCLUDED_SEPARATE_APPLICATION' : isBrain ? 'BRAIN' : isPrivate ? 'PRIVATE_NOT_ROUTABLE' : 'CONSUMER',
+      // Explicit scope exclusion (Community Connect) always wins over what visibility/status
+      // would otherwise allow -- it's a real, public, AVAILABLE product on THIS site, but its
+      // actual application is a separate codebase IBIS must never route into or call.
+      canIbisRouteInto: !isExcluded && !isPrivate && product.status !== 'VAULTED' && !!product.route,
+      canCallIbisCapabilities: !isExcluded && !isPrivate,
+      primaryCapabilities: isExcluded ? [] : (product.capabilities || []).slice(),
       dataDependencies: (product.dataSources || []).slice(),
       permissions: (product.accessRules || []).slice(),
-      inputTypes: inferInputTypes(product),
-      outputTypes: inferOutputTypes(product),
+      inputTypes: isExcluded ? [] : inferInputTypes(product),
+      outputTypes: isExcluded ? [] : inferOutputTypes(product),
       projectDependencies: (product.relatedProducts || []).slice(),
+      excludedReason: isExcluded ? 'Separate application (own repository, own APK build) -- explicit IBIS scope boundary, not an IBIS-orchestrated FTN web node. This site only links out to it.' : null,
     };
   }
 
@@ -96,7 +113,14 @@
     var re = new RegExp(keyword, 'i');
     return all().filter(function (n) { return n.primaryCapabilities.some(function (c) { return re.test(c); }); });
   }
+  function excluded() {
+    return all().filter(function (n) { return n.IBISRole === 'EXCLUDED_SEPARATE_APPLICATION'; });
+  }
+  function isExcluded(id) {
+    var n = get(id);
+    return !!n && n.IBISRole === 'EXCLUDED_SEPARATE_APPLICATION';
+  }
 
   global.FTN = global.FTN || {};
-  global.FTN.NodeRegistry = { all: all, get: get, routable: routable, byCapabilityKeyword: byCapabilityKeyword };
+  global.FTN.NodeRegistry = { all: all, get: get, routable: routable, byCapabilityKeyword: byCapabilityKeyword, excluded: excluded, isExcluded: isExcluded };
 })(typeof window !== 'undefined' ? window : globalThis);

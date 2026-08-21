@@ -613,6 +613,118 @@ framework would run it.
 - A vector-storage decision (pgvector on the existing Supabase project, or otherwise) to turn the
   real Caribbean language datasets found above into something IBIS can actually query
 
+## 0.11 Phase 4 — capability fabric, node orchestration, Community Connect exclusion (2026-08-20)
+
+**Scope decision.** Phase 4's brief was enormous (a full canonical capability taxonomy, asset-first
+reasoning, selective regeneration, a project graph, deep investigation of Fire/DAW/Radio/TV, a
+13-scenario acceptance test, and more) while explicitly warning against overbuilding. This pass
+prioritized the items with the clearest safety/correctness stakes and the clearest path to a real,
+tested, non-hollow implementation — deferring genuinely infrastructure-gated work (RAG, real
+generation execution, ComfyUI, self-hosting frameworks) exactly as §0.10 already recorded, since
+nothing changed there this pass.
+
+### The one correctness fix that mattered most: Community Connect exclusion
+
+Before this pass, `js/ftn-node-registry.js` treated Community Connect as an ordinary routable node
+(`canIbisRouteInto: true`) — accurate to its real `AVAILABLE`/public status in
+`js/product-registry-data.js`, but wrong for IBIS's purposes: Community Connect is a separate
+application (own repository, own APK — `CLAUDE.md` §7.11) and must never be something IBIS treats
+as part of its own orchestrated fabric. Fixed with an explicit `IBIS_EXCLUDED_NODES` list (not a
+visibility-derived rule, since Community Connect's visibility is genuinely `PUBLIC`/`AVAILABLE` —
+this is a deliberate policy exclusion, called out by name rather than left implicit).
+`tests/ftn-node-registry-audit.mjs` now asserts `community-connect` is excluded from both
+`canIbisRouteInto` and `canCallIbisCapabilities`, while a different real node (`events`) is
+confirmed still routable — proving the fix is scoped, not a blanket regression. Routable node count
+dropped from 23 to 22 as a direct, verified consequence.
+
+### Canonical capability taxonomy — real, validated, non-breaking
+
+`js/ibis-capability-taxonomy.js` (new) encodes the directive's full requested taxonomy (TEXT/IMAGE/
+AUDIO/MUSIC/VIDEO/MULTIMODAL, ~80 capability names). It does **not** rename the capability strings
+already shipped and working through real consumers (`TEXT`, `IMAGE_GENERATION`,
+`VIDEO_GENERATION`, `INSTRUMENTAL_GENERATION`, `BPM_DETECTION`, `AUDIO_ANALYSIS`) — renaming them
+to match the taxonomy's naming convention exactly would touch `js/ibis-widget.js`,
+`js/ibis-creative-studio.js` and every existing CI assertion for a pure naming change with zero
+functional benefit, which is exactly what "do not replace working code merely to make it look
+different" warns against. Instead, a documented `LEGACY` alias map reconciles each shipped string
+to its canonical equivalent (or records honestly where none exists — e.g. `AUDIO_GENERATION` and
+`AUDIO_ANALYSIS` predate the taxonomy and have no clean 1:1 canonical match). This is genuinely
+load-bearing, not decorative: `tests/ibis-eligibility-audit.mjs` now asserts every registered
+provider's declared capabilities are recognized (canonical or legacy) — an unrecognized ad hoc
+string would fail CI.
+
+### Real-code investigation: Fire, DAW, Radio, TV
+
+Read directly this pass (not inferred from the product registry) — full findings in
+`FTN-NODES.md`. Headline finding: **`js/ftn-fire.js` is a real, substantial, zero-cost
+`INSTRUMENTAL_GENERATION` engine** (genuine WebAudio procedural synthesis per Caribbean style, real
+WAV/4-stem export) that was completely unregistered before this pass. Registered as
+`ftn-fire-local-procedural`, `costToIbis: 'ZERO_COST_TO_IBIS'`, but honestly `enabled: false`:
+being real and free doesn't make it *orchestrable* — its functions are tightly bound to
+`/riddim/fire/`'s own DOM, with no callable adapter `attemptInOrder()` could use yet. Extracting a
+shared, callable procedural-instrumental function is the concrete recommended next step, not
+attempted this pass (risk of touching a working, non-trivial page under this pass's time budget —
+the same caution already applied to `js/ftn-daw.js` in §0.10). DAW, Radio and TV were each read in
+full: DAW is real deterministic browser audio processing (no AI, a strong future `ibis-local-dsp`
+consumer); Radio and TV are real discovery/intake/scheduling workspaces with genuine
+`MediaDiscovery`/`IntegrationAdapter` usage and zero AI capability today.
+
+### Music workflow classifier — real, tested against all 13 directive scenarios
+
+`js/ibis-music-workflow.js` (new) resolves free text into a real, distinct capability chain per
+request — deterministic whole-phrase pattern matching (same discipline as `js/intent-router.js`),
+never an LLM call. `tests/ibis-music-workflow-audit.mjs` runs the exact 13 realistic requests the
+directive specified ("I have an idea for a reggae song," "Change the BPM to 105," "Change only
+Scene 4," etc.), asserts each resolves to its own distinct scenario, and — the real acceptance-test
+requirement — cross-checks every chain step against the actual, current eligibility engine. Result,
+honestly measured, not asserted: **1 chain step across all 13 scenarios is genuinely live (BPM
+detection); 23 are honestly blocked.** Two real taxonomy gaps surfaced and were recorded rather than
+smoothed over: no singing-voice-synthesis capability exists anywhere in the requested taxonomy (so
+"idea → fully produced song" cannot chain to a sung vocal even in principle yet), and no explicit
+tempo-change/time-stretch capability exists (`MUSIC_TRANSFORMATION` is used as the closest
+approximation, flagged as such, not claimed exact).
+
+### Project/asset graph — selective regeneration, proven structurally
+
+`js/ibis-project-graph.js` (new) is a plain, in-memory dependency graph: add an asset, declare what
+it depends on, ask what must be regenerated if one asset changes. `tests/ibis-project-graph-audit.mjs`
+builds the directive's own example project (LYRICS → SONG → VIDEO → 4 SCENEs) and proves both named
+scenarios for real: **"Change only Scene 4"** touches exactly one asset, leaving Scenes 1–3 and
+everything upstream untouched (regeneration set = `{Scene 4}`, 8 other assets provably preserved);
+**"Change this one lyric"** creates a real new version (never overwrites history) and correctly
+cascades to every genuine downstream dependent (vocals → song → video → all four scenes), while
+correctly excluding the instrumental, which never depended on the lyrics. This module does not
+generate anything — it answers "what would need to change," which is real and testable on its own
+regardless of whether any generation provider is live.
+
+**A real cross-realm testing bug found and fixed in the process**: an initial `assert.deepEqual` on
+a value returned from inside the `node:vm` context failed even though the printed contents looked
+identical — the known "vm-realm Array has a different prototype than the host realm's Array"
+gotcha this repo has hit before (Phase 3's failover test). Fixed by comparing `.length`/`.includes()`
+instead, and the lesson is now recorded directly in the test file's own comments, not just here.
+
+### What this pass explicitly did NOT do (honest gaps)
+
+No RAG/pgvector implementation (still a real founder infrastructure decision, §0.10). No real
+generation execution of any kind — nothing new was deployed or made callable end-to-end; the whole
+point of the music-workflow test above is proving that honestly. No `js/ftn-daw.js` or
+`js/ftn-fire.js` refactor to expose a shared, callable adapter (recommended, not built, per
+FTN-NODES.md). No ComfyUI evaluation, no self-hosting-framework survey, no new provider license
+verification beyond what §0.10 already established, no ASR/ Whisper re-check, no ferry-schedule-
+grade granular per-transform taxonomy beyond the ~80 names already encoded. `MODEL-AUDIT.md` and
+`CARIBBEAN-KNOWLEDGE.md` were considered and deliberately not created separately from this file —
+the directive's own "do not allow research documents to become contradictory" concern is best
+served by keeping IBIS-MAP.md as the single canonical research record rather than fragmenting it;
+`FTN-NODES.md` was created because it's a genuinely distinct artifact (a derived reference view,
+not a research narrative), matching the directive's own framing of it as machine-adjacent
+documentation.
+
+### Capabilities LIVE at the end of this pass (unchanged from §0.10, re-confirmed)
+
+`TEXT` (authenticated, `ibis-query-gemini`) and `BPM_DETECTION`/`AUDIO_ANALYSIS` (`ibis-local-dsp`)
+remain the only two genuinely eligible-today capabilities. Everything else — including the newly
+discovered Fire engine — is real but not yet orchestrable, exactly as this section documents.
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)

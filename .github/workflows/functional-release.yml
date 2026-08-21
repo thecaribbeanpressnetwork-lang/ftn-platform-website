@@ -44,6 +44,12 @@ jobs:
       - name: Audit FTN Node Registry derivation
         run: node tests/ftn-node-registry-audit.mjs
 
+      - name: Audit ibis project/asset graph (selective regeneration)
+        run: node tests/ibis-project-graph-audit.mjs
+
+      - name: Audit ibis music-workflow classifier (13 realistic requests)
+        run: node tests/ibis-music-workflow-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'

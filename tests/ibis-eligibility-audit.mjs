@@ -6,17 +6,27 @@ const context = { window: {} };
 vm.createContext(context);
 vm.runInContext(fs.readFileSync('js/ibis-provider-registry.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ibis-eligibility.js', 'utf8'), context);
+vm.runInContext(fs.readFileSync('js/ibis-capability-taxonomy.js', 'utf8'), context);
 
 const Providers = context.window.FTN.IbisProviders;
 const Eligibility = context.window.FTN.IbisEligibility;
+const Taxonomy = context.window.FTN.CapabilityTaxonomy;
 
 // -- Registry shape --------------------------------------------------------
 const all = Providers.all();
-assert(all.length >= 14, 'Expected 12 prior candidates plus cogvideox-2b (VIDEO_GENERATION audit) plus ibis-local-dsp (BPM_DETECTION/AUDIO_ANALYSIS, the open-source audit pass)');
+assert(all.length >= 15, 'Expected 12 prior candidates plus cogvideox-2b, ibis-local-dsp, and ftn-fire-local-procedural (Phase 4 real-code investigation finding)');
 for (const p of all) {
   assert(Array.isArray(p.capabilities) && p.capabilities.length > 0, `${p.id} must declare at least one capability`);
   assert(typeof p.costToIbis === 'string' && p.costToIbis.length > 0, `${p.id} must declare costToIbis`);
+  for (const cap of p.capabilities) {
+    assert(Taxonomy.isRecognized(cap), `${p.id} declares unrecognized capability "${cap}" -- must be canonical (js/ibis-capability-taxonomy.js) or a documented legacy alias, never an ad hoc string`);
+  }
 }
+// Real values, not decoration: prove the taxonomy module is actually load-bearing.
+assert(Taxonomy.isCanonical('TEXT_TO_IMAGE') && !Taxonomy.isCanonical('IMAGE_GENERATION'), 'IMAGE_GENERATION is a legacy alias, not itself canonical');
+assert.equal(Taxonomy.canonicalEquivalent('IMAGE_GENERATION'), 'TEXT_TO_IMAGE');
+assert.equal(Taxonomy.isRecognized('NOT_A_REAL_CAPABILITY'), false, 'An unrecognized capability string must fail closed, not be silently accepted');
+assert.equal(Taxonomy.groupOf('BPM_DETECTION'), 'AUDIO');
 assert(Providers.byCategory('image').length >= 4, 'byCategory() must keep working -- ibis-creative-studio.js depends on it -- now pixverse, kling, plus the two Cloudflare image candidates');
 assert.equal(Providers.byCapability('TEXT').length, 3, 'ibis-query-gemini, ibis-assistant-anthropic and cloudflare-workers-ai-text declare TEXT today');
 assert.equal(Providers.byCapability('IMAGE_GENERATION').length, 4, 'pixverse, kling, cloudflare-workers-ai-image-flux and cloudflare-workers-ai-image-sdxl declare IMAGE_GENERATION today');
@@ -61,6 +71,10 @@ assert.equal(Eligibility.evaluate('cogvideox-2b', 'VIDEO_GENERATION', {}).status
 // true for an unauthenticated guest with no deployment step required.
 assert.equal(Eligibility.evaluate('ibis-local-dsp', 'BPM_DETECTION', { authenticated: false }).status, 'ELIGIBLE', 'ibis-local-dsp is real and live today -- no server, no secrets, no deployment step');
 assert.equal(Eligibility.find('BPM_DETECTION', {}).length, 1, 'Exactly one BPM_DETECTION provider is eligible: ibis-local-dsp');
+
+// ftn-fire-local-procedural: real and zero-cost, but correctly INELIGIBLE until it has an actual
+// callable adapter -- being real and free does not automatically make a capability orchestrable.
+assert.equal(Eligibility.evaluate('ftn-fire-local-procedural', 'INSTRUMENTAL_GENERATION', {}).status, 'INELIGIBLE', 'FTN Fire\'s local engine is real and live at its own page, but has no shared adapter yet -- must stay ineligible for attemptInOrder() until one exists');
 
 // -- find(): only returns providers that pass every gate -------------------
 assert.equal(Eligibility.find('TEXT', { authenticated: false }).length, 0, 'No TEXT provider is eligible for a guest right now -- this is the honest current state, not a bug');

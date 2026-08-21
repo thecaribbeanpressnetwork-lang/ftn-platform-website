@@ -30,10 +30,23 @@ for (const privateId of ['mission-control', 'love', 'health']) {
   assert.equal(node.IBISRole, 'PRIVATE_NOT_ROUTABLE', `${privateId} must be marked PRIVATE_NOT_ROUTABLE`);
 }
 
-// A representative real public product must be routable.
+// IBIS Phase 4 absolute scope boundary: Community Connect is a separate application (its own
+// repository/APK) and must NEVER be treated as an IBIS-routable or IBIS-callable node, even
+// though it is a real, public, AVAILABLE product on this website's own product registry.
 const communityConnect = NodeRegistry.get('community-connect');
-assert(communityConnect, 'community-connect must exist');
-assert.equal(communityConnect.canIbisRouteInto, true, 'community-connect is a real, live, public product ibis may route into');
+assert(communityConnect, 'community-connect must exist in product-registry-data.js (it is a real page on this site)');
+assert.equal(communityConnect.canIbisRouteInto, false, 'community-connect must be excluded from IBIS routing regardless of its public/AVAILABLE status');
+assert.equal(communityConnect.canCallIbisCapabilities, false, 'community-connect must not be treated as able to call shared IBIS capabilities');
+assert.equal(communityConnect.IBISRole, 'EXCLUDED_SEPARATE_APPLICATION', 'community-connect must be explicitly marked excluded, not silently omitted');
+assert.equal(NodeRegistry.isExcluded('community-connect'), true);
+assert(NodeRegistry.excluded().some((n) => n.id === 'community-connect'), 'excluded() must surface community-connect');
+assert(!NodeRegistry.routable().some((n) => n.id === 'community-connect'), 'routable() must never include community-connect');
+
+// A different representative real public product must still be routable -- proving the exclusion
+// is scoped to Community Connect specifically, not a blanket regression that broke routing.
+const events = NodeRegistry.get('events');
+assert(events, 'events must exist');
+assert.equal(events.canIbisRouteInto, true, 'events is a real, live, public product ibis may route into');
 
 // Heuristic input/output type inference must reflect real declared capabilities, not guesses --
 // riddim/daw/dj-tube all declare real audio-handling capabilities in product-registry-data.js.

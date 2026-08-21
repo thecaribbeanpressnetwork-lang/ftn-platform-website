@@ -166,6 +166,22 @@ var providers=[
     userAuthorizationRequired:false,
     weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-audio-analysis.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_IN_VISITOR_BROWSER',verificationSource:'js/ibis-audio-analysis.js and tests/ibis-audio-analysis-audit.mjs (this repository)',
     note:'Autocorrelation-based tempo (BPM) detection over an onset-strength envelope, entirely FTN-authored, no third-party model or dataset involved. Deliberately not wired into any specific FTN node UI this pass (see IBIS-MAP.md) -- registered and tested as a real, complete, working capability first; /riddim/daw/ integration is the flagged next step, following the same "ship a tested vertical slice, flag the next integration point" pattern already used for TEXT and IMAGE.'
+  },
+  {
+    // Phase 4 real-code investigation finding: js/ftn-fire.js (read directly, not inferred from
+    // the product registry) is a genuine, substantial, zero-cost local INSTRUMENTAL_GENERATION
+    // engine -- real WebAudio procedural synthesis per Caribbean style (soca/power-soca/reggae/
+    // dancehall/calypso/chutney/kompa/zouk/island-fusion), real WAV export, real 4-stem export
+    // (its own hand-rolled ZIP/CRC32 writer), all client-side. This was previously undocumented in
+    // this registry despite being real and live. costToIbis is honestly ZERO_COST_TO_IBIS for the
+    // same reason ibis-local-dsp is -- no network call, no provider bill of any kind.
+    id:'ftn-fire-local-procedural',name:'FTN Fire local procedural engine',categories:['instrumental'],capabilities:['INSTRUMENTAL_GENERATION'],integration:'LOCAL_DETERMINISTIC_NO_PROVIDER',
+    apiStatus:'LIVE_AT_OWN_PAGE_NO_SHARED_ADAPTER',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'ZERO_COST_TO_IBIS',
+    website:'/riddim/fire/',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
+    userAuthorizationRequired:false,
+    weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ftn-fire.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_IN_VISITOR_BROWSER',verificationSource:'js/ftn-fire.js (this repository, read directly 2026-08-20)',
+    note:'enabled stays false NOT because the capability is unreal or costly -- it genuinely works today at /riddim/fire/ -- but because "NO FAKE REDUNDANCY" requires a real, callable adapter before js/ibis-eligibility.js.attemptInOrder() may select it, and js/ftn-fire.js\'s schedule()/play()/exportWav() functions are tightly bound to that page\'s own DOM (fire-style/fire-bpm/etc. element ids), not exposed as a portable, other-node-callable function today. Extracting the procedural engine into a shared module (the same refactor pattern js/charts.js\'s trendGlyph() already proved for a smaller case, RC3 Sec 7.7) is the concrete next step to make this genuinely IBIS-orchestrable beyond its own page -- flagged, not rushed, per this codebase\'s standing "ship real, flag next" discipline.'
   }
 ];
 global.FTN=global.FTN||{};
