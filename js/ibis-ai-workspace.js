@@ -13,13 +13,49 @@
   function country(){return global.FTN&&global.FTN.Country&&global.FTN.Country.get?global.FTN.Country.get().name:'Trinidad & Tobago';}
   function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
   function wrap(ctx,text,x,y,maxWidth,lineHeight,maxLines){var words=String(text).split(/\s+/),line='',lines=[];for(var i=0;i<words.length;i++){var test=line?line+' '+words[i]:words[i];if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=words[i];if(lines.length>=maxLines-1)break;}else line=test;}if(line&&lines.length<maxLines)lines.push(line);lines.forEach(function(l,n){ctx.fillText(l,x,y+n*lineHeight);});return y+lines.length*lineHeight;}
+  // Bounded-wait helper: resolves with fallbackValue if promise hasn't settled within ms,
+  // instead of leaving a caller awaiting forever. The abandoned promise is left to settle on
+  // its own (harmless) -- this only ever changes what THIS request waits for, not whether the
+  // underlying operation (e.g. a background model download) keeps running.
+  function withTimeout(promise,ms,fallbackValue){return new Promise(function(resolve){var settled=false;var timer=setTimeout(function(){if(!settled){settled=true;resolve(fallbackValue);}},ms);promise.then(function(v){if(!settled){settled=true;clearTimeout(timer);resolve(v);}},function(){if(!settled){settled=true;clearTimeout(timer);resolve(fallbackValue);}});});}
   async function ensureData(){await loadScript('/js/ftn-media-discovery.js');if(!global.FTN.Auth)await loadScript('/js/ftn-auth.js');if(!global.FTN.Sources)await loadScript('/js/source-registry.js');if(!global.FTN.DataSource)await loadScript('/js/data-source.js');if(!global.FTN.indicators)await loadScript('/js/indicators-data.js');if(!global.FTN.Relationships)await loadScript('/js/relationships-data.js');}
   function ensureVisualState(){if(global.FTN&&global.FTN.IbisVisualState)return Promise.resolve();return loadScript('/js/ibis-visual-state.js');}
   function numericHistory(i){return(i&&Array.isArray(i.history)?i.history:[]).map(Number).filter(Number.isFinite);}
   function change(i){var s=numericHistory(i);if(s.length<2)return null;var a=s[0],b=s[s.length-1];return{delta:b-a,pct:a?(b-a)/Math.abs(a)*100:null};}
   function relevantIndicators(q){var terms=q.toLowerCase().split(/[^a-z0-9]+/).filter(function(x){return x.length>2;});return(global.FTN.indicators||[]).map(function(i){var hay=(i.title+' '+i.category+' '+(i.changeLabel||'')).toLowerCase(),score=terms.reduce(function(n,t){return n+(hay.indexOf(t)>=0?1:0);},0);return{i:i,score:score,c:change(i)};}).filter(function(x){return x.score>0||x.c;}).sort(function(a,b){return b.score-a.score||Math.abs((b.c&&b.c.pct)||0)-Math.abs((a.c&&a.c.pct)||0);}).slice(0,8);}
-  async function localAI(prompt){if(!('LanguageModel' in global))return null;try{var opts={expectedInputs:[{type:'text',languages:['en']}],expectedOutputs:[{type:'text',languages:['en']}]};var availability=await global.LanguageModel.availability(opts);if(availability==='unavailable')return null;var session=await global.LanguageModel.create(opts);var answer=await session.prompt('You are ibis.ai, FTN Platform’s Caribbean-first intelligence assistant. Be practical, concise and transparent. Do not invent current facts. When the user asks for an FTN action, connect the answer to the appropriate FTN tool. User country context: '+country()+'.\n\nUser request: '+prompt);try{session.destroy();}catch(e){}return answer;}catch(e){return null;}}
-  async function serverAI(prompt){if(!(global.FTN&&global.FTN.Auth))return{available:false,reason:'FTN Account did not load.'};try{var user=await global.FTN.Auth.getVerifiedUser();if(!user)return{available:false,guest:true,reason:'Sign in to use the protected server AI route.'};var result=await global.FTN.Auth.invoke('ibis-query',{prompt:prompt,country:country()});if(!result||!result.answer)return{available:false,reason:'The server returned no answer.'};return{available:true,answer:result.answer,provider:result.provider||'Configured provider',model:result.model||'',generatedAt:result.generatedAt||new Date().toISOString()};}catch(e){return{available:false,reason:e.message||'The protected server AI route is unavailable.'};}}
+  // Diagnostic fix: a 'downloadable' availability state means the on-device model is NOT yet
+  // present -- calling create() would silently start a real (multi-hundred-MB) background
+  // download as a side effect of answering one chat message, with no progress indicator and no
+  // way for the user to know why "thinking" never ends. Only 'available' (already downloaded,
+  // ready now) is allowed to use the on-device path; 'downloadable' and 'unavailable' both fall
+  // straight through to the existing server/router fallback instead, same as before. The
+  // capability itself is preserved -- an already-warm on-device model still answers locally.
+  async function localAI(prompt){
+    if(!('LanguageModel' in global))return null;
+    try{
+      var opts={expectedInputs:[{type:'text',languages:['en']}],expectedOutputs:[{type:'text',languages:['en']}]};
+      var availability=await withTimeout(global.LanguageModel.availability(opts),5000,null);
+      if(availability!=='available')return null;
+      var session=await withTimeout(global.LanguageModel.create(opts),8000,null);
+      if(!session)return null;
+      var answer=await withTimeout(session.prompt('You are ibis.ai, FTN Platform’s Caribbean-first intelligence assistant. Be practical, concise and transparent. Do not invent current facts. When the user asks for an FTN action, connect the answer to the appropriate FTN tool. User country context: '+country()+'.\n\nUser request: '+prompt),20000,null);
+      try{session.destroy();}catch(e){}
+      return answer;
+    }catch(e){return null;}
+  }
+  var TIMED_OUT={};
+  async function serverAI(prompt){
+    if(!(global.FTN&&global.FTN.Auth))return{available:false,reason:'FTN Account did not load.'};
+    try{
+      var user=await withTimeout(global.FTN.Auth.getVerifiedUser(),8000,TIMED_OUT);
+      if(user===TIMED_OUT)return{available:false,reason:'ibis AI is temporarily unavailable. Please try again in a moment.'};
+      if(!user)return{available:false,guest:true,reason:'Sign in to use the protected server AI route.'};
+      var result=await withTimeout(global.FTN.Auth.invoke('ibis-query',{prompt:prompt,country:country()}),25000,TIMED_OUT);
+      if(result===TIMED_OUT)return{available:false,reason:'ibis AI is temporarily unavailable. Please try again in a moment.'};
+      if(!result||!result.answer)return{available:false,reason:'The server returned no answer.'};
+      return{available:true,answer:result.answer,provider:result.provider||'Configured provider',model:result.model||'',generatedAt:result.generatedAt||new Date().toISOString()};
+    }catch(e){return{available:false,reason:e.message||'The protected server AI route is unavailable.'};}
+  }
   function routeResults(goal){var matches=global.FTN&&global.FTN.IntentRouter?global.FTN.IntentRouter.route(goal):[];if(!matches.length)return'<p>No strong FTN route matched. Try describing the outcome, not the product name.</p>';return'<div class="ibis-action-grid">'+matches.slice(0,5).map(function(m){return'<a class="ibis-action" href="'+esc(m.product.route)+'"><strong>'+esc(m.product.name)+'</strong><span>'+esc(m.product.tagline)+'</span><small>'+esc(m.explanation)+'</small></a>';}).join('')+'</div>';}
   function renderAnalysis(q){var rows=relevantIndicators(q);if(!rows.length)return'<p>No matching indicator history is loaded yet.</p>';return'<div class="ibis-data-list">'+rows.map(function(x){var c=x.c,p=c&&c.pct!=null?((c.pct>=0?'+':'')+c.pct.toFixed(1)+'%'):'history loaded';return'<article><strong>'+esc(x.i.title)+'</strong><span>'+esc(x.i.category)+'</span><b>'+p+'</b><small>'+esc(x.i.classification||'')+' · '+esc(x.i.sourceName||'')+'</small></article>';}).join('')+'</div><p class="workspace-muted">Open <a href="/observatory/">FTN Live</a> or <a href="/scenario-workspace/#correlation-engine">Mission Control</a> to inspect relationships and evidence.</p>';}
   async function renderMedia(q,out){out.innerHTML='<p>Searching FTN media discovery…</p>';var lower=q.toLowerCase(),music=/song|music|soca|reggae|dancehall|calypso|kaiso|chutney|kompa|zouk|steelpan/.test(lower),d;try{if(music){var genre=/reggae/.test(lower)?'reggae':/dancehall/.test(lower)?'dancehall':/calypso|kaiso/.test(lower)?'calypso':/chutney/.test(lower)?'chutney':/kompa|zouk/.test(lower)?'zouk-kompa':'soca';d=await global.FTN.MediaDiscovery.discover({mode:'music',genre:genre,queries:[q+' official video Caribbean',q+' official audio Caribbean'],limit:60},{force:true});}else d=await global.FTN.MediaDiscovery.discover({mode:'video',queries:[q,q+' Trinidad Tobago',q+' Caribbean'],limit:60},{force:true});var items=d.results||[];out.innerHTML='<div class="ibis-media-grid">'+items.slice(0,24).map(function(t){return'<a href="https://www.youtube.com/watch?v='+encodeURIComponent(t.videoId)+'" target="_blank" rel="noopener"><img src="'+esc(t.thumbnail||'')+'" alt=""><strong>'+esc(t.title)+'</strong><span>'+esc(t.channel||'YouTube')+'</span></a>';}).join('')+'</div><p class="workspace-muted">'+items.length+' embeddable source results found. Open music in <a href="/riddim/dj/">FTN DJ Tube</a>, films in <a href="/screen/">FTN Screen</a>, or scheduled programming in <a href="/tv/">FTN TV</a>.</p>';}catch(e){out.innerHTML='<p>'+esc(e.message)+'</p>';}}

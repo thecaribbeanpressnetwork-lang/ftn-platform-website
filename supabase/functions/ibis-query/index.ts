@@ -67,6 +67,9 @@ Deno.serve(async (request) => {
   ].join(" ");
 
   try {
+    // Bounded timeout so a slow/hung Gemini call can never hold this request open
+    // indefinitely -- the client-side fallback chain (js/ibis-ai-workspace.js serverAI)
+    // depends on this route actually returning, not hanging forever.
     const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -75,6 +78,7 @@ Deno.serve(async (request) => {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: { temperature: 0.35, maxOutputTokens: 700 },
       }),
+      signal: AbortSignal.timeout(20_000),
     });
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
@@ -85,7 +89,8 @@ Deno.serve(async (request) => {
     if (!answer) return reply({ error: "ibis did not return an answer. Please try again." }, 502, origin);
     return reply({ answer, provider: "Gemini", model, generatedAt: new Date().toISOString() }, 200, origin);
   } catch (error) {
-    console.error("ibis server error", error);
+    const timedOut = error instanceof Error && error.name === "TimeoutError";
+    console.error("ibis server error", timedOut ? "Gemini request timed out after 20s" : error);
     return reply({ error: "ibis AI is temporarily unavailable." }, 502, origin);
   }
 });
