@@ -814,6 +814,153 @@ route through IBIS Client; when one of them gains a real capability, `IbisClient
 the door it should call through, not a bespoke integration. No RAG/pgvector, no new self-host
 infrastructure, no new external provider license verification — all unchanged from §0.10/§0.11.
 
+## 0.13 Phase 6 — FTNScreen Screenwriter, provider lifecycle states, voice groundwork (2026-08-21)
+
+**Scope decision, stated up front.** This directive's full scope (a complete screenplay
+production pipeline, a deployed voice-cloning engine with two live Caribbean-dialect voices,
+pre-production/storyboards, a packaging/ZIP/QC/delivery system) requires infrastructure this
+environment does not have: no GPU for any TTS/video/self-host model, no ability to deploy Supabase
+functions or set secrets, no real authenticated browser session to execute `ibis-query`. Building
+speculative packaging/QC/delivery machinery for content that cannot yet be generated would be
+exactly the "do not build demos" / "do not fabricate" violation the directive itself forbids six
+separate times. This pass built everything that is genuinely real, tested, and honestly scoped:
+the Screenwriter pipeline architecture (real, tested, zero AI-brain-duplication), one new
+genuinely live capability (RUNTIME_ESTIMATION), the explicit provider lifecycle state model, a
+real gap closed in TEXT routing, and real, license-verified voice-engine research — all correctly
+stopping short of claiming anything is executable that isn't.
+
+### Explicit provider lifecycle states (§5 of the directive)
+
+Every one of the (now 18) providers in `js/ibis-provider-registry.js` carries a real
+`lifecycleState` from the directive's own model (`DISCOVERED` / `LICENSE_VERIFIED` /
+`DEPLOYMENT_READY` / `DEPLOYED` / `HEALTHY` / `EXECUTABLE` / `ELIGIBLE` / `BLOCKED` / `FAILED`).
+`tests/ibis-eligibility-audit.mjs` now asserts every value is one of these nine (never a vague
+"supported"), and that `lifecycleState:'ELIGIBLE'` and `enabled:true` never contradict each other
+— the exact "supported disguising an inactive provider" failure mode the directive named
+explicitly. Only three providers are `ELIGIBLE` today: `ibis-query-gemini` (pre-existing,
+authenticated), `ibis-local-dsp` (BPM detection), and the new `ibis-local-script-runtime-estimator`.
+
+### A real gap closed: `ibis-query-gemini` now has a working IBIS Client executor
+
+Phase 4 explicitly deferred this ("kept ibis-query-gemini out of the buildExecutor's automatic
+default... its request shape differs"). This pass closed it: `js/ibis-client.js`'s
+`callGeminiQuery()` calls `global.FTN.Auth.invoke('ibis-query', {country, prompt})` — the exact
+pattern already proven live in `js/ftn-fire.js`'s "Producer Notes" feature — and normalizes
+message-history payloads into a single prompt for it. **Honesty boundary, stated precisely**: this
+was code-reviewed and structurally tested (correct request/response shape, correct error
+classification), but **not** live-verified end-to-end, because that requires a real signed-in
+browser session this repository's Node-based tooling cannot provide. It is not claimed as
+`REAL_INFERENCE`-verified per the directive's own lifecycle — `ibis-query-gemini`'s `ELIGIBLE`
+status is inherited from Phase 2's original, separate investigation of that pre-existing
+production integration, not newly certified by this pass. A second real bug was found and fixed
+in the same area: `callTextProvider()` only read `payload.messages`, so a single-prompt caller
+(Screenwriter) would have silently sent an empty conversation to `ibis-assistant`/
+`ibis-text-cloudflare` once those deploy — fixed to normalize `payload.prompt` into a one-message
+array.
+
+### Capability taxonomy extended: SCREENWRITING and VOICE groups
+
+`js/ibis-capability-taxonomy.js` gained the exact capability names the directive specified:
+`STORY_DEVELOPMENT`, `CHARACTER_DEVELOPMENT`, `OUTLINE`, `BEAT_SHEET`, `SCREENPLAY`, `REVISION`,
+`CONTINUITY_CHECK`, `RUNTIME_ESTIMATION`, `QC` (SCREENWRITING), and `VOICE_SYNTHESIS` (VOICE,
+deliberately distinct from the existing AUDIO group's generic `TEXT_TO_SPEECH` — this one is
+specifically FTN-authorized-identity speech, not generic narration). The seven text-based
+SCREENWRITING capabilities were also added to `ibis-query-gemini`, `ibis-assistant-anthropic` and
+`cloudflare-workers-ai-text`'s declared capabilities — a real correction found while building the
+Screenwriter test: without this, no provider anywhere declared these capabilities, so the pipeline
+would have been permanently unroutable even after TEXT providers deploy. This reflects reality
+honestly: these are all general-purpose LLMs, and story development / character development /
+outlining / screenplay drafting are applications of TEXT generation via prompting, not separate
+models — exactly the "provider abstraction" principle the directive itself describes.
+
+### `js/ibis-runtime-estimator.js` (new) — the one genuinely new LIVE capability this pass
+
+A real, deterministic, zero-cost local calculation (standard ~235 words/page, ~1 page/minute
+screenwriting heuristic), stated honestly as an approximation (real pagination depends on
+formatting this module never sees). Registered as `ibis-local-script-runtime-estimator`,
+`lifecycleState:'ELIGIBLE'`, `enabled:true` — genuinely live today, the same standard already
+established by `ibis-local-dsp`. Tested with real word-count math, target-comparison, and
+fail-closed empty-input handling (`tests/ibis-runtime-estimator-audit.mjs`).
+
+### `js/ftnscreen-screenwriter.js` (new) — the Screenwriter capability, inside the existing FTNScreen
+
+Not a second application: `nodeId:'screen'` is the real, existing FTNScreen node
+(`js/screen-workspace.js`, `/screen/`) already in `js/product-registry-data.js`. Screenwriter has
+**no AI logic of its own** — every creative stage (concept → characters → beat sheet → outline →
+screenplay → continuity check → runtime estimate) is a real `IbisClient.request()` call, and every
+stage is a real asset in `js/ibis-project-graph.js` (the exact selective-regeneration graph built
+and tested in Phase 4 for precisely this purpose — not a second project model). `revise(project,
+'OUTLINE')` genuinely reuses the graph's real `regenerationSet()`: proven in
+`tests/ftnscreen-screenwriter-audit.mjs` to cascade to SCREENPLAY/CONTINUITY/RUNTIME (real
+dependents) while correctly leaving CONCEPT and CHARACTERS untouched (real non-dependents) —
+selective regeneration, not a full rebuild, exactly as the directive's own worked example
+describes.
+
+**What the test proves, precisely, without conflating the two:**
+1. *The real, current, unmocked state of the fabric*: every creative stage honestly reports
+   `NO_ELIGIBLE_PROVIDER` for a guest today (`developPilot()` stops at the first honest failure,
+   never fabricating downstream stages — directly satisfying "Do not stop at a synopsis. Do not
+   call a concept a finished pilot" by simply refusing to produce later stages when earlier ones
+   didn't really happen).
+2. *Real, live, end-to-end execution* for the one stage that doesn't need a TEXT provider at all:
+   `RUNTIME_ESTIMATION`, genuinely computed from real text, no mock.
+3. *Pipeline orchestration correctness* (stage sequencing, project-graph wiring, selective
+   revision) via an explicitly-labeled mock executor — never presented as proof that real text
+   generation works, only that the surrounding architecture is correct once it does.
+
+**Deliberately not built this pass**: the FTNScreen UI page/section for Screenwriter itself (a
+real WorkspaceShell-based form, matching `js/screen-workspace.js`'s existing conventions) —
+building and wiring a new live UI section under the same time budget that produced the tested
+core pipeline risked a rushed, under-tested addition to a real production page. The pipeline
+module is complete and tested; UI wiring is the flagged next step, the same "ship the tested core,
+flag the integration" pattern already used for TEXT→Creative Studio, IMAGE→Creative Studio, and
+BPM→DAW.
+
+### Voice: research and identity/dialect architecture, deliberately not deployment
+
+Per the directive's own explicit ordering ("DO NOT ASK THE USER FOR VOICE SAMPLES YET" — engine
+selection, license verification and deployment come first), this pass did exactly the parts that
+don't require infrastructure this environment lacks:
+
+- **Two real, primary-source-verified open-weight voice-cloning candidates**, both confirmed
+  directly against official sources (not aggregators): **Chatterbox** (Resemble AI) — MIT,
+  confirmed on its official Hugging Face model card — and **Qwen3-TTS** (Alibaba Cloud/Qwen) —
+  Apache 2.0, confirmed by fetching the actual `LICENSE` file on GitHub, not a summary. Both
+  support reference-audio voice cloning (the real mechanism by which a genuine Trinidadian-accented
+  IAN/SARAFINA recording would produce Trinidadian-accented synthesized speech — not a pretrained
+  "Trinidadian TTS model," which Phase 3B/4 already established does not exist). Both registered
+  with `lifecycleState:'LICENSE_VERIFIED'` and `costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND'` —
+  correctly `enabled:false`: neither can be deployed without a founder-budgeted GPU decision, and
+  a fully permissive license does not change that.
+- **`js/ibis-voice-registry.js` (new)** — exactly two authorized voice identities, IAN and
+  SARAFINA, each explicitly `AUTHORIZED_IDENTITY_NO_REFERENCE_AUDIO_YET` (no recordings requested,
+  matching the directive's own ordering). Voice identity is kept structurally separate from
+  country/region/dialect/delivery-style (the directive's explicit requirement — one IAN, usable
+  with any resolved dialect context, never a second "IAN — Trinidad" voice variant). The exact
+  resolution priority the directive specifies (explicit request > UI selection > account context >
+  project context > default) is implemented as a real, pure, tested function — proven never to
+  mutate its inputs (the directive's explicit "do not silently change permanent account
+  information" prohibition), and reused independently (not imported, to avoid a cross-module
+  dependency for a small shared rule) by `js/ftnscreen-screenwriter.js`'s own dialect-context
+  resolution.
+- **Recording scripts were NOT generated this pass** — correctly, per the directive's own explicit
+  ordering: no engine is deployed, so writing "exact recording instructions" now would be
+  premature and would very likely need to change once a real engine's actual technical
+  requirements (duration, format, sample rate) are known.
+
+### What this pass explicitly did NOT do (honest gaps)
+
+No FTNScreen UI section for Screenwriter (flagged above). No voice engine deployment (needs GPU
+infrastructure this environment doesn't have). No recording scripts (correctly premature). No
+`js/ftn-fire.js` adapter extraction — attempted, then deliberately abandoned: this repository's
+Node-based test tooling has no `OfflineAudioContext`/WebAudio implementation, so any extracted
+rendering code could not be verified here at all, and shipping unverified WebAudio code would
+violate "mocked test does not qualify as production functionality" more directly than not shipping
+it — real browser verification (Playwright or manual) remains the concrete prerequisite, unchanged
+from §0.11's own assessment. No pre-production/storyboard/packaging/QC/delivery machinery — all
+correctly gated on Screenwriter actually producing real screenplays, which it cannot yet do without
+a deployed TEXT provider.
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)

@@ -49,6 +49,21 @@
       'IMAGE_TEXT_REASONING', 'VIDEO_TEXT_REASONING', 'AUDIO_TEXT_REASONING',
       'AUDIO_VIDEO_REASONING', 'MULTIMODAL_EXTRACTION',
     ],
+    // Phase 6 (FTNScreen Screenwriter directive): named explicitly in the directive's own
+    // taxonomy request. STORY_DEVELOPMENT/CHARACTER_DEVELOPMENT/OUTLINE/BEAT_SHEET/SCREENPLAY/
+    // REVISION/CONTINUITY_CHECK/QC all require a real TEXT-capable provider (none is
+    // enabled/eligible for a guest today -- see js/ibis-provider-registry.js). RUNTIME_ESTIMATION
+    // is the one exception: a real, deterministic, zero-cost local calculation (see
+    // js/ibis-runtime-estimator.js, provider ibis-local-script-runtime-estimator).
+    SCREENWRITING: [
+      'STORY_DEVELOPMENT', 'CHARACTER_DEVELOPMENT', 'OUTLINE', 'BEAT_SHEET', 'SCREENPLAY',
+      'REVISION', 'CONTINUITY_CHECK', 'RUNTIME_ESTIMATION', 'QC',
+    ],
+    // Phase 6 voice directive: VOICE_SYNTHESIS is distinct from the existing AUDIO group's
+    // TEXT_TO_SPEECH (generic narration) -- this is specifically FTN-authorized-identity speech
+    // (IAN/SARAFINA), with dialect/region/delivery-style as separate request parameters (never a
+    // second voice capability per dialect -- see js/ibis-voice-registry.js).
+    VOICE: ['VOICE_SYNTHESIS'],
   };
 
   // Shipped-string -> canonical-equivalent, or null where the shipped string covers ground the

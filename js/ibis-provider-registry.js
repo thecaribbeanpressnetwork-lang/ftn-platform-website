@@ -21,6 +21,7 @@ var providers=[
     website:'https://pixverse.ai/en',apiUrl:'https://docs.platform.pixverse.ai/',pricingUrl:'https://docs.platform.pixverse.ai/pricing-796039m0',affiliateProgramUrl:'https://pixverse.ai/en/affiliate',
     commercialUse:'REQUIRES_CONTRACT_AND_OUTPUT_TERMS_REVIEW',redistribution:'UNVERIFIED',lastVerified:VERIFIED,
     weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://docs.platform.pixverse.ai/',
+    lifecycleState:'DISCOVERED',
     note:'Official API and affiliate programme exist. API generation is disabled until FTN has an approved account, customer-funded credits and completed output-rights review. The public programme link is not an FTN affiliate link.'
   },
   {
@@ -29,6 +30,7 @@ var providers=[
     website:'https://app.klingai.com/global/',apiUrl:'https://kling.ai/document-api/guides/get-started/overview',pricingUrl:'https://kling.ai/dev/pricing',affiliateProgramUrl:'https://app.klingai.com/global/commission-share',
     commercialUse:'REQUIRES_CONTRACT_AND_OUTPUT_TERMS_REVIEW',redistribution:'UNVERIFIED',lastVerified:VERIFIED,
     weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://kling.ai/document-api/guides/get-started/overview',
+    lifecycleState:'DISCOVERED',
     note:'Official API and affiliate programme surfaces exist. Current API packages require pre-purchase, so Kling is not enabled for an FTN zero-upfront-cost launch.'
   },
   {
@@ -37,6 +39,7 @@ var providers=[
     website:'https://musicapi.ai/producer-ai-api',apiUrl:'https://docs.musicapi.ai/',pricingUrl:'https://musicapi.ai/lyria-3-pro-pricing',affiliateProgramUrl:'https://musicapi.ai/affiliates',
     commercialUse:'PROVIDER_STATES_COMMERCIAL_RIGHTS_INCLUDED_TERMS_REVIEW_REQUIRED',redistribution:'PROVIDER_STATES_CUSTOMER_DELIVERY_ALLOWED_TERMS_REVIEW_REQUIRED',lastVerified:VERIFIED,
     weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://docs.musicapi.ai/',
+    lifecycleState:'DISCOVERED',
     note:'Official Producer API is 12 provider credits per task and supports instrumental prompts. The official affiliate programme advertises 30% lifetime commission. FTN has no approved API account or affiliate link configured, so both paths remain off.'
   },
   {
@@ -45,6 +48,7 @@ var providers=[
     website:'https://github.com/ace-step/ACE-Step',apiUrl:null,pricingUrl:'https://github.com/ace-step/ACE-Step/blob/main/LICENSE',affiliateProgramUrl:null,
     commercialUse:'APACHE_2_CODE_AND_MODEL_CANDIDATE_REVIEW_REQUIRED',redistribution:'ORIGINALITY_AND_MODEL_RELEASE_REVIEW_REQUIRED',lastVerified:VERIFIED,
     weightsAvailable:'YES_STATED_APACHE_2_0',sourceAvailable:'YES_GITHUB_APACHE_2_0',selfHostable:true,deploymentMethod:'PYTHON_TRANSFORMERS_SELF_HOST',hardwareRequirements:'GPU_REQUIRED_NOT_QUANTIFIED_BY_FTN',verificationSource:'https://github.com/ace-step/ACE-Step',
+    lifecycleState:'DISCOVERED',
     note:'Official project and model card identify Apache 2.0 and support instrumental workflows. Self-hosting remains disabled until GPU cost, exact model version, safety, cultural-quality and release-rights testing pass. Open licensing does not mean zero cost to IBIS -- someone still pays for the GPU.'
   },
   {
@@ -53,6 +57,7 @@ var providers=[
     website:'https://stability.ai/stable-audio',apiUrl:'https://platform.stability.ai/',pricingUrl:'https://stability.ai/license',affiliateProgramUrl:null,
     commercialUse:'CONDITIONAL_STABILITY_COMMUNITY_LICENSE',redistribution:'REQUIRES_LICENSE_REVIEW',lastVerified:VERIFIED,
     weightsAvailable:'YES_STABILITY_COMMUNITY_LICENSE',sourceAvailable:'YES_STABILITY_REPO',selfHostable:true,deploymentMethod:'PYTHON_DIFFUSERS_SELF_HOST',hardwareRequirements:'GPU_REQUIRED_NOT_QUANTIFIED_BY_FTN',verificationSource:'https://stability.ai/license',
+    lifecycleState:'DISCOVERED',
     note:'Stability states that Small/Medium are open weights trained on licensed data and outputs may be commercialized under its Community License, with Enterprise licensing above its threshold. FTN deployment still needs exact-version and cost validation. This is the model ftn-fire-generate already targets, gated behind FTN_CREATIVE_GENERATION_ENABLED + FTN_FIRE_GENERATION_ENABLED, both currently off.'
   },
   {
@@ -61,6 +66,7 @@ var providers=[
     website:'https://github.com/facebookresearch/audiocraft',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
     commercialUse:'NOT_APPROVED_FOR_FTN_CUSTOMER_OUTPUT',redistribution:'NOT_APPROVED',lastVerified:VERIFIED,
     weightsAvailable:'YES_NONCOMMERCIAL_LICENSE_ONLY',sourceAvailable:'YES_MIT_CODE_NONCOMMERCIAL_WEIGHTS',selfHostable:true,deploymentMethod:'PYTHON_AUDIOCRAFT_SELF_HOST',hardwareRequirements:'GPU_REQUIRED_NOT_QUANTIFIED_BY_FTN',verificationSource:'https://github.com/facebookresearch/audiocraft',
+    lifecycleState:'BLOCKED',
     note:'AudioCraft code and model weights have different licences. MusicGen is excluded from commercial FTN generation unless a later rights review establishes a permitted path.'
   },
   {
@@ -69,24 +75,27 @@ var providers=[
     website:'https://producer.ai/',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
     commercialUse:'UNVERIFIED',redistribution:'UNVERIFIED',lastVerified:VERIFIED,
     weightsAvailable:'UNKNOWN',sourceAvailable:'UNKNOWN',selfHostable:null,deploymentMethod:'UNKNOWN',hardwareRequirements:'UNKNOWN',verificationSource:null,
+    lifecycleState:'DISCOVERED',
     note:'Never automate a consumer login or subscription. FTN will integrate only after a permitted API, partner or referral arrangement and export rights are documented.'
   },
   {
-    id:'ibis-query-gemini',name:'ibis-query (Google Gemini)',categories:['text'],capabilities:['TEXT'],integration:'NATIVE_API_LIVE',
+    id:'ibis-query-gemini',name:'ibis-query (Google Gemini)',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','CHARACTER_DEVELOPMENT','OUTLINE','BEAT_SHEET','SCREENPLAY','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_LIVE',
     apiStatus:'LIVE_IF_GEMINI_API_KEY_CONFIGURED',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:true,costToIbis:'PAID_BY_IBIS_PRE_EXISTING',
     website:'https://ai.google.dev/',apiUrl:'https://ai.google.dev/gemini-api/docs',pricingUrl:'https://ai.google.dev/pricing',affiliateProgramUrl:null,
     commercialUse:'INHERITED_FROM_EXISTING_IBIS_QUERY_DEPLOYMENT_NOT_INDEPENDENTLY_REVERIFIED',redistribution:'NOT_APPLICABLE',lastVerified:VERIFIED,
     userAuthorizationRequired:true,
     weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://ai.google.dev/gemini-api/docs',
+    lifecycleState:'ELIGIBLE',
     note:'Pre-existing production integration (supabase/functions/ibis-query), not newly added by this registry pass. Requires FTN Account sign-in (CI-enforced in tests/backend-source-audit.mjs). Marked costToIbis PAID_BY_IBIS_PRE_EXISTING rather than ZERO because Gemini API usage is billed to FTN\'s own key, not a customer-funded credit -- flagged honestly rather than reclassified without a founder review of that cost.'
   },
   {
-    id:'ibis-assistant-anthropic',name:'ibis-widget (Anthropic)',categories:['text'],capabilities:['TEXT'],integration:'NATIVE_API_LIVE',
+    id:'ibis-assistant-anthropic',name:'ibis-widget (Anthropic)',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','CHARACTER_DEVELOPMENT','OUTLINE','BEAT_SHEET','SCREENPLAY','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_LIVE',
     apiStatus:'PENDING_DEPLOYMENT',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:false,costToIbis:'PAID_BY_IBIS_FOUNDER_APPROVED',
     website:'https://www.anthropic.com/',apiUrl:'https://docs.anthropic.com/',pricingUrl:'https://www.anthropic.com/pricing',affiliateProgramUrl:null,
     commercialUse:'FOUNDER_APPROVED_NARROW_SCOPE_2026_08_19',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
     userAuthorizationRequired:false,
     weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://docs.anthropic.com/',
+    lifecycleState:'DEPLOYMENT_READY',
     note:'Backs the sitewide ibis widget (supabase/functions/ibis-assistant). Guest-accessible by explicit design, not authenticated. enabled stays false here until the function is actually deployed and ANTHROPIC_API_KEY is set -- see IBIS-MAP.md. The widget already tries the free deterministic Product Registry match first and only reaches this provider on fallback.'
   },
   {
@@ -98,13 +107,14 @@ var providers=[
     // against the official REST API guide, so it fits this repo's Supabase-Edge-Function
     // architecture with no new infrastructure. This is category A (ZERO_COST_TO_IBIS) in the
     // Phase 3 directive's own taxonomy, not a customer-funded or IBIS-billed route.
-    id:'cloudflare-workers-ai-text',name:'Cloudflare Workers AI — Llama 3.1 8B',categories:['text'],capabilities:['TEXT'],integration:'NATIVE_API_CANDIDATE',
+    id:'cloudflare-workers-ai-text',name:'Cloudflare Workers AI — Llama 3.1 8B',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','CHARACTER_DEVELOPMENT','OUTLINE','BEAT_SHEET','SCREENPLAY','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_CANDIDATE',
     apiStatus:'PENDING_ACCOUNT_SETUP',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'ZERO_COST_TO_IBIS',
     website:'https://developers.cloudflare.com/workers-ai/',apiUrl:'https://developers.cloudflare.com/workers-ai/get-started/rest-api/',pricingUrl:'https://developers.cloudflare.com/workers-ai/platform/pricing/',affiliateProgramUrl:null,
     commercialUse:'PROVIDER_STATES_FREE_ALLOCATION_HARD_CAPPED_TERMS_REVIEW_RECOMMENDED_BEFORE_ENABLING',redistribution:'UNVERIFIED',lastVerified:'2026-08-20',
     userAuthorizationRequired:false,
     modelId:'@cf/meta/llama-3.1-8b-instruct',
     weightsAvailable:'YES_UNDERLYING_MODEL_OPEN_WEIGHT_META_LLAMA_3_LICENSE',sourceAvailable:'NOT_APPLICABLE_FTN_DOES_NOT_SELF_HOST',selfHostable:false,deploymentMethod:'CLOUDFLARE_HOSTED_INFERENCE_REST_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_BY_CLOUDFLARE',verificationSource:'https://developers.cloudflare.com/workers-ai/models/llama-3.1-8b-instruct/',
+    lifecycleState:'DEPLOYMENT_READY',
     note:'Not yet integrated -- requires a Cloudflare account, an API token with Workers AI permissions, and CLOUDFLARE_ACCOUNT_ID/CLOUDFLARE_API_TOKEN set as Supabase secrets before enabled can become true (per this codebase\'s "discovery is not deployment" rule). The 10,000-Neuron/day pool also covers embeddings, image generation (flux-1-schnell, stable-diffusion-xl) and speech-to-text (whisper) -- those are documented as researched-but-not-registered candidates in IBIS-MAP.md, not added here speculatively.'
   },
   {
@@ -119,6 +129,7 @@ var providers=[
     userAuthorizationRequired:false,
     modelId:'@cf/black-forest-labs/flux-1-schnell',
     weightsAvailable:'YES_APACHE_2_0_VERIFIED_ON_OFFICIAL_MODEL_CARD',sourceAvailable:'YES_HUGGING_FACE_BLACK_FOREST_LABS',selfHostable:false,deploymentMethod:'CLOUDFLARE_HOSTED_INFERENCE_REST_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_BY_CLOUDFLARE',verificationSource:'https://huggingface.co/black-forest-labs/FLUX.1-schnell',
+    lifecycleState:'DEPLOYMENT_READY',
     note:'Not yet integrated -- requires the same CLOUDFLARE_ACCOUNT_ID/CLOUDFLARE_API_TOKEN Supabase secrets as cloudflare-workers-ai-text, plus supabase/functions/ibis-image-cloudflare actually deployed, before enabled can become true. License upgraded from UNVERIFIED to VERIFIED this pass: the official Hugging Face model card states "Released under the apache-2.0 licence, the model can be used for personal, scientific, and commercial purposes" -- fetched directly 2026-08-20, not from a third-party summary.'
   },
   {
@@ -132,6 +143,7 @@ var providers=[
     userAuthorizationRequired:false,
     modelId:'@cf/bytedance/stable-diffusion-xl-lightning',
     weightsAvailable:'YES_OPENRAIL_PLUS_PLUS_VERIFIED_ON_OFFICIAL_MODEL_CARD',sourceAvailable:'YES_HUGGING_FACE_BYTEDANCE',selfHostable:false,deploymentMethod:'CLOUDFLARE_HOSTED_INFERENCE_REST_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_BY_CLOUDFLARE',verificationSource:'https://huggingface.co/ByteDance/SDXL-Lightning',
+    lifecycleState:'DEPLOYMENT_READY',
     note:'Not yet integrated -- same deployment prerequisites as cloudflare-workers-ai-image-flux. License upgraded from UNVERIFIED to VERIFIED this pass: the official Hugging Face model card states openrail++, which permits commercial use subject to its use-based restriction annex -- fetched directly 2026-08-20. FTN has not independently reviewed the specific use-based restriction clauses against its own output pipeline; that narrower review is still recommended before enabling.'
   },
   {
@@ -146,6 +158,7 @@ var providers=[
     website:'https://github.com/zai-org/CogVideo',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
     commercialUse:'VERIFIED_APACHE_2_0_ON_2B_VARIANT_ONLY',redistribution:'APACHE_2_0_PERMITS_REDISTRIBUTION_2B_VARIANT_ONLY',lastVerified:'2026-08-20',
     weightsAvailable:'YES_APACHE_2_0_VERIFIED_ON_OFFICIAL_MODEL_CARD_2B_ONLY',sourceAvailable:'YES_GITHUB_AND_HUGGING_FACE_ZAI_ORG',selfHostable:true,deploymentMethod:'PYTHON_DIFFUSERS_SELF_HOST',hardwareRequirements:'GPU_REQUIRED_APPROX_5GB_VRAM_WITH_CPU_OFFLOAD_PER_OFFICIAL_REPO_UNQUANTIFIED_COST_BY_FTN',verificationSource:'https://huggingface.co/THUDM/CogVideoX-2b',
+    lifecycleState:'LICENSE_VERIFIED',
     note:'The 2B variant is confirmed Apache 2.0 (commercial use permitted) on its official Hugging Face model card, distinct from the larger 5B variant which uses a separate, more restrictive CogVideoX license -- do not conflate the two when this entry is revisited. Even the smaller 2B variant requires a real GPU (~5GB VRAM with the official memory-optimization flags); IBIS has no GPU infrastructure today, so this stays WOULD_REQUIRE_IBIS_COMPUTE_SPEND and ineligible until a founder makes a budgeted infrastructure decision -- open licensing does not change that.'
   },
   {
@@ -165,6 +178,7 @@ var providers=[
     commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
     userAuthorizationRequired:false,
     weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-audio-analysis.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_IN_VISITOR_BROWSER',verificationSource:'js/ibis-audio-analysis.js and tests/ibis-audio-analysis-audit.mjs (this repository)',
+    lifecycleState:'ELIGIBLE',
     note:'Autocorrelation-based tempo (BPM) detection over an onset-strength envelope, entirely FTN-authored, no third-party model or dataset involved. Deliberately not wired into any specific FTN node UI this pass (see IBIS-MAP.md) -- registered and tested as a real, complete, working capability first; /riddim/daw/ integration is the flagged next step, following the same "ship a tested vertical slice, flag the next integration point" pattern already used for TEXT and IMAGE.'
   },
   {
@@ -181,7 +195,45 @@ var providers=[
     commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
     userAuthorizationRequired:false,
     weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ftn-fire.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_IN_VISITOR_BROWSER',verificationSource:'js/ftn-fire.js (this repository, read directly 2026-08-20)',
-    note:'enabled stays false NOT because the capability is unreal or costly -- it genuinely works today at /riddim/fire/ -- but because "NO FAKE REDUNDANCY" requires a real, callable adapter before js/ibis-eligibility.js.attemptInOrder() may select it, and js/ftn-fire.js\'s schedule()/play()/exportWav() functions are tightly bound to that page\'s own DOM (fire-style/fire-bpm/etc. element ids), not exposed as a portable, other-node-callable function today. Extracting the procedural engine into a shared module (the same refactor pattern js/charts.js\'s trendGlyph() already proved for a smaller case, RC3 Sec 7.7) is the concrete next step to make this genuinely IBIS-orchestrable beyond its own page -- flagged, not rushed, per this codebase\'s standing "ship real, flag next" discipline.'
+    lifecycleState:'DEPLOYED',
+    note:'enabled stays false NOT because the capability is unreal or costly -- it genuinely works today at /riddim/fire/ -- but because "NO FAKE REDUNDANCY" requires a real, callable adapter before js/ibis-eligibility.js.attemptInOrder() may select it, and js/ftn-fire.js\'s schedule()/play()/exportWav() functions are tightly bound to that page\'s own DOM (fire-style/fire-bpm/etc. element ids), not exposed as a portable, other-node-callable function today. Extracting the procedural engine into a shared module (the same refactor pattern js/charts.js\'s trendGlyph() already proved for a smaller case, RC3 Sec 7.7) is the concrete next step to make this genuinely IBIS-orchestrable beyond its own page -- flagged, not rushed, per this codebase\'s standing "ship real, flag next" discipline. Phase 6: not attempted this pass either -- this repository\'s Node-based test tooling has no OfflineAudioContext/WebAudio implementation, so real execution genuinely cannot be verified here; real browser verification (e.g. Playwright) is the concrete prerequisite before this changes.'
+  },
+  {
+    // Phase 6 (FTNScreen Screenwriter directive): a real, deterministic, zero-cost local
+    // calculation -- see js/ibis-runtime-estimator.js. No AI model, no network call, genuinely
+    // live today, same standard already established by ibis-local-dsp.
+    id:'ibis-local-script-runtime-estimator',name:'ibis local script runtime estimator (client-side, no model)',categories:['text'],capabilities:['RUNTIME_ESTIMATION'],integration:'LOCAL_DETERMINISTIC_NO_PROVIDER',
+    apiStatus:'LIVE',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:true,costToIbis:'ZERO_COST_TO_IBIS',
+    website:null,apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-21',
+    userAuthorizationRequired:false,
+    weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-runtime-estimator.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_ANYWHERE_JS_RUNS',verificationSource:'js/ibis-runtime-estimator.js and tests/ibis-runtime-estimator-audit.mjs (this repository)',
+    lifecycleState:'ELIGIBLE',
+    note:'Standard screenwriting-industry heuristic (~235 words/page, ~1 page/minute) applied to raw screenplay text -- an honest approximation, not real pagination software, and documented as such in the module itself.'
+  },
+  {
+    // Phase 6 voice directive: VOICE_SYNTHESIS candidates, researched and license-verified this
+    // pass against primary sources, correctly NOT deployed -- both require a GPU this environment
+    // does not have. Recorded so a founder infrastructure decision starts from real options, not
+    // from zero. See js/ibis-voice-registry.js for the IAN/SARAFINA identity model (kept separate
+    // from provider selection on purpose -- swapping the engine must never mean re-deriving the
+    // voice identities).
+    id:'chatterbox-tts',name:'Chatterbox (Resemble AI)',categories:['voice'],capabilities:['VOICE_SYNTHESIS'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://huggingface.co/ResembleAI/chatterbox',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'VERIFIED_MIT_COMMERCIAL_USE_PERMITTED',redistribution:'MIT_PERMITS_REDISTRIBUTION',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_MIT_VERIFIED_ON_OFFICIAL_MODEL_CARD',sourceAvailable:'YES_HUGGING_FACE_RESEMBLE_AI',selfHostable:true,deploymentMethod:'PYTHON_TRANSFORMERS_SELF_HOST_GPU',hardwareRequirements:'GPU_REQUIRED_500M_PARAM_MODEL_EXACT_VRAM_NOT_QUANTIFIED_BY_PRIMARY_SOURCE',verificationSource:'https://huggingface.co/ResembleAI/chatterbox',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'MIT license confirmed directly against the official Hugging Face model card 2026-08-21. Supports reference-audio voice cloning -- the realistic path to IAN/SARAFINA speech once real, authorized reference recordings exist (not requested yet, per the directive\'s own explicit ordering). WOULD_REQUIRE_IBIS_COMPUTE_SPEND: correctly ineligible without a founder-budgeted GPU decision, regardless of the license being fully permissive.'
+  },
+  {
+    id:'qwen3-tts',name:'Qwen3-TTS (Alibaba Cloud / Qwen team)',categories:['voice'],capabilities:['VOICE_SYNTHESIS'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://github.com/QwenLM/Qwen3-TTS',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'VERIFIED_APACHE_2_0_COMMERCIAL_USE_PERMITTED',redistribution:'APACHE_2_0_PERMITS_REDISTRIBUTION_NOTICE_FILE_OBLIGATION_APPLIES',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_APACHE_2_0_VERIFIED_DIRECTLY_AGAINST_LICENSE_FILE',sourceAvailable:'YES_GITHUB_QWENLM',selfHostable:true,deploymentMethod:'PYTHON_SELF_HOST_GPU',hardwareRequirements:'GPU_REQUIRED_0.6B_OR_1.7B_VARIANT_EXACT_VRAM_NOT_QUANTIFIED_BY_PRIMARY_SOURCE',verificationSource:'https://github.com/QwenLM/Qwen3-TTS/blob/main/LICENSE',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'Apache 2.0 confirmed by fetching the actual LICENSE file on GitHub (not an aggregator summary) 2026-08-21. Supports 3-second reference-audio voice cloning per the official repository. A real alternative to Chatterbox, not evaluated as deeply this pass -- recorded honestly as a second real candidate, not a confirmed runner-up.'
   }
 ];
 global.FTN=global.FTN||{};

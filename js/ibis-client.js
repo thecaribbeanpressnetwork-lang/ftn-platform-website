@@ -26,6 +26,8 @@
       Eligibility: FTN.IbisEligibility || null,
       Providers: FTN.IbisProviders || null,
       AudioAnalysis: FTN.IbisAudioAnalysis || null,
+      RuntimeEstimator: FTN.IbisRuntimeEstimator || null,
+      Auth: FTN.Auth || null,
     };
   }
 
@@ -41,10 +43,16 @@
     var url = TEXT_PROVIDER_ENDPOINTS[provider.id];
     if (!url) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
     var startedAt = Date.now();
+    // Two real callers use two different payload shapes: js/ibis-widget.js sends a message
+    // history, js/ftnscreen-screenwriter.js (and any future single-prompt caller) sends
+    // {prompt}. Normalize the latter into a one-message array so either shape reaches the
+    // function correctly -- silently dropping payload.prompt here would send an empty
+    // conversation to a real provider once ibis-assistant/ibis-text-cloudflare are deployed.
+    var messages = (payload && payload.messages) || (payload && payload.prompt ? [{ role: 'user', content: payload.prompt }] : []);
     return fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json', apikey: PUBLISHABLE_KEY, authorization: 'Bearer ' + PUBLISHABLE_KEY },
-      body: JSON.stringify({ messages: (payload && payload.messages) || [], products: (payload && payload.products) || [] }),
+      body: JSON.stringify({ messages: messages, products: (payload && payload.products) || [] }),
     })
       .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
       .then(function (result) {
@@ -71,10 +79,60 @@
     return Promise.resolve({ success: true, latencyMs: latencyMs, data: result });
   }
 
+  // ibis-query-gemini's real call shape (js/ftn-auth.js's invoke() -> Supabase's own
+  // functions.invoke(), authenticated) differs from the guest TEXT_PROVIDER_ENDPOINTS map above --
+  // a single {country, prompt} body, not a message-history array. This closes a gap explicitly
+  // flagged and deferred in Phase 4 (IBIS Client had no default executor for the one TEXT provider
+  // that's actually enabled today). Requires a real signed-in browser session to execute for
+  // real -- js/ftn-auth.js must be loaded and the user authenticated, neither of which this
+  // repository's Node-based test tooling can provide, so this path is code-reviewed and
+  // structurally tested (a mocked Auth.invoke proving the request/response shape is handled
+  // correctly), never claimed as a live-verified execution. See IBIS-MAP.md Sec 0.13.
+  function callGeminiQuery(provider, payload) {
+    var reg = registries();
+    if (!reg.Auth || typeof reg.Auth.invoke !== 'function') return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var prompt = (payload && payload.prompt) || flattenMessages(payload && payload.messages);
+    if (!prompt) return Promise.resolve({ success: false, errorType: 'INVALID_REQUEST' });
+    var startedAt = Date.now();
+    return reg.Auth.invoke('ibis-query', { country: (payload && payload.country) || 'Caribbean', prompt: prompt })
+      .then(function (data) {
+        var latencyMs = Date.now() - startedAt;
+        if (!data || !data.answer) return { success: false, latencyMs: latencyMs, errorType: 'SERVER_ERROR' };
+        return { success: true, latencyMs: latencyMs, data: { answer: data.answer, provider: 'ibis-query (Google Gemini)' } };
+      })
+      .catch(function (err) {
+        var errorType = err && /auth|sign.?in/i.test(String(err.message || '')) ? 'AUTH_FAILURE' : 'SERVER_ERROR';
+        return { success: false, latencyMs: Date.now() - startedAt, errorType: errorType };
+      });
+  }
+
+  // Message-history payloads (widget/Screenwriter shape) flattened into a single prompt for
+  // providers that only accept one, so callers don't need to know which shape a given provider
+  // wants.
+  function flattenMessages(messages) {
+    if (!Array.isArray(messages) || !messages.length) return null;
+    return messages.map(function (m) { return (m.role === 'assistant' ? 'ibis: ' : 'User: ') + m.content; }).join('\n');
+  }
+
+  function callRuntimeEstimator(provider, payload) {
+    var reg = registries();
+    if (provider.id !== 'ibis-local-script-runtime-estimator' || !reg.RuntimeEstimator) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var text = payload && payload.text;
+    var startedAt = Date.now();
+    var result = reg.RuntimeEstimator.estimateRuntime(text, payload && payload.options);
+    var latencyMs = Date.now() - startedAt;
+    if (result.minutes === null) return Promise.resolve({ success: false, latencyMs: latencyMs, errorType: 'INVALID_REQUEST', errorDetail: result.reason });
+    return Promise.resolve({ success: true, latencyMs: latencyMs, data: result });
+  }
+
   function defaultExecutorFor(capability, payload) {
     return function (provider) {
-      if (capability === 'TEXT' && TEXT_PROVIDER_ENDPOINTS[provider.id]) return callTextProvider(provider, payload);
+      if (capability === 'TEXT') {
+        if (TEXT_PROVIDER_ENDPOINTS[provider.id]) return callTextProvider(provider, payload);
+        if (provider.id === 'ibis-query-gemini') return callGeminiQuery(provider, payload);
+      }
       if (capability === 'BPM_DETECTION' && provider.id === 'ibis-local-dsp') return callLocalDsp(provider, payload);
+      if (capability === 'RUNTIME_ESTIMATION' && provider.id === 'ibis-local-script-runtime-estimator') return callRuntimeEstimator(provider, payload);
       return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
     };
   }

@@ -14,10 +14,16 @@ const Taxonomy = context.window.FTN.CapabilityTaxonomy;
 
 // -- Registry shape --------------------------------------------------------
 const all = Providers.all();
-assert(all.length >= 15, 'Expected 12 prior candidates plus cogvideox-2b, ibis-local-dsp, and ftn-fire-local-procedural (Phase 4 real-code investigation finding)');
+assert(all.length >= 18, 'Expected 15 prior candidates plus ibis-local-script-runtime-estimator, chatterbox-tts and qwen3-tts (Phase 6)');
+const VALID_LIFECYCLE_STATES = ['DISCOVERED', 'LICENSE_VERIFIED', 'DEPLOYMENT_READY', 'DEPLOYED', 'HEALTHY', 'EXECUTABLE', 'ELIGIBLE', 'BLOCKED', 'FAILED'];
 for (const p of all) {
   assert(Array.isArray(p.capabilities) && p.capabilities.length > 0, `${p.id} must declare at least one capability`);
   assert(typeof p.costToIbis === 'string' && p.costToIbis.length > 0, `${p.id} must declare costToIbis`);
+  assert(VALID_LIFECYCLE_STATES.includes(p.lifecycleState), `${p.id} must declare a real lifecycleState from the Phase 6 explicit state model, got "${p.lifecycleState}"`);
+  // A provider marked ELIGIBLE must actually be enabled -- lifecycleState and enabled must never
+  // contradict each other (that would be exactly the "supported disguising inactive" the
+  // directive explicitly forbids).
+  if (p.lifecycleState === 'ELIGIBLE') assert.equal(p.enabled, true, `${p.id} is marked ELIGIBLE but enabled:false -- these must agree`);
   for (const cap of p.capabilities) {
     assert(Taxonomy.isRecognized(cap), `${p.id} declares unrecognized capability "${cap}" -- must be canonical (js/ibis-capability-taxonomy.js) or a documented legacy alias, never an ad hoc string`);
   }

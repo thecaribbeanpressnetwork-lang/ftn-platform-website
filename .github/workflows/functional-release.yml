@@ -53,6 +53,15 @@ jobs:
       - name: Audit IBIS Client universal fabric (node permission + real execution)
         run: node tests/ibis-client-audit.mjs
 
+      - name: Audit ibis voice identity registry (IAN/SARAFINA, dialect resolution)
+        run: node tests/ibis-voice-registry-audit.mjs
+
+      - name: Audit ibis runtime estimator (real local execution)
+        run: node tests/ibis-runtime-estimator-audit.mjs
+
+      - name: Audit FTNScreen Screenwriter (pipeline, project graph, honest fabric state)
+        run: node tests/ftnscreen-screenwriter-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
