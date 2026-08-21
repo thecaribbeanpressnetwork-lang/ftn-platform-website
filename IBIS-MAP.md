@@ -725,6 +725,95 @@ documentation.
 remain the only two genuinely eligible-today capabilities. Everything else — including the newly
 discovered Fire engine — is real but not yet orchestrable, exactly as this section documents.
 
+## 0.12 Phase 5 — the universal IBIS Client (2026-08-21)
+
+Phase 4 built the pieces (node registry, capability taxonomy, eligibility engine, music-workflow
+classifier, project graph) but nothing composed them into one door every node could call through.
+This pass built that door — `js/ibis-client.js` — and, critically, made the site's own oldest IBIS
+consumer (`js/ibis-widget.js`) actually use it, so "the universal fabric works" is demonstrated by
+refactoring real, live, working code onto it rather than only by a fresh test file.
+
+### `js/ibis-client.js` (new) — node → IBIS → capability → provider → result → provenance
+
+One function, `request(spec)`, implements exactly the pipeline the directive specified:
+
+1. **Node permission boundary.** If `spec.nodeId` is supplied, resolved against
+   `js/ftn-node-registry.js`: an unknown node fails closed (`UNKNOWN_NODE`); Community Connect
+   fails closed by explicit policy (`NODE_EXCLUDED`, Phase 4's `IBIS_EXCLUDED_NODES`); a
+   private/vaulted node fails closed (`NODE_NOT_AUTHORIZED`). `spec.nodeId` is optional —
+   sitewide callers with no reliable page-to-node mapping (the widget) may omit it and skip
+   straight to the capability stage, which is itself tested (`ibis-client-audit.mjs`) rather than
+   left as an unverified assumption.
+2. **Capability recognition**, via `js/ibis-capability-taxonomy.js` — an unrecognized capability
+   string fails closed (`UNKNOWN_CAPABILITY`), never silently proceeds.
+3. **Eligibility + routing**, via the existing `js/ibis-eligibility.js` `attemptInOrder()` —
+   reused, not reimplemented. A caller may supply its own `executor`; if it doesn't, IBIS Client
+   provides a real default for the two capabilities that actually have one today (see below) and
+   otherwise reports what's eligible without pretending to execute it.
+4. **Provenance**, attached to every response: `nodeId`, `capability`, `requestedAt`/
+   `respondedAt`, every provider attempted and its outcome, and — on success — which provider
+   actually executed and its `costToIbis` classification straight from the registry record.
+
+**Real default executors** (`defaultExecutorFor`), consolidated in one place instead of
+duplicated per caller: the TEXT-calling logic (`ibis-assistant`/`ibis-text-cloudflare` endpoints)
+that used to live inside `js/ibis-widget.js` directly, and a genuinely local `BPM_DETECTION`
+executor that calls `js/ibis-audio-analysis.js` with no network round trip at all.
+
+### `js/ibis-widget.js` refactored to be the fabric's first real consumer
+
+The widget's own copy of `TEXT_PROVIDER_ENDPOINTS`/`callTextProvider` was deleted; `callAssistant()`
+now calls `IbisClient.request({capability:'TEXT', context, payload})` and unpacks the same
+`{answer, provider}` shape it already expected. This is "no duplicate AI brains" made real, not
+just stated: the widget is the exact pattern the directive described (a node using shared
+infrastructure instead of its own bespoke implementation), demonstrated on code that was already
+shipping to every page on the site, not a new demo page. Deliberately **not** given a `nodeId` —
+the widget loads unconditionally on every page via `js/nav.js`'s `loadOnce()`, and there is no
+reliable page→node mapping today; passing a wrong or approximate `nodeId` risked silently gating
+the widget's TEXT capability on pages where it currently works, which is exactly the kind of
+regression "preserve working functionality" warns against. Both call paths — with and without
+`nodeId` — are asserted in `tests/ibis-client-audit.mjs` to land on the identical, honest
+`NO_ELIGIBLE_PROVIDER` outcome (the real current state), proving the omission is safe rather than
+merely convenient.
+
+### `describeNode()` — real, current-state introspection, never a fabricated capability list
+
+`IbisClient.describeNode(nodeId, context)` answers "what can this node do through IBIS right now"
+using only real data: the node's actual `canCallIbisCapabilities` flag, and — critically — the
+*actual, currently eligible* capabilities (cross-checked against `js/ibis-eligibility.js.find()`
+for every capability any registered provider declares), not the node's own marketing-facing
+`capabilities` array from `js/product-registry-data.js` (a different vocabulary entirely —
+conflating the two would have been a real, subtle honesty bug). Tested directly: `riddim` shows
+`BPM_DETECTION` eligible and explicitly does **not** show `IMAGE_GENERATION` eligible, matching
+the real, current state of the registry.
+
+### Verification — real, not just node-permission plumbing
+
+`tests/ibis-client-audit.mjs` (new, wired into CI) proves, against the real current registries
+(not fixtures): Community Connect blocked before capability/eligibility are even checked;
+unknown-node and unknown-capability both fail closed; `mission-control`/`love`/`health` all
+correctly unauthorized; **real, working, local, zero-cost end-to-end execution** — a synthetic
+120 BPM click track, requested by the `riddim` node (not `ibis-ai` itself, proving cross-node
+execution genuinely works), correctly detected via the full `request()` pipeline with real
+provenance (`provider: 'ibis-local-dsp'`, `costToIbis: 'ZERO_COST_TO_IBIS'`); TEXT with no live
+guest provider today fails with the honest `NO_ELIGIBLE_PROVIDER` code, never a fabricated answer;
+and — the "test at least one realistic request path through every registered node" requirement —
+every one of the 26 real nodes is looped over with a live `IMAGE_GENERATION` request, asserting
+each resolves to *exactly* the correct outcome for its real status (Community Connect excluded,
+private/vaulted nodes unauthorized, the other 22 correctly reaching the honest "no provider
+deployed yet" answer) — a single false positive or false negative anywhere in that loop fails the
+test.
+
+### What this pass explicitly did NOT do (honest gaps)
+
+No new provider was deployed or made executable beyond what already existed (`ibis-local-dsp`).
+`js/ftn-fire.js` was not refactored to expose a callable adapter this pass — extracting its
+procedural engine remains the single highest-value next step (FTN-NODES.md, unchanged). No
+other node's own script was touched beyond the widget — Radio, TV, DAW, Kaiso, etc. have no AI
+capability of any kind today (§0.11's real-code findings), so there was nothing in them yet to
+route through IBIS Client; when one of them gains a real capability, `IbisClient.request()` is
+the door it should call through, not a bespoke integration. No RAG/pgvector, no new self-host
+infrastructure, no new external provider license verification — all unchanged from §0.10/§0.11.
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)

@@ -6,6 +6,15 @@ This file does not duplicate that data; it explains it. Re-derive rather than ha
 underlying product registry changes — `tests/ftn-node-registry-audit.mjs` will fail loudly if the
 derivation rules and the real product data drift apart.
 
+**How a node actually reaches IBIS (Phase 5):** `js/ibis-client.js`'s `request({nodeId, capability,
+context, payload})` is the one door — it checks this file's permission boundary, validates the
+capability against `js/ibis-capability-taxonomy.js`, routes through `js/ibis-eligibility.js`, and
+returns a result with provenance or an honest blocked reason. `js/ibis-widget.js` is its first real
+consumer (refactored off its own duplicate TEXT-calling logic this pass) — see IBIS-MAP.md §0.12.
+`IbisClient.describeNode(nodeId, context)` reports what a node can *actually* reach right now
+(cross-checked against live eligibility, not this file's own `primaryCapabilities`, which is a
+different, marketing-facing vocabulary inherited from the product registry).
+
 **Absolute scope boundary (Phase 4):** Community Connect is a real, public, `AVAILABLE` product in
 `js/product-registry-data.js` (this site markets and links to it), but it is a **separate
 application** — its own repository, its own Capacitor/APK build (see `CLAUDE.md` §7.11). It is

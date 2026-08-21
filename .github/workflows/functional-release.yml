@@ -50,6 +50,9 @@ jobs:
       - name: Audit ibis music-workflow classifier (13 realistic requests)
         run: node tests/ibis-music-workflow-audit.mjs
 
+      - name: Audit IBIS Client universal fabric (node permission + real execution)
+        run: node tests/ibis-client-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
