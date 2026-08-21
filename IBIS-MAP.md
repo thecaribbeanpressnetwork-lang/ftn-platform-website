@@ -147,11 +147,113 @@ other than what Phase 1 already changed in `ibis-assistant`.
 - **WHAT STILL DOES NOT EXIST:** multi-provider failover, provider health beyond simple in-memory
   success/failure counts, RAG, Creole/Caribbean-language layer, any open-model inference
   infrastructure, any second real TEXT/IMAGE/VIDEO provider.
-- **NEXT REDUNDANCY TARGET:** TEXT is the obvious next target once `ibis-assistant` is actually
-  deployed — it's the only capability with two registry entries already, just not two *live*,
-  *guest-eligible* ones yet. IMAGE has zero live candidates (both PixVerse and Kling require
-  prepaid customer credits IBIS doesn't yet collect); that's a product decision (build the credit
-  purchase flow) before it's an eligibility-engine decision.
+- **NEXT REDUNDANCY TARGET (superseded by Phase 3 below):** TEXT is the obvious next target once
+  `ibis-assistant` is actually deployed — it's the only capability with two registry entries
+  already, just not two *live*, *guest-eligible* ones yet. IMAGE has zero live candidates (both
+  PixVerse and Kling require prepaid customer credits IBIS doesn't yet collect); that's a product
+  decision (build the credit purchase flow) before it's an eligibility-engine decision.
+
+## 0.75 Phase 3 — verified provider discovery + first real redundancy (implemented 2026-08-20)
+
+**Scope decision, stated up front:** the Phase 3 directive asks for provider research across ~20
+capabilities and ~25 named companies, plus a full Caribbean/Creole resource inventory. Its own
+target section narrows this to something achievable: *"At least TWO genuinely executable routes
+for one major capability. Preferably TEXT first."* That's what got built. Everything outside TEXT
+below is marked NOT RESEARCHED, honestly, rather than filled in with unverified guesses.
+
+### Research method
+
+Live web search + direct fetch of official documentation (not SEO aggregator summaries) for three
+TEXT-capable candidates, 2026-08-20:
+
+| Provider | Verified against | Key finding |
+|---|---|---|
+| Groq | `console.groq.com/docs/rate-limits` (official) | Real per-model free-tier rate limits confirmed (e.g. `openai/gpt-oss-120b`: 30 RPM, 1K RPD, 8K TPM, 200K TPD). Official docs page did **not** explicitly state whether a credit card is required — a secondary source claimed "no credit card," but that claim is unconfirmed against the primary source, so Groq is recorded as researched, not added to the registry. |
+| Google Gemini (AI Studio) | Search-aggregated, cross-referenced against known existing `ibis-query` usage | Free tier confirmed to still exist as of April 2026 policy change (Pro models removed from free tier; Flash/Flash-Lite remain, 5–15 RPM, ≤1,000 RPD). Not independently re-verified against Google's own pricing page this pass — this is the provider `ibis-query` already uses in production, so this is a freshness note, not new discovery. |
+| **Cloudflare Workers AI** | `developers.cloudflare.com/workers-ai/platform/pricing/` and `.../get-started/rest-api/` (both official) | **Selected.** Free 10,000-Neuron/day allocation, confirmed to fail closed — official docs state *"If you exceed any one of the above limits, further operations will fail with an error"* — not silent billing. No credit card required for the free allocation. Confirmed callable via plain REST (bearer token + account id) from any external server — fits this repo's Supabase-Edge-Function architecture with zero new infrastructure. Covers four capability categories (text, embeddings, image, speech-to-text), though only TEXT was registered this pass. |
+
+**NOT researched this pass** (recorded honestly, not guessed): VISION, OCR, IMAGE_EDITING,
+IMAGE_UPSCALING, VIDEO_GENERATION, VIDEO_ANALYSIS, MUSIC_GENERATION beyond what Phase 2's registry
+already had, TRANSLATION, LANGUAGE_IDENTIFICATION, RERANKING, DOCUMENT_PROCESSING, CODE, and the
+entire Caribbean/Creole resource inventory (CreoleVal, JamPatoisNLI, MIT-Haiti, ICE Trinidad &
+Tobago, Radio Haiti-Inter, CreoleNLP). None of these got fabricated entries.
+
+### What was implemented
+
+- **`js/ibis-eligibility.js`'s cost taxonomy reconciled with the directive's own A/B/C/D/E economic
+  categories** (documented inline in the file). Added `ZERO_COST_TO_IBIS` (category A — genuinely
+  free to IBIS, not customer-funded) as a new allowed classification, distinct from the existing
+  `ZERO_CUSTOMER_FUNDED` (category B). The two `PAID_BY_IBIS_*` exceptions stay — labeled
+  explicitly as narrow, already-shipped, founder-approved exceptions predating this stricter rule,
+  not something a new provider can claim by default.
+- **New registry entry: `cloudflare-workers-ai-text`** (`@cf/meta/llama-3.1-8b-instruct`,
+  `costToIbis: ZERO_COST_TO_IBIS`, `enabled: false` until real credentials exist — discovery is not
+  deployment).
+- **New Supabase function: `supabase/functions/ibis-text-cloudflare`** — same shape as
+  `ibis-assistant` (CORS, per-IP rate limit, guest-accessible, fails closed 503 without
+  `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN`). Documented in `supabase/README.md` alongside
+  every other function.
+- **Real failover, not a diagram: `js/ibis-eligibility.js` gained `attemptInOrder(capability,
+  context, executor)`.** Ranks eligible providers, tries each in order, records every real
+  outcome, returns on first success. `js/ibis-widget.js`'s `callAssistant()` now calls this instead
+  of hardcoding one provider — the widget doesn't know or care which TEXT provider answers.
+  **Proven with a real test** (`tests/ibis-eligibility-audit.mjs`, extended): a controlled
+  Provider-A-fails/Provider-B-succeeds scenario against the actual `attemptInOrder()` code path
+  (not a reimplementation of it), plus an all-fail case and a zero-eligible-providers case that
+  confirms the executor is never even called when nothing is eligible.
+
+**Current live behavior, unchanged today:** with zero enabled guest-eligible TEXT providers, the
+widget still shows its honest "not turned on yet" message. Nothing about the user-visible behavior
+changes until a human deploys at least one of `ibis-assistant` or `ibis-text-cloudflare` with real
+credentials — at which point real failover activates automatically, with no further code change.
+
+**Files changed:** `js/ibis-eligibility.js`, `js/ibis-provider-registry.js`, `js/ibis-widget.js`,
+`js/nav.js` (cache-bust bump), `supabase/functions/ibis-text-cloudflare/index.ts` (new),
+`supabase/README.md`, `tests/ibis-eligibility-audit.mjs`.
+
+### Phase 3 report (directive's requested format)
+
+- **WHAT WAS VERIFIED:** Cloudflare Workers AI's free-tier hard cost cap and REST callability
+  (official docs, both fetched directly, 2026-08-20). Groq's free-tier rate limits (official docs)
+  — not integrated, credit-card requirement unconfirmed against primary source.
+- **WHAT WAS ACTUALLY INTEGRATED:** the eligibility/failover *machinery*. The Cloudflare provider
+  itself is registered and has a real, deployable function — but is not live (`enabled: false`,
+  no credentials set).
+- **WHAT IS CURRENTLY $0 TO IBIS:** nothing new went live. `cloudflare-workers-ai-text` is
+  classified `ZERO_COST_TO_IBIS` and ready, pending deployment.
+- **WHAT REQUIRES USER AUTHORIZATION:** unchanged from Phase 2 — only `ibis-query`.
+- **WHAT IS OPEN SOURCE / OPEN WEIGHT:** Llama 3.1 8B (via Cloudflare) is Meta's open-weight model;
+  Cloudflare's own hosting/pricing terms govern actual usage, not the model's license alone — this
+  is exactly the "open weight ≠ free to run" distinction the directive warned about, and why
+  `costToIbis` reflects Cloudflare's hosting terms, not the model's license.
+- **WHAT IS SELF-HOSTABLE:** unchanged — `ace-step`, `stable-audio-3` remain
+  `WOULD_REQUIRE_IBIS_COMPUTE_SPEND`, correctly ineligible; no self-hosting infrastructure exists
+  in this repo.
+- **WHAT IS NOT CURRENTLY FREE:** PixVerse, Kling, MusicAPI Producer (all require prepaid customer
+  credits — category B once that flow exists, not yet built).
+- **WHAT IS NOT CURRENTLY INTEGRATED:** every capability outside TEXT; Groq (researched, not
+  added); the entire open-source inference ecosystem (Phase 2G/3's own list) — no code, no
+  scaffolding, because none of it has a real place to run in this repo's architecture yet.
+- **CURRENT REDUNDANCY BY CAPABILITY:** TEXT now has 3 registry entries (1 live-but-authenticated,
+  2 real-but-undeployed) — genuine architecture-level redundancy once either is deployed. Every
+  other capability: 0–2 entries, all disabled.
+- **CURRENT CARIBBEAN/CREOLE RESOURCES:** still none — not researched this pass, not fabricated.
+- **NEXT HIGHEST-VALUE PROVIDER TO ADD:** deploying either already-registered TEXT provider
+  (`ibis-assistant` or `ibis-text-cloudflare`) creates real, observable redundancy immediately with
+  zero further code. That's higher-value than researching a fourth TEXT candidate or a new
+  capability right now.
+
+### Phase 4 status: blocked, correctly
+
+The Phase 4 multimodal acceptance test (generate a real reggae instrumental + images + video,
+prove cross-modal handoff, prove failover under real generation load) was **not attempted**. Its
+own prerequisite — at least one real, live, zero-cost-to-IBIS generation route for
+IMAGE/VIDEO/MUSIC — does not exist. The only live generation capability in this repo remains FTN
+Fire's on-device procedural synthesis, which isn't an AI provider call at all. Attempting Phase 4
+now would require either fabricating a result (explicitly forbidden throughout every phase of this
+directive) or blocking on infrastructure (third-party API accounts, billing, Supabase secrets) that
+can't be provisioned from inside this session. Phase 4 stays gated until Phase 3-style discovery
+produces a real IMAGE, VIDEO, or MUSIC candidate and a human deploys it.
 
 ---
 

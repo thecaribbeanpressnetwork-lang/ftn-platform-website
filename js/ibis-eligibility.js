@@ -16,14 +16,23 @@
     UNKNOWN: 'UNKNOWN',
   };
 
-  // Cost classifications that may NEVER be selected automatically. ZERO_CUSTOMER_FUNDED is real
-  // $0 to IBIS (the customer's own prepaid credits pay). The two PAID_BY_IBIS_* values are
-  // pre-existing/founder-approved exceptions already live in this codebase (ibis-query,
-  // ibis-assistant) -- they stay eligible when explicitly enabled, but are never treated as
-  // interchangeable with a genuinely zero-cost route, and a *new* provider can't earn this status
-  // just by being enabled; it has to already carry one of these two labeled exceptions.
+  // Cost classifications, mapped onto the Phase 3 directive's own A/B/C/D/E economic categories:
+  //   A. ZERO_COST_TO_IBIS         -- genuinely free to IBIS itself (e.g. a hard-capped free API
+  //                                   tier that errors rather than bills past the cap). Automatic.
+  //   B. ZERO_CUSTOMER_FUNDED      -- the *customer's* own prepaid credits pay, never IBIS's money.
+  //                                   Eligible once the customer-credit flow exists (not yet built).
+  //   C. (not modeled yet)         -- USER_AUTHORIZED_PAID: sign into your own paid provider
+  //                                   account. Never auto-selected even once built -- offer only.
+  //   D. PAID_TO_IBIS              -- never automatically eligible for a *new* provider. The two
+  //                                   PAID_BY_IBIS_* values below are narrow, already-shipped,
+  //                                   explicitly founder-approved exceptions (ibis-query,
+  //                                   ibis-assistant) predating this stricter Phase 3 rule -- kept
+  //                                   working, not silently broken, but a new provider cannot earn
+  //                                   automatic eligibility by cost alone; it needs the same kind
+  //                                   of explicit, recorded approval.
+  //   E. UNKNOWN / UNVERIFIED      -- never eligible. Fail closed.
   var COST_INELIGIBLE = ['WOULD_REQUIRE_IBIS_COMPUTE_SPEND', 'NOT_APPLICABLE_LICENSE_BLOCKS_USE', 'UNVERIFIED'];
-  var COST_ALLOWED = ['ZERO_CUSTOMER_FUNDED', 'PAID_BY_IBIS_PRE_EXISTING', 'PAID_BY_IBIS_FOUNDER_APPROVED'];
+  var COST_ALLOWED = ['ZERO_COST_TO_IBIS', 'ZERO_CUSTOMER_FUNDED', 'PAID_BY_IBIS_PRE_EXISTING', 'PAID_BY_IBIS_FOUNDER_APPROVED'];
 
   var ERROR_TYPES = ['TIMEOUT', 'RATE_LIMIT', 'QUOTA', 'AUTH_FAILURE', 'SERVER_ERROR',
     'INVALID_REQUEST', 'UNSUPPORTED', 'GEOGRAPHIC_RESTRICTION', 'CONTENT_RESTRICTION', 'OUTPUT_FAILURE'];
@@ -97,8 +106,8 @@
     if (p.userAuthorizationRequired && !context.authenticated) {
       return { status: STATUS.USER_AUTH_REQUIRED, reason: p.name + ' requires the user to be signed in.' };
     }
-    if (p.apiStatus === 'PENDING_DEPLOYMENT') {
-      return { status: STATUS.TEMPORARILY_UNAVAILABLE, reason: p.name + ' is not deployed yet.' };
+    if (typeof p.apiStatus === 'string' && p.apiStatus.indexOf('PENDING_') === 0) {
+      return { status: STATUS.TEMPORARILY_UNAVAILABLE, reason: p.name + ' is not deployed yet (' + p.apiStatus + ').' };
     }
     if (isDegraded(providerId)) {
       return { status: STATUS.TEMPORARILY_UNAVAILABLE, reason: p.name + '’s last 3 observed calls all failed.' };
@@ -120,6 +129,34 @@
       });
   }
 
+  // Real failover, not a diagram: rank the eligible providers for this capability, then try each
+  // in order until one succeeds or all have been tried. `executor(provider)` must return a
+  // Promise resolving to {success, latencyMs, errorType, data} -- it must never throw for an
+  // ordinary provider failure (that's a `success:false` result, not an exception); a genuine
+  // exception is caught and recorded as a SERVER_ERROR so one broken adapter can't stop the loop.
+  // Providers with zero eligible candidates get {success:false, attempts:[]} immediately -- no
+  // network call is ever attempted when nothing is eligible.
+  async function attemptInOrder(capability, context, executor) {
+    var ranked = find(capability, context);
+    if (!ranked.length) return { success: false, attempts: [], reason: 'No eligible provider for capability ' + capability + '.' };
+    var attempts = [];
+    for (var i = 0; i < ranked.length; i++) {
+      var provider = ranked[i].provider;
+      var startedAt = Date.now();
+      var outcome;
+      try {
+        outcome = await executor(provider);
+      } catch (err) {
+        outcome = { success: false, errorType: 'SERVER_ERROR', latencyMs: Date.now() - startedAt };
+      }
+      if (!outcome || typeof outcome.latencyMs !== 'number') outcome = Object.assign({ latencyMs: Date.now() - startedAt }, outcome);
+      recordOutcome(provider.id, outcome);
+      attempts.push({ providerId: provider.id, success: !!outcome.success, errorType: outcome.errorType || null });
+      if (outcome.success) return { success: true, provider: provider, result: outcome.data, attempts: attempts };
+    }
+    return { success: false, attempts: attempts, reason: 'All ' + ranked.length + ' eligible provider(s) for ' + capability + ' failed.' };
+  }
+
   global.FTN = global.FTN || {};
   global.FTN.IbisEligibility = {
     STATUS: STATUS,
@@ -128,5 +165,6 @@
     find: find,
     recordOutcome: recordOutcome,
     getHealth: getHealth,
+    attemptInOrder: attemptInOrder,
   };
 })(window);

@@ -79,6 +79,23 @@ var providers=[
     commercialUse:'FOUNDER_APPROVED_NARROW_SCOPE_2026_08_19',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
     userAuthorizationRequired:false,
     note:'Backs the sitewide ibis widget (supabase/functions/ibis-assistant). Guest-accessible by explicit design, not authenticated. enabled stays false here until the function is actually deployed and ANTHROPIC_API_KEY is set -- see IBIS-MAP.md. The widget already tries the free deterministic Product Registry match first and only reaches this provider on fallback.'
+  },
+  {
+    // Phase 3 provider discovery, verified 2026-08-20 against official documentation (not SEO
+    // aggregator summaries): the free daily Neuron allocation officially fails closed --
+    // "If you exceed any one of the above limits, further operations will fail with an error" --
+    // rather than silently billing past the cap. No credit card required for the free allocation.
+    // Callable via plain REST (bearer token + account id) from any external server, confirmed
+    // against the official REST API guide, so it fits this repo's Supabase-Edge-Function
+    // architecture with no new infrastructure. This is category A (ZERO_COST_TO_IBIS) in the
+    // Phase 3 directive's own taxonomy, not a customer-funded or IBIS-billed route.
+    id:'cloudflare-workers-ai-text',name:'Cloudflare Workers AI — Llama 3.1 8B',categories:['text'],capabilities:['TEXT'],integration:'NATIVE_API_CANDIDATE',
+    apiStatus:'PENDING_ACCOUNT_SETUP',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'ZERO_COST_TO_IBIS',
+    website:'https://developers.cloudflare.com/workers-ai/',apiUrl:'https://developers.cloudflare.com/workers-ai/get-started/rest-api/',pricingUrl:'https://developers.cloudflare.com/workers-ai/platform/pricing/',affiliateProgramUrl:null,
+    commercialUse:'PROVIDER_STATES_FREE_ALLOCATION_HARD_CAPPED_TERMS_REVIEW_RECOMMENDED_BEFORE_ENABLING',redistribution:'UNVERIFIED',lastVerified:'2026-08-20',
+    userAuthorizationRequired:false,
+    modelId:'@cf/meta/llama-3.1-8b-instruct',
+    note:'Not yet integrated -- requires a Cloudflare account, an API token with Workers AI permissions, and CLOUDFLARE_ACCOUNT_ID/CLOUDFLARE_API_TOKEN set as Supabase secrets before enabled can become true (per this codebase\'s "discovery is not deployment" rule). The 10,000-Neuron/day pool also covers embeddings, image generation (flux-1-schnell, stable-diffusion-xl) and speech-to-text (whisper) -- those are documented as researched-but-not-registered candidates in IBIS-MAP.md, not added here speculatively.'
   }
 ];
 global.FTN=global.FTN||{};

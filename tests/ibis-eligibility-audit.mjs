@@ -12,13 +12,13 @@ const Eligibility = context.window.FTN.IbisEligibility;
 
 // -- Registry shape --------------------------------------------------------
 const all = Providers.all();
-assert(all.length >= 9, 'Expected the existing 7 creative-studio candidates plus the 2 text providers');
+assert(all.length >= 10, 'Expected the existing 7 creative-studio candidates plus the 3 text providers');
 for (const p of all) {
   assert(Array.isArray(p.capabilities) && p.capabilities.length > 0, `${p.id} must declare at least one capability`);
   assert(typeof p.costToIbis === 'string' && p.costToIbis.length > 0, `${p.id} must declare costToIbis`);
 }
 assert(Providers.byCategory('image').length >= 2, 'byCategory() must keep working -- ibis-creative-studio.js depends on it');
-assert.equal(Providers.byCapability('TEXT').length, 2, 'Exactly ibis-query-gemini and ibis-assistant-anthropic declare TEXT today');
+assert.equal(Providers.byCapability('TEXT').length, 3, 'ibis-query-gemini, ibis-assistant-anthropic and cloudflare-workers-ai-text declare TEXT today');
 assert.equal(Providers.get('does-not-exist'), null);
 
 // -- Core economic invariant: this is the one test that matters most -------
@@ -40,6 +40,7 @@ assert.equal(Eligibility.evaluate('pixverse', 'INSTRUMENTAL_GENERATION', {}).sta
 assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: false }).status, 'USER_AUTH_REQUIRED', 'ibis-query must require sign-in -- this mirrors the CI-enforced boundary in tests/backend-source-audit.mjs');
 assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: true }).status, 'ELIGIBLE', 'ibis-query becomes eligible once authenticated, with a clean health record');
 assert.equal(Eligibility.evaluate('ibis-assistant-anthropic', 'TEXT', { authenticated: false }).status, 'INELIGIBLE', 'ibis-assistant is not enabled until the function is actually deployed');
+assert.equal(Eligibility.evaluate('cloudflare-workers-ai-text', 'TEXT', { authenticated: false }).status, 'INELIGIBLE', 'cloudflare-workers-ai-text is not enabled until real Cloudflare credentials exist');
 
 // -- find(): only returns providers that pass every gate -------------------
 assert.equal(Eligibility.find('TEXT', { authenticated: false }).length, 0, 'No TEXT provider is eligible for a guest right now -- this is the honest current state, not a bug');
@@ -63,4 +64,61 @@ assert.equal(h.failures, 3);
 for (let i = 0; i < 3; i++) Eligibility.recordOutcome('ibis-query-gemini', { success: false, errorType: 'SERVER_ERROR' });
 assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: true }).status, 'TEMPORARILY_UNAVAILABLE', 'Three straight observed failures must demote an otherwise-eligible provider');
 
-console.log('ibis-eligibility-audit: registry shape, economic invariant, fail-closed evaluation, and real health tracking all verified.');
+// -- Real failover (Phase 3's specific acceptance scenario) ----------------
+// The live registry has zero simultaneously-eligible guest TEXT providers today (that's the
+// honest current state, asserted above), so failover between two real ones can't be observed
+// against it yet. What CAN be tested for real, right now: js/ibis-eligibility.js's failover
+// logic itself, against a minimal controlled provider pair -- the engine has no hardcoded
+// knowledge of which registry it reads, so this exercises the actual attemptInOrder() code path,
+// not a re-implementation of it.
+const failoverContext = { window: {} };
+vm.createContext(failoverContext);
+failoverContext.window.FTN = {
+  IbisProviders: {
+    get(id) { return this.all().find((p) => p.id === id) || null; },
+    byCapability(capability) { return this.all().filter((p) => p.capabilities.includes(capability)); },
+    all() {
+      return [
+        { id: 'provider-a', capabilities: ['TEXT'], enabled: true, costToIbis: 'ZERO_COST_TO_IBIS', apiStatus: 'LIVE' },
+        { id: 'provider-b', capabilities: ['TEXT'], enabled: true, costToIbis: 'ZERO_COST_TO_IBIS', apiStatus: 'LIVE' },
+      ];
+    },
+  },
+};
+vm.runInContext(fs.readFileSync('js/ibis-eligibility.js', 'utf8'), failoverContext);
+const FailoverEligibility = failoverContext.window.FTN.IbisEligibility;
+
+// Provider A always fails, Provider B always succeeds -- A must be tried first (registry order,
+// both start with clean health) and B must be the one that actually delivers the result.
+const failoverResult = await FailoverEligibility.attemptInOrder('TEXT', {}, (provider) => {
+  if (provider.id === 'provider-a') return Promise.resolve({ success: false, errorType: 'SERVER_ERROR' });
+  return Promise.resolve({ success: true, data: { from: provider.id } });
+});
+assert.equal(failoverResult.success, true, 'Failover must succeed when a healthy fallback exists');
+assert.equal(failoverResult.provider.id, 'provider-b', 'The result must come from the provider that actually succeeded');
+assert.equal(failoverResult.attempts.length, 2, 'Both providers must be recorded as attempted');
+assert.equal(failoverResult.attempts[0].providerId, 'provider-a');
+assert.equal(failoverResult.attempts[0].success, false);
+assert.equal(failoverResult.attempts[1].providerId, 'provider-b');
+assert.equal(failoverResult.attempts[1].success, true);
+assert.equal(FailoverEligibility.getHealth('provider-a').failures, 1, 'The real failure must be recorded, not just observed');
+assert.equal(FailoverEligibility.getHealth('provider-b').successes, 1);
+
+// A repeat call with a healthier B should now rank B first -- this is what makes it real routing
+// rather than a fixed try-A-then-B script.
+await FailoverEligibility.attemptInOrder('TEXT', {}, (provider) => Promise.resolve({ success: provider.id === 'provider-b' }));
+const secondRoundOrder = FailoverEligibility.find('TEXT', {}).map((r) => r.provider.id);
+assert.equal(secondRoundOrder[0], 'provider-b', 'Provider B must now rank first: it has 2 successes and 0 failures vs A\'s 0 successes and 2 failures');
+
+// All-providers-fail must be reported honestly, not silently swallowed.
+const allFail = await FailoverEligibility.attemptInOrder('TEXT', {}, () => Promise.resolve({ success: false, errorType: 'TIMEOUT' }));
+assert.equal(allFail.success, false);
+assert.equal(allFail.attempts.length, 2);
+
+// No eligible provider at all must short-circuit before ever calling the executor.
+let executorCalled = false;
+const noneEligible = await FailoverEligibility.attemptInOrder('IMAGE_GENERATION', {}, () => { executorCalled = true; return Promise.resolve({ success: true }); });
+assert.equal(noneEligible.attempts.length, 0);
+assert.equal(executorCalled, false, 'attemptInOrder must not call the executor when nothing is eligible for the capability');
+
+console.log('ibis-eligibility-audit: registry shape, economic invariant, fail-closed evaluation, real health tracking, and real A-fails/B-succeeds failover all verified.');

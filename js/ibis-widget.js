@@ -1,13 +1,20 @@
 // FTN Platform — ibis persistent assistant widget. Loaded sitewide via js/nav.js's loadOnce().
-// Talks only to supabase/functions/ibis-assistant (a narrowly scoped, guest-accessible proxy --
-// the Anthropic key stays server-side). Message history lives in memory for this page view only;
-// nothing is written to localStorage or sent anywhere else.
+// Talks to whichever TEXT provider js/ibis-eligibility.js's attemptInOrder() selects (Phase 3:
+// supabase/functions/ibis-assistant [Anthropic] and supabase/functions/ibis-text-cloudflare
+// [Cloudflare Workers AI], real failover between them -- narrowly scoped, guest-accessible
+// proxies, every provider key stays server-side). Message history lives in memory for this page
+// view only; nothing is written to localStorage or sent anywhere else.
 (function (global) {
   'use strict';
   if (document.getElementById('ibis-widget-trigger')) return; // already mounted (e.g. double-load)
 
-  var ENDPOINT = 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
   var PUBLISHABLE_KEY = 'sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+  // Provider id (js/ibis-provider-registry.js) -> its Supabase function endpoint. Adding a third
+  // real TEXT provider is one line here plus one registry entry, not a rewrite of this widget.
+  var TEXT_PROVIDER_ENDPOINTS = {
+    'ibis-assistant-anthropic': 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant',
+    'cloudflare-workers-ai-text': 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-text-cloudflare',
+  };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -156,12 +163,10 @@
       .then(function () { return loadScriptOnce('/js/product-registry.js', 'data-ibis-widget-registry'); })
       .then(function () { return loadScriptOnce('/js/intent-router.js', 'data-ibis-widget-intent-router'); });
   }
-  // The Phase 2 provider-fabric layer: js/ibis-provider-registry.js (provider records) +
-  // js/ibis-eligibility.js (fail-closed eligibility engine + real observed health). Right now
-  // there is exactly one provider behind this widget, so this doesn't yet pick between options --
-  // it establishes the real plumbing (evaluate before calling, record what actually happened) so
-  // a second provider can be added later without rewiring the widget.
-  var ASSISTANT_PROVIDER_ID = 'ibis-assistant-anthropic';
+  // The provider-fabric layer: js/ibis-provider-registry.js (provider records) +
+  // js/ibis-eligibility.js (fail-closed eligibility engine, real observed health, and real
+  // ranked failover via attemptInOrder()). As of Phase 3 there are two registered TEXT
+  // providers; attemptInOrder() tries the healthier one first and falls back automatically.
   function ensureEligibilityEngine() {
     if (global.FTN && global.FTN.IbisEligibility) return Promise.resolve();
     return loadScriptOnce('/js/ibis-provider-registry.js', 'data-ibis-widget-provider-registry')
@@ -222,44 +227,55 @@
     });
   }
 
+  // Calls one specific TEXT provider's endpoint. Never throws for an ordinary provider failure
+  // (network error, non-OK response, empty answer) -- those all resolve to {success:false,
+  // errorType}, which is what js/ibis-eligibility.js's attemptInOrder() expects so it can move on
+  // to the next eligible provider instead of the whole call chain rejecting.
+  function callTextProvider(provider) {
+    var url = TEXT_PROVIDER_ENDPOINTS[provider.id];
+    if (!url) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var startedAt = Date.now();
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', apikey: PUBLISHABLE_KEY, authorization: 'Bearer ' + PUBLISHABLE_KEY },
+      body: JSON.stringify({ messages: history, products: productSummaryForServer() }),
+    })
+      .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+      .then(function (result) {
+        var latencyMs = Date.now() - startedAt;
+        if (!result.ok || !result.body || !result.body.answer) {
+          return { success: false, latencyMs: latencyMs, errorType: 'SERVER_ERROR' };
+        }
+        return { success: true, latencyMs: latencyMs, data: { answer: result.body.answer, provider: result.body.provider } };
+      })
+      .catch(function () {
+        return { success: false, latencyMs: Date.now() - startedAt, errorType: 'TIMEOUT' };
+      });
+  }
+
   function callAssistant() {
     return ensureEligibilityEngine().then(function () {
       var Eligibility = global.FTN && global.FTN.IbisEligibility;
-      var check = Eligibility ? Eligibility.evaluate(ASSISTANT_PROVIDER_ID, 'TEXT', { authenticated: false }) : { status: 'UNKNOWN' };
-      if (check.status !== 'ELIGIBLE') {
-        // Honest per-status messaging instead of a generic network-failure message -- most of
-        // these reasons have nothing to do with the user's connection.
-        var message = check.status === 'TEMPORARILY_UNAVAILABLE'
-          ? 'ibis’s conversational answers aren’t turned on yet. Try rephrasing to name an FTN product directly, or check the Directory.'
-          : check.reason || 'ibis can’t answer that right now.';
-        appendMessage('error', message);
+      if (!Eligibility) {
+        appendMessage('error', 'ibis can’t answer that right now.');
         return null;
       }
-      var startedAt = Date.now();
       appendThinking();
-      return fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', apikey: PUBLISHABLE_KEY, authorization: 'Bearer ' + PUBLISHABLE_KEY },
-        body: JSON.stringify({ messages: history, products: productSummaryForServer() }),
-      })
-        .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
-        .then(function (result) {
-          removeThinking();
-          var latencyMs = Date.now() - startedAt;
-          if (!result.ok || !result.body || !result.body.answer) {
-            if (Eligibility) Eligibility.recordOutcome(ASSISTANT_PROVIDER_ID, { success: false, latencyMs: latencyMs, errorType: 'SERVER_ERROR' });
-            appendMessage('error', (result.body && result.body.error) || 'ibis is temporarily unavailable. Please try again in a moment.');
-            return;
-          }
-          if (Eligibility) Eligibility.recordOutcome(ASSISTANT_PROVIDER_ID, { success: true, latencyMs: latencyMs });
-          appendMessage('assistant', result.body.answer);
-          history.push({ role: 'assistant', content: result.body.answer });
-        })
-        .catch(function () {
-          removeThinking();
-          if (Eligibility) Eligibility.recordOutcome(ASSISTANT_PROVIDER_ID, { success: false, latencyMs: Date.now() - startedAt, errorType: 'TIMEOUT' });
-          appendMessage('error', 'ibis could not be reached. Check your connection and try again.');
-        });
+      return Eligibility.attemptInOrder('TEXT', { authenticated: false }, callTextProvider).then(function (outcome) {
+        removeThinking();
+        if (outcome.success) {
+          appendMessage('assistant', outcome.result.answer);
+          history.push({ role: 'assistant', content: outcome.result.answer });
+          return;
+        }
+        // Honest per-situation messaging instead of a generic network-failure message: no
+        // eligible provider at all is a very different situation from every eligible provider
+        // failing this specific call.
+        var message = !outcome.attempts.length
+          ? 'ibis’s conversational answers aren’t turned on yet. Try rephrasing to name an FTN product directly, or check the Directory.'
+          : 'ibis is temporarily unavailable. Please try again in a moment.';
+        appendMessage('error', message);
+      });
     });
   }
 
