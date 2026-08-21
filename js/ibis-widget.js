@@ -23,6 +23,25 @@
     l.href = '/css/components/ibis-widget.css';
     l.setAttribute('data-ibis-widget', 'true');
     document.head.appendChild(l);
+    if (document.querySelector('link[data-ibis-widget-visual-state]')) return;
+    var vs = document.createElement('link');
+    vs.rel = 'stylesheet';
+    vs.href = '/css/components/ibis-visual-state.css';
+    vs.setAttribute('data-ibis-widget-visual-state', 'true');
+    document.head.appendChild(vs);
+  }
+
+  // Optional presentation layer (see js/ibis-visual-state.js) -- the widget works identically if
+  // this never loads or the script 404s; setStatus() below no-ops when FTN.IbisVisualState is
+  // absent, matching the master directive's own "IBIS must work without the visualizer" rule.
+  function ensureVisualState() {
+    if (global.FTN && global.FTN.IbisVisualState) return Promise.resolve();
+    return loadScriptOnce('/js/ibis-visual-state.js', 'data-ibis-widget-visual-state-js');
+  }
+  function setStatus(state) {
+    var host = document.getElementById('ibis-widget-status');
+    if (!host || !global.FTN || !global.FTN.IbisVisualState) return;
+    global.FTN.IbisVisualState.set(host, state);
   }
 
   // A simple purple-only wading-bird silhouette -- deliberately no red/orange anywhere,
@@ -56,7 +75,7 @@
   panel.hidden = true;
   panel.innerHTML =
     '<div class="ibis-widget-panel__head">' + IBIS_SVG +
-    '<div><h2 id="ibis-widget-title">Ask ibis</h2><span>FTN’s Caribbean assistant</span></div>' +
+    '<div><h2 id="ibis-widget-title">Ask ibis</h2><span id="ibis-widget-subtitle">FTN’s Caribbean assistant</span><span id="ibis-widget-status"></span></div>' +
     '<button type="button" class="ibis-widget-close" aria-label="Close ibis">&times;</button>' +
     '</div>' +
     '<div class="ibis-widget-messages" id="ibis-widget-messages" role="log" aria-live="polite"></div>' +
@@ -101,6 +120,7 @@
     requestAnimationFrame(function () { panel.classList.add('is-open'); });
     trigger.setAttribute('aria-expanded', 'true');
     document.addEventListener('keydown', onKeydown, true);
+    ensureVisualState().then(function () { setStatus('idle'); });
     var input = document.getElementById('ibis-widget-input');
     setTimeout(function () { if (input) input.focus(); }, 60);
   }
@@ -211,11 +231,13 @@
     bubble.innerHTML = IBIS_SVG + '<span>ibis is thinking…</span>';
     host.appendChild(bubble);
     scrollToEnd();
+    setStatus('thinking');
   }
 
   function removeThinking() {
     var el = document.getElementById('ibis-widget-thinking');
     if (el) el.remove();
+    setStatus('idle');
   }
 
   function productSummaryForServer() {

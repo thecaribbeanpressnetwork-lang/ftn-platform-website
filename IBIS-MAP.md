@@ -1519,6 +1519,75 @@ reuse this same PKCE/server-side-exchange pattern, not a second auth system.
 `tests/ibis-eligibility-audit.mjs`: new assertions for both speech providers' `EXECUTABLE`/
 `enabled:false` state and `byCapability` discoverability. Full local suite re-run clean.
 
+## 0.21 Phase 12 — Cloudflare durable-credential boundary re-confirmed, Fullstack-Agent capability audit, ibis Visual State (2026-08-21)
+
+Re-detection: `git status` clean, `origin/main` in sync at `e115f59` before this pass, Cloudflare
+and Supabase auth both re-confirmed live and unchanged. Checked for any Cloudflare-specific MCP/
+plugin tool that might offer a programmatic, dashboard-equivalent way to mint a durable API Token —
+none exists in this environment; only the interactive `wrangler` CLI session is available, same as
+every prior phase. This is a genuine, unavoidable boundary, not a retry-until-it-works situation:
+creating a durable, non-expiring Cloudflare API Token requires the Cloudflare web dashboard (My
+Profile → API Tokens → Create Token), a human, 2FA-protected action. **This did not change this
+pass and was not attempted again.**
+
+### Fullstack-Agent (`github.com/jaredrhod/fullstack-agent`) — audited, not integrated
+
+Fetched the real repository directly (README, top-level structure, and the `LICENSE` file's actual
+first lines, not a paraphrase). **License: GNU Affero General Public License v3 (AGPLv3)**,
+confirmed verbatim from the file itself. This is decisive: AGPL's network-use clause would require
+FTN to publish the source of any FTN service that incorporated AGPL-licensed code, if modified and
+offered over a network — directly incompatible with FTN's proprietary site codebase. **No code from
+this repository may be copied into FTN.** This is exactly the AGPL scenario this document's own
+License Safety section warns about, caught before anything was copied.
+
+Classified each of its four named components against the master directive's own A–F scale:
+
+| Component | What it does | Classification | Notes |
+|---|---|---|---|
+| `ai-memory-vault` | Plain-text-file persistent cross-session agent memory | **C** (missing, worth adding) | Confirmed by direct search: no IBIS conversation/agent memory system exists anywhere in `/js/` today (`national-memory.js` is a different, unrelated thing — real historical arithmetic over Observatory indicator sparklines, not agent memory; no naming collision risk). A real one is a genuine, non-trivial future engineering task (schema, read/write/forget rules, privacy/permission boundaries per this directive's own IBIS MEMORY section) — not something to stub out shallowly in one pass. Deferred, not attempted. |
+| `backtalk` | Push-to-talk voice loop, ~1s round trip | **F** (valid concept, build FTN-natively) | FTN now has its own real, tested ASR/TTS (Phase 11: `cloudflare-workers-ai-whisper`/`aura-tts`) that could back this — but both are still `enabled:false`, blocked on the same durable Cloudflare credential above. Building a voice UI now would call a backend that doesn't work yet. Deferred until IMAGE/speech go `ELIGIBLE`. |
+| `ai-visualizer` | Full-screen idle/listen/think/speak visualizer | **F** (valid concept, build FTN-natively, lightweight) | The one component actually built this pass — see below. Deliberately NOT a "living circuit board" full-screen takeover (mismatched with FTN's restrained visual identity, CLAUDE.md §5) — a small, optional state indicator instead. |
+| `barehands` | Webcam hand-tracking UI control | **D** (unnecessary) | Would require a real computer-vision dependency (e.g. MediaPipe Hands, a sizeable WASM bundle) for no concrete FTN production use case today — fails this directive's own "does FTN actually need this?" test. Not pursued. |
+
+### `js/ibis-visual-state.js` + `css/components/ibis-visual-state.css` — new, real, tested
+
+A small shared state-indicator component (dot + accessible text label, `role="status"
+aria-live="polite"`) implementing the master directive's own IDLE/LISTENING/THINKING/WORKING/
+WAITING/ASKING_PERMISSION/GENERATING/VERIFYING/ERROR/COMPLETE state list. Deliberately optional —
+`js/ibis-widget.js` calls `FTN.IbisVisualState.set()` only if the module loaded successfully, exact
+same graceful-degrade discipline as every other lazy-loaded IBIS dependency in that file
+(`ensureIntentRouter`/`ensureIbisClient`). Colors reuse only already-approved tokens: `--color-ibis`
+(ibis.ai's own established purple accent — confirmed correct, not invented: the widget's own hand-
+drawn icon comment already states "deliberately no red/orange anywhere, matching the founder's
+absolute rule on ibis colour") for active/processing states, `--color-warning` for user-facing wait
+states, the existing form-validation error red (`#DC2626`, `css/components/form.css`) for error, and
+neutral silver/graphite for idle/complete — no invented green, respecting the still-disputed
+success-green conflict (CLAUDE.md §5). Wired into the widget's existing, already-tested
+`appendThinking()`/`removeThinking()` transition points additively (the conversational "ibis is
+thinking…" bubble is unchanged) plus a small status host added to the panel header, loaded lazily
+on first panel open (matching the file's existing lazy-load discipline, not eagerly on every page
+load). This directly implements the directive's own consolidation goal: the widget's ad-hoc
+thinking-state text and `js/ibis-creative-studio.js`'s independent "Generating…" status text are
+each real, currently-duplicated micro-patterns this shared module gives future call sites a single
+place to converge on, without touching either file's already-working behavior this pass.
+
+**Verified, not assumed working**: `node --check` on both changed/new JS files (clean), a temporary
+local static server + headless Chrome load of the live homepage with Chrome's own console logging
+enabled — zero JS errors referencing either file — and a DOM dump confirming both
+`ibis-widget-trigger` and the new `ibis-widget-status` host actually mounted into the page.
+
+### Everything else in the Phase 12 directive — honest status, not attempted this pass
+
+The directive's remaining scope (IBIS memory read/write/forget rules, autonomous workflow
+orchestration, browser-automation walkthroughs, a full FTNScreen pilot execution with real generated
+video/voice/music/lip-sync, a downloadable submission ZIP with real assets) is real, legitimate,
+substantial future engineering — not something this pass fabricated progress on. Each remains
+blocked on one of two already-identified, unchanged root causes: (1) the durable Cloudflare
+credential (IMAGE, transcription, TTS all still `enabled:false`), or (2) this machine's confirmed
+lack of GPU/Python (VIDEO, LIP_SYNC self-host candidates). No new capability in these areas was
+registered as `READY`/`ELIGIBLE`/`DEPLOYED` without real evidence, per the directive's own explicit
+rule.
+
 ## 4. Current provider inventory (every real external AI call in this repo, confirmed by file)
 
 | Function/file | Provider | Auth required | Status |

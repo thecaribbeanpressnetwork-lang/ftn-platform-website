@@ -1,0 +1,72 @@
+/* FTN Platform — ibis Visual State: shared state-indicator (dot + label), used wherever ibis
+   shows what it's currently doing. Uses only already-approved tokens: --color-ibis (ibis.ai's own
+   established accent, tokens.css) for the active/processing states, --color-warning for states
+   waiting on the user, the existing form-validation error red (#DC2626, css/components/form.css)
+   for error, and neutral silver/graphite for idle/complete -- no invented color, and no reuse of
+   the still-disputed success-green (CLAUDE.md §5). Color is reinforcement only: the text label
+   already carries the meaning, so this remains legible with color perception alone. */
+.ibis-visual-state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+}
+
+.ibis-visual-state__dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-silver);
+  flex-shrink: 0;
+}
+
+.ibis-visual-state--thinking .ibis-visual-state__dot,
+.ibis-visual-state--working .ibis-visual-state__dot,
+.ibis-visual-state--generating .ibis-visual-state__dot {
+  background: var(--color-ibis);
+  animation: ibisVisualStatePulse 1.4s ease-in-out infinite;
+}
+
+.ibis-visual-state--listening .ibis-visual-state__dot,
+.ibis-visual-state--verifying .ibis-visual-state__dot {
+  background: var(--color-info);
+}
+
+.ibis-visual-state--waiting .ibis-visual-state__dot,
+.ibis-visual-state--asking_permission .ibis-visual-state__dot {
+  background: var(--color-warning);
+}
+
+.ibis-visual-state--error .ibis-visual-state__dot {
+  background: #DC2626;
+}
+
+.ibis-visual-state--complete .ibis-visual-state__dot {
+  background: var(--color-graphite);
+}
+
+/* On a dark surface (the ibis widget, product workspaces), the neutral label needs the light
+   variant -- callers add this modifier class alongside .ibis-visual-state rather than this file
+   guessing at ancestor background. */
+.ibis-visual-state--on-dark {
+  color: var(--color-silver);
+}
+
+.ibis-visual-state--on-dark.ibis-visual-state--thinking .ibis-visual-state__dot,
+.ibis-visual-state--on-dark.ibis-visual-state--working .ibis-visual-state__dot,
+.ibis-visual-state--on-dark.ibis-visual-state--generating .ibis-visual-state__dot {
+  background: var(--color-ibis-on-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ibis-visual-state__dot {
+    animation: none !important;
+  }
+}
+
+@keyframes ibisVisualStatePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.78); }
+}
