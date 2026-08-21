@@ -12,7 +12,7 @@ const Eligibility = context.window.FTN.IbisEligibility;
 
 // -- Registry shape --------------------------------------------------------
 const all = Providers.all();
-assert(all.length >= 12, 'Expected the existing 7 creative-studio candidates plus 3 text providers plus 2 Cloudflare image providers');
+assert(all.length >= 14, 'Expected 12 prior candidates plus cogvideox-2b (VIDEO_GENERATION audit) plus ibis-local-dsp (BPM_DETECTION/AUDIO_ANALYSIS, the open-source audit pass)');
 for (const p of all) {
   assert(Array.isArray(p.capabilities) && p.capabilities.length > 0, `${p.id} must declare at least one capability`);
   assert(typeof p.costToIbis === 'string' && p.costToIbis.length > 0, `${p.id} must declare costToIbis`);
@@ -20,11 +20,20 @@ for (const p of all) {
 assert(Providers.byCategory('image').length >= 4, 'byCategory() must keep working -- ibis-creative-studio.js depends on it -- now pixverse, kling, plus the two Cloudflare image candidates');
 assert.equal(Providers.byCapability('TEXT').length, 3, 'ibis-query-gemini, ibis-assistant-anthropic and cloudflare-workers-ai-text declare TEXT today');
 assert.equal(Providers.byCapability('IMAGE_GENERATION').length, 4, 'pixverse, kling, cloudflare-workers-ai-image-flux and cloudflare-workers-ai-image-sdxl declare IMAGE_GENERATION today');
+assert.equal(Providers.byCapability('VIDEO_GENERATION').length, 3, 'pixverse, kling and the new cogvideox-2b self-host candidate declare VIDEO_GENERATION today');
+assert.equal(Providers.byCapability('BPM_DETECTION').length, 1, 'ibis-local-dsp is the one real BPM_DETECTION provider');
 assert.equal(Providers.get('does-not-exist'), null);
+assert.equal(Providers.get('cogvideox-2b').costToIbis, 'WOULD_REQUIRE_IBIS_COMPUTE_SPEND', 'Open licensing (Apache 2.0 on the 2B variant) must not be conflated with zero cost -- it still needs a real GPU');
+assert.equal(Providers.get('cogvideox-2b').enabled, false, 'No self-hosted VIDEO route is eligible until a founder makes a budgeted GPU-infrastructure decision');
 
 // -- Core economic invariant: this is the one test that matters most -------
 // A provider that could cause IBIS to incur an unapproved charge must never be enabled.
-const COST_ALLOWED_WHEN_ENABLED = ['ZERO_CUSTOMER_FUNDED', 'PAID_BY_IBIS_PRE_EXISTING', 'PAID_BY_IBIS_FOUNDER_APPROVED'];
+// ZERO_COST_TO_IBIS was missing from this list until the open-source audit pass added the first
+// enabled provider that actually carries it (ibis-local-dsp -- real, deterministic, client-side,
+// no network call at all). That was a genuine gap: ZERO_COST_TO_IBIS is the *safest* possible
+// classification for an enabled provider, strictly safer than the two narrow PAID_BY_IBIS_*
+// founder-approved exceptions already allowed here -- there was never a reason to exclude it.
+const COST_ALLOWED_WHEN_ENABLED = ['ZERO_COST_TO_IBIS', 'ZERO_CUSTOMER_FUNDED', 'PAID_BY_IBIS_PRE_EXISTING', 'PAID_BY_IBIS_FOUNDER_APPROVED'];
 for (const p of all) {
   if (p.enabled) {
     assert(
@@ -45,6 +54,13 @@ assert.equal(Eligibility.evaluate('cloudflare-workers-ai-text', 'TEXT', { authen
 assert.equal(Eligibility.evaluate('cloudflare-workers-ai-image-flux', 'IMAGE_GENERATION', {}).status, 'INELIGIBLE', 'cloudflare-workers-ai-image-flux is not enabled until real Cloudflare credentials exist and the function is deployed');
 assert.equal(Eligibility.evaluate('cloudflare-workers-ai-image-sdxl', 'IMAGE_GENERATION', {}).status, 'INELIGIBLE', 'cloudflare-workers-ai-image-sdxl is not enabled until real Cloudflare credentials exist and the function is deployed');
 assert.equal(Eligibility.find('IMAGE_GENERATION', {}).length, 0, 'No IMAGE_GENERATION provider is eligible right now -- this is the honest current state, not a bug, exactly mirroring TEXT before ibis-assistant/ibis-text-cloudflare were deployed');
+assert.equal(Eligibility.evaluate('cogvideox-2b', 'VIDEO_GENERATION', {}).status, 'INELIGIBLE', 'cogvideox-2b is a documented self-host candidate only -- open licensing is not zero cost, and IBIS has no GPU infrastructure');
+
+// -- The one genuinely live provider from the open-source audit pass: real, deterministic,
+// client-side, zero network calls of any kind. This is the one case where ELIGIBLE should be
+// true for an unauthenticated guest with no deployment step required.
+assert.equal(Eligibility.evaluate('ibis-local-dsp', 'BPM_DETECTION', { authenticated: false }).status, 'ELIGIBLE', 'ibis-local-dsp is real and live today -- no server, no secrets, no deployment step');
+assert.equal(Eligibility.find('BPM_DETECTION', {}).length, 1, 'Exactly one BPM_DETECTION provider is eligible: ibis-local-dsp');
 
 // -- find(): only returns providers that pass every gate -------------------
 assert.equal(Eligibility.find('TEXT', { authenticated: false }).length, 0, 'No TEXT provider is eligible for a guest right now -- this is the honest current state, not a bug');

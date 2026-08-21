@@ -38,6 +38,12 @@ jobs:
       - name: Audit ibis provider eligibility and economic invariants
         run: node tests/ibis-eligibility-audit.mjs
 
+      - name: Audit ibis local DSP (BPM detection) correctness
+        run: node tests/ibis-audio-analysis-audit.mjs
+
+      - name: Audit FTN Node Registry derivation
+        run: node tests/ftn-node-registry-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'

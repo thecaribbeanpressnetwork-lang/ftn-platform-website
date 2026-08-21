@@ -393,6 +393,226 @@ pattern already proven for TEXT before its two providers were deployed.
 function deployment can happen from inside this session — that remains a founder action per
 `supabase/README.md`'s documented deployment rule.
 
+## 0.10 Open-source / open-weight capability audit + implementation (2026-08-20)
+
+**Scope decision, stated up front.** The directive behind this pass asked for a genuinely
+exhaustive audit across TEXT, IMAGE, VIDEO, AUDIO, MUSIC, Caribbean language resources, Caribbean
+music resources, self-hosting frameworks, ComfyUI, and a browser DAW ecosystem survey — each of
+those is realistically its own multi-day research program at primary-source depth. What follows is
+real, cited, primary-source-or-better research on the questions most likely to change what IBIS can
+actually do, plus one thing this pass could genuinely finish end-to-end: implementation, tests, and
+a passing CI gate for the one capability that turned out to need no external provider at all. Every
+other domain gets an honest verdict — VERIFIED, RESEARCHED-BUT-NOT-DEEP-ENOUGH-TO-ACT-ON, or
+NOT RESEARCHED THIS PASS — never a fabricated one.
+
+### A/B/C. Registry schema extended (not a new registry)
+
+All 12 pre-existing provider entries in `js/ibis-provider-registry.js` gained six new fields the
+directive asked for: `weightsAvailable`, `sourceAvailable`, `selfHostable`, `deploymentMethod`,
+`hardwareRequirements`, `verificationSource`. For closed-API providers (PixVerse, Kling, MusicAPI
+Producer, ibis-query-gemini, ibis-assistant-anthropic) these are honestly `NOT_APPLICABLE_CLOSED_API`
+/ `false` / `NATIVE_API` — they were never open-weight candidates and restating that plainly is more
+honest than leaving the fields blank. For the real self-host candidates (ACE-Step, Stable Audio 3,
+MusicGen) the fields restate what was already verified in Phase 1/3B in the new structured shape.
+
+**Two real license upgrades, verified this pass directly against official Hugging Face model
+cards** (not third-party summaries): `cloudflare-workers-ai-image-flux` (FLUX.1 [schnell]) is
+confirmed **Apache 2.0**, commercial use explicitly permitted per Black Forest Labs' own model
+card ("Released under the apache-2.0 licence, the model can be used for personal, scientific, and
+commercial purposes"). `cloudflare-workers-ai-image-sdxl` (SDXL-Lightning) is confirmed
+**openrail++**, which permits commercial use subject to its use-based restriction annex. Both were
+previously `redistribution:'UNVERIFIED'` (Phase 3B honestly flagged them as unreviewed); both now
+carry the real verified license and a `verificationSource` URL. Neither status change affects
+`enabled` — both providers still require `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN` and a
+deployed function before they can go live, per §0.9.
+
+### K. VIDEO — one real self-host candidate now documented (still correctly ineligible)
+
+Before this pass, VIDEO_GENERATION had **zero** documented candidates of any kind beyond the two
+customer-funded routes (PixVerse, Kling). Verified directly against Hugging Face's official
+`THUDM/CogVideoX-2b` model card: the **2B** variant is Apache 2.0 (commercial use permitted), and
+with the model's own documented memory-optimization flags (`enable_sequential_cpu_offload`,
+`enable_slicing`) can run in roughly 5GB VRAM. The **5B** variant uses a separate, more restrictive
+CogVideoX license and was deliberately *not* registered — conflating the two would misstate the
+license of the smaller model. Registered as `cogvideox-2b`, `costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_
+SPEND'`, `enabled:false`: **open licensing is not zero cost.** IBIS has no GPU infrastructure of any
+kind today (this repo is a static site plus Supabase Edge Functions, which have no GPU access) —
+even the cheapest real self-hostable video model stays ineligible until a founder makes a budgeted
+infrastructure decision. `tests/ibis-eligibility-audit.mjs` now asserts this explicitly rather than
+leaving it implicit.
+
+### N. TEXT — Groq researched, deliberately NOT registered (evidentiary bar not met)
+
+An earlier session's check of Groq's free tier failed on a transient DNS error and was never
+resolved. This pass re-attempted it properly: two direct fetches of Groq's own
+`console.groq.com/docs/rate-limits` and `groq.com/pricing` did not surface the concrete numbers (the
+pages are JS-rendered or the specific limits table wasn't present in the fetched content). Multiple
+independent third-party sources converge on consistent figures (no credit card required, roughly
+14,400 requests/day, 30 requests/minute, access to every hosted model including Whisper), but the
+directive is explicit: **"Do not use third-party lists as proof of... pricing... free usage."**
+Convergent aggregator claims are a reason to prioritize a real primary-source check, not a
+substitute for one. Groq is recorded here as a promising, well-evidenced-by-secondary-sources
+candidate for TEXT (and possibly Whisper-based SPEECH_TO_TEXT) redundancy — **not added to the
+registry**, `enabled` or otherwise, until someone fetches the actual signed-in console limits page
+or the official pricing page's rendered content directly. This is the same discipline already
+applied to Hugging Face Inference Providers in Phase 3B (researched, correctly not integrated).
+
+### O. Caribbean language resources — real, cited, and honestly scoped
+
+This is a core stated IBIS requirement, so it got real primary-source-adjacent research rather than
+a placeholder paragraph. Findings, each with its actual source:
+
+- **JamPatoisNLI** — the first natural language inference dataset in Jamaican Patois, 650 examples
+  (250 train / 200 dev / 200 test), Stanford NLP / Armstrong et al., published as
+  [arXiv:2212.03419](https://arxiv.org/abs/2212.03419). Small, academic-scale, built for NLI
+  evaluation, not for training a production model from scratch.
+- **Kreyòl-MT** (`jhu-clsp/kreyol-mt` on Hugging Face) — a machine-translation dataset covering
+  Latin American, Caribbean and colonial African Creole languages including Haitian Kreyòl, from
+  "Kreyòl-MT: Building Machine Translation for Latin American, Caribbean and Colonial African
+  Creole Languages" (NAACL 2024, [arXiv:2405.05376](https://arxiv.org/html/2405.05376v1)).
+- **CreoleVal** — a benchmark suite spanning 8 NLP tasks across up to 28 Creole languages
+  (reading comprehension, relation classification, machine translation, and more).
+- **Trinidad English Creole → English dataset** (Mendeley Data,
+  [data.mendeley.com/datasets/n4259kw9y7](https://data.mendeley.com/datasets/n4259kw9y7/1)) — a
+  custom dataset plus a Creolized version of JFLEG, used to build the first documented Trinidad
+  English Creole → English translator.
+- **APiCS Online, contribution 6** ([apics-online.info/contributions/6](https://apics-online.info/contributions/6))
+  — a structural linguistic dataset for Trinidad English Creole from the Atlas of Pidgin and
+  Creole Language Structures, the closest thing found to an authoritative academic reference corpus
+  for TEC specifically.
+
+**Honest verdict:** no production-ready, licensed-for-commercial-use "Caribbean Creole language
+model" exists anywhere that this pass could find — exactly the outcome the directive told this pass
+not to paper over with a fabricated one. What's real is a small set of academic-scale datasets and
+benchmarks, each with its own license that has **not** been individually reviewed by FTN yet
+(flagging licensing review as required before any use, not assuming permissive-by-default). Their
+legitimate near-term use is as **RAG/terminology/evaluation material**, not as a training set for a
+from-scratch Caribbean LLM — consistent with how the directive itself framed the realistic use
+cases. Building an actual RAG pipeline over any of these needs a real vector-storage decision
+(pgvector on the existing Supabase project vs. something else) that this pass correctly treats as
+BLOCKED ON INFRASTRUCTURE, not something to improvise around.
+
+### P. Caribbean music resources — a real, checked negative result
+
+Searched specifically for soca/calypso/steelpan datasets, corpora or trained models suitable for
+Music Information Retrieval. **None exist that this pass could find.** The closest real academic
+resource located was
+["ConvNets for Counting: Object Detection of Transient Phenomena in Steelpan Drums"](https://arxiv.org/pdf/2102.00632)
+— a real, citable paper, but about computer-vision detection of physical steelpan drum dynamics,
+not music generation, MIR, or a training corpus; noted for completeness, not overclaimed. The
+CompMusic research project (the closest analog effort for non-Western music traditions — Indian Art
+Music, Turkish Makam, Beijing Opera, Arab-Andalusian) has never covered Caribbean music. This
+confirms rather than changes Phase 3B's finding: Caribbean-genre specialization can only honestly
+come from structured musical knowledge (BPM/key ranges, instrumentation, cultural context) supplied
+through prompting/RAG, not from a dataset or model that specializes in these genres, because none
+exists.
+
+### Q. FTN Node Registry — implemented (`js/ftn-node-registry.js`, new)
+
+Built as an additive, IBIS-routing-specific companion view over the real, already-existing
+`js/product-registry-data.js` — not a second product identity registry (the directive's own "Do NOT
+invent products" / "extend rather than create a second registry" rules, both satisfied by
+construction: every field is derived from a real field already on each real product record, and
+`js/product-registry-data.js` remains the single owner of product identity). Confirmed against the
+actual file: **26 real products**, not a curated subset and not an invented list (`fire`, `daw`,
+`dj-tube` are real sub-pages of `riddim`; `tv` is a real separate page; Mission Control, FTN Love and
+FTN Health are real but correctly `PRIVATE`/`VAULTED`).
+
+Derivation rules (all mechanical, from real fields, documented in the file's own header comment):
+`IBISRole` and `canIbisRouteInto` come from each product's real `visibility`/`status` fields — a
+`PRIVATE` or `VAULTED` product (Mission Control, Love, Health) is never a route ibis suggests to a
+public guest, the same boundary those products' own pages already enforce. `canCallIbisCapabilities`
+reflects the real, confirmed-by-reading-the-file fact that every public page loads `js/nav.js`,
+which unconditionally `loadOnce()`s `js/ibis-widget.js` (the sitewide floating assistant) — this is
+stated as a real sitewide mechanism, not independently re-verified page-by-page this pass.
+`inputTypes`/`outputTypes` are a documented heuristic over each product's own declared
+`capabilities` keywords (e.g. a capability mentioning "deck"/"beat"/"mix" infers `AUDIO`) — flagged
+honestly as heuristic inference, not an independently fact-checked capability inventory.
+`tests/ftn-node-registry-audit.mjs` runs this derivation against the real, current
+`product-registry-data.js` (not a fixture copy) and asserts the private/vaulted boundary and the
+capability-type inference — it will fail loudly if a future product-registry change silently breaks
+what IBIS believes it can route into.
+
+### The one real implementation this pass: `ibis-local-dsp` (BPM detection)
+
+Every other candidate this pass touched needs either a founder-approved deployment (Cloudflare
+secrets, an enabled registry flip) or a founder-approved infrastructure/budget decision (GPU
+compute) before it can go live. Exactly one capability needed neither: **tempo (BPM) detection is a
+deterministic calculation, not an AI task**, and the directive's own Performance section says to
+prefer a local/deterministic operation over any provider when one suffices. So this pass built one:
+
+- **`js/ibis-audio-analysis.js`** (new) — real, dependency-free autocorrelation-based BPM
+  detection: an onset-strength envelope (rectified frame-to-frame RMS energy difference) followed
+  by autocorrelation over a 60–200 BPM search range. Standard, well-understood MIR technique, not a
+  novel or unverified method. Runs entirely client-side (or in plain Node against a raw sample
+  array) — **zero network calls, zero server cost, zero deployment step.**
+- **`tests/ibis-audio-analysis-audit.mjs`** (new, wired into CI) — proves it actually works: four
+  synthetic click tracks at 90/120/128/174 BPM (deterministically seeded, not a mock), asserting
+  the detected tempo is correct **up to octave ambiguity** — a real, well-documented limitation of
+  simple autocorrelation tempo detection (a perfectly periodic signal also correlates strongly at
+  integer multiples of its true period), stated honestly in the code comments and the test rather
+  than hidden. The 128 BPM case in fact detects 63.8 BPM (half-tempo) when actually run — the test
+  passes because it correctly asserts octave-tolerant matching, not because the algorithm is
+  perfect. Also verifies fail-closed behavior (empty/too-short/null input returns `null` with a
+  real reason string, never a fabricated BPM) and that `confidence` is a computed ratio (spot-
+  checked: white noise input produces a materially different, real confidence value from a clean
+  click track, proving it isn't a hand-typed constant).
+- **Registry** (`js/ibis-provider-registry.js`, entry `ibis-local-dsp`) — `capabilities:
+  ['BPM_DETECTION','AUDIO_ANALYSIS']`, `costToIbis:'ZERO_COST_TO_IBIS'`, **`enabled:true`**, because
+  it is genuinely live today, not pending any deployment. `tests/ibis-eligibility-audit.mjs` asserts
+  it evaluates `ELIGIBLE` for an unauthenticated guest right now — the one capability in the entire
+  registry where that's actually true today.
+- **A real bug this addition surfaced and fixed**: `tests/ibis-eligibility-audit.mjs`'s own
+  `COST_ALLOWED_WHEN_ENABLED` list was missing `ZERO_COST_TO_IBIS` — the safest possible
+  classification for an enabled provider, safer than the two `PAID_BY_IBIS_*` founder-approved
+  exceptions the list already permitted. It was simply never exercised before, since no
+  `ZERO_COST_TO_IBIS` provider had ever been `enabled:true` until this one. Fixed as part of this
+  pass, not silently worked around.
+- **Deliberately not wired into any FTN node's UI this pass.** `/riddim/daw/` (`js/ftn-daw.js`) is
+  the obvious real consumer, but it's a dense, page-specific, non-modular script (24 lines, tightly
+  coupled to that page's exact DOM ids, a different code style from every other IIFE module in this
+  repo) that this pass judged too risky to modify blind under the same time budget that produced
+  everything else here. Shipping a complete, tested, registered capability now and flagging the DAW
+  UI wiring as the next concrete step follows the same pattern already used for TEXT → Creative
+  Studio and IMAGE → Creative Studio in §0.9.
+
+### What this pass explicitly did NOT do (honest gaps, not silent omissions)
+
+No ComfyUI evaluation, no browser-DAW-library survey (Tone.js, wavesurfer.js, etc. — this repo
+already has a real, working, from-scratch WebAudio DAW in `js/ftn-daw.js`, so the marginal case for
+adopting a third-party library was not investigated this pass), no ASR/Whisper primary-source
+re-verification (Phase 3B already found it in Cloudflare's catalog; not re-checked), no RAG/
+pgvector implementation (a real founder-level infrastructure decision, correctly left BLOCKED, not
+improvised), no per-transform granular taxonomy (LYRICS_TO_SONG vs. VOCAL_PITCH_CORRECTION etc. —
+Phase 3B already declined to build this at primary-source depth and this pass didn't either), and
+no self-hosting-framework-by-framework audit (Docker/vLLM/Ollama/llama.cpp/BentoML/Modal/RunPod/
+Northflank) — all of them are moot for IBIS specifically until a founder authorizes real GPU/compute
+spend, since every self-host candidate in this registry is correctly ineligible regardless of which
+framework would run it.
+
+### Capability status, end of this pass
+
+| Capability | Status | Why |
+|---|---|---|
+| TEXT (guest) | BLOCKED, ready to deploy | `ibis-assistant`/`ibis-text-cloudflare` written, not deployed (§0.5/§0.75) |
+| TEXT (authenticated) | LIVE | `ibis-query-gemini`, pre-existing |
+| IMAGE_GENERATION | BLOCKED, ready to deploy | `ibis-image-cloudflare` written, not deployed (§0.9) |
+| VIDEO_GENERATION | BLOCKED on infrastructure | No zero-cost route exists anywhere found; self-host needs GPU FTN doesn't have |
+| INSTRUMENTAL_GENERATION | BLOCKED on infrastructure or customer funds | Self-host needs GPU; API routes need customer-funded credits system that doesn't exist |
+| BPM_DETECTION / AUDIO_ANALYSIS | **LIVE** | `ibis-local-dsp` — real, deterministic, zero-cost, tested |
+| Caribbean language RAG | BLOCKED on infrastructure | Real candidate datasets found; needs a founder vector-storage decision |
+| Caribbean music specialization | BLOCKED, no shortcut exists | No dataset/model exists anywhere found; only prompting/RAG over structured knowledge is honest |
+
+### Credentials/infrastructure a founder would need to provide to unblock the rest
+
+- `ANTHROPIC_API_KEY` (unblocks `ibis-assistant`, guest TEXT)
+- `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (unblocks `ibis-text-cloudflare` and
+  `ibis-image-cloudflare` — one pair of secrets, three capabilities)
+- A budgeted GPU/compute decision (unblocks ACE-Step, Stable Audio 3, `cogvideox-2b`, or any future
+  self-host candidate — none of these are close without one)
+- A vector-storage decision (pgvector on the existing Supabase project, or otherwise) to turn the
+  real Caribbean language datasets found above into something IBIS can actually query
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)
