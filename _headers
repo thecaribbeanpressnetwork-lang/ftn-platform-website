@@ -6,21 +6,6 @@
   Cross-Origin-Opener-Policy: same-origin
   Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://cloud.umami.is https://challenges.cloudflare.com https://www.youtube.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-src 'self' https://community.ftnplatform.org https://www.youtube.com https://www.youtube-nocookie.com https://challenges.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self'; upgrade-insecure-requests
 
-/* FTN DJ Tube's controller (/riddim/dj/) legitimately embeds this exact page in a same-origin
-   iframe (<iframe src="/dj-tube-prototype/?ftn=1">) -- the sitewide frame-ancestors 'none' /
-   X-Frame-Options: DENY above was blocking FTN's own controller, not a third party. Cloudflare
-   Pages _headers rules are additive/merged, never overriding (a more specific path's headers are
-   joined with the wildcard's, not substituted) -- so the wildcard's values must be explicitly
-   cancelled with "! HeaderName" before being re-set here, per Cloudflare's documented pattern.
-   Every other directive is copied verbatim from the wildcard CSP -- only frame-ancestors changes,
-   from 'none' to 'self', which still refuses every other origin. This is the narrowest possible
-   exception: no other path, and no other header, is affected. */
-/dj-tube-prototype/*
-  ! X-Frame-Options
-  X-Frame-Options: SAMEORIGIN
-  ! Content-Security-Policy
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; script-src 'self' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://cloud.umami.is https://challenges.cloudflare.com https://www.youtube.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-src 'self' https://community.ftnplatform.org https://www.youtube.com https://www.youtube-nocookie.com https://challenges.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self'; upgrade-insecure-requests
-
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
