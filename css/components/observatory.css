@@ -38,8 +38,12 @@
 }
 
 .observatory-hero__title {
-  font-size: var(--text-display-size);
-  line-height: var(--text-display-line);
+  /* Pass 16 UX Guardian fix: was --text-display-size/-line (48px/56px), which alone wrapped to
+     a 112px-tall 2-line headline and was a real contributor to the measured 88.5%-196.3%
+     hero-occupancy overage. A hero-scoped reduction, not a change to the shared display token
+     other pages still use at full size. */
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  line-height: 1.1;
   color: var(--color-white);
 }
 
@@ -192,8 +196,10 @@
 
 /* "The Nation Is Speaking" — Reality Insight rotator */
 .reality-insight {
-  margin-top: var(--space-32);
-  padding: var(--space-24);
+  /* Pass 16 UX Guardian fix: trimmed spacing, another real contributor to the measured
+     hero-occupancy overage (see .observatory-hero__title above). */
+  margin-top: var(--space-16);
+  padding: var(--space-16);
   background: var(--color-charcoal);
   border-left: 3px solid var(--color-red);
   border-radius: var(--radius-12);
@@ -1099,6 +1105,18 @@ body.kiosk-mode #what-changed,
 body.kiosk-mode #commercial-packages,
 body.kiosk-mode .search-discover-row {
   display: none;
+}
+
+/* Pass 16 UX Guardian fix: below 1024px the hero's two columns stack vertically (see the
+   min-width:1024px rule below), which combined with the reality-insight rotator pushed hero
+   height to 106%-180% of viewport on tablet/mobile even after the compaction above. The rotator
+   is supplementary/decorative content, not the page's core function (the indicator wall below
+   is) -- hiding it below the point where it would otherwise double the hero's effective height is
+   a real, bounded simplification, not a loss of core functionality. */
+@media (max-width: 1023px) {
+  .reality-insight {
+    display: none;
+  }
 }
 
 @media (min-width: 1024px) {

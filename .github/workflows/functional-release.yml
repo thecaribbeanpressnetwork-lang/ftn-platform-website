@@ -147,6 +147,21 @@ jobs:
           FTN_CAPTURE_DIR: test-artifacts
         run: node tests/surface-system-release.mjs
 
+      - name: Run FTN UX Guardian (rendered-output UX audit, 6 mandated breakpoints)
+        id: ux-guardian
+        continue-on-error: true
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node scripts/ftn-ux-guardian.mjs --base http://127.0.0.1:3000 --routes "/,/account/,/ibis-ai/,/observatory/,/display-network/,/radio/,/riddim/dj/,/riddim/daw/,/riddim/fire/,/applications/,/screen/" --out ux-guardian-report/report.md
+
+      - name: Upload FTN UX Guardian report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftn-ux-guardian-report
+          path: ux-guardian-report/*
+          if-no-files-found: ignore
+
       - name: Upload FTN Surface System visual evidence
         if: always()
         uses: actions/upload-artifact@v4

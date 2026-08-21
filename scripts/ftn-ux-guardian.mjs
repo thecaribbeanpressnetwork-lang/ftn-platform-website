@@ -190,7 +190,13 @@ function browserProbe() {
 }
 
 export async function auditRoute({ chromium, base, route }) {
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  // No hardcoded channel: CI (.github/workflows/functional-release.yml) only installs
+  // Playwright's own bundled Chromium via `playwright install chromium`, not system Chrome, so
+  // this must work with the default browser Playwright launches. Local development can still
+  // target a real installed Chrome (faster, no separate download) by setting
+  // FTN_UX_GUARDIAN_CHANNEL=chrome -- undefined here means "use whatever chromium.launch()'s own
+  // default resolves to," which is exactly what CI already has installed.
+  const browser = await chromium.launch({ channel: process.env.FTN_UX_GUARDIAN_CHANNEL || undefined, headless: true });
   const results = [];
   try {
     for (const breakpoint of BREAKPOINTS) {
