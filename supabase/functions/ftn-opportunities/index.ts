@@ -102,9 +102,16 @@ function parseCARICOM(html: string) {
     seen.add(url);
     const position = Math.max(0, match.index! - 800);
     const near = decode(html.slice(position, match.index! + 800));
+    // Try the strict, correctly-formatted date pattern first. The looser fallback below matches
+    // up to 40 characters of whatever follows "Closing Date:" with no real end boundary, so on
+    // this source's actual markup it was capturing trailing page furniture (view counts, the
+    // start of the next listing's title) appended after a real date -- e.g. "September 30, 2026
+    // 48 Views Vacancy Noti" instead of "September 30, 2026". Since `||` short-circuits on the
+    // first match, that loose pattern almost always won even though the strict one was checked
+    // second and would have matched the real date cleanly on its own.
     const closing = (
-      near.match(/Closing Date:\s*([^|]{3,40})/i) ||
       near.match(/Closing Date\s*:?\s*([A-Z][a-z]+\s+\d{1,2},?\s+\d{4})/i) ||
+      near.match(/Closing Date:\s*([^|]{3,40})/i) ||
       []
     )[1] || null;
 
