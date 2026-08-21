@@ -131,6 +131,64 @@
     return bubble;
   }
 
+  // Zero-cost, deterministic first pass: reuse the existing Product Registry + Intent Router
+  // (js/product-registry-data.js, js/product-registry.js, js/intent-router.js) instead of
+  // duplicating product knowledge in this widget's own system prompt. Lazily loaded because most
+  // pages don't otherwise load them -- mirrors js/platform-foundation.js's ensureRegistry() pattern
+  // rather than inventing a second one.
+  function loadScriptOnce(src, marker) {
+    return new Promise(function (resolve) {
+      if (document.querySelector('script[' + marker + ']')) { waitFor(function () { return true; }, resolve); return; }
+      var s = document.createElement('script');
+      s.src = src; s.async = false; s.setAttribute(marker, 'true');
+      s.onload = resolve; s.onerror = resolve;
+      document.head.appendChild(s);
+    });
+  }
+  function waitFor(check, done, tries) {
+    tries = tries || 0;
+    if (check() || tries > 80) { done(); return; }
+    setTimeout(function () { waitFor(check, done, tries + 1); }, 25);
+  }
+  function ensureIntentRouter() {
+    if (global.FTN && global.FTN.IntentRouter) return Promise.resolve();
+    return loadScriptOnce('/js/product-registry-data.js', 'data-ibis-widget-registry-data')
+      .then(function () { return loadScriptOnce('/js/product-registry.js', 'data-ibis-widget-registry'); })
+      .then(function () { return loadScriptOnce('/js/intent-router.js', 'data-ibis-widget-intent-router'); });
+  }
+  // A confident match requires at least one of the query's real words to be a product's own
+  // registered keyword (not just an incidental word overlap in its name/tagline/description) --
+  // the same bar js/intent-router.js already documents as its honest-match standard.
+  function tryDeterministicRoute(text) {
+    if (!global.FTN || !global.FTN.IntentRouter) return null;
+    var results = global.FTN.IntentRouter.route(text).filter(function (r) { return r.matchedKeywords.length > 0; });
+    if (!results.length) return null;
+    return results.slice(0, 3);
+  }
+  function appendRouteSuggestion(matches) {
+    var host = document.getElementById('ibis-widget-messages');
+    var bubble = document.createElement('div');
+    bubble.className = 'ibis-widget-msg ibis-widget-msg--assistant';
+    var intro = document.createElement('p');
+    intro.textContent = matches.length === 1 ? 'This sounds like what you need:' : 'A few FTN products match that:';
+    bubble.appendChild(intro);
+    var list = document.createElement('ul');
+    list.className = 'ibis-widget-route-list';
+    matches.forEach(function (m) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.className = 'ibis-widget-route-link';
+      a.href = m.product.route;
+      a.textContent = m.product.name + ' — ' + m.product.tagline;
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+    bubble.appendChild(list);
+    host.appendChild(bubble);
+    scrollToEnd();
+    return matches.map(function (m) { return m.product.name + ' (' + m.product.route + ')'; }).join(', ');
+  }
+
   function appendThinking() {
     var host = document.getElementById('ibis-widget-messages');
     var bubble = document.createElement('div');
@@ -146,22 +204,19 @@
     if (el) el.remove();
   }
 
-  function send(event) {
-    event.preventDefault();
-    if (pending) return;
-    var input = document.getElementById('ibis-widget-input');
-    var text = input.value.trim();
-    if (!text) return;
-    input.value = '';
-    appendMessage('user', text);
-    history.push({ role: 'user', content: text });
-    pending = true;
-    document.getElementById('ibis-widget-send').disabled = true;
+  function productSummaryForServer() {
+    if (!global.FTN || !global.FTN.ProductRegistry) return [];
+    return global.FTN.ProductRegistry.publicProducts().map(function (p) {
+      return { name: p.name, route: p.route, tagline: p.tagline };
+    });
+  }
+
+  function callAssistant() {
     appendThinking();
-    fetch(ENDPOINT, {
+    return fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'content-type': 'application/json', apikey: PUBLISHABLE_KEY, authorization: 'Bearer ' + PUBLISHABLE_KEY },
-      body: JSON.stringify({ messages: history }),
+      body: JSON.stringify({ messages: history, products: productSummaryForServer() }),
     })
       .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
       .then(function (result) {
@@ -176,6 +231,36 @@
       .catch(function () {
         removeThinking();
         appendMessage('error', 'ibis could not be reached. Check your connection and try again.');
+      });
+  }
+
+  function send(event) {
+    event.preventDefault();
+    if (pending) return;
+    var input = document.getElementById('ibis-widget-input');
+    var text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    appendMessage('user', text);
+    history.push({ role: 'user', content: text });
+    pending = true;
+    document.getElementById('ibis-widget-send').disabled = true;
+    // Zero-cost route first: the same deterministic, no-hallucination product match used on
+    // /ibis-ai/ (js/intent-router.js). Only calls the paid Anthropic backend when that doesn't
+    // confidently answer the question -- see IBIS-MAP.md for why this consolidation is scoped
+    // this way rather than merging into the existing authenticated ibis-query function.
+    ensureIntentRouter()
+      .then(function () {
+        var matches = tryDeterministicRoute(text);
+        if (matches) {
+          var summary = appendRouteSuggestion(matches);
+          history.push({ role: 'assistant', content: 'Suggested: ' + summary });
+          return null;
+        }
+        return callAssistant();
+      })
+      .catch(function () {
+        return callAssistant();
       })
       .finally(function () {
         pending = false;

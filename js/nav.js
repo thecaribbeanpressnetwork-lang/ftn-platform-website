@@ -16,7 +16,7 @@
   loadOnce('/js/ux-primitives.js', 'data-ftn-ux-primitives');
   loadOnce('/js/platform-foundation.js?v=20260812.1', 'data-ftn-platform-foundation');
   loadOnce('/js/analytics.js?v=20260818.3', 'data-ftn-analytics');
-  loadOnce('/js/ibis-widget.js?v=20260819.1', 'data-ftn-ibis-widget');
+  loadOnce('/js/ibis-widget.js?v=20260820.1', 'data-ftn-ibis-widget');
 
   if (location.pathname.indexOf('/radio') === 0) loadOnce('/js/radio-airtime.js', 'data-ftn-radio-airtime');
   if (location.pathname.indexOf('/screen') === 0) loadOnce('/js/screen-festival-package.js', 'data-ftn-screen-festival');

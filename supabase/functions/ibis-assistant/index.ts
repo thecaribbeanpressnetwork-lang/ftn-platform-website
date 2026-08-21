@@ -35,9 +35,26 @@ function withinLimit(ip: string) {
   return true;
 }
 
-const SYSTEM_PROMPT = "You are ibis, FTN Platform's intelligent Caribbean assistant. You know every FTN product, its purpose, its route and its current status. You help citizens, creators, investors and institutions navigate the Caribbean ecosystem. You are warm, precise and Caribbean-first. You never fabricate. When you don't know something, you say so and route the user to the right place. FTN products include: Community Connect (/community-connect/), FTN Govern (/govern/), FTN Parliament (/parliament/), Face The Nation (/facethenation), FTN Live (/observatory/), FTN Kaiso (/kaiso/), ibis.ai (/ibis-ai/), FTN Radio (/radio/), FTN Screen (/screen/), FTN TV (/tv/), FTN Events (/events/), FTN Riddim (/riddim/), FTN Fire (/riddim/fire/), FTN DJ Tube (/riddim/dj/), FTN DAW (/riddim/daw/), FTN EPK (/radio/#ftn-epk), FTN Opportunities (/opportunities/), FTN Invest-in (/invest/), FTN Display Network (/display-network/), FTN Account (/account/). Mission Control is private institutional infrastructure, not a public product -- do not offer it as a destination. Keep answers concise: a short paragraph or a few lines, not an essay.";
+const BASE_INSTRUCTION = "You are ibis, FTN Platform's intelligent Caribbean assistant. You help citizens, creators, investors and institutions navigate the Caribbean ecosystem. You are warm, precise and Caribbean-first. You never fabricate. When you don't know something, you say so. Mission Control is private institutional infrastructure, not a public product -- do not offer it as a destination. Keep answers concise: a short paragraph or a few lines, not an essay.";
 
 type Turn = { role: "user" | "assistant"; content: string };
+type ProductSummary = { name: string; route: string; tagline: string };
+
+// The client (js/ibis-widget.js) sends its own live snapshot of js/product-registry-data.js on
+// every request instead of this function keeping a second, hand-maintained copy of the product
+// list that would silently drift out of sync -- see IBIS-MAP.md's Phase-1 reconciliation note.
+// Most "which product does X" questions are answered client-side for free before this function is
+// even called (js/intent-router.js), so this list is only needed for genuinely open-ended
+// questions that reach the model.
+function buildSystemPrompt(products: unknown): string {
+  if (!Array.isArray(products) || !products.length) return BASE_INSTRUCTION;
+  const lines = products
+    .filter((p): p is ProductSummary => !!p && typeof p === "object" && typeof (p as ProductSummary).name === "string" && typeof (p as ProductSummary).route === "string")
+    .slice(0, 30)
+    .map((p) => `${p.name} (${p.route})${p.tagline ? " -- " + String(p.tagline).slice(0, 120) : ""}`);
+  if (!lines.length) return BASE_INSTRUCTION;
+  return BASE_INSTRUCTION + " Current FTN products:\n" + lines.join("\n");
+}
 
 Deno.serve(async (request) => {
   const origin = request.headers.get("origin");
@@ -48,7 +65,7 @@ Deno.serve(async (request) => {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
   if (!withinLimit(ip)) return reply({ error: "ibis needs a short break. Please wait a few minutes and try again." }, 429, origin);
 
-  let payload: { messages?: unknown };
+  let payload: { messages?: unknown; products?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
 
   const raw = Array.isArray(payload.messages) ? payload.messages : [];
@@ -81,7 +98,7 @@ Deno.serve(async (request) => {
       body: JSON.stringify({
         model,
         max_tokens: 600,
-        system: SYSTEM_PROMPT,
+        system: buildSystemPrompt(payload.products),
         messages: turns.map((t) => ({ role: t.role, content: t.content })),
       }),
     });
