@@ -5,7 +5,14 @@
   overflow: hidden;
   background: var(--color-black);
   color: var(--color-white);
-  padding-block: var(--space-48) var(--space-32);
+  /* Pass 16 UX Guardian fix: measured 92.6%-218% of viewport height across the 6 mandated
+     breakpoints (rule: hero-occupancy) -- trimmed padding here, and see .hero-clock/.live-status__time
+     below for the card-sizing reductions that make up most of the real difference. Below 1024px
+     the hero-clocks/live-status column stacks under the headline column (see the 1024px grid
+     breakpoint further down this file) rather than sitting beside it -- a full information-
+     hierarchy reorganization (satellite/alerts/traffic priority ordering) is real, valuable
+     future work flagged separately, not attempted in this pass. */
+  padding-block: var(--space-32) var(--space-24);
 }
 
 .observatory-hero > .container {
@@ -117,11 +124,11 @@
 .live-status__time {
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 2.75rem;
+  font-size: 2.1rem;
   line-height: 1.05;
   color: var(--color-white);
   font-variant-numeric: tabular-nums;
-  margin-top: var(--space-16);
+  margin-top: var(--space-12);
 }
 
 .live-status__sub {
@@ -146,7 +153,7 @@
   background: var(--color-charcoal);
   border: 1px solid #2A2C2F;
   border-radius: var(--radius-16);
-  padding: var(--space-24);
+  padding: var(--space-16);
   min-width: 0;
   box-shadow: var(--shadow-md);
 }
@@ -163,7 +170,7 @@
 .hero-clock__value {
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 2.25rem;
+  font-size: 1.6rem;
   color: var(--color-white);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
@@ -826,7 +833,27 @@ body.density-observatory .indicator-card__value {
   font-size: var(--text-h3-size);
 }
 
-/* Commercial ad packages */
+/* Commercial ad packages -- Pass 16: cards are now real <button> elements (were static <div>s
+   with no interaction at all). Reset the button chrome the browser adds by default so they keep
+   looking exactly like .module-card, plus a visible "View details" affordance so the click
+   target reads as actionable rather than purely decorative. */
+.package-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.package-card__cta {
+  display: inline-block;
+  margin-top: var(--space-12);
+  color: var(--color-red);
+  font-weight: 700;
+  font-size: var(--text-caption-size);
+}
+
 .package-card__specs {
   margin-top: var(--space-12);
   display: flex;

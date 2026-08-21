@@ -316,6 +316,26 @@
   }
 
   // ---- Commercial ad packages (capability structures, no pricing) ----
+  // Pass 16 UX Guardian fix: these cards visually implied they were selectable (module-card
+  // styling, borders, hover states already existed) but had no href, button semantics or click
+  // handler at all -- a real "dead control" (Rule 5), not a heuristic false positive. Each card
+  // is now a real button that opens the existing, reused Trust Card dialog shell (no new modal
+  // system) with the package's real capability structure -- never invented pricing or promised
+  // inventory (js/ad-packages-data.js explicitly carries no prices) -- plus a real next action.
+  function packageTrustCardData(pkg) {
+    var promo = pkg.customerPromotionAllowed === true ? 'Yes, full customer promotion'
+      : pkg.customerPromotionAllowed === 'limited' ? 'Limited customer promotion' : 'Not included';
+    return {
+      classification: 'FTN Derived',
+      title: pkg.name,
+      value: pkg.tagline,
+      whyItMatters: 'A ' + pkg.name + ' deployment example layout combines ' + pkg.exampleCombination.indicators +
+        ' live indicators with ' + pkg.exampleCombination.ads + ' ad panel(s) on one screen.',
+      methodology: 'Network ad density: ' + pkg.networkAdDensity + '. Customer promotion: ' + promo + '.',
+      limitations: 'Branding requirement: ' + pkg.brandingRequired + '. No pricing is published -- capability structure only, per founder direction.',
+      sourceName: '<a href="/display-network/">Host a screen on this tier &rarr;</a> · <a href="/contact/#commercial">Discuss a Deployment &rarr;</a>',
+    };
+  }
   function renderAdPackages() {
     var mount = document.getElementById('ad-packages-grid');
     if (!mount || !global.FTN.AdPackages) return;
@@ -323,7 +343,7 @@
       var promo = pkg.customerPromotionAllowed === true ? 'Yes'
         : pkg.customerPromotionAllowed === 'limited' ? 'Limited' : 'No';
       return (
-        '<div class="module-card">' +
+        '<button type="button" class="module-card package-card" data-package="' + pkg.id + '" aria-haspopup="dialog">' +
           '<h3>' + pkg.name + '</h3>' +
           '<p>' + pkg.tagline + '</p>' +
           '<dl class="package-card__specs">' +
@@ -332,9 +352,16 @@
             '<div><dt>Branding</dt><dd>' + pkg.brandingRequired + '</dd></div>' +
             '<div><dt>Example layout</dt><dd>' + pkg.exampleCombination.indicators + ' indicators + ' + pkg.exampleCombination.ads + ' ad panels</dd></div>' +
           '</dl>' +
-        '</div>'
+          '<span class="package-card__cta">View details &rarr;</span>' +
+        '</button>'
       );
     }).join('');
+    mount.querySelectorAll('[data-package]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var pkg = global.FTN.AdPackages.all.filter(function (p) { return p.id === btn.getAttribute('data-package'); })[0];
+        if (pkg && global.FTN.TrustCard) global.FTN.TrustCard.open(packageTrustCardData(pkg));
+      });
+    });
 
     var comboMount = document.getElementById('ad-combo-demo');
     if (comboMount) {
