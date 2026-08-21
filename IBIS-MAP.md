@@ -1088,6 +1088,83 @@ FFmpeg installation attempted (unrequested environment change). No `js/ftn-fire.
 extraction (still blocked on the same Node/WebAudio verification gap, unchanged from §0.11). No
 attempt to force IMAGE/VIDEO_GENERATION eligible without the credentials/GPU they genuinely need.
 
+## 0.16 Phase 8 — full-system re-verification + production plan (2026-08-21)
+
+A 40-phase master directive (OpenClap, Broadway, ComfyUI, video provider families, MiniMax H3,
+local video, TTS, WhisperX, lip sync, Remotion, submission packaging, email delivery) was
+explicitly self-scoped by its own §39 priority order and "Most Important Rule" section to put
+real, achievable work first. This pass followed that ordering rather than attempting all 40
+phases: re-verify every previously-reported blocker with fresh, direct checks (per the directive's
+own "do not assume unchanged" instruction), do real bounded research on the one explicitly-named,
+plausibly-low-risk candidate (OpenClap), and ship one small, genuinely real capability
+(`planProduction`) that needed none of the missing infrastructure.
+
+### Environment re-verified directly, nothing assumed
+
+- **Cloudflare**: the directive reported the founder had logged into Cloudflare in their own
+  browser and asked this session not to assume that extends to the execution environment. It
+  doesn't. Confirmed via the **official `wrangler` CLI itself** (`npx wrangler whoami`): "You are
+  not authenticated." No `wrangler login` was attempted (interactive browser OAuth flow this
+  session cannot complete) and no workaround was attempted. `CLOUDFLARE_ACCOUNT_ID`/
+  `CLOUDFLARE_API_TOKEN` remain the exact missing credential, unchanged.
+- **Supabase**: re-checked (CLI presence, `SUPABASE_ACCESS_TOKEN`) — unchanged, `f918708` remains
+  undeployed.
+- **FFmpeg**: re-checked directly — still not installed. No install attempted.
+- **GPU/Python**: newly checked this pass (`nvidia-smi`, `python`/`python3`) — **no NVIDIA GPU
+  toolkit and no Python interpreter of any kind exist in this environment.** This is a more
+  fundamental finding than "credentials are missing": every Phase 5–17 target (ComfyUI, WhisperX,
+  Wan2.1/HunyuanVideo/CogVideoX/Open-Sora/LTX-Video/MiniMax H3, Piper/Coqui/Kokoro TTS, SadTalker/
+  MuseTalk lip sync) is Python-based ML tooling with no possible execution path here regardless of
+  licensing, model availability, or credentials. Recorded once, precisely, rather than repeated as
+  a vague "GPU required" note per candidate.
+
+### OpenClap — real research, deliberately not installed
+
+Confirmed directly against the official repository (`github.com/jbilcke-hf/aitube-clap`, primary
+source, not an aggregator): MIT license, pure TypeScript/JavaScript, **no Python/GPU/native-binary
+dependency** — genuinely the lowest-risk external candidate this pass touched. Real exported API
+surface confirmed (`newClap`, `parseClap`, `serializeClap`, `ClapProject`, `ClapSegment`, etc.).
+The `.clap` format itself is a **compressed (gzip) multi-document YAML stream** — non-trivial to
+reimplement correctly by hand.
+
+**Deliberately not installed, for two compounding reasons stated honestly rather than picked
+silently:** (1) this repository has no `package.json`/build step of any kind — it is a vanilla
+static site served directly from its own file tree (`CLAUDE.md` §3/§7's explicit, repeated
+architecture commitment) — introducing `node_modules` would be a real structural change with no
+existing mechanism to keep it out of what gets served publicly, since there is no bundler to
+resolve an npm import into browser-loadable code; this needs a founder decision, not a unilateral
+one, regardless of how broad tonight's authorization was. (2) Hand-rolling a compressed-YAML
+`.clap` writer without the real library to validate against risks producing a file that *looks*
+like a valid export but silently isn't — parseable-sounding output is not the same as a file the
+real OpenClap ecosystem can actually read, and shipping that would be exactly the "looks successful
+but doesn't work" failure this whole session has been built around refusing to do. Recorded as a
+real, verified, ready-to-revisit finding, not attempted further.
+
+### `IbisClient.planProduction()` (new) — a real production-plan report, not a second router
+
+Directly serves Phase 21 ("IBIS must approve the plan before execution") and Phase 36 ("if one
+stage is unavailable, IBIS should identify the blocker... do NOT fake the missing stage"). Given
+`{nodeId, stages: [{capability}, ...]}`, reports each stage's real, current status —
+`READY` (with the actual eligible provider id and a real `providerClass` derived from its
+`costToIbis`), `BLOCKED` (with a real, specific reason), or `UNKNOWN_CAPABILITY` — by querying the
+**existing** `js/ibis-eligibility.js` engine, never a second eligibility/routing/economics system.
+Never executes anything itself — a plan is a real, inspectable report a caller acts on via the
+normal `IbisClient.request()` path per stage, not a promise this function keeps on the caller's
+behalf. Tested (`tests/ibis-client-audit.mjs`) against a realistic mixed plan (one genuinely
+`READY` stage — `INSTRUMENTAL_GENERATION` → `ibis-local-music-engine` — alongside one genuinely
+`BLOCKED` stage — `SCREENPLAY`, no deployed guest TEXT provider), an all-ready plan, an
+unrecognized-capability plan, and confirming Community Connect is rejected before any stage is
+even evaluated.
+
+### What this pass explicitly did NOT do (honest gaps, most of them infrastructure, not effort)
+
+No OpenClap installation (above). No Broadway/ComfyUI/Remotion/WhisperX/video-provider/TTS/
+lip-sync work of any kind — all confirmed Python/GPU-dependent, and this environment has neither.
+No interactive-control repairs beyond what the prior audit turn already found and fixed (that
+audit found no genuinely broken dropdown — only the already-shipped, still-undeployed Opportunities
+data bug). No attempt to force IMAGE eligible without the Cloudflare credential the directive's own
+re-check confirmed is still missing.
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)

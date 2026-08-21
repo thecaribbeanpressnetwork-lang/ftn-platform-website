@@ -272,6 +272,56 @@
     };
   }
 
+  // Phase 8 (production plan / "IBIS must approve the plan before execution"). Composes the
+  // EXISTING eligibility engine -- this is not a second router or a second economics engine, it
+  // is a real-data report over the one that already exists: for each requested stage, is there
+  // genuinely an eligible provider right now, and if so which one (ranked by the same real
+  // observed-health ordering attemptInOrder() itself uses)? A stage with zero eligible providers
+  // is honestly marked blocked with the real reason -- never silently dropped, never guessed at.
+  // Execution is still each stage's own IbisClient.request() call; this function never executes
+  // anything itself, matching "IBIS must approve the plan before execution" as a real gate a
+  // caller can inspect first, not a promise this function keeps on the caller's behalf.
+  function planProduction(spec) {
+    spec = spec || {};
+    var reg = registries();
+    var stages = Array.isArray(spec.stages) ? spec.stages : [];
+    var context = spec.context || {};
+    var nodePermission = null;
+
+    if (spec.nodeId) {
+      if (!reg.Nodes) return { approved: false, reason: 'js/ftn-node-registry.js is not loaded.', stages: [] };
+      var node = reg.Nodes.get(spec.nodeId);
+      if (!node) return { approved: false, reason: 'Node "' + spec.nodeId + '" is not registered.', stages: [] };
+      if (node.IBISRole === 'EXCLUDED_SEPARATE_APPLICATION') return { approved: false, reason: node.excludedReason, stages: [] };
+      if (!node.canCallIbisCapabilities) return { approved: false, reason: 'This node is not authorized to call IBIS capabilities.', stages: [] };
+      nodePermission = node.id;
+    }
+
+    if (!reg.Eligibility || !reg.Taxonomy) return { approved: false, reason: 'Eligibility/taxonomy modules are not loaded.', stages: [] };
+
+    var planned = stages.map(function (stage) {
+      var capability = stage && stage.capability;
+      if (!capability || !reg.Taxonomy.isRecognized(capability)) {
+        return { capability: capability || null, status: 'UNKNOWN_CAPABILITY', eligibleProvider: null, providerClass: null, blocker: 'Not a recognized capability.' };
+      }
+      var ranked = reg.Eligibility.find(capability, context);
+      if (!ranked.length) {
+        return { capability: capability, status: 'BLOCKED', eligibleProvider: null, providerClass: null, blocker: 'No eligible provider for ' + capability + ' right now.' };
+      }
+      var best = ranked[0].provider;
+      var providerClass = best.costToIbis === 'ZERO_COST_TO_IBIS' ? 'LOCAL_OR_FREE' : best.costToIbis === 'ZERO_CUSTOMER_FUNDED' ? 'CUSTOMER_FUNDED' : 'IBIS_FUNDED';
+      return { capability: capability, status: 'READY', eligibleProvider: best.id, providerClass: providerClass, blocker: null };
+    });
+
+    var allReady = planned.every(function (p) { return p.status === 'READY'; });
+    return {
+      approved: allReady,
+      reason: allReady ? null : 'One or more requested stages have no eligible provider right now -- see each stage\'s own blocker.',
+      nodeId: nodePermission,
+      stages: planned,
+    };
+  }
+
   global.FTN = global.FTN || {};
-  global.FTN.IbisClient = { request: request, describeNode: describeNode, defaultExecutorFor: defaultExecutorFor };
+  global.FTN.IbisClient = { request: request, describeNode: describeNode, planProduction: planProduction, defaultExecutorFor: defaultExecutorFor };
 })(typeof window !== 'undefined' ? window : globalThis);

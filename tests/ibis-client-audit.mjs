@@ -102,6 +102,39 @@ assert(sfxResult.result.audio.length > 44, 'Real WAV audio bytes must be returne
 const ccMusic = await IbisClient.request({ nodeId: 'community-connect', capability: 'INSTRUMENTAL_GENERATION' });
 assert.equal(ccMusic.code, 'NODE_EXCLUDED');
 
+// -- Phase 8: planProduction() -- a real report over the SAME eligibility engine, never a second
+// router/economics engine. A realistic mixed plan (one genuinely ready stage, one genuinely
+// blocked stage) must be reported honestly, stage by stage, never approved as a whole when part
+// of it can't actually run.
+const mixedPlan = IbisClient.planProduction({
+  nodeId: 'screen',
+  stages: [
+    { capability: 'INSTRUMENTAL_GENERATION' }, // genuinely eligible today
+    { capability: 'SCREENPLAY' }, // genuinely not eligible today (no deployed TEXT provider for a guest)
+  ],
+});
+assert.equal(mixedPlan.approved, false, 'A plan with any blocked stage must not be reported as approved');
+assert.equal(mixedPlan.stages.length, 2);
+assert.equal(mixedPlan.stages[0].status, 'READY');
+assert.equal(mixedPlan.stages[0].eligibleProvider, 'ibis-local-music-engine');
+assert.equal(mixedPlan.stages[0].providerClass, 'LOCAL_OR_FREE');
+assert.equal(mixedPlan.stages[1].status, 'BLOCKED');
+assert(typeof mixedPlan.stages[1].blocker === 'string' && mixedPlan.stages[1].blocker.length > 0, 'A blocked stage must carry a real, human-readable reason');
+
+// A plan made entirely of genuinely-ready stages must be honestly approved.
+const readyPlan = IbisClient.planProduction({ nodeId: 'screen', stages: [{ capability: 'SFX_GENERATION' }, { capability: 'QC' }] });
+assert.equal(readyPlan.approved, true);
+
+// An unrecognized capability in the plan must fail closed, never be silently skipped.
+const badPlan = IbisClient.planProduction({ stages: [{ capability: 'NOT_A_REAL_CAPABILITY' }] });
+assert.equal(badPlan.approved, false);
+assert.equal(badPlan.stages[0].status, 'UNKNOWN_CAPABILITY');
+
+// Community Connect must be rejected before any stage is even evaluated.
+const ccPlan = IbisClient.planProduction({ nodeId: 'community-connect', stages: [{ capability: 'QC' }] });
+assert.equal(ccPlan.approved, false);
+assert.equal(ccPlan.stages.length, 0, 'No stage should be evaluated once the node itself is excluded');
+
 // -- TEXT with no eligible guest provider today must fail honestly, not fabricate an answer -----
 const textResult = await IbisClient.request({ nodeId: 'ibis-ai', capability: 'TEXT', context: { authenticated: false } });
 assert.equal(textResult.success, false);
