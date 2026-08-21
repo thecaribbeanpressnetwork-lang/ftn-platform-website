@@ -1,0 +1,39 @@
+/* Explore FTN — goal-oriented front door for the FTN Directory (final integration pass).
+   Matches this page's existing light-first visual language (ftn-directory.css) -- same red
+   accent, same Montserrat/Inter type, same card shape -- deliberately not a new design system. */
+.explore-ftn { max-width: 900px; margin: 0 auto 40px; }
+.explore-ftn__intro > span { color: #b6000b; font: 900 11px/1 Inter, sans-serif; letter-spacing: .14em; }
+.explore-ftn__intro h2 { margin: 9px 0 10px; font: 800 clamp(1.6rem, 4vw, 2.6rem)/1.05 Montserrat, Inter, sans-serif; letter-spacing: -.03em; }
+.explore-ftn__intro p { color: #59616d; line-height: 1.6; max-width: 62ch; }
+
+.explore-ftn__goals { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+.explore-ftn__goals button {
+  border: 1px solid #dfe2e7; border-radius: 999px; background: #fff; color: #16191e;
+  padding: 9px 14px; font: 700 13px/1 Inter, sans-serif; cursor: pointer;
+}
+.explore-ftn__goals button:hover, .explore-ftn__goals button:focus-visible { border-color: #b6000b; }
+.explore-ftn__goals button[aria-pressed="true"] { background: #b6000b; border-color: #b6000b; color: #fff; }
+
+.explore-ftn__form { display: flex; gap: 8px; margin-bottom: 16px; }
+.explore-ftn__form input {
+  flex: 1; min-width: 0; border: 1px solid #dfe2e7; border-radius: 10px; padding: 10px 13px;
+  font: 500 14px/1.4 Inter, sans-serif;
+}
+.explore-ftn__form input:focus-visible { outline: none; border-color: #b6000b; box-shadow: 0 0 0 3px rgba(182, 0, 11, .12); }
+
+.explore-ftn__results:empty { display: none; }
+.explore-ftn__matches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.explore-ftn__match {
+  display: block; text-decoration: none; color: #16191e; border: 1px solid #dfe2e7; border-radius: 14px;
+  background: #fff; padding: 14px 15px; box-shadow: 0 7px 24px rgba(18, 24, 33, .035);
+}
+.explore-ftn__match:hover, .explore-ftn__match:focus-visible { border-color: #b6000b; }
+.explore-ftn__match strong { display: block; font: 800 15px/1.2 Montserrat, Inter, sans-serif; }
+.explore-ftn__match span { display: block; color: #525b67; font-size: 13px; margin-top: 4px; }
+.explore-ftn__match small { display: block; color: #8a919b; font-size: 11px; margin-top: 8px; }
+.explore-ftn__empty { color: #59616d; }
+
+@media (max-width: 640px) {
+  .explore-ftn__matches { grid-template-columns: 1fr; }
+  .explore-ftn__form { flex-direction: column; }
+}

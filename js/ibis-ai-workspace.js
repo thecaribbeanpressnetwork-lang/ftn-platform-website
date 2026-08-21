@@ -20,6 +20,32 @@
   function withTimeout(promise,ms,fallbackValue){return new Promise(function(resolve){var settled=false;var timer=setTimeout(function(){if(!settled){settled=true;resolve(fallbackValue);}},ms);promise.then(function(v){if(!settled){settled=true;clearTimeout(timer);resolve(v);}},function(){if(!settled){settled=true;clearTimeout(timer);resolve(fallbackValue);}});});}
   async function ensureData(){await loadScript('/js/ftn-media-discovery.js');if(!global.FTN.Auth)await loadScript('/js/ftn-auth.js');if(!global.FTN.Sources)await loadScript('/js/source-registry.js');if(!global.FTN.DataSource)await loadScript('/js/data-source.js');if(!global.FTN.indicators)await loadScript('/js/indicators-data.js');if(!global.FTN.Relationships)await loadScript('/js/relationships-data.js');}
   function ensureVisualState(){if(global.FTN&&global.FTN.IbisVisualState)return Promise.resolve();return loadScript('/js/ibis-visual-state.js');}
+  // Final integration pass (Caribbean intelligence): loads the real, cited lexical-marker
+  // detector (js/ibis-caribbean-language-id.js, Phase 13) so ASK-mode requests can honestly note
+  // when a user's own message already contains real Trinidad English/Creole vocabulary --
+  // understanding, never forcing dialect back. This never dumps a glossary into a prompt: it only
+  // ever adds one real, cited note when the detector actually finds a marker in THIS message.
+  function ensureCaribbeanLanguageId(){if(global.FTN&&global.FTN.CaribbeanLanguageId)return Promise.resolve();return loadScript('/js/ibis-caribbean-language-id.js');}
+  // Returns just the matched term tokens (e.g. ['lime','bacchanal']), not a pre-built sentence --
+  // the server (supabase/functions/ibis-query) re-validates each token against its own copy of
+  // the same small whitelist before using them, so a client can never inject arbitrary text into
+  // the server's system instruction via this field. localAI (below) is the one place a full
+  // sentence is built directly, since that only ever reaches the user's own local on-device model
+  // -- no server trust boundary is crossed there.
+  async function caribbeanTerms(prompt){
+    try{
+      await ensureCaribbeanLanguageId();
+      var detector=global.FTN&&global.FTN.CaribbeanLanguageId;
+      if(!detector)return [];
+      var result=detector.identify(prompt);
+      if(result.evidenceType!=='RESEARCH_DERIVED'||!result.matches.length)return [];
+      return result.matches.map(function(m){return m.term;});
+    }catch(e){return [];}
+  }
+  function noteFromTerms(terms){
+    if(!terms||!terms.length)return null;
+    return 'The user\'s own message already contains real Trinidad English/Creole vocabulary ('+terms.join(', ')+'). Respond naturally in clear English -- do not attempt to imitate or exaggerate Trinidadian dialect back at them.';
+  }
   function numericHistory(i){return(i&&Array.isArray(i.history)?i.history:[]).map(Number).filter(Number.isFinite);}
   function change(i){var s=numericHistory(i);if(s.length<2)return null;var a=s[0],b=s[s.length-1];return{delta:b-a,pct:a?(b-a)/Math.abs(a)*100:null};}
   function relevantIndicators(q){var terms=q.toLowerCase().split(/[^a-z0-9]+/).filter(function(x){return x.length>2;});return(global.FTN.indicators||[]).map(function(i){var hay=(i.title+' '+i.category+' '+(i.changeLabel||'')).toLowerCase(),score=terms.reduce(function(n,t){return n+(hay.indexOf(t)>=0?1:0);},0);return{i:i,score:score,c:change(i)};}).filter(function(x){return x.score>0||x.c;}).sort(function(a,b){return b.score-a.score||Math.abs((b.c&&b.c.pct)||0)-Math.abs((a.c&&a.c.pct)||0);}).slice(0,8);}
@@ -38,7 +64,9 @@
       if(availability!=='available')return null;
       var session=await withTimeout(global.LanguageModel.create(opts),8000,null);
       if(!session)return null;
-      var answer=await withTimeout(session.prompt('You are ibis.ai, FTN Platform’s Caribbean-first intelligence assistant. Be practical, concise and transparent. Do not invent current facts. When the user asks for an FTN action, connect the answer to the appropriate FTN tool. User country context: '+country()+'.\n\nUser request: '+prompt),20000,null);
+      var caribbeanNote=noteFromTerms(await caribbeanTerms(prompt));
+      var instruction='You are ibis.ai, FTN Platform’s Caribbean-first intelligence assistant. Be practical, concise and transparent. Do not invent current facts. When the user asks for an FTN action, connect the answer to the appropriate FTN tool. User country context: '+country()+'.'+(caribbeanNote?' '+caribbeanNote:'')+'\n\nUser request: '+prompt;
+      var answer=await withTimeout(session.prompt(instruction),20000,null);
       try{session.destroy();}catch(e){}
       return answer;
     }catch(e){return null;}
@@ -50,7 +78,8 @@
       var user=await withTimeout(global.FTN.Auth.getVerifiedUser(),8000,TIMED_OUT);
       if(user===TIMED_OUT)return{available:false,reason:'ibis AI is temporarily unavailable. Please try again in a moment.'};
       if(!user)return{available:false,guest:true,reason:'Sign in to use the protected server AI route.'};
-      var result=await withTimeout(global.FTN.Auth.invoke('ibis-query',{prompt:prompt,country:country()}),25000,TIMED_OUT);
+      var terms=await caribbeanTerms(prompt);
+      var result=await withTimeout(global.FTN.Auth.invoke('ibis-query',{prompt:prompt,country:country(),caribbeanTerms:terms.length?terms:undefined}),25000,TIMED_OUT);
       if(result===TIMED_OUT)return{available:false,reason:'ibis AI is temporarily unavailable. Please try again in a moment.'};
       if(!result||!result.answer)return{available:false,reason:'The server returned no answer.'};
       return{available:true,answer:result.answer,provider:result.provider||'Configured provider',model:result.model||'',generatedAt:result.generatedAt||new Date().toISOString()};

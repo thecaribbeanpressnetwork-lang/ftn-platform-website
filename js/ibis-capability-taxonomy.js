@@ -55,9 +55,16 @@
     // enabled/eligible for a guest today -- see js/ibis-provider-registry.js). RUNTIME_ESTIMATION
     // is the one exception: a real, deterministic, zero-cost local calculation (see
     // js/ibis-runtime-estimator.js, provider ibis-local-script-runtime-estimator).
+    // Final integration pass: extends the real pipeline order (IDEA -> LOGLINE -> SYNOPSIS ->
+    // CHARACTERS -> WORLD -> OUTLINE -> SCREENPLAY -> SCENE_BREAKDOWN -> PRODUCTION_PLAN ->
+    // PITCH_MATERIAL) with six new stage capabilities. Each is a genuine text-generation task a
+    // TEXT-capable provider can perform -- not a fabricated capability -- see
+    // js/ftnscreen-screenwriter.js's STAGES array for the real dependency wiring and
+    // js/ibis-provider-registry.js for which providers now list them.
     SCREENWRITING: [
-      'STORY_DEVELOPMENT', 'CHARACTER_DEVELOPMENT', 'OUTLINE', 'BEAT_SHEET', 'SCREENPLAY',
-      'REVISION', 'CONTINUITY_CHECK', 'RUNTIME_ESTIMATION', 'QC',
+      'STORY_DEVELOPMENT', 'LOGLINE', 'SYNOPSIS', 'CHARACTER_DEVELOPMENT', 'WORLD_BUILDING',
+      'OUTLINE', 'BEAT_SHEET', 'SCREENPLAY', 'SCENE_BREAKDOWN', 'PRODUCTION_PLAN',
+      'PITCH_MATERIAL', 'REVISION', 'CONTINUITY_CHECK', 'RUNTIME_ESTIMATION', 'QC',
     ],
     // Phase 6 voice directive: VOICE_SYNTHESIS is distinct from the existing AUDIO group's
     // TEXT_TO_SPEECH (generic narration) -- this is specifically FTN-authorized-identity speech

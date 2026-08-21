@@ -47,11 +47,20 @@ Deno.serve(async (request) => {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
   if (!withinLimit(ip)) return reply({ error: "Please wait a few minutes before trying again." }, 429, origin);
 
-  let payload: { prompt?: unknown; country?: unknown };
+  let payload: { prompt?: unknown; country?: unknown; caribbeanTerms?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
   const prompt = typeof payload.prompt === "string" ? payload.prompt.trim() : "";
   const country = typeof payload.country === "string" ? payload.country.trim().slice(0, 80) : "Caribbean";
   if (!prompt || prompt.length > 2_000) return reply({ error: "Enter a request between 1 and 2,000 characters." }, 400, origin);
+
+  // Caribbean Intelligence (final integration pass): the client sends only matched term TOKENS
+  // (js/ibis-caribbean-language-id.js's small, cited marker list), never a pre-built sentence --
+  // this route re-validates every token against its own copy of the same fixed whitelist before
+  // it can ever reach the model instruction, so a client can never inject arbitrary text here.
+  const CARIBBEAN_TERM_WHITELIST = new Set(["lime", "tabanca", "bacchanal", "bad-john", "dougla", "jumbee", "broughtupsy"]);
+  const caribbeanTerms = Array.isArray(payload.caribbeanTerms)
+    ? payload.caribbeanTerms.filter((t): t is string => typeof t === "string" && CARIBBEAN_TERM_WHITELIST.has(t)).slice(0, 7)
+    : [];
 
   const key = Deno.env.get("GEMINI_API_KEY");
   if (!key) return reply({ error: "ibis AI is not configured yet." }, 503, origin);
@@ -62,9 +71,12 @@ Deno.serve(async (request) => {
     "Separate verified FTN-provided information from suggestions. If the request needs live or local evidence, say what source category should be checked.",
     "Never give legal, medical, financial, or emergency instructions as a substitute for a qualified local professional or official service.",
     "Use Caribbean context only when it is relevant. User country context: " + country + ".",
+    caribbeanTerms.length
+      ? "The user's own message already contains real Trinidad English/Creole vocabulary (" + caribbeanTerms.join(", ") + "). Respond naturally in clear English -- do not attempt to imitate or exaggerate Trinidadian dialect back at them."
+      : "",
     "Offer at most three practical next actions and mention an FTN product only when it genuinely fits.",
     "Do not claim you performed an FTN action, searched the web, or accessed private data unless the prompt explicitly supplies those results.",
-  ].join(" ");
+  ].filter(Boolean).join(" ");
 
   try {
     // Bounded timeout so a slow/hung Gemini call can never hold this request open

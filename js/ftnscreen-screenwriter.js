@@ -1,7 +1,9 @@
-// FTNScreen Screenwriter (Phase 6) — a NEW CAPABILITY inside the EXISTING FTNScreen (js/screen-
-// workspace.js, /screen/), not a second application. Turns a natural-language idea into a
-// structured pilot project: concept -> characters -> beat sheet -> outline -> screenplay ->
-// continuity check -> runtime estimate, each stage a real asset in js/ibis-project-graph.js (the
+// FTNScreen Screenwriter (Phase 6, extended in the final integration pass) — a NEW CAPABILITY
+// inside the EXISTING FTNScreen (js/screen-workspace.js, /screen/), not a second application.
+// Turns a natural-language idea into a structured pilot project: concept -> logline -> synopsis
+// -> characters -> world -> beat sheet -> outline -> screenplay -> scene breakdown -> production
+// plan -> pitch material -> continuity check -> runtime estimate -> QC, each stage a real asset
+// in js/ibis-project-graph.js (the
 // same selective-regeneration graph already built and tested for exactly this purpose -- this
 // module does not invent a second project/asset model). Every creative stage is requested through
 // js/ibis-client.js's IbisClient.request() -- Screenwriter has no AI logic of its own, no
@@ -31,16 +33,38 @@
           (project.dialect ? ' Dialogue should reflect ' + project.dialect + ' where natural, without caricature.' : '');
       },
     },
+    // Final integration pass: LOGLINE and SYNOPSIS inserted between concept and characters,
+    // matching the real target pipeline order (IDEA -> LOGLINE -> SYNOPSIS -> CHARACTERS ->
+    // WORLD -> ...). characters now depends on SYNOPSIS (richer context) instead of CONCEPT
+    // directly -- SYNOPSIS already carries everything CONCEPT did, one stage downstream.
     {
-      id: 'characters', capability: 'CHARACTER_DEVELOPMENT', assetType: 'CHARACTERS', dependsOn: ['CONCEPT'],
+      id: 'logline', capability: 'LOGLINE', assetType: 'LOGLINE', dependsOn: ['CONCEPT'],
       promptBuilder: function (project, ctx) {
-        return 'Based on this pilot concept, develop the principal character profiles (name, role, want, flaw, arc) and their key relationships. Original characters only. Concept: ' + ctx.concept;
+        return 'Write a single-sentence logline (25 words or fewer) for this pilot concept -- protagonist, goal, obstacle. Concept: ' + ctx.concept;
       },
     },
     {
-      id: 'beats', capability: 'BEAT_SHEET', assetType: 'BEAT_SHEET', dependsOn: ['CHARACTERS'],
+      id: 'synopsis', capability: 'SYNOPSIS', assetType: 'SYNOPSIS', dependsOn: ['LOGLINE'],
       promptBuilder: function (project, ctx) {
-        return 'Using these characters, write a pilot beat sheet (8-12 beats) for a ' + (project.runtimeTargetMinutes || 30) + '-minute episode. Characters: ' + ctx.characters;
+        return 'Expand this logline into a short (150-250 word) prose synopsis covering the pilot\'s central conflict and stakes. Logline: ' + ctx.logline;
+      },
+    },
+    {
+      id: 'characters', capability: 'CHARACTER_DEVELOPMENT', assetType: 'CHARACTERS', dependsOn: ['SYNOPSIS'],
+      promptBuilder: function (project, ctx) {
+        return 'Based on this pilot synopsis, develop the principal character profiles (name, role, want, flaw, arc) and their key relationships. Original characters only. Synopsis: ' + ctx.synopsis;
+      },
+    },
+    {
+      id: 'world', capability: 'WORLD_BUILDING', assetType: 'WORLD', dependsOn: ['CHARACTERS'],
+      promptBuilder: function (project, ctx) {
+        return 'Describe the world/setting this story takes place in -- time, place, tone, and any rules of the world these characters live under. Ground it in ' + (project.country || 'a real, specific Caribbean setting') + ' where appropriate. Characters: ' + ctx.characters;
+      },
+    },
+    {
+      id: 'beats', capability: 'BEAT_SHEET', assetType: 'BEAT_SHEET', dependsOn: ['CHARACTERS', 'WORLD'],
+      promptBuilder: function (project, ctx) {
+        return 'Using these characters and this world, write a pilot beat sheet (8-12 beats) for a ' + (project.runtimeTargetMinutes || 30) + '-minute episode. Characters: ' + ctx.characters + ' World: ' + ctx.world;
       },
     },
     {
@@ -53,6 +77,27 @@
       id: 'screenplay', capability: 'SCREENPLAY', assetType: 'SCREENPLAY', dependsOn: ['OUTLINE'],
       promptBuilder: function (project, ctx) {
         return 'Write the full screenplay for this outline in standard format (scene headings, action, dialogue) targeting approximately ' + (project.runtimeTargetMinutes || 30) + ' minutes of screen time. Do not stop at a synopsis -- write complete scenes. Outline: ' + ctx.outline;
+      },
+    },
+    // Final integration pass: SCENE_BREAKDOWN/PRODUCTION_PLAN/PITCH_MATERIAL inserted after
+    // screenplay, matching the real target pipeline's production-facing tail
+    // (SCREENPLAY -> SCENE_BREAKDOWN -> PRODUCTION_PLAN -> PITCH_MATERIAL).
+    {
+      id: 'scene_breakdown', capability: 'SCENE_BREAKDOWN', assetType: 'SCENE_BREAKDOWN', dependsOn: ['SCREENPLAY'],
+      promptBuilder: function (project, ctx) {
+        return 'Break this screenplay into a per-scene production list: scene number, location (interior/exterior), time of day, characters present, and any notable props or effects needed. Screenplay: ' + ctx.screenplay;
+      },
+    },
+    {
+      id: 'production_plan', capability: 'PRODUCTION_PLAN', assetType: 'PRODUCTION_PLAN', dependsOn: ['SCENE_BREAKDOWN'],
+      promptBuilder: function (project, ctx) {
+        return 'Using this scene breakdown, draft practical production notes: likely locations to scout, cast/crew needs, and any scenes with unusual production complexity or cost. Scene breakdown: ' + ctx.scene_breakdown;
+      },
+    },
+    {
+      id: 'pitch_material', capability: 'PITCH_MATERIAL', assetType: 'PITCH_MATERIAL', dependsOn: ['SYNOPSIS', 'CHARACTERS'],
+      promptBuilder: function (project, ctx) {
+        return 'Write a one-page pitch summary for this pilot suitable for a network/platform submission: hook, synopsis, principal characters, and why this show now. Synopsis: ' + ctx.synopsis + ' Characters: ' + ctx.characters;
       },
     },
     {

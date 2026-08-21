@@ -89,7 +89,7 @@ assert.throws(() => Screenwriter.createProject(''), /idea/i);
   const opts = { context: { authenticated: true }, executor: mockTextExecutor };
 
   const results = await Screenwriter.developPilot(project, opts);
-  assert.equal(results.length, 8, 'All 8 stages (including QC) must run when every stage has an eligible provider (mocked)');
+  assert.equal(results.length, 14, 'All 14 stages (including the final-integration-pass LOGLINE/SYNOPSIS/WORLD_BUILDING/SCENE_BREAKDOWN/PRODUCTION_PLAN/PITCH_MATERIAL additions and QC) must run when every stage has an eligible provider (mocked)');
   for (const r of results) assert.equal(r.success, true, `Stage ${r.stage} unexpectedly failed with a mocked executor and an authenticated context`);
 
   // Real project-graph wiring: SCREENPLAY must depend on OUTLINE's real asset id, not a guess.

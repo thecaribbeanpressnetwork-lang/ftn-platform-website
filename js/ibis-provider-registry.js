@@ -79,7 +79,7 @@ var providers=[
     note:'Never automate a consumer login or subscription. FTN will integrate only after a permitted API, partner or referral arrangement and export rights are documented.'
   },
   {
-    id:'ibis-query-gemini',name:'ibis-query (Google Gemini)',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','CHARACTER_DEVELOPMENT','OUTLINE','BEAT_SHEET','SCREENPLAY','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_LIVE',
+    id:'ibis-query-gemini',name:'ibis-query (Google Gemini)',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','LOGLINE','SYNOPSIS','CHARACTER_DEVELOPMENT','WORLD_BUILDING','OUTLINE','BEAT_SHEET','SCREENPLAY','SCENE_BREAKDOWN','PRODUCTION_PLAN','PITCH_MATERIAL','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_LIVE',
     apiStatus:'LIVE_IF_GEMINI_API_KEY_CONFIGURED',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:true,costToIbis:'PAID_BY_IBIS_PRE_EXISTING',
     website:'https://ai.google.dev/',apiUrl:'https://ai.google.dev/gemini-api/docs',pricingUrl:'https://ai.google.dev/pricing',affiliateProgramUrl:null,
     commercialUse:'INHERITED_FROM_EXISTING_IBIS_QUERY_DEPLOYMENT_NOT_INDEPENDENTLY_REVERIFIED',redistribution:'NOT_APPLICABLE',lastVerified:VERIFIED,
@@ -89,7 +89,7 @@ var providers=[
     note:'Pre-existing production integration (supabase/functions/ibis-query), not newly added by this registry pass. Requires FTN Account sign-in (CI-enforced in tests/backend-source-audit.mjs). Marked costToIbis PAID_BY_IBIS_PRE_EXISTING rather than ZERO because Gemini API usage is billed to FTN\'s own key, not a customer-funded credit -- flagged honestly rather than reclassified without a founder review of that cost.'
   },
   {
-    id:'ibis-assistant-anthropic',name:'ibis-widget (Anthropic)',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','CHARACTER_DEVELOPMENT','OUTLINE','BEAT_SHEET','SCREENPLAY','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_LIVE',
+    id:'ibis-assistant-anthropic',name:'ibis-widget (Anthropic)',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','LOGLINE','SYNOPSIS','CHARACTER_DEVELOPMENT','WORLD_BUILDING','OUTLINE','BEAT_SHEET','SCREENPLAY','SCENE_BREAKDOWN','PRODUCTION_PLAN','PITCH_MATERIAL','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_LIVE',
     apiStatus:'PENDING_DEPLOYMENT',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:false,costToIbis:'PAID_BY_IBIS_FOUNDER_APPROVED',
     website:'https://www.anthropic.com/',apiUrl:'https://docs.anthropic.com/',pricingUrl:'https://www.anthropic.com/pricing',affiliateProgramUrl:null,
     commercialUse:'FOUNDER_APPROVED_NARROW_SCOPE_2026_08_19',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
@@ -107,7 +107,7 @@ var providers=[
     // against the official REST API guide, so it fits this repo's Supabase-Edge-Function
     // architecture with no new infrastructure. This is category A (ZERO_COST_TO_IBIS) in the
     // Phase 3 directive's own taxonomy, not a customer-funded or IBIS-billed route.
-    id:'cloudflare-workers-ai-text',name:'Cloudflare Workers AI — Llama 3.1 8B',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','CHARACTER_DEVELOPMENT','OUTLINE','BEAT_SHEET','SCREENPLAY','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_CANDIDATE',
+    id:'cloudflare-workers-ai-text',name:'Cloudflare Workers AI — Llama 3.1 8B',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','LOGLINE','SYNOPSIS','CHARACTER_DEVELOPMENT','WORLD_BUILDING','OUTLINE','BEAT_SHEET','SCREENPLAY','SCENE_BREAKDOWN','PRODUCTION_PLAN','PITCH_MATERIAL','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_CANDIDATE',
     apiStatus:'PENDING_ACCOUNT_SETUP',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'ZERO_COST_TO_IBIS',
     website:'https://developers.cloudflare.com/workers-ai/',apiUrl:'https://developers.cloudflare.com/workers-ai/get-started/rest-api/',pricingUrl:'https://developers.cloudflare.com/workers-ai/platform/pricing/',affiliateProgramUrl:null,
     commercialUse:'PROVIDER_STATES_FREE_ALLOCATION_HARD_CAPPED_TERMS_REVIEW_RECOMMENDED_BEFORE_ENABLING',redistribution:'UNVERIFIED',lastVerified:'2026-08-20',
