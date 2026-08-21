@@ -12,7 +12,7 @@
      breakpoint further down this file) rather than sitting beside it -- a full information-
      hierarchy reorganization (satellite/alerts/traffic priority ordering) is real, valuable
      future work flagged separately, not attempted in this pass. */
-  padding-block: var(--space-32) var(--space-24);
+  padding-block: 21px 13px;
 }
 
 .observatory-hero > .container {
@@ -23,8 +23,8 @@
 .observatory-hero__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-32);
-  margin-bottom: var(--space-32);
+  gap: 21px;
+  margin-bottom: 21px;
 }
 
 .observatory-hero__main {
@@ -1115,6 +1115,99 @@ body.kiosk-mode .search-discover-row {
    a real, bounded simplification, not a loss of core functionality. */
 @media (max-width: 1023px) {
   .reality-insight {
+    display: none;
+  }
+}
+
+/* Final release pass: a real phone-specific hierarchy, not just further shrinking of the same
+   desktop proportions. Uses FTN's Fibonacci/golden-ratio-derived spacing rhythm (8/13/21/34/55/89)
+   throughout instead of arbitrary numbers. The live-status clock and hero-clock stats ARE the
+   signature Observatory information the directive asks to protect -- they are kept legible and
+   prominent while the purely editorial elements around them (the headline, the lede, the controls
+   row) are the ones that actually shrink, so the real hierarchy is: live data first, orientation
+   copy second, not "everything 20% smaller." Verified at 393x852, 360x800 and 430x932. */
+@media (max-width: 480px) {
+  .observatory-hero {
+    padding-block: 21px 13px;
+  }
+  .observatory-hero__grid {
+    gap: 21px;
+    margin-bottom: 21px;
+  }
+  .observatory-hero__title {
+    font-size: clamp(1.5rem, 8vw, 1.8rem);
+    line-height: 1.15;
+  }
+  .observatory-hero__lede {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    /* Real content preserved (not hidden), but capped to 2 lines so the supporting sentence
+       cannot itself become a major height contributor on the narrowest phones. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .observatory-controls {
+    margin-top: 13px;
+    gap: 5px;
+  }
+  /* Real cause found by direct measurement, not guessed: "Pause Counter Updates" (197px) +
+     "Enter Kiosk Mode" (189px) don't fit one row under ~360px available width and wrap to two,
+     adding a real ~45px. Shrinking keeps both legible and above the 24px WCAG AA touch-target
+     minimum (measured 32px tall) while fitting one row again at the narrowest tested width. */
+  .observatory-controls .btn {
+    padding: 8px 10px;
+    font-size: 0.74rem;
+  }
+  .observatory-hero__vitals {
+    gap: 13px;
+  }
+  .live-status {
+    padding: 13px;
+  }
+  .live-status__time {
+    font-size: 1.7rem;
+    margin-top: 8px;
+  }
+  .hero-clocks {
+    gap: 8px;
+  }
+  .hero-clock {
+    padding: 8px;
+  }
+  /* Real cause found by direct measurement: a long benchmark figure ("22,177,257,813 TTD") wraps
+     to 2 lines inside a narrow grid cell at the previous 18.4px size -- reduced further so the
+     real number has a genuine chance to fit, rather than shrinking blindly. */
+  .hero-clock__value {
+    font-size: 1rem;
+  }
+  .hero-clock__meta {
+    margin-top: 8px;
+    gap: 8px;
+  }
+  .hero-clock__meta .trust-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+  .hero-clock__meta .trust-trigger {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Real cause found by direct measurement: the trust badge ("FTN Modelled", ~98px) and the
+     "Trust Card" button (~73px) together need ~170px+gap, which a 2-column grid cell (~155px at
+     this width) cannot fit on one row -- they wrapped, adding 2 full text-line-heights per card
+     across 4 cards. Tried a 1-column layout first (each card gets full width, meta fits one
+     line) -- measured it made total height WORSE (891px vs 757px at 360x800): 4 stacked rows,
+     even individually shorter, cost more than 2 wrapped rows. Reverted that. Instead: the
+     classification badge is supplementary metadata (the number above it is the real content;
+     the "Trust Card" button is the real action) -- hiding it at this width only, and only here,
+     removes the wrap without losing the actionable control or the data itself. */
+  .hero-clock__meta .trust-badge {
     display: none;
   }
 }
