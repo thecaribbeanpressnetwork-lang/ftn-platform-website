@@ -26,7 +26,7 @@ const surfaces=[
   ['/events/','#events-form'],
   ['/opportunities/','#opp-search'],
   ['/radio/','.ftn-radio-live'],
-  ['/dj-tube-prototype/?ftn=1','#playA'],
+  ['/riddim/dj/','#playA'],
   ['/riddim/daw/','#mPlay'],
   ['/screen/','.screen-catalog'],
   ['/tv/','.tv-player'],
@@ -36,7 +36,7 @@ const surfaces=[
 for(const [path,selector] of surfaces){await open(path,selector);console.log('MOBILE PASS',path);}
 
 // Touch-target sanity on the two performance-heavy music tools.
-await open('/dj-tube-prototype/?ftn=1','#playA');
+await open('/riddim/dj/','#playA');
 for(const sel of ['#playA','#playB','#cueA','#cueB']){const b=await page.locator(sel).boundingBox();assert(b&&b.width>=40&&b.height>=34,`${sel} too small for touch: ${b?.width}x${b?.height}`);}
 await open('/riddim/daw/','#mPlay');
 for(const sel of ['#mPlay','#mStop','#mOriginal']){const b=await page.locator(sel).boundingBox();assert(b&&b.width>=40&&b.height>=44,`${sel} too small for touch: ${b?.width}x${b?.height}`);}

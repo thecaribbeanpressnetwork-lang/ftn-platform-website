@@ -160,11 +160,16 @@ await scenario('radio-empty-source-state', async page=>{
 await scenario('radio-creator-delivery',async page=>{await open(page,'/radio/');await page.waitForSelector('#radio-submit-form');assert.equal(await page.locator('text=Programming Desk').count(),0);assert.equal(await page.locator('#radio-submit-form [name="delivery"]').count(),1);assert.equal(await page.locator('#radio-submit-form [name="origin"]').count(),1);assert.equal(await page.locator('.radio-submit-dock').count(),0,'giant fixed radio submit button returned');assert.equal(await page.locator('.radio-knob').count(),0,'phone-hostile radio knob returned');assert.equal(await page.locator('input[type="range"]').count()>0,true,'radio slide dial missing');});
 
 await scenario('dj-discovery-and-controls', async page=>{
-  await open(page,'/dj-tube-prototype/?ftn=1');
-  await page.waitForFunction(()=>document.querySelectorAll('[data-track]').length>10 || /failed|unavailable|error/i.test(document.querySelector('#queueStatus')?.innerText||''),{timeout:45000});
-  const n=await page.locator('[data-track]').count();assert(n>10,`DJ only loaded ${n} tracks`);
-  const texts=(await page.locator('[data-track]').allInnerTexts()).slice(0,40).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix|roadmix/i.test(texts),'DJ mix exclusion failed');
-  await page.locator('[data-track]').first().click();await page.waitForTimeout(200);
+  // Pass 16 DJ Tube consolidation: /dj-tube-prototype/?ftn=1 (the old standalone iframe target)
+  // now redirects to the real, consolidated workstation at /riddim/dj/ -- no iframe boundary, no
+  // [data-track] attribute (that was the deleted js/dj-tube-prototype.js's own convention). The
+  // real discovery-result markup is `.item` per track, with `[data-load]` action buttons
+  // (DECK A / DECK B) inside each -- see js/ftn-dj-workstation.js.
+  await open(page,'/riddim/dj/');
+  await page.waitForFunction(()=>document.querySelectorAll('.item').length>10 || /failed|unavailable|error/i.test(document.querySelector('#queueStatus')?.innerText||''),{timeout:45000});
+  const n=await page.locator('.item').count();assert(n>10,`DJ only loaded ${n} tracks`);
+  const texts=(await page.locator('.item').allInnerTexts()).slice(0,40).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix|roadmix/i.test(texts),'DJ mix exclusion failed');
+  await page.locator('[data-load]').first().click();await page.waitForTimeout(200);
   assert(await page.locator('#playA').count()===1 && await page.locator('#playB').count()===1,'DJ transport missing');
 });
 
