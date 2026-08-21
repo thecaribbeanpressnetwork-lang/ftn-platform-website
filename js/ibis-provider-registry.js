@@ -96,6 +96,31 @@ var providers=[
     userAuthorizationRequired:false,
     modelId:'@cf/meta/llama-3.1-8b-instruct',
     note:'Not yet integrated -- requires a Cloudflare account, an API token with Workers AI permissions, and CLOUDFLARE_ACCOUNT_ID/CLOUDFLARE_API_TOKEN set as Supabase secrets before enabled can become true (per this codebase\'s "discovery is not deployment" rule). The 10,000-Neuron/day pool also covers embeddings, image generation (flux-1-schnell, stable-diffusion-xl) and speech-to-text (whisper) -- those are documented as researched-but-not-registered candidates in IBIS-MAP.md, not added here speculatively.'
+  },
+  {
+    // Phase 3B follow-through: IMAGE_GENERATION was a researched-but-not-registered candidate on
+    // the cloudflare-workers-ai-text entry above (see IBIS-MAP.md §0.8); this promotes it to a
+    // registered candidate using the same account, same free Neuron allocation and the same
+    // ZERO_COST_TO_IBIS classification already verified for TEXT. Primary model.
+    id:'cloudflare-workers-ai-image-flux',name:'Cloudflare Workers AI — FLUX.1 [schnell]',categories:['image'],capabilities:['IMAGE_GENERATION'],integration:'NATIVE_API_CANDIDATE',
+    apiStatus:'PENDING_ACCOUNT_SETUP',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'ZERO_COST_TO_IBIS',
+    website:'https://developers.cloudflare.com/workers-ai/',apiUrl:'https://developers.cloudflare.com/workers-ai/models/flux-1-schnell/',pricingUrl:'https://developers.cloudflare.com/workers-ai/platform/pricing/',affiliateProgramUrl:null,
+    commercialUse:'PROVIDER_STATES_FREE_ALLOCATION_HARD_CAPPED_TERMS_REVIEW_RECOMMENDED_BEFORE_ENABLING',redistribution:'UNVERIFIED',lastVerified:'2026-08-20',
+    userAuthorizationRequired:false,
+    modelId:'@cf/black-forest-labs/flux-1-schnell',
+    note:'Not yet integrated -- requires the same CLOUDFLARE_ACCOUNT_ID/CLOUDFLARE_API_TOKEN Supabase secrets as cloudflare-workers-ai-text, plus supabase/functions/ibis-image-cloudflare actually deployed, before enabled can become true. Output licensing/commercial-use terms for Black Forest Labs FLUX.1 [schnell] have not been independently reviewed by FTN -- redistribution stays UNVERIFIED until that review happens, same discipline already applied to every other unreviewed provider in this registry.'
+  },
+  {
+    // Same-account, same-mechanism fallback model so a single model's outage or timeout doesn't
+    // remove IMAGE_GENERATION eligibility entirely -- real model-level failover via
+    // js/ibis-eligibility.js attemptInOrder(), the same pattern already proven for TEXT (Phase 3).
+    id:'cloudflare-workers-ai-image-sdxl',name:'Cloudflare Workers AI — SDXL-Lightning',categories:['image'],capabilities:['IMAGE_GENERATION'],integration:'NATIVE_API_CANDIDATE',
+    apiStatus:'PENDING_ACCOUNT_SETUP',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'ZERO_COST_TO_IBIS',
+    website:'https://developers.cloudflare.com/workers-ai/',apiUrl:'https://developers.cloudflare.com/workers-ai/models/stable-diffusion-xl-lightning/',pricingUrl:'https://developers.cloudflare.com/workers-ai/platform/pricing/',affiliateProgramUrl:null,
+    commercialUse:'PROVIDER_STATES_FREE_ALLOCATION_HARD_CAPPED_TERMS_REVIEW_RECOMMENDED_BEFORE_ENABLING',redistribution:'UNVERIFIED',lastVerified:'2026-08-20',
+    userAuthorizationRequired:false,
+    modelId:'@cf/bytedance/stable-diffusion-xl-lightning',
+    note:'Not yet integrated -- same deployment prerequisites as cloudflare-workers-ai-image-flux. Output licensing/commercial-use terms for this ByteDance model have not been independently reviewed by FTN -- redistribution stays UNVERIFIED until that review happens.'
   }
 ];
 global.FTN=global.FTN||{};

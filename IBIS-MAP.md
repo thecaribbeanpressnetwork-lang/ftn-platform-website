@@ -335,6 +335,64 @@ buildable work, but it's implementation, not research, and this response was alr
 it as the clear next concrete step rather than bundling a second Phase-3-sized implementation into
 a Phase-3B-sized research response.
 
+## 0.9 IMAGE implementation — the flagged next step, built (2026-08-20)
+
+Direct follow-through on §0.8's own recommendation, using the exact TEXT pattern from Phase 3
+(§0.75) rather than inventing a new one: a registry entry per candidate model, one Supabase
+function, and a real client-side consumer wired through the same eligibility/failover engine —
+nothing bypasses `js/ibis-eligibility.js`.
+
+**Registry (`js/ibis-provider-registry.js`).** Two new entries, both `enabled:false` /
+`apiStatus:'PENDING_ACCOUNT_SETUP'` until deployed, both `costToIbis:'ZERO_COST_TO_IBIS'` (same
+account and free-Neuron mechanism already verified for `cloudflare-workers-ai-text`):
+- `cloudflare-workers-ai-image-flux` — `@cf/black-forest-labs/flux-1-schnell`, primary.
+- `cloudflare-workers-ai-image-sdxl` — `@cf/bytedance/stable-diffusion-xl-lightning`, fallback.
+
+Two models rather than one gives real model-level failover (a `flux-1-schnell` timeout or outage
+doesn't remove IMAGE_GENERATION eligibility entirely) — the same redundancy value the TEXT pass
+established across two different companies, here achieved across two models on one account. Output
+licensing/commercial-use terms for both models were **not** independently reviewed this pass;
+`redistribution` stays `UNVERIFIED` on both entries rather than assumed clear, same discipline as
+every other unreviewed provider already in this registry.
+
+**Backend (`supabase/functions/ibis-image-cloudflare/index.ts`, new, not yet deployed).** Same
+CORS/rate-limit/fail-closed shape as `ibis-text-cloudflare` byte-for-byte: FTN origin allowlist,
+24 req/5min/IP, fails closed 503 without `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN`. One
+function serves both models — the client sends a registry `providerId`, checked against a fixed
+server-side allowlist (`MODELS`), never an arbitrary client-supplied Cloudflare model string. The
+official REST response shape for Workers AI *image* models isn't spelled out in the public
+reference the way the binding response is (`developers.cloudflare.com/workers-ai/models/
+flux-1-schnell/` documents `response.image` for the Workers-binding case only) — rather than assume
+a field name, the function checks `result.image`, then `result.b64_json`, then falls back to
+handling a raw `image/*` binary response directly (base64-encoding it server-side), and returns a
+clean 502 if none of those match. This will need a real request against live credentials to confirm
+which path actually fires — flagged honestly as unverified-until-deployed, not claimed as tested.
+
+**Client (`js/ibis-creative-studio.js`, `/ibis-ai/` Creative Studio, IMAGE mode).** Building a
+project plan now also calls `js/ibis-eligibility.js`'s `find('IMAGE_GENERATION', {authenticated:
+false})`. Today that returns zero results (both candidates are `enabled:false`), so the existing
+"Generation lock: ON" copy stays accurate and no new UI appears — verified by reading the actual
+eligibility-engine gate, not assumed. Once a founder sets the Cloudflare secrets, deploys the
+function, and flips either registry entry to `enabled:true`/`apiStatus:'LIVE'`, a real "Generate
+real image (beta, zero-cost route)" button appears automatically and calls
+`Eligibility.attemptInOrder('IMAGE_GENERATION', ..., callImageProvider)` — real failover between
+the two models, the generated image rendered inline as a `data:image/png;base64,...` URI with a
+download link, and the project's local record updated from `PLANNED_NOT_GENERATED` to
+`GENERATED`. No credits/payment gate applies to this path since it's the zero-cost route, not the
+existing prepaid-customer-credit path the rest of Creative Studio's messaging describes for PixVerse/
+Kling — those two systems are honestly different today (one is free-to-IBIS and unbuilt-pending-
+deploy, the other needs a real payment/credits system that doesn't exist), so they were kept as two
+distinct code paths rather than force-fit into one gate that would misdescribe either.
+
+**CI.** `tests/ibis-eligibility-audit.mjs` updated and passing locally: registry count assertions
+(12 total, 4 IMAGE_GENERATION providers), both new entries assert `INELIGIBLE` today, and
+`find('IMAGE_GENERATION', {})` asserts zero results — the same "honest current state, not a bug"
+pattern already proven for TEXT before its two providers were deployed.
+
+**Still not deployed, same as `ibis-assistant`/`ibis-text-cloudflare`:** no Supabase secret or
+function deployment can happen from inside this session — that remains a founder action per
+`supabase/README.md`'s documented deployment rule.
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)

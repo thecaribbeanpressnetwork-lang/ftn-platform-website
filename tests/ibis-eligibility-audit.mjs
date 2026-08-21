@@ -12,13 +12,14 @@ const Eligibility = context.window.FTN.IbisEligibility;
 
 // -- Registry shape --------------------------------------------------------
 const all = Providers.all();
-assert(all.length >= 10, 'Expected the existing 7 creative-studio candidates plus the 3 text providers');
+assert(all.length >= 12, 'Expected the existing 7 creative-studio candidates plus 3 text providers plus 2 Cloudflare image providers');
 for (const p of all) {
   assert(Array.isArray(p.capabilities) && p.capabilities.length > 0, `${p.id} must declare at least one capability`);
   assert(typeof p.costToIbis === 'string' && p.costToIbis.length > 0, `${p.id} must declare costToIbis`);
 }
-assert(Providers.byCategory('image').length >= 2, 'byCategory() must keep working -- ibis-creative-studio.js depends on it');
+assert(Providers.byCategory('image').length >= 4, 'byCategory() must keep working -- ibis-creative-studio.js depends on it -- now pixverse, kling, plus the two Cloudflare image candidates');
 assert.equal(Providers.byCapability('TEXT').length, 3, 'ibis-query-gemini, ibis-assistant-anthropic and cloudflare-workers-ai-text declare TEXT today');
+assert.equal(Providers.byCapability('IMAGE_GENERATION').length, 4, 'pixverse, kling, cloudflare-workers-ai-image-flux and cloudflare-workers-ai-image-sdxl declare IMAGE_GENERATION today');
 assert.equal(Providers.get('does-not-exist'), null);
 
 // -- Core economic invariant: this is the one test that matters most -------
@@ -41,6 +42,9 @@ assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: 
 assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: true }).status, 'ELIGIBLE', 'ibis-query becomes eligible once authenticated, with a clean health record');
 assert.equal(Eligibility.evaluate('ibis-assistant-anthropic', 'TEXT', { authenticated: false }).status, 'INELIGIBLE', 'ibis-assistant is not enabled until the function is actually deployed');
 assert.equal(Eligibility.evaluate('cloudflare-workers-ai-text', 'TEXT', { authenticated: false }).status, 'INELIGIBLE', 'cloudflare-workers-ai-text is not enabled until real Cloudflare credentials exist');
+assert.equal(Eligibility.evaluate('cloudflare-workers-ai-image-flux', 'IMAGE_GENERATION', {}).status, 'INELIGIBLE', 'cloudflare-workers-ai-image-flux is not enabled until real Cloudflare credentials exist and the function is deployed');
+assert.equal(Eligibility.evaluate('cloudflare-workers-ai-image-sdxl', 'IMAGE_GENERATION', {}).status, 'INELIGIBLE', 'cloudflare-workers-ai-image-sdxl is not enabled until real Cloudflare credentials exist and the function is deployed');
+assert.equal(Eligibility.find('IMAGE_GENERATION', {}).length, 0, 'No IMAGE_GENERATION provider is eligible right now -- this is the honest current state, not a bug, exactly mirroring TEXT before ibis-assistant/ibis-text-cloudflare were deployed');
 
 // -- find(): only returns providers that pass every gate -------------------
 assert.equal(Eligibility.find('TEXT', { authenticated: false }).length, 0, 'No TEXT provider is eligible for a guest right now -- this is the honest current state, not a bug');
