@@ -319,6 +319,22 @@ var providers=[
     note:'Standard screenwriting-industry heuristic (~235 words/page, ~1 page/minute) applied to raw screenplay text -- an honest approximation, not real pagination software, and documented as such in the module itself.'
   },
   {
+    // Pass 16: IBIS Live Intelligence. Calls Hacker News' Algolia search API and GitHub's public
+    // repository search API directly from the browser -- both send permissive CORS headers, need
+    // no API key/cookie/login of any kind, so this is genuinely live today with zero deployment
+    // step, unlike every PENDING_ACCOUNT_SETUP provider elsewhere in this registry. Reddit/X and
+    // any other cookie-gated platform are explicitly excluded this pass -- see
+    // SCOUT-INTELLIGENCE-LEDGER.md's Agent Reach / last30days findings for why.
+    id:'ibis-local-live-research',name:'ibis Live Intelligence (Hacker News + GitHub, client-side, no model)',categories:['text'],capabilities:['LIVE_INTELLIGENCE'],integration:'LOCAL_DETERMINISTIC_NO_PROVIDER',
+    apiStatus:'LIVE',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:true,costToIbis:'ZERO_COST_TO_IBIS',
+    website:null,apiUrl:'https://hn.algolia.com/api/v1/search, https://api.github.com/search/repositories',pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'NOT_APPLICABLE_PUBLIC_SEARCH_APIS_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-21',
+    userAuthorizationRequired:false,
+    weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-live-research.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_IN_VISITOR_BROWSER',verificationSource:'js/ibis-live-research.js and tests/ibis-live-research-audit.mjs (this repository); real browser interaction verified 2026-08-21',
+    lifecycleState:'ELIGIBLE',
+    note:'Deterministic aggregation of real, current, timestamped Hacker News and GitHub results, scored via js/ftn-source-provenance.js -- no LLM call, no synthesis beyond a factual summary of what was actually returned, no fabricated trending claim.'
+  },
+  {
     // Phase 6 voice directive: VOICE_SYNTHESIS candidates, researched and license-verified this
     // pass against primary sources, correctly NOT deployed -- both require a GPU this environment
     // does not have. Recorded so a founder infrastructure decision starts from real options, not

@@ -84,6 +84,13 @@
     // (js/ibis-caribbean-language-id.js, provider ibis-local-caribbean-language-id) -- the
     // directive's own rule ("do not register capabilities merely because they have been named").
     CARIBBEAN: ['CARIBBEAN_LANGUAGE_ID'],
+    // Pass 16: the IBIS Live Intelligence vertical slice. A single real capability -- current,
+    // evidence-backed public-source research -- distinct from ordinary TEXT/REASONING, which
+    // answers from model knowledge alone. Only registered because a real, working, zero-cost
+    // implementation exists (js/ibis-live-research.js, provider ibis-local-live-research),
+    // following the same "do not register capabilities merely because they've been named" rule
+    // already established for CARIBBEAN_LANGUAGE_ID above.
+    RESEARCH: ['LIVE_INTELLIGENCE'],
   };
 
   // Shipped-string -> canonical-equivalent, or null where the shipped string covers ground the

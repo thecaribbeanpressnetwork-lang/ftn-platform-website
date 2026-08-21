@@ -92,3 +92,47 @@
 @media(prefers-reduced-motion:reduce){
   .ibis-chat__sidebar{transition:none}
 }
+
+/* Pass 16: IBIS Live Intelligence -- a visually distinct evidence block so a real,
+   current-source-backed answer is never mistaken for ordinary model reasoning. */
+.ibis-live-kicker {
+  color: var(--color-ibis, #7c3aed);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 3px 10px;
+  display: inline-block;
+}
+.ibis-live-sources {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+}
+.ibis-live-source {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid rgba(124, 58, 237, 0.28);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(124, 58, 237, 0.05);
+}
+.ibis-live-source:hover,
+.ibis-live-source:focus-visible {
+  border-color: var(--color-ibis, #7c3aed);
+  background: rgba(124, 58, 237, 0.1);
+}
+.ibis-live-source__platform {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ibis, #7c3aed);
+}
+.ibis-live-source__title {
+  font-weight: 700;
+}
+.ibis-live-source__meta {
+  font-size: 11px;
+  opacity: 0.75;
+}

@@ -86,6 +86,9 @@ jobs:
       - name: Audit ibis SFX engine (real sound-effect synthesis)
         run: node tests/ibis-sfx-engine-audit.mjs
 
+      - name: Audit IBIS Live Intelligence (deterministic intent detection + query stripping)
+        run: node tests/ibis-live-research-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'

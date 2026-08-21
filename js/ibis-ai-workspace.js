@@ -20,12 +20,63 @@
   function withTimeout(promise,ms,fallbackValue){return new Promise(function(resolve){var settled=false;var timer=setTimeout(function(){if(!settled){settled=true;resolve(fallbackValue);}},ms);promise.then(function(v){if(!settled){settled=true;clearTimeout(timer);resolve(v);}},function(){if(!settled){settled=true;clearTimeout(timer);resolve(fallbackValue);}});});}
   async function ensureData(){await loadScript('/js/ftn-media-discovery.js');if(!global.FTN.Auth)await loadScript('/js/ftn-auth.js');if(!global.FTN.Sources)await loadScript('/js/source-registry.js');if(!global.FTN.DataSource)await loadScript('/js/data-source.js');if(!global.FTN.indicators)await loadScript('/js/indicators-data.js');if(!global.FTN.Relationships)await loadScript('/js/relationships-data.js');}
   function ensureVisualState(){if(global.FTN&&global.FTN.IbisVisualState)return Promise.resolve();return loadScript('/js/ibis-visual-state.js');}
+  // Zero-dependency mirror of js/ibis-live-research.js's own LIVE_PHRASES list, so ordinary
+  // messages never pay the cost of loading the live-research module at all -- only a message that
+  // already looks like a live/current-events request triggers ensureLiveResearch() below.
+  var QUICK_LIVE_PHRASES=['right now','happening now','currently','as of today','latest on','latest news','current news','what are people saying',"what's new",'recent news','this week','up to date','up-to-date','today','this month'];
+  function quickLooksLikeLiveRequest(text){var lower=String(text||'').toLowerCase();return QUICK_LIVE_PHRASES.some(function(p){return lower.indexOf(p)!==-1;});}
   // Final integration pass (Caribbean intelligence): loads the real, cited lexical-marker
   // detector (js/ibis-caribbean-language-id.js, Phase 13) so ASK-mode requests can honestly note
   // when a user's own message already contains real Trinidad English/Creole vocabulary --
   // understanding, never forcing dialect back. This never dumps a glossary into a prompt: it only
   // ever adds one real, cited note when the detector actually finds a marker in THIS message.
   function ensureCaribbeanLanguageId(){if(global.FTN&&global.FTN.CaribbeanLanguageId)return Promise.resolve();return loadScript('/js/ibis-caribbean-language-id.js');}
+  // Pass 16: IBIS Live Intelligence lazy-load. js/ibis-provider-registry.js is already a static
+  // script tag on this page; the eligibility engine and the live-research capability itself are
+  // loaded on demand, same pattern as every other ensure* helper here.
+  async function ensureLiveResearch(){
+    if(!global.FTN||!global.FTN.SourceProvenance)await loadScript('/js/ftn-source-provenance.js');
+    if(!global.FTN||!global.FTN.IbisEligibility)await loadScript('/js/ibis-eligibility.js');
+    if(!global.FTN||!global.FTN.LiveResearch)await loadScript('/js/ibis-live-research.js');
+  }
+  var SOURCE_CLASS_LABEL={COMMUNITY_DISCUSSION:'Community discussion',REPUTABLE_JOURNALISM:'Journalism',OFFICIAL_GOVERNMENT:'Official government',ACADEMIC:'Academic',PRIMARY_EVIDENCE:'Primary evidence',CORPORATE_STATEMENT:'Corporate statement',CREATOR_SOCIAL:'Creator/social',PERSONAL_COMMENTARY:'Personal commentary',MARKETING_ADVOCACY:'Marketing/advocacy',LEGISLATION_PUBLIC_RECORD:'Legislation/public record',UNKNOWN:'Unknown'};
+  function sourceCardHTML(source){
+    return '<a class="ibis-live-source" href="'+esc(source.url||'#')+'" target="_blank" rel="noopener noreferrer">'
+      +'<span class="ibis-live-source__platform">'+esc(source.platform||'Source')+'</span>'
+      +'<span class="ibis-live-source__title">'+esc(source.title||source.url||'Untitled')+'</span>'
+      +'<span class="ibis-live-source__meta">'+esc(SOURCE_CLASS_LABEL[source.sourceClass]||source.sourceClass)+(source.engagement?' · '+esc(source.engagement):'')+' · retrieved '+esc(new Date(source.retrievedAt).toLocaleTimeString())+'</span>'
+      +'</a>';
+  }
+  // Real evidence-backed current-source research -- distinct visual treatment (a bordered
+  // "Live Intelligence" block with real linked sources) so this is never mistaken for ordinary
+  // model reasoning. Routed through the existing eligibility/provider engine, not a bypass.
+  async function renderLiveResearch(query,out){
+    await ensureLiveResearch();
+    if(!global.FTN.IbisEligibility||!global.FTN.LiveResearch){
+      out.innerHTML='<span class="workspace-kicker">Live Intelligence unavailable</span><p>The live-research module could not load in this browser. Falling back to ibis\'s ordinary answer.</p>';
+      return false;
+    }
+    var attempt=await global.FTN.IbisEligibility.attemptInOrder('LIVE_INTELLIGENCE',{authenticated:false},async function(provider){
+      var startedAt=Date.now();
+      try{
+        var result=await global.FTN.LiveResearch.research(query);
+        return {success:true,latencyMs:Date.now()-startedAt,data:result};
+      }catch(e){
+        return {success:false,latencyMs:Date.now()-startedAt,errorType:'SERVER_ERROR'};
+      }
+    });
+    if(!attempt.success){
+      out.innerHTML='<span class="workspace-kicker">Live Intelligence unavailable</span><p>'+esc(attempt.reason||'No current-source research route is eligible right now.')+'</p>';
+      return false;
+    }
+    var data=attempt.result;
+    var sourcesHTML=data.sources.length?'<div class="ibis-live-sources">'+data.sources.map(sourceCardHTML).join('')+'</div>':'';
+    out.innerHTML='<span class="workspace-kicker ibis-live-kicker">Live Intelligence · current public sources, not model memory</span>'
+      +'<p>'+esc(data.synthesis)+'</p>'
+      +sourcesHTML
+      +'<p class="workspace-muted">Retrieved '+esc(new Date(data.retrievedAt).toLocaleString())+' · claim confidence: <strong>'+esc(data.claimConfidence.confidence)+'</strong> ('+esc(data.claimConfidence.corroboration)+' independent source(s)) · '+esc(data.sourceCredibilityNote)+'</p>';
+    return true;
+  }
   // Returns just the matched term tokens (e.g. ['lime','bacchanal']), not a pre-built sentence --
   // the server (supabase/functions/ibis-query) re-validates each token against its own copy of
   // the same small whitelist before using them, so a client can never inject arbitrary text into
@@ -185,6 +236,18 @@
         appendUserMessage(q);
         var out=appendIbisMessage();
         setStatus('thinking');
+        // Pass 16 IBIS Live Intelligence: only fires when the message itself reads as a live/
+        // current-events request (deterministic phrase match, never an LLM call to decide).
+        // quickLooksLikeLiveRequest() has zero dependencies, so ordinary requests never trigger
+        // ensureLiveResearch()'s script loads at all -- ibis's normal behavior is completely
+        // unaffected for every message that doesn't look like this.
+        if(quickLooksLikeLiveRequest(q)){
+          setStatus('working');
+          await renderLiveResearch(q,out);
+          setStatus('idle');
+          scrollToEnd();
+          return;
+        }
         if(mode==='visual'||/create|generate|make/.test(q.toLowerCase())&&/image|visual|poster|graphic/.test(q.toLowerCase())){
           setStatus('generating');
           await createVisual(q,out);
