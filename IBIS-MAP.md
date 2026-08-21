@@ -1299,6 +1299,69 @@ new sitewide widget). None of them currently talk to each other. If real routing
 happens, this is the first thing to reconcile — not something to silently pick a winner on without
 your say.
 
+## 0.18 Phase 10 — re-detection, Supabase deployment resolved, ibis-image-cloudflare deployed and gateway-verified, durable Cloudflare secret identified as the remaining blocker (2026-08-21)
+
+A new session picked this up with an explicit instruction to re-detect all credential/access state
+fresh rather than trust anything from the prior pass — the right call, since two real things had
+changed since Phase 9.
+
+### Re-detection: the Supabase CLI is now authenticated (a real, new fact)
+
+Every prior phase in this document logged Supabase deployment as blocked on a missing credential
+(no `SUPABASE_ACCESS_TOKEN`, no CLI session). That blocker is now resolved: `npx supabase projects
+list` succeeded against the live Supabase Management API with no token configured by this session,
+returning both real linked-org projects (`jshmidfpqrajxtukzges` — the project this repo targets —
+and a separate `ftn-platform-staging`). This is a genuinely new environment fact, not a stale
+assumption carried forward.
+
+### `ibis-image-cloudflare` deployed for real
+
+`npx supabase functions deploy ibis-image-cloudflare --project-ref jshmidfpqrajxtukzges` succeeded.
+Verified, not assumed: `supabase functions list` shows it `status:"ACTIVE"`, `version:1`, a real new
+function id. It did not exist in the deployed-functions list before this deploy (`ibis-text-
+cloudflare` still does not exist there either — TEXT's `ELIGIBLE` status is correctly backed by
+`ibis-query`/Gemini, a pre-existing deployment, not by an undeployed Cloudflare TEXT route; worth
+recording here since it would be easy for a future pass to conflate the two).
+
+A real end-to-end HTTP request was made against the live deployed function, using the exact call
+pattern `js/ibis-creative-studio.js` already implements (`apikey` + `authorization: Bearer` headers
+set to the Supabase publishable key, `sb_publishable_...`) — not a bespoke test harness. Two things
+were confirmed by this one real request:
+
+1. The Supabase gateway's `verify_jwt:true` requirement (the CLI's default for a fresh deploy, since
+   this repo has no `supabase/config.toml` overriding it) is satisfied by the existing client code's
+   publishable-key header pattern — no client-side change needed, no parallel call path required.
+2. The function itself correctly fails closed: HTTP 503, `{"error":"ibis image generation is not
+   configured yet on this route. No request was sent and nothing was charged."}` — because
+   `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN` are not set as Supabase secrets
+   (`supabase secrets list` confirms neither name exists on this project today). Exactly the
+   designed fail-closed behavior, not a crash, not a fabricated success.
+
+### The remaining, precisely-identified blocker: a durable Cloudflare API Token, not the wrangler session token
+
+The obvious next step — set the two Cloudflare secrets and re-test — was deliberately not taken by
+reusing the `wrangler login` OAuth session token from Phase 9. That token's own config file records
+a real expiration timestamp roughly one hour after authentication, with no server-side refresh path
+(refresh is a `wrangler`-CLI-only mechanism). Setting it as a permanent Supabase secret would make
+the function appear to work for a short window and then silently fail for real users with no
+warning — exactly the false-`ELIGIBLE` outcome this document's own standard exists to prevent. This
+was caught before any secret was set, not discovered after.
+
+**What is actually needed:** a real, dashboard-issued Cloudflare API Token (Cloudflare dashboard →
+My Profile → API Tokens → Create Token, scoped narrowly to Workers AI on account `Facethenationtt@
+gmail.com's Account`, account id `659c0b87c0871b257976e6b8d6425501` — non-secret, confirmed via
+`wrangler whoami`), which does not expire on an hourly cycle the way an interactive OAuth session
+does. Once supplied, the remaining steps are already proven mechanical, not exploratory:
+`supabase secrets set CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... --project-ref
+jshmidfpqrajxtukzges`, one real end-to-end request to confirm a real image returns through the live
+deployed function, then (only after that) `enabled:true` on both registry entries.
+
+Registry updated: both Cloudflare IMAGE entries' `apiStatus` changed from
+`ACCOUNT_VERIFIED_SUPABASE_DEPLOYMENT_PENDING` to
+`SUPABASE_FUNCTION_DEPLOYED_AWAITING_DURABLE_CLOUDFLARE_SECRET` — `lifecycleState` stays
+`EXECUTABLE`, `enabled` stays `false`. `tests/ibis-eligibility-audit.mjs`'s existing `EXECUTABLE`
+assertions still hold and were re-run clean.
+
 ## 4. Current provider inventory (every real external AI call in this repo, confirmed by file)
 
 | Function/file | Provider | Auth required | Status |

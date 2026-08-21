@@ -26,3 +26,7 @@
 # Cloudflare Pages/Workers deployment config of its own, so there is nothing for wrangler to build
 # here -- this directory only exists because wrangler was used locally to verify Workers AI access.
 /.wrangler/
+
+# Local Supabase CLI cache (CLI version + linked project ref/name only, no secret). Created
+# automatically by `supabase functions deploy`/`supabase link`; not part of the shipped site.
+/supabase/.temp/
