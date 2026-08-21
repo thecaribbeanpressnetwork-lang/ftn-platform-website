@@ -1362,6 +1362,71 @@ Registry updated: both Cloudflare IMAGE entries' `apiStatus` changed from
 `EXECUTABLE`, `enabled` stays `false`. `tests/ibis-eligibility-audit.mjs`'s existing `EXECUTABLE`
 assertions still hold and were re-run clean.
 
+## 0.19 Phase 10 (cont.) — VIDEO investigation: full hardware detection, five new researched candidates, one credible PAID path (2026-08-21)
+
+Per the master directive's explicit instruction not to install anything blindly, this pass started
+with real hardware detection on this exact machine (never done with this level of precision before
+in this document):
+
+| | |
+|---|---|
+| OS | Windows 11 Home, build 10.0.26200 |
+| CPU | AMD Ryzen 3 7320U (4 cores / 8 threads) — a low-power mobile APU, not a workstation chip |
+| GPU | Integrated AMD Radeon Graphics (part of the same 7320U die) — **no discrete GPU, no NVIDIA hardware of any kind** |
+| RAM | ~72 GiB |
+| Disk | 142 GB free of 476 GB |
+| Docker | Not installed |
+| Python | Not installed (Microsoft Store stub only — reconfirms the Phase 9 finding with the exact error text) |
+| CUDA | Not applicable — no NVIDIA hardware exists to install it against |
+
+**Conclusion, stated once and applying to every self-host candidate below without exception:** this
+machine cannot run any GPU-based video model locally, at any quantization level, regardless of that
+model's license terms or VRAM efficiency. The blocker is hardware, not credentials, not licensing,
+and not Python alone (though Python is also genuinely absent).
+
+### Five real candidates researched (live web search + primary-source license files, not memory)
+
+| Candidate | License | Real VRAM figure found | Verdict on this machine |
+|---|---|---|---|
+| **Wan2.1** (Alibaba) | Apache 2.0, all variants — most permissive found | 1.3B: ~8GB · 14B: ~24GB (RTX 4090 class) | Blocked — no GPU |
+| **HunyuanVideo 1.5** (Tencent) | Free commercial use under Tencent's own community license — **explicitly bans EU/UK/South Korea use**, a real restriction worth flagging even though moot here | ~14GB with offloading, ~9GB at FP8 | Blocked — no GPU |
+| **LTX-2 / LTX-2.5** (Lightricks) | Free commercial use under $10M ARR (FTN qualifies); paid license above that; also offered through third-party API partners (unverified pricing) | Vendor claims "consumer GPU capable," exact figure not independently pinned down | Blocked — no GPU |
+| **Open-Sora v2** (hpcaitech) | Apache 2.0 | Not independently verified this pass (moot regardless) | Blocked — no GPU |
+| **CogVideoX-2B** (already registered, Phase 3B) | Apache 2.0 (2B variant only — the 5B variant is separately, more restrictively licensed) | ~5GB with memory optimization — the lowest bar of any candidate here | Blocked — no GPU |
+
+All five are registered in `js/ibis-provider-registry.js` as `SELF_HOST_CANDIDATE` /
+`lifecycleState:'LICENSE_VERIFIED'` / `enabled:false` / `costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND'`
+— license-verified and honestly documented, explicitly not eligible, for a reason that has nothing
+to do with licensing.
+
+### MiniMax H3 — the one candidate not blocked by hardware
+
+Per the directive's continued interest in this specific provider, MiniMax's own platform-overview
+page was fetched directly and confirms a real, official, direct developer API exists (not merely
+available through resellers like OpenRouter, though OpenRouter's own listing — $0.13/sec video
+output — is the only concrete price figure found and is cited only as an order-of-magnitude
+reference, not a verified first-party rate). This runs entirely on MiniMax's own infrastructure, so
+it is the **only VIDEO_GENERATION candidate in this entire investigation not blocked by this
+machine's hardware.**
+
+Registered as `minimax-h3`, `integration:'NATIVE_API_CANDIDATE'`, `lifecycleState:'DISCOVERED'`
+(deliberately not `LICENSE_VERIFIED` — an API page existing is not the same as having read the real
+commercial ToS/pricing document, which this pass did not do), `enabled:false`,
+`costToIbis:'NOT_APPLICABLE_WOULD_BE_CUSTOMER_FUNDED_IF_EVER_ENABLED'`. No API key exists in this
+environment for it; none was requested or fabricated. Making this real would require: a founder
+decision to pursue a PAID video route at all, the actual ToS/pricing document read and recorded, an
+API key obtained and stored as a Supabase secret (never client-side, same discipline as the
+Cloudflare IMAGE credential), and routing through the existing prepaid-credit economic model
+(§5 above) so cost is always customer-funded, never automatic FTN spend — exactly the same gate
+every other PAID provider in this registry already goes through, not a new mechanism.
+
+### `tests/ibis-eligibility-audit.mjs` updated to match
+
+`Providers.byCapability('VIDEO_GENERATION').length` assertion updated from 3 to 8 (pixverse, kling,
+and the five newly-researched candidates), plus new assertions that `wan-2.1` stays disabled despite
+its permissive license and that `minimax-h3` stays at `DISCOVERED` (not inflated to
+`LICENSE_VERIFIED`) until its real ToS is actually read. Full local test suite re-run clean.
+
 ## 4. Current provider inventory (every real external AI call in this repo, confirmed by file)
 
 | Function/file | Provider | Auth required | Status |

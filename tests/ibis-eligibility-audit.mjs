@@ -36,11 +36,14 @@ assert.equal(Taxonomy.groupOf('BPM_DETECTION'), 'AUDIO');
 assert(Providers.byCategory('image').length >= 4, 'byCategory() must keep working -- ibis-creative-studio.js depends on it -- now pixverse, kling, plus the two Cloudflare image candidates');
 assert.equal(Providers.byCapability('TEXT').length, 3, 'ibis-query-gemini, ibis-assistant-anthropic and cloudflare-workers-ai-text declare TEXT today');
 assert.equal(Providers.byCapability('IMAGE_GENERATION').length, 4, 'pixverse, kling, cloudflare-workers-ai-image-flux and cloudflare-workers-ai-image-sdxl declare IMAGE_GENERATION today');
-assert.equal(Providers.byCapability('VIDEO_GENERATION').length, 3, 'pixverse, kling and the new cogvideox-2b self-host candidate declare VIDEO_GENERATION today');
+assert.equal(Providers.byCapability('VIDEO_GENERATION').length, 8, 'pixverse, kling, cogvideox-2b, wan-2.1, hunyuanvideo-1.5, ltx-2, open-sora-v2 and minimax-h3 declare VIDEO_GENERATION today');
 assert.equal(Providers.byCapability('BPM_DETECTION').length, 1, 'ibis-local-dsp is the one real BPM_DETECTION provider');
 assert.equal(Providers.get('does-not-exist'), null);
 assert.equal(Providers.get('cogvideox-2b').costToIbis, 'WOULD_REQUIRE_IBIS_COMPUTE_SPEND', 'Open licensing (Apache 2.0 on the 2B variant) must not be conflated with zero cost -- it still needs a real GPU');
 assert.equal(Providers.get('cogvideox-2b').enabled, false, 'No self-hosted VIDEO route is eligible until a founder makes a budgeted GPU-infrastructure decision');
+assert.equal(Providers.get('wan-2.1').enabled, false, 'Apache 2.0 licensing does not change this machine\'s hardware -- no NVIDIA GPU, no Python');
+assert.equal(Providers.get('minimax-h3').enabled, false, 'A real official API existing does not make a PAID provider eligible without a founder-approved key and the existing prepaid-credit economic gate');
+assert.equal(Providers.get('minimax-h3').lifecycleState, 'DISCOVERED', 'An API page was confirmed to exist, but the actual commercial ToS/pricing document has not been read -- this must not be inflated to LICENSE_VERIFIED');
 
 // -- Core economic invariant: this is the one test that matters most -------
 // A provider that could cause IBIS to incur an unapproved charge must never be enabled.

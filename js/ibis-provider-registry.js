@@ -159,7 +159,68 @@ var providers=[
     commercialUse:'VERIFIED_APACHE_2_0_ON_2B_VARIANT_ONLY',redistribution:'APACHE_2_0_PERMITS_REDISTRIBUTION_2B_VARIANT_ONLY',lastVerified:'2026-08-21',
     weightsAvailable:'YES_APACHE_2_0_VERIFIED_ON_OFFICIAL_MODEL_CARD_2B_ONLY',sourceAvailable:'YES_GITHUB_AND_HUGGING_FACE_ZAI_ORG',selfHostable:true,deploymentMethod:'PYTHON_DIFFUSERS_SELF_HOST',hardwareRequirements:'GPU_REQUIRED_APPROX_5GB_VRAM_WITH_CPU_OFFLOAD_PER_OFFICIAL_REPO_UNQUANTIFIED_COST_BY_FTN',verificationSource:'https://huggingface.co/THUDM/CogVideoX-2b',
     lifecycleState:'LICENSE_VERIFIED',
-    note:'The 2B variant is confirmed Apache 2.0 (commercial use permitted) on its official Hugging Face model card, distinct from the larger 5B variant which uses a separate, more restrictive CogVideoX license -- do not conflate the two when this entry is revisited. Even the smaller 2B variant requires a real GPU (~5GB VRAM with the official memory-optimization flags) AND a Python runtime; re-confirmed 2026-08-21 that this execution environment has neither (no NVIDIA GPU toolkit, no Python interpreter of any kind -- checked directly, not assumed). Cloudflare\'s live model catalog was also re-checked directly this same pass (wrangler ai models list, 64 models total): still zero video-generation models of any kind, so no zero-cost hosted VIDEO route exists there either. This stays WOULD_REQUIRE_IBIS_COMPUTE_SPEND and ineligible until a founder makes a budgeted infrastructure decision -- open licensing and a now-working Cloudflare account do not change that; the blocker is genuinely GPU/Python, not credentials.'
+    note:'The 2B variant is confirmed Apache 2.0 (commercial use permitted) on its official Hugging Face model card, distinct from the larger 5B variant which uses a separate, more restrictive CogVideoX license -- do not conflate the two when this entry is revisited. Phase 10 (2026-08-21) obtained this execution environment\'s exact hardware for the first time, not just "no GPU toolkit found": CPU is an AMD Ryzen 3 7320U (4 cores/8 threads), GPU is the integrated AMD Radeon Graphics on that same chip -- no discrete GPU, no NVIDIA hardware, no CUDA possible at any driver/toolkit version, and still no Python interpreter of any kind. Cloudflare\'s live model catalog was also re-checked directly this same pass (wrangler ai models list, 64 models total): still zero video-generation models. This stays WOULD_REQUIRE_IBIS_COMPUTE_SPEND and ineligible until a founder makes a budgeted infrastructure decision -- open licensing does not change that; the blocker is this specific machine\'s hardware, not credentials.'
+  },
+  {
+    // Phase 10 (2026-08-21) VIDEO investigation, per the master directive's LOCAL -> FREE ->
+    // AFFILIATE -> PAID priority and its explicit request to evaluate Wan2.1/HunyuanVideo/
+    // CogVideoX/LTX-2/Open-Sora. Real license/hardware facts sourced live (WebSearch, primary
+    // sources cited below), not from training-data memory -- this repo's own standard for every
+    // provider record. All five self-host candidates below share the identical blocker: this
+    // machine (confirmed via direct detection this same pass -- AMD Ryzen 3 7320U, integrated AMD
+    // Radeon Graphics, no discrete/NVIDIA GPU, no CUDA, no Python, no Docker) cannot run ANY of
+    // them regardless of how permissive each one's license is. This is a hardware fact, not a
+    // per-model licensing problem -- do not re-litigate licensing to try to unblock this.
+    id:'wan-2.1',name:'Wan2.1 (Alibaba)',categories:['video'],capabilities:['VIDEO_GENERATION'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://github.com/Wan-Video/Wan2.1',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'VERIFIED_APACHE_2_0_ALL_VARIANTS',redistribution:'APACHE_2_0_PERMITS_REDISTRIBUTION',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_APACHE_2_0_HUGGING_FACE_AND_MODELSCOPE',sourceAvailable:'YES_GITHUB_WAN_VIDEO',selfHostable:true,deploymentMethod:'PYTHON_DIFFUSERS_OR_COMFYUI_SELF_HOST',hardwareRequirements:'GPU_REQUIRED_1_3B_VARIANT_ABOUT_8GB_VRAM_MINIMUM_14B_VARIANT_24GB_VRAM_RECOMMENDED_NVIDIA_RTX_4090_CLASS',verificationSource:'https://github.com/Wan-Video/Wan2.1 (Apache 2.0 LICENSE file); willitrunai.com/blog/wan-2-2-vram-requirements for VRAM figures',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'The most commercially permissive candidate investigated -- Apache 2.0 on every variant, no attribution-defeating restrictions. Its smallest (1.3B) variant is the lowest-VRAM self-host video option found in this whole investigation (~8GB), which would matter a great deal on different hardware. On THIS machine it is irrelevant: no discrete/NVIDIA GPU exists at all (integrated AMD Radeon Graphics only), and no Python interpreter exists to run diffusers/ComfyUI. Blocked on hardware, not license or credentials.'
+  },
+  {
+    id:'hunyuanvideo-1.5',name:'HunyuanVideo 1.5 (Tencent)',categories:['video'],capabilities:['VIDEO_GENERATION'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://github.com/Tencent-Hunyuan/HunyuanVideo',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'PERMITTED_UNDER_TENCENT_HUNYUAN_COMMUNITY_LICENSE_WITH_TERRITORIAL_RESTRICTIONS',redistribution:'CUSTOM_LICENSE_NOT_STANDARD_APACHE_REVIEW_BEFORE_REDISTRIBUTION',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_HUGGING_FACE_TENCENT',sourceAvailable:'YES_GITHUB_TENCENT_HUNYUAN',selfHostable:true,deploymentMethod:'PYTHON_DIFFUSERS_SELF_HOST',hardwareRequirements:'GPU_REQUIRED_ABOUT_14GB_VRAM_WITH_OFFLOADING_ABOUT_9GB_AT_FP8_QUANTIZATION',verificationSource:'https://github.com/Tencent-Hunyuan/HunyuanVideo (Tencent Hunyuan Community License Agreement); deepwiki.com/Tencent/HunyuanVideo/5-license-and-legal',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'8.3B parameters, free for commercial and research use under Tencent\'s own custom community license (not plain Apache 2.0 -- has real terms of its own, worth a founder read before any future enablement) -- but that license explicitly PROHIBITS use in the EU, UK, and South Korea, a real geographic restriction FTN would need to account for if this were ever pursued. Moot today regardless: same hardware blocker as every other entry in this group (no NVIDIA GPU, no Python).'
+  },
+  {
+    id:'ltx-2',name:'LTX-2 / LTX-2.5 (Lightricks)',categories:['video'],capabilities:['VIDEO_GENERATION'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_WEIGHTS_PLUS_OFFICIAL_API_PARTNERS',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://github.com/Lightricks/LTX-2',apiUrl:'https://ltx.io/llm-info',pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'FREE_COMMERCIAL_USE_UNDER_10_MILLION_USD_ANNUAL_REVENUE_LICENSED_ABOVE_THAT',redistribution:'COMMUNITY_LICENSE_REVIEW_BEFORE_REDISTRIBUTION',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_HUGGING_FACE_LIGHTRICKS',sourceAvailable:'YES_GITHUB_LIGHTRICKS_LTX_2',selfHostable:true,deploymentMethod:'PYTHON_SELF_HOST_OR_THIRD_PARTY_API_PARTNER',hardwareRequirements:'GPU_REQUIRED_VENDOR_CLAIMS_CONSUMER_GPU_CAPABLE_UP_TO_NATIVE_4K_20S_50FPS_UNVERIFIED_EXACT_VRAM_FIGURE_BY_FTN',verificationSource:'https://github.com/Lightricks/LTX-2/blob/main/LICENSE.md; https://ltx.io/llm-info',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'Notable for being the first open model claiming synchronized audio+video generation in one pass, and for a genuinely unusual license structure: free for commercial use below $10M ARR, a separate paid licensing program above that -- FTN would currently qualify for the free tier, a fact worth revisiting if this is ever pursued for real, since most candidates here are flatly free or flatly not. Also available through third-party API partners (a PAID, non-self-host route), not independently verified by this pass -- would need its own pricing/ToS check before ever being registered as a PAID candidate. Self-host route blocked by the same hardware wall as the rest of this group.'
+  },
+  {
+    id:'open-sora-v2',name:'Open-Sora v2 (hpcaitech)',categories:['video'],capabilities:['VIDEO_GENERATION'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://github.com/hpcaitech/Open-Sora',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'APACHE_2_0_PERMITS_COMMERCIAL_USE',redistribution:'APACHE_2_0_PERMITS_REDISTRIBUTION',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_HUGGING_FACE_HPCAI_TECH',sourceAvailable:'YES_GITHUB_HPCAITECH',selfHostable:true,deploymentMethod:'PYTHON_SELF_HOST',hardwareRequirements:'GPU_REQUIRED_EXACT_VRAM_FIGURE_NOT_INDEPENDENTLY_VERIFIED_BY_FTN_THIS_PASS',verificationSource:'https://github.com/hpcaitech/Open-Sora/blob/main/LICENSE',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'Apache 2.0, commercial use permitted -- the project\'s own GitHub issue history shows some past community confusion over a since-resolved non-commercial-license proposal, worth a quick re-check of the LICENSE file directly (not this note) before ever treating this as final. No official hosted API found. Same hardware blocker as the rest of this group; VRAM requirement not independently pinned down this pass since it does not change the outcome on this machine.'
+  },
+  {
+    // MiniMax H3, investigated per the directive's specific continuation of that line of work.
+    // The only candidate in this whole VIDEO investigation with a genuine, official, direct
+    // hosted API -- meaning it is NOT blocked by this machine's hardware, only by the economics
+    // gate every PAID provider in this registry already goes through (founder-approved spend +
+    // customer-funded prepaid credits, never automatic FTN-funded billing -- see IBIS-MAP.md Sec
+    // 5). No API key exists in this environment; none was requested or fabricated.
+    id:'minimax-h3',name:'MiniMax Hailuo (H3)',categories:['video'],capabilities:['VIDEO_GENERATION'],integration:'NATIVE_API_CANDIDATE',
+    apiStatus:'OFFICIAL_API_CONFIRMED_NO_KEY_CONFIGURED',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:true,prepaidRequired:true,enabled:false,costToIbis:'NOT_APPLICABLE_WOULD_BE_CUSTOMER_FUNDED_IF_EVER_ENABLED',
+    website:'https://www.minimax.io/',apiUrl:'https://www.minimax.io/platform_overview',pricingUrl:'https://openrouter.ai/minimax/hailuo-3',affiliateProgramUrl:null,
+    commercialUse:'OFFICIAL_PAID_API_COMMERCIAL_USE_IMPLIED_BY_PRODUCT_NOT_A_CONSUMER_SUBSCRIPTION',redistribution:'NOT_APPLICABLE_CLOSED_API',lastVerified:'2026-08-21',
+    userAuthorizationRequired:true,
+    weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://www.minimax.io/platform_overview (confirmed a real API + API-reference link exists); openrouter.ai/minimax/hailuo-3 for a real third-party reseller price point ($0.13/sec video output) since exact first-party per-second pricing was not published on the page fetched this pass',
+    lifecycleState:'DISCOVERED',
+    note:'A real official direct API exists (confirmed by fetching MiniMax\'s own platform-overview page, not inferred from a reseller) -- this is the one VIDEO candidate in this investigation not blocked by local hardware at all, since it runs entirely on MiniMax\'s infrastructure. Exact first-party pricing/ToS/rate limits were not published on the page checked this pass -- OpenRouter\'s reseller price ($0.13/sec) is cited only as an order-of-magnitude reference, not FTN\'s real cost. lifecycleState is intentionally left at DISCOVERED, not LICENSE_VERIFIED, because the actual commercial ToS document (not just "an API page exists") has not yet been read. This would be a real PAID_BY_IBIS or customer-funded-credit candidate depending on a founder pricing decision -- exactly the kind of provider IBIS\'s existing prepaid-credit economic model (IBIS-MAP.md Sec 5) already exists to gate. No API key was requested, fabricated, or assumed to exist.'
   },
   {
     // Open-source/open-weight audit pass (2026-08-20): the one capability this pass could
