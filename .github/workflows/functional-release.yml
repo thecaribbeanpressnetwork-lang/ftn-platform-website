@@ -147,7 +147,7 @@ jobs:
           FTN_CAPTURE_DIR: test-artifacts
         run: node tests/surface-system-release.mjs
 
-      - name: Run FTN UX Guardian (rendered-output UX audit, 6 mandated breakpoints)
+      - name: Run FTN UX Guardian (rendered-output UX audit, 7 mandated breakpoints)
         id: ux-guardian
         continue-on-error: true
         env:

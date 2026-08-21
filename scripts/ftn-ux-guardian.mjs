@@ -30,12 +30,14 @@ const root = resolve(import.meta.dirname, '..');
 // The 6 mandatory FTN breakpoints (this pass's own directive) -- a deliberate subset of the
 // upstream tool's broader 17-viewport matrix, focused on the laptop-header-occupancy problem and
 // the real device classes FTN's own analytics-free judgment call prioritizes: common laptop
-// desktop sizes, one tablet size each orientation, and the two most common phone viewports.
+// desktop sizes, one tablet size each orientation, and three common phone viewports.
+// 430x932 added for the final release pass (matches the directive's own explicit mobile-QA list).
 export const BREAKPOINTS = [
   { name: 'laptop-1366x768', width: 1366, height: 768, klass: 'desktop' },
   { name: 'small-desktop-1280x720', width: 1280, height: 720, klass: 'desktop' },
   { name: 'small-laptop-1024x768', width: 1024, height: 768, klass: 'desktop' },
   { name: 'tablet-portrait-768x1024', width: 768, height: 1024, klass: 'tablet' },
+  { name: 'phone-430x932', width: 430, height: 932, klass: 'mobile' },
   { name: 'phone-393x852', width: 393, height: 852, klass: 'mobile' },
   { name: 'phone-small-360x800', width: 360, height: 800, klass: 'mobile' },
 ];
@@ -135,10 +137,19 @@ function browserProbe() {
     .map(({ el, r }) => `${el.tagName.toLowerCase()}${el.className ? '.' + String(el.className).split(' ')[0] : ''} (${Math.round(r.width)}x${Math.round(r.height)})`);
 
   // Suspect dead-control heuristic: visually prominent (.btn/.cta/class mentions primary|generate|
-  // action|submit) interactive elements with no href, no type=submit inside a form, no inline
-  // onclick, and no data-* attribute at all. This is a HEURISTIC CANDIDATE LIST, not proof of a
-  // dead control -- a real addEventListener() call elsewhere leaves no DOM trace this probe can
-  // see, which is exactly why the finding severity/message says "verify manually."
+  // action|submit) interactive elements with no href, no submit-in-form, no inline onclick, and no
+  // data-* attribute at all. Still a heuristic candidate list, not proof -- but a CDP-based real
+  // event-listener check was attempted and abandoned (this Playwright version's ElementHandle
+  // doesn't expose a stable CDP objectId, confirmed by direct experiment, not assumed) in favor of
+  // two static-signal refinements, both verified against this codebase's real elements:
+  //   1. A <button> with no explicit type inside a <form> is an implicit submit button per the
+  //      HTML spec, not just an explicit type="submit" one (verified: DJ Tube's SEARCH button,
+  //      Radio's "Build FTN EPK Preview" both fire real handlers this way).
+  //   2. One narrow, named exception for .ibis-widget-close: the sitewide ibis chat widget's close
+  //      button (js/ibis-widget.js, loaded identically on every page) is closed via a delegated
+  //      listener on its containing dialog, not a listener on the button itself or any static
+  //      attribute this probe can see -- verified with a real click-and-observe test (panel closes)
+  //      before adding this exception, not assumed.
   const prominent = interactive.filter(visible).filter((el) => {
     const cls = String(el.className || '');
     return /\bbtn\b|\bcta\b|primary|generate|action/i.test(cls) || (el.tagName === 'BUTTON');
@@ -146,19 +157,13 @@ function browserProbe() {
   const suspectDeadControls = prominent
     .filter((el) => {
       const hasHref = el.tagName === 'A' && el.getAttribute('href') && el.getAttribute('href') !== '#';
-      const isSubmit = el.getAttribute('type') === 'submit' && el.closest('form');
+      const isSubmit = el.closest('form') && (el.getAttribute('type') === 'submit' || (el.tagName === 'BUTTON' && !el.getAttribute('type')));
       const hasOnclick = !!el.getAttribute('onclick');
       const hasDataAttr = Array.from(el.attributes).some((a) => a.name.startsWith('data-') && a.name !== 'data-audit-section');
       const isDisabled = el.disabled || el.getAttribute('aria-disabled') === 'true';
-      // FTN's own JS convention (confirmed by direct code reading across ftn-daw.js, ftn-fire.js,
-      // ftn-dj-workstation.js, etc.) is near-universally $(id).onclick=... assigned from an
-      // external script, never an inline onclick= attribute or data-action marker. An element
-      // with a real, specific id is therefore NOT a reliable dead-control signal on this
-      // codebase -- only an id-less element with none of the other signals is flagged. This
-      // still won't catch every real dead control (a handler can be missing despite a real id),
-      // but it removes the dominant false-positive source this heuristic had without any id check.
       const hasSpecificId = !!el.id && !/^(undefined|null)$/.test(el.id);
-      return !hasHref && !isSubmit && !hasOnclick && !hasDataAttr && !isDisabled && !hasSpecificId;
+      const isKnownDelegatedControl = el.classList.contains('ibis-widget-close');
+      return !hasHref && !isSubmit && !hasOnclick && !hasDataAttr && !isDisabled && !hasSpecificId && !isKnownDelegatedControl;
     })
     .map((el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.className ? '.' + String(el.className).split(' ')[0] : ''} "${(el.textContent || '').trim().slice(0, 40)}"`);
 
