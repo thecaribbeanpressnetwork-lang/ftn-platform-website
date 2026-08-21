@@ -20,3 +20,9 @@
 
 # Local Claude Code tooling state (settings, session lock files) — not part of the shipped site.
 /.claude/
+
+# Local wrangler CLI cache (account id/name only, no secret -- the real OAuth token lives outside
+# the repo in the CLI's own user-level config). Not part of the shipped site; this repo has no
+# Cloudflare Pages/Workers deployment config of its own, so there is nothing for wrangler to build
+# here -- this directory only exists because wrangler was used locally to verify Workers AI access.
+/.wrangler/

@@ -67,7 +67,11 @@ assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: 
 assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: true }).status, 'ELIGIBLE', 'ibis-query becomes eligible once authenticated, with a clean health record');
 assert.equal(Eligibility.evaluate('ibis-assistant-anthropic', 'TEXT', { authenticated: false }).status, 'INELIGIBLE', 'ibis-assistant is not enabled until the function is actually deployed');
 assert.equal(Eligibility.evaluate('cloudflare-workers-ai-text', 'TEXT', { authenticated: false }).status, 'INELIGIBLE', 'cloudflare-workers-ai-text is not enabled until real Cloudflare credentials exist');
-assert.equal(Eligibility.evaluate('cloudflare-workers-ai-image-flux', 'IMAGE_GENERATION', {}).status, 'INELIGIBLE', 'cloudflare-workers-ai-image-flux is not enabled until real Cloudflare credentials exist and the function is deployed');
+assert.equal(Eligibility.evaluate('cloudflare-workers-ai-image-flux', 'IMAGE_GENERATION', {}).status, 'INELIGIBLE', 'cloudflare-workers-ai-image-flux: the provider itself is now real and execution-verified (Phase 9), but stays ineligible until supabase/functions/ibis-image-cloudflare -- the browser-safe production path -- is actually deployed');
+// Real, execution-verified providers (Phase 9) must carry lifecycleState EXECUTABLE, not a lesser
+// state, even while correctly staying enabled:false pending Supabase deployment.
+assert.equal(Providers.get('cloudflare-workers-ai-image-flux').lifecycleState, 'EXECUTABLE', 'A real, human-verified generation call succeeded against the live Cloudflare account -- this must be reflected honestly, not left at a pre-verification state');
+assert.equal(Providers.get('cloudflare-workers-ai-image-sdxl').lifecycleState, 'EXECUTABLE');
 assert.equal(Eligibility.evaluate('cloudflare-workers-ai-image-sdxl', 'IMAGE_GENERATION', {}).status, 'INELIGIBLE', 'cloudflare-workers-ai-image-sdxl is not enabled until real Cloudflare credentials exist and the function is deployed');
 assert.equal(Eligibility.find('IMAGE_GENERATION', {}).length, 0, 'No IMAGE_GENERATION provider is eligible right now -- this is the honest current state, not a bug, exactly mirroring TEXT before ibis-assistant/ibis-text-cloudflare were deployed');
 assert.equal(Eligibility.evaluate('cogvideox-2b', 'VIDEO_GENERATION', {}).status, 'INELIGIBLE', 'cogvideox-2b is a documented self-host candidate only -- open licensing is not zero cost, and IBIS has no GPU infrastructure');

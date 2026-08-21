@@ -88,15 +88,18 @@ Deno.serve(async (request) => {
         console.error("Cloudflare Workers AI image request failed", upstream.status, JSON.stringify(data?.errors || data));
         return reply({ error: "ibis image generation is temporarily unavailable on this route. Please try again shortly." }, 502, origin);
       }
-      // Defensive: Cloudflare's REST envelope wraps the same shape the Workers AI binding
-      // returns (documented as response.image), but the exact field name is not spelled out in
-      // the public REST reference as of this pass -- check both plausible names and fail closed
-      // rather than assume, consistent with this codebase's fail-closed discipline.
+      // Confirmed 2026-08-21 via a real, direct, authenticated test against the live Cloudflare
+      // API (see IBIS-MAP.md Sec 0.17): flux-1-schnell's REST response really is
+      // {result:{image:"<base64>"}, success:true, ...} -- result.image is the real field, not a
+      // guess. b64_json kept as a defensive fallback only (never observed in practice).
       image = typeof data?.result?.image === "string" ? data.result.image
         : typeof data?.result?.b64_json === "string" ? data.result.b64_json
         : null;
     } else if (upstream.ok && contentType.indexOf("image/") === 0) {
-      // Some Workers AI image models return raw binary directly rather than a JSON envelope.
+      // Confirmed 2026-08-21: stable-diffusion-xl-lightning takes this branch for real -- it
+      // returns raw binary with an "image/png" content-type header, but the actual decoded bytes
+      // are JPEG (0xFFD8 magic bytes), a real, confirmed mismatch on Cloudflare's own API. This
+      // branch is correct as written because it trusts the actual bytes, not the declared label.
       const bytes = new Uint8Array(await upstream.arrayBuffer());
       let binary = "";
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);

@@ -1165,6 +1165,83 @@ audit found no genuinely broken dropdown — only the already-shipped, still-und
 data bug). No attempt to force IMAGE eligible without the Cloudflare credential the directive's own
 re-check confirmed is still missing.
 
+## 0.17 Phase 9 — Cloudflare authenticated, real IMAGE execution, VIDEO re-confirmed blocked (2026-08-21)
+
+The founder authorized and completed a real Cloudflare OAuth device-code login into this execution
+environment (`npx wrangler login --device`, approved in the founder's own browser). This is a
+genuinely new fact, not a repeat of the earlier "browser login does not extend into this
+environment" finding — this time the login happened *in* this environment, confirmed directly via
+`wrangler whoami`: authenticated via OAuth token, account `facethenationtt@gmail.com`, token scope
+includes `ai (write)`. Per this session's own standing rule, this fact was re-verified fresh at the
+start of this pass rather than trusted as still-valid from the prior turn — it was.
+
+### Real, human-verified execution: both registered Cloudflare IMAGE candidates genuinely work
+
+Before touching the registry, the live model catalog was re-checked directly (`wrangler ai models
+list`, 64 models total) — both previously-registered model ids
+(`@cf/black-forest-labs/flux-1-schnell`, `@cf/bytedance/stable-diffusion-xl-lightning`) are
+confirmed still current, not renamed or deprecated. Then a real generation call was made directly
+against the live Cloudflare API using this environment's own authenticated credential (read
+in-memory from the wrangler config file, never printed, never touched a browser):
+
+- **flux-1-schnell**: HTTP 200, `success:true`, a real ~528KB image returned as base64 in
+  `result.image` (confirmed by direct decode — the exact field name this repo's
+  `ibis-image-cloudflare` function had been defensively guessing at since Phase 3B is now
+  confirmed for real). Decoded magic bytes are JPEG, not PNG as earlier notes speculated —
+  corrected in both the registry and the function's own code comments.
+- **stable-diffusion-xl-lightning**: HTTP 200, a real ~89KB image returned as raw binary (not
+  JSON) with an `image/png` content-type header — but the actual decoded magic bytes are JPEG. A
+  real, confirmed content-type/actual-format mismatch on Cloudflare's own API, not an FTN bug.
+  `ibis-image-cloudflare`'s existing raw-binary-response branch already handles this correctly
+  because it trusts the bytes, not the declared label — no code fix needed there, just an updated
+  comment recording the confirmed fact.
+- **Both images were viewed directly** (not just byte-validated) and confirmed coherent,
+  non-corrupt, and genuinely on-topic for their prompts. This is the human-verified QC step the
+  master directive requires before any status upgrade — done, not skipped.
+
+### The honest status: `EXECUTABLE`, not `ELIGIBLE` — and why that distinction still holds
+
+Both registry entries were updated to `lifecycleState:'EXECUTABLE'` — the master directive's own
+state between "a real execution succeeded" and "eligible for real user traffic." **`enabled`
+stays `false` on both.** The reason is architectural, not a missing step: FTN's provider-neutral
+design requires the Cloudflare API token to remain server-side, never exposed to client
+JavaScript (a hard, repeated rule throughout this whole project) — so real site visitors are
+served through `supabase/functions/ibis-image-cloudflare`, which remains **undeployed**, blocked
+on a *different*, still-missing Supabase deployment credential (re-confirmed absent this same
+pass: no `SUPABASE_ACCESS_TOKEN`, no CLI, `~/.supabase/` still has no token file). The Cloudflare
+blocker from every prior phase is now fully resolved; the Supabase blocker is untouched and
+independent. Conflating the two — or marking either provider `ELIGIBLE` because the *provider*
+now works — would be exactly the "REGISTERED ≠ DEPLOYED ≠ EXECUTED ≠ ELIGIBLE" collapse this
+entire project has been built around refusing to do.
+
+### VIDEO re-confirmed blocked, more precisely than before
+
+Per the explicit "do not assume unchanged" instruction: Cloudflare's live catalog (the same
+64-model listing above) still contains **zero video-generation models of any kind** — re-checked
+directly this pass, not carried over from Phase 3B's finding. `cogvideox-2b`'s GPU/Python
+requirement was also re-confirmed directly (no NVIDIA GPU toolkit, no Python interpreter — Phase
+8's finding, unchanged). The now-working Cloudflare account does not change this: there is no
+Cloudflare-hosted video route to activate, and the self-host route needs infrastructure this
+environment genuinely does not have, independent of any credential.
+
+### Files changed this pass
+
+`js/ibis-provider-registry.js` (both Cloudflare IMAGE entries: `apiStatus`, `lifecycleState`,
+`verificationSource`, `lastVerified`, `note` updated with real evidence; `cogvideox-2b`'s
+`lastVerified`/`note` updated with the fresh VIDEO re-check), `supabase/functions/
+ibis-image-cloudflare/index.ts` (comments updated from speculative to confirmed, no logic
+changed — the existing defensive parsing was already correct), `tests/ibis-eligibility-audit.mjs`
+(new assertions: both providers correctly `INELIGIBLE` for `attemptInOrder()` purposes while
+correctly carrying `lifecycleState:'EXECUTABLE'`).
+
+### What this pass explicitly did NOT do
+
+Did not deploy `supabase/functions/ibis-image-cloudflare` (Supabase credential still missing, same
+boundary as `f918708`). Did not flip `enabled:true` on either Cloudflare IMAGE provider (would
+route real requests to an undeployed endpoint). Did not attempt any VIDEO generation (nothing to
+attempt — no route exists anywhere this environment can reach). Did not touch OpenClap/Broadway/
+ComfyUI/TTS/lip-sync (unchanged blockers from Phase 8).
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)
