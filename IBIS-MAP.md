@@ -1427,6 +1427,98 @@ and the five newly-researched candidates), plus new assertions that `wan-2.1` st
 its permissive license and that `minimax-h3` stays at `DISCOVERED` (not inflated to
 `LICENSE_VERIFIED`) until its real ToS is actually read. Full local test suite re-run clean.
 
+## 0.20 Phase 11 — Speech (ASR + TTS) real deployment, LIP_SYNC re-verification, auth/OAuth audit (2026-08-21)
+
+Re-detection at the start of this pass confirmed nothing had drifted since Phase 10: `git status`
+clean, `origin/main` in sync, Cloudflare (`wrangler whoami`) and Supabase (`supabase projects list`)
+both still authenticated with no new credential involved. Per the directive's own efficiency rule
+("do not research everything from scratch"), work below only touches genuinely new ground.
+
+### Speech: a real, zero-new-credential win found in Cloudflare's own catalog
+
+A fresh `wrangler ai models list` (136 lines, same authenticated account already used for TEXT/
+IMAGE) surfaced categories never checked in this repo before: Automatic Speech Recognition
+(`@cf/openai/whisper`, `whisper-tiny-en`, `whisper-large-v3-turbo`, `@cf/deepgram/nova-3`,
+`@cf/deepgram/flux`) and Text-to-Speech (`@cf/myshell-ai/melotts`, `@cf/deepgram/aura-1`,
+`aura-2-en`, `aura-2-es`) — directly answering the master directive's Speech-to-Text and TTS/Voice
+categories using infrastructure already paid for (the free daily Neuron allocation) and already
+authenticated, exactly the "same architecture, not a new integration" the directive asked for.
+
+**Real, self-contained round-trip proof**, not two independent smoke tests: `@cf/deepgram/aura-2-en`
+synthesized real speech audio (a real ~15KB MP3) for the phrase "FTN Platform connects the
+Caribbean.", and that exact audio was fed straight into `@cf/openai/whisper-large-v3-turbo`, which
+returned "FTN platform connects the Caribbean." — word-for-word correct except capitalization —
+with real per-word timestamps and a real WebVTT payload in the same response. This single test
+proves both models genuinely work AND that Whisper's hosted output already satisfies the master
+directive's "word timestamps / SRT/VTT" requirement natively, at this quality tier, without a
+separate WhisperX deployment.
+
+Cloudflare's own pricing page was checked before this test ran (`developers.cloudflare.com/
+workers-ai/platform/pricing/`): both models are Neuron-billed like every other Workers AI model
+already in this registry, not a separate marketplace/BYOK charge — confirmed via WebFetch against
+the real pricing table (Whisper: $0.0005/audio-minute · Aura-2: $0.030/1k characters), and the one
+test run here (a 5-word phrase, ~2.5 seconds of audio) cost a fraction of a cent, well inside the
+free allocation already used for the IMAGE tests.
+
+**`supabase/functions/ibis-speech-cloudflare` deployed for real**, mirroring `ibis-image-cloudflare`'s
+exact shape (same CORS/rate-limit/fail-closed pattern, one function serving both `mode:"transcribe"`
+and `mode:"speak"` via a fixed model allowlist, never a client-supplied model id). Verified `ACTIVE`
+via `supabase functions list`, then a real end-to-end HTTP request (same publishable-key header
+pattern already proven for IMAGE) correctly passed the gateway's `verify_jwt` check and returned the
+function's own honest 503 — `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN` are still unset, same
+unresolved blocker as IMAGE (the temporary `wrangler login` OAuth session token is deliberately not
+being used as a permanent secret — see Sec 0.18 for why). **One durable Cloudflare API Token, once
+supplied, unblocks IMAGE, AUDIO_TRANSCRIPTION and TEXT_TO_SPEECH together** — they share one account
+and one credential.
+
+Registered: `cloudflare-workers-ai-whisper` (`AUDIO_TRANSCRIPTION`, `SPEECH_TO_TEXT`) and
+`cloudflare-workers-ai-aura-tts` (`TEXT_TO_SPEECH`) — both `lifecycleState:'EXECUTABLE'`,
+`enabled:false`, `costToIbis:'ZERO_COST_TO_IBIS'`. Both capability names already existed in
+`js/ibis-capability-taxonomy.js` (added in an earlier pass) — no taxonomy change needed. Explicitly
+distinct from `VOICE_SYNTHESIS` (`chatterbox-tts`/`qwen3-tts`, the IAN/SARAFINA authorized-identity
+groundwork, still paused per standing instruction) — Aura-2 is generic stock-voice narration, not an
+FTN-authorized identity, and this pass did not touch VOICE_SYNTHESIS or IAN/SARAFINA at all.
+
+### LIP_SYNC re-verified — two real, better-licensed alternatives found
+
+The directive asked whether anything newer than Wav2Lip/SadTalker exists. Real answer: yes, two —
+**MuseTalk** (TMElyralab, MIT license, real-time-capable at 30fps+ on a Tesla V100-class GPU, and
+the lowest confirmed minimum VRAM of any lip-sync candidate researched — 4GB, tested on a laptop RTX
+3050 Ti, though far from real-time at that tier) and **LatentSync** (ByteDance, Apache 2.0,
+diffusion-based, highest visual fidelity researched, ~8GB VRAM for v1.5 / ~18GB for the newer v1.6).
+Both registered as `LICENSE_VERIFIED` self-host candidates, both correctly `enabled:false` — same
+hardware blocker as every video candidate in Sec 0.19 (no NVIDIA GPU, no Python on this machine).
+`sadtalker` was kept, not replaced — IBIS now has a real three-way LIP_SYNC spread (MuseTalk:
+fastest/lowest-VRAM; LatentSync: highest fidelity; SadTalker: full head-motion via 3DMM) to choose
+from once GPU infrastructure is ever founder-budgeted, not a single arbitrary pick. `wav2lip` stays
+`BLOCKED` (license, unchanged).
+
+### Authentication / OAuth architecture — audited, not rebuilt
+
+`js/ftn-auth.js` was read in full against the directive's requested classification taxonomy. Real
+finding: **the existing architecture is already correct and needs no change** — this was a genuine
+verify-not-rebuild outcome, not a gap:
+
+| Integration | Classification | Notes |
+|---|---|---|
+| Google sign-in | `OAUTH2` (PKCE) | `flowType:'pkce'`, `signInWithOAuth({provider:'google'})`. The actual Google OAuth client id/secret pair live in Supabase's own dashboard config, not this repo — this repo never sees them. Authorization code exchange happens via `exchangeCodeForSession`, gated so only `/account/` (the one callback owner) consumes the one-time code, preventing a double-exchange race. |
+| Email magic link | Native Supabase Auth (not OAuth/OIDC) | `signInWithOtp` — passwordless, no third-party authorization server involved. |
+| Supabase itself | Publishable-key + session JWT | The `sb_publishable_...` key is safe to ship client-side by Supabase's own design (RLS enforces real authorization server-side); confirmed no `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEYS` value appears anywhere in `/js/` (checked directly, not assumed) — those stay Supabase secrets only. |
+| Cloudflare Workers AI | `API_KEY` / `SERVICE_TOKEN` | Server-side only, via Supabase Edge Function secrets (`CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN`) — never OAuth, correctly not treated as such anywhere in this registry. |
+| Gemini / Anthropic | `API_KEY` | Server-side Supabase secrets (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`), confirmed present via `supabase secrets list` in Sec 0.18 — never client-exposed. |
+| MiniMax H3 (if ever pursued) | `API_KEY` | No OAuth involved per MiniMax's own platform page — confirmed in Sec 0.19, still `DISCOVERED`, no key exists. |
+
+No new OAuth/OIDC provider (Google Drive, YouTube publishing, GitHub OAuth, etc.) was added — none
+was requested for a concrete, current FTN capability, and the directive itself warns against
+requesting scopes speculatively ("do not request excessive OAuth scopes"). If a future pass adds
+YouTube publishing for Face the Nation, or Google Drive for submission-package delivery, it should
+reuse this same PKCE/server-side-exchange pattern, not a second auth system.
+
+### Tests
+
+`tests/ibis-eligibility-audit.mjs`: new assertions for both speech providers' `EXECUTABLE`/
+`enabled:false` state and `byCapability` discoverability. Full local suite re-run clean.
+
 ## 4. Current provider inventory (every real external AI call in this repo, confirmed by file)
 
 | Function/file | Provider | Auth required | Status |

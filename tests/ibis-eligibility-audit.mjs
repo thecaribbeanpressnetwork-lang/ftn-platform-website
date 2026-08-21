@@ -44,6 +44,12 @@ assert.equal(Providers.get('cogvideox-2b').enabled, false, 'No self-hosted VIDEO
 assert.equal(Providers.get('wan-2.1').enabled, false, 'Apache 2.0 licensing does not change this machine\'s hardware -- no NVIDIA GPU, no Python');
 assert.equal(Providers.get('minimax-h3').enabled, false, 'A real official API existing does not make a PAID provider eligible without a founder-approved key and the existing prepaid-credit economic gate');
 assert.equal(Providers.get('minimax-h3').lifecycleState, 'DISCOVERED', 'An API page was confirmed to exist, but the actual commercial ToS/pricing document has not been read -- this must not be inflated to LICENSE_VERIFIED');
+assert.equal(Providers.get('cloudflare-workers-ai-whisper').lifecycleState, 'EXECUTABLE', 'A real round-trip TTS-to-ASR test succeeded against the live Cloudflare account -- this must be reflected honestly, not left at a pre-verification state');
+assert.equal(Providers.get('cloudflare-workers-ai-whisper').enabled, false, 'The Supabase proxy is deployed but the durable Cloudflare secret is still missing -- not eligible for real users yet');
+assert.equal(Providers.get('cloudflare-workers-ai-aura-tts').lifecycleState, 'EXECUTABLE');
+assert.equal(Providers.get('cloudflare-workers-ai-aura-tts').enabled, false);
+assert(Providers.byCapability('AUDIO_TRANSCRIPTION').length >= 1, 'cloudflare-workers-ai-whisper must be discoverable by capability');
+assert(Providers.byCapability('TEXT_TO_SPEECH').length >= 1, 'cloudflare-workers-ai-aura-tts must be discoverable by capability');
 
 // -- Core economic invariant: this is the one test that matters most -------
 // A provider that could cause IBIS to incur an unapproved charge must never be enabled.

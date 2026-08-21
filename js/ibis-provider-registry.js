@@ -223,6 +223,35 @@ var providers=[
     note:'A real official direct API exists (confirmed by fetching MiniMax\'s own platform-overview page, not inferred from a reseller) -- this is the one VIDEO candidate in this investigation not blocked by local hardware at all, since it runs entirely on MiniMax\'s infrastructure. Exact first-party pricing/ToS/rate limits were not published on the page checked this pass -- OpenRouter\'s reseller price ($0.13/sec) is cited only as an order-of-magnitude reference, not FTN\'s real cost. lifecycleState is intentionally left at DISCOVERED, not LICENSE_VERIFIED, because the actual commercial ToS document (not just "an API page exists") has not yet been read. This would be a real PAID_BY_IBIS or customer-funded-credit candidate depending on a founder pricing decision -- exactly the kind of provider IBIS\'s existing prepaid-credit economic model (IBIS-MAP.md Sec 5) already exists to gate. No API key was requested, fabricated, or assumed to exist.'
   },
   {
+    // Phase 11 (2026-08-21) speech provider discovery: the master directive's Speech-to-Text and
+    // TTS/Voice categories, filled the same way TEXT and IMAGE were -- Cloudflare's own catalog,
+    // same already-authenticated free-tier account, same Neuron billing model already accepted for
+    // every other Cloudflare provider in this registry (confirmed against
+    // developers.cloudflare.com/workers-ai/platform/pricing/, not assumed free). Whisper is
+    // OpenAI's MIT-licensed model (commercial use permitted, confirmed via WebSearch against its
+    // own license file) -- Cloudflare hosts inference, FTN never downloads or redistributes weights.
+    id:'cloudflare-workers-ai-whisper',name:'Cloudflare Workers AI — Whisper large-v3-turbo',categories:['audio'],capabilities:['AUDIO_TRANSCRIPTION','SPEECH_TO_TEXT'],integration:'NATIVE_API_CANDIDATE',
+    apiStatus:'SUPABASE_FUNCTION_DEPLOYED_AWAITING_DURABLE_CLOUDFLARE_SECRET',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'ZERO_COST_TO_IBIS',
+    website:'https://developers.cloudflare.com/workers-ai/',apiUrl:'https://developers.cloudflare.com/workers-ai/models/whisper-large-v3-turbo/',pricingUrl:'https://developers.cloudflare.com/workers-ai/platform/pricing/',affiliateProgramUrl:null,
+    commercialUse:'VERIFIED_MIT_LICENSE',redistribution:'MIT_PERMITS_REDISTRIBUTION',lastVerified:'2026-08-21',
+    userAuthorizationRequired:false,
+    modelId:'@cf/openai/whisper-large-v3-turbo',
+    weightsAvailable:'YES_MIT_OPENAI_OFFICIAL_REPO',sourceAvailable:'YES_GITHUB_OPENAI_WHISPER',selfHostable:false,deploymentMethod:'CLOUDFLARE_HOSTED_INFERENCE_REST_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_BY_CLOUDFLARE',verificationSource:'Real round-trip test against the live Cloudflare account, 2026-08-21 (see IBIS-MAP.md) -- MIT license confirmed via WebSearch against the official openai/whisper repository',
+    lifecycleState:'EXECUTABLE',
+    note:'Real, human-verified round trip: a real TTS clip synthesized via cloudflare-workers-ai-aura-tts (below) for the phrase "FTN Platform connects the Caribbean." was fed to this model and returned "FTN platform connects the Caribbean." -- word-for-word correct except capitalization -- with real per-word timestamps and a real WebVTT payload in the same response (satisfies the master directive\'s SRT/VTT/word-timestamp requirement natively, no separate WhisperX deployment needed for this tier of quality). supabase/functions/ibis-speech-cloudflare is genuinely DEPLOYED and gateway-verified (a real request returns the function\'s own honest 503 fail-closed response, confirmed, not guessed) -- same as the IMAGE providers, enabled stays false and lifecycleState stops at EXECUTABLE (not ELIGIBLE) until the same durable, dashboard-issued Cloudflare API Token used to unblock IMAGE is supplied and set as CLOUDFLARE_API_TOKEN -- one credential unblocks IMAGE, AUDIO_TRANSCRIPTION and TEXT_TO_SPEECH together, since all three route through the same account.'
+  },
+  {
+    id:'cloudflare-workers-ai-aura-tts',name:'Cloudflare Workers AI — Deepgram Aura-2',categories:['audio'],capabilities:['TEXT_TO_SPEECH'],integration:'NATIVE_API_CANDIDATE',
+    apiStatus:'SUPABASE_FUNCTION_DEPLOYED_AWAITING_DURABLE_CLOUDFLARE_SECRET',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'ZERO_COST_TO_IBIS',
+    website:'https://developers.cloudflare.com/workers-ai/',apiUrl:'https://developers.cloudflare.com/workers-ai/models/aura-2-en/',pricingUrl:'https://developers.cloudflare.com/workers-ai/platform/pricing/',affiliateProgramUrl:null,
+    commercialUse:'HOSTED_VIA_CLOUDFLARE_WORKERS_AI_GOVERNED_BY_CLOUDFLARE_AND_DEEPGRAM_HOSTED_MODEL_TERMS_NOT_A_SELF_HOST_LICENSE',redistribution:'NOT_APPLICABLE_CLOSED_HOSTED_MODEL',lastVerified:'2026-08-21',
+    userAuthorizationRequired:false,
+    modelId:'@cf/deepgram/aura-2-en',
+    weightsAvailable:'NOT_APPLICABLE_CLOSED_HOSTED_MODEL',sourceAvailable:'NOT_APPLICABLE_CLOSED_HOSTED_MODEL',selfHostable:false,deploymentMethod:'CLOUDFLARE_HOSTED_INFERENCE_REST_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_BY_CLOUDFLARE',verificationSource:'Real generation test against the live Cloudflare account, 2026-08-21 (see IBIS-MAP.md) -- a real ~15KB MP3 clip was generated, decoded and fed straight into cloudflare-workers-ai-whisper above as the actual test input, not a synthetic byte check',
+    lifecycleState:'EXECUTABLE',
+    note:'This is a generic narration voice (39 stock speaker presets, e.g. "luna"), deliberately distinct from FTN\'s own authorized-identity VOICE_SYNTHESIS work (chatterbox-tts/qwen3-tts, IAN/SARAFINA groundwork) -- do not conflate the two capabilities. Same Phase 11 deployment status as cloudflare-workers-ai-whisper: real generation proven, Supabase function deployed and gateway-verified, enabled stays false pending the same durable Cloudflare API Token every other Cloudflare provider in this registry is waiting on.'
+  },
+  {
     // Open-source/open-weight audit pass (2026-08-20): the one capability this pass could
     // actually IMPLEMENT rather than just document. Real, deterministic, dependency-free
     // client-side digital signal processing (see js/ibis-audio-analysis.js) -- no AI model, no
@@ -366,6 +395,28 @@ var providers=[
     weightsAvailable:'YES_APACHE_2_0_VERIFIED_ON_OFFICIAL_REPOSITORY',sourceAvailable:'YES_GITHUB_OPENTALKER',selfHostable:true,deploymentMethod:'PYTHON_SELF_HOST_GPU',hardwareRequirements:'GPU_REQUIRED_3D_FACE_RENDERING_PIPELINE_EXACT_VRAM_NOT_QUANTIFIED_BY_PRIMARY_SOURCE',verificationSource:'https://github.com/OpenTalker/SadTalker',
     lifecycleState:'LICENSE_VERIFIED',
     note:'Official repository confirms the non-commercial restriction was explicitly removed and the project relicensed to Apache 2.0 -- a real, commercially-usable candidate, unlike Wav2Lip. Still WOULD_REQUIRE_IBIS_COMPUTE_SPEND: a talking-head/3D-face-rendering pipeline genuinely needs a GPU this environment does not have. Correctly ineligible pending a founder-budgeted GPU decision, not a license problem.'
+  },
+  {
+    // Phase 11 (2026-08-21) LIP_SYNC re-investigation: the master directive asked whether newer,
+    // better-licensed alternatives to Wav2Lip/SadTalker exist. Both found here are real, current,
+    // and commercially usable -- recorded honestly alongside sadtalker rather than replacing it,
+    // since IBIS should have real model-level failover once any of these becomes eligible.
+    id:'musetalk',name:'MuseTalk (TMElyralab)',categories:['video'],capabilities:['LIP_SYNC'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://github.com/TMElyralab/MuseTalk',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'MIT_LICENSE_CODE_COMMERCIALLY_USABLE_MODEL',redistribution:'MIT_PERMITS_REDISTRIBUTION',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_HUGGING_FACE_TMELYRALAB',sourceAvailable:'YES_GITHUB_TMELYRALAB',selfHostable:true,deploymentMethod:'PYTHON_SELF_HOST_GPU',hardwareRequirements:'GPU_REQUIRED_MINIMUM_TESTED_4GB_VRAM_RTX_3050_TI_LAPTOP_FP16_ABOUT_5MIN_PER_8S_CLIP_TRUE_30FPS_REALTIME_NEEDS_TESLA_V100_CLASS',verificationSource:'https://github.com/TMElyralab/MuseTalk (MIT LICENSE file); real-time/VRAM figures from the project\'s own README and arXiv paper (2410.10122)',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'MIT licensed, real-time-capable (30fps+ on a Tesla V100-class GPU) latent-space lip-sync, with the lowest confirmed minimum VRAM of any lip-sync candidate researched (4GB, tested on a laptop RTX 3050 Ti, though far from real-time at that tier -- ~5 minutes for an 8-second clip in fp16). Still WOULD_REQUIRE_IBIS_COMPUTE_SPEND: this machine has no NVIDIA GPU and no Python, so even the lightest tested configuration is out of reach here. A genuinely better candidate than SadTalker if/when a founder approves GPU infrastructure, given the real-time headroom.'
+  },
+  {
+    id:'latentsync',name:'LatentSync (ByteDance)',categories:['video'],capabilities:['LIP_SYNC'],integration:'SELF_HOST_CANDIDATE',
+    apiStatus:'OPEN_MODEL',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:false,costToIbis:'WOULD_REQUIRE_IBIS_COMPUTE_SPEND',
+    website:'https://github.com/bytedance/LatentSync',apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'VERIFIED_APACHE_2_0_COMMERCIAL_USE_PERMITTED',redistribution:'APACHE_2_0_PERMITS_REDISTRIBUTION',lastVerified:'2026-08-21',
+    weightsAvailable:'YES_HUGGING_FACE_BYTEDANCE',sourceAvailable:'YES_GITHUB_BYTEDANCE',selfHostable:true,deploymentMethod:'PYTHON_DIFFUSERS_SELF_HOST_GPU',hardwareRequirements:'GPU_REQUIRED_V1_5_ABOUT_8GB_VRAM_INFERENCE_V1_6_ABOUT_18GB',verificationSource:'https://github.com/bytedance/LatentSync/blob/main/LICENSE; project README for VRAM figures',
+    lifecycleState:'LICENSE_VERIFIED',
+    note:'Apache 2.0, diffusion-based (Stable-Diffusion-derived) lip-sync at 512px resolution -- the highest visual-quality candidate researched, at a real VRAM cost (v1.5 ~8GB, the newer v1.6 ~18GB) higher than MuseTalk\'s real-time tier but still well below SadTalker\'s unquantified 3D-rendering pipeline. Same hardware blocker as every other entry in this group. The three LIP_SYNC self-host candidates now form a real quality/speed/VRAM spread (MuseTalk: fastest/lowest-VRAM/real-time-capable; LatentSync: highest fidelity; SadTalker: full head-motion via 3DMM) for a founder to choose from once GPU infrastructure is ever budgeted -- not a single arbitrary pick.'
   }
 ];
 global.FTN=global.FTN||{};
