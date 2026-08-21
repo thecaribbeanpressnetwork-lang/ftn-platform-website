@@ -68,6 +68,14 @@
         return { text: ctx.screenplay, options: { targetMinutes: project.runtimeTargetMinutes || 30 } };
       },
     },
+    {
+      // Also genuinely live: real, deterministic completeness checking over the project's actual
+      // current asset state (js/ibis-project-qc.js). Deliberately not fed through gatherContext's
+      // dependsOn->text extraction -- QC needs the whole project object (which assets exist,
+      // which are missing), not any one stage's text, so it builds its own payload directly.
+      id: 'qc', capability: 'QC', assetType: 'QC_REPORT', dependsOn: ['SCREENPLAY', 'CONTINUITY_REPORT', 'RUNTIME_ESTIMATE'],
+      buildPayload: function (project) { return { project: project }; },
+    },
   ];
 
   var STAGE_INDEX = {};

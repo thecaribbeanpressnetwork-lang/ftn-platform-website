@@ -234,6 +234,21 @@ var providers=[
     weightsAvailable:'YES_APACHE_2_0_VERIFIED_DIRECTLY_AGAINST_LICENSE_FILE',sourceAvailable:'YES_GITHUB_QWENLM',selfHostable:true,deploymentMethod:'PYTHON_SELF_HOST_GPU',hardwareRequirements:'GPU_REQUIRED_0.6B_OR_1.7B_VARIANT_EXACT_VRAM_NOT_QUANTIFIED_BY_PRIMARY_SOURCE',verificationSource:'https://github.com/QwenLM/Qwen3-TTS/blob/main/LICENSE',
     lifecycleState:'LICENSE_VERIFIED',
     note:'Apache 2.0 confirmed by fetching the actual LICENSE file on GitHub (not an aggregator summary) 2026-08-21. Supports 3-second reference-audio voice cloning per the official repository. A real alternative to Chatterbox, not evaluated as deeply this pass -- recorded honestly as a second real candidate, not a confirmed runner-up.'
+  },
+  {
+    // Phase 6 continuation: the one remaining SCREENWRITING-group capability (QC) with no
+    // provider at all. Real, deterministic, zero-cost structural completeness checking over a
+    // real js/ibis-project-graph.js project -- no AI model, no network call. Deliberately scoped
+    // to STORY-level checks only; see js/ibis-project-qc.js's own header for why PRODUCTION/
+    // TECHNICAL QC are not claimed.
+    id:'ibis-local-project-qc',name:'ibis local project QC (client-side, no model)',categories:['text'],capabilities:['QC'],integration:'LOCAL_DETERMINISTIC_NO_PROVIDER',
+    apiStatus:'LIVE',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:true,costToIbis:'ZERO_COST_TO_IBIS',
+    website:null,apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-21',
+    userAuthorizationRequired:false,
+    weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-project-qc.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_ANYWHERE_JS_RUNS',verificationSource:'js/ibis-project-qc.js and tests/ibis-project-qc-audit.mjs (this repository)',
+    lifecycleState:'ELIGIBLE',
+    note:'Checks real project-graph asset state (stage completeness, runtime-target match, continuity-check presence) and returns the directive\'s own status vocabulary -- READY_FOR_REVIEW or NOT_READY_ISSUES_REQUIRE_ATTENTION. Never claims a capability is ready when the underlying assets do not exist.'
   }
 ];
 global.FTN=global.FTN||{};

@@ -961,6 +961,36 @@ from §0.11's own assessment. No pre-production/storyboard/packaging/QC/delivery
 correctly gated on Screenwriter actually producing real screenplays, which it cannot yet do without
 a deployed TEXT provider.
 
+### 0.13.1 QC activation (2026-08-21, same-day continuation)
+
+The `QC` capability (SCREENWRITING taxonomy group) had no provider. Closed with
+`js/ibis-project-qc.js`: real, deterministic, zero-cost structural checking over a project's
+actual `js/ibis-project-graph.js` asset state — stage completeness, runtime-target match
+(reusing `RUNTIME_ESTIMATE`'s own computed `withinTarget`), and continuity-check presence with a
+weak, honestly-labeled text signal (never a semantic quality verdict). Returns the master
+directive's own exact status vocabulary: `READY_FOR_REVIEW` or
+`NOT_READY_ISSUES_REQUIRE_ATTENTION`. Registered as `ibis-local-project-qc`,
+`lifecycleState:'ELIGIBLE'`, `enabled:true` — the fourth genuinely live capability in the registry
+(`TEXT` authenticated, `BPM_DETECTION`, `RUNTIME_ESTIMATION`, now `QC`). Wired into
+`js/ibis-client.js`'s `defaultExecutorFor` and into `js/ftnscreen-screenwriter.js` as a new `qc`
+pipeline stage (`dependsOn: ['SCREENPLAY','CONTINUITY_REPORT','RUNTIME_ESTIMATE']`).
+
+Deliberately scoped to STORY-level checks only — the module's own header explains why PRODUCTION
+and TECHNICAL QC (the directive's other two named categories) are not implemented: no video,
+audio or subtitle asset exists anywhere in this system yet, so there is nothing real to check.
+`tests/ibis-project-qc-audit.mjs` proves both real outcomes (a fully-populated project with
+runtime-in-target genuinely reports `READY_FOR_REVIEW`; an incomplete or out-of-target one
+genuinely reports `NOT_READY_ISSUES_REQUIRE_ATTENTION`, listing the real blockers) and that
+`revise(project, 'OUTLINE')` genuinely cascades to the `qc` stage — not because it's hardcoded to,
+but because `QC_REPORT` is a real transitive dependent of `OUTLINE` via `SCREENPLAY` in the
+project graph, proven the same way Phase 4's Scene-4/lyric-cascade tests proved it.
+
+This was completed while a separate, credential-blocked task (deploying `f918708`'s
+`ftn-opportunities` fix) was paused pending founder action — recorded here per the standing
+"REGISTERED ≠ DEPLOYED ≠ EXECUTABLE ≠ ELIGIBLE ≠ LIVE VERIFIED" discipline: `f918708` is
+committed and CI-passing but **confirmed via a live production request still running the pre-fix
+code** — not deployed, not live-verified, and not to be described as fixed until it is.
+
 ---
 
 ## 1. Architecture (the constraint every other section depends on)

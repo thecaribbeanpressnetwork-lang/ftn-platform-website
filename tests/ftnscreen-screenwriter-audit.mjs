@@ -22,8 +22,9 @@ vm.runInContext(fs.readFileSync('js/ibis-provider-registry.js', 'utf8'), context
 vm.runInContext(fs.readFileSync('js/ibis-eligibility.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ibis-capability-taxonomy.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ibis-runtime-estimator.js', 'utf8'), context);
-vm.runInContext(fs.readFileSync('js/ibis-client.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ibis-project-graph.js', 'utf8'), context);
+vm.runInContext(fs.readFileSync('js/ibis-project-qc.js', 'utf8'), context);
+vm.runInContext(fs.readFileSync('js/ibis-client.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ftnscreen-screenwriter.js', 'utf8'), context);
 
 const Screenwriter = context.window.FTN.FtnScreenScreenwriter;
@@ -88,7 +89,7 @@ assert.throws(() => Screenwriter.createProject(''), /idea/i);
   const opts = { context: { authenticated: true }, executor: mockTextExecutor };
 
   const results = await Screenwriter.developPilot(project, opts);
-  assert.equal(results.length, 7, 'All 7 stages must run when every stage has an eligible provider (mocked)');
+  assert.equal(results.length, 8, 'All 8 stages (including QC) must run when every stage has an eligible provider (mocked)');
   for (const r of results) assert.equal(r.success, true, `Stage ${r.stage} unexpectedly failed with a mocked executor and an authenticated context`);
 
   // Real project-graph wiring: SCREENPLAY must depend on OUTLINE's real asset id, not a guess.
@@ -105,6 +106,7 @@ assert.throws(() => Screenwriter.createProject(''), /idea/i);
   const revisedStageIds = revised.map((r) => r.stage);
   assert(revisedStageIds.includes('outline'));
   assert(revisedStageIds.includes('screenplay'));
+  assert(revisedStageIds.includes('qc'), 'QC depends on SCREENPLAY (a real transitive dependent of OUTLINE), so revising OUTLINE must genuinely cascade to QC too -- not a hardcoded rule, the real graph computes this');
   assert(!revisedStageIds.includes('concept'), 'Revising OUTLINE must not re-run CONCEPT -- CONCEPT does not depend on OUTLINE');
   assert(!revisedStageIds.includes('characters'), 'Revising OUTLINE must not re-run CHARACTERS -- CHARACTERS does not depend on OUTLINE');
   assert.equal(project.stageAssets.CONCEPT, conceptAssetIdBefore, 'The original CONCEPT asset must be untouched by an OUTLINE revision');

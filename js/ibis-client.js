@@ -27,6 +27,7 @@
       Providers: FTN.IbisProviders || null,
       AudioAnalysis: FTN.IbisAudioAnalysis || null,
       RuntimeEstimator: FTN.IbisRuntimeEstimator || null,
+      ProjectQC: FTN.IbisProjectQC || null,
       Auth: FTN.Auth || null,
     };
   }
@@ -125,6 +126,16 @@
     return Promise.resolve({ success: true, latencyMs: latencyMs, data: result });
   }
 
+  function callProjectQC(provider, payload) {
+    var reg = registries();
+    if (provider.id !== 'ibis-local-project-qc' || !reg.ProjectQC) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var project = payload && payload.project;
+    if (!project) return Promise.resolve({ success: false, errorType: 'INVALID_REQUEST' });
+    var startedAt = Date.now();
+    var result = reg.ProjectQC.run(project);
+    return Promise.resolve({ success: true, latencyMs: Date.now() - startedAt, data: result });
+  }
+
   function defaultExecutorFor(capability, payload) {
     return function (provider) {
       if (capability === 'TEXT') {
@@ -133,6 +144,7 @@
       }
       if (capability === 'BPM_DETECTION' && provider.id === 'ibis-local-dsp') return callLocalDsp(provider, payload);
       if (capability === 'RUNTIME_ESTIMATION' && provider.id === 'ibis-local-script-runtime-estimator') return callRuntimeEstimator(provider, payload);
+      if (capability === 'QC' && provider.id === 'ibis-local-project-qc') return callProjectQC(provider, payload);
       return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
     };
   }

@@ -62,6 +62,9 @@ jobs:
       - name: Audit FTNScreen Screenwriter (pipeline, project graph, honest fabric state)
         run: node tests/ftnscreen-screenwriter-audit.mjs
 
+      - name: Audit ibis project QC (real completeness checking)
+        run: node tests/ibis-project-qc-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'

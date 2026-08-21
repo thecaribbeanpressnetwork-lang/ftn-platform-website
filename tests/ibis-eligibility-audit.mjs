@@ -14,7 +14,7 @@ const Taxonomy = context.window.FTN.CapabilityTaxonomy;
 
 // -- Registry shape --------------------------------------------------------
 const all = Providers.all();
-assert(all.length >= 18, 'Expected 15 prior candidates plus ibis-local-script-runtime-estimator, chatterbox-tts and qwen3-tts (Phase 6)');
+assert(all.length >= 19, 'Expected 18 prior candidates plus ibis-local-project-qc (Phase 6 continuation)');
 const VALID_LIFECYCLE_STATES = ['DISCOVERED', 'LICENSE_VERIFIED', 'DEPLOYMENT_READY', 'DEPLOYED', 'HEALTHY', 'EXECUTABLE', 'ELIGIBLE', 'BLOCKED', 'FAILED'];
 for (const p of all) {
   assert(Array.isArray(p.capabilities) && p.capabilities.length > 0, `${p.id} must declare at least one capability`);
@@ -81,6 +81,11 @@ assert.equal(Eligibility.find('BPM_DETECTION', {}).length, 1, 'Exactly one BPM_D
 // ftn-fire-local-procedural: real and zero-cost, but correctly INELIGIBLE until it has an actual
 // callable adapter -- being real and free does not automatically make a capability orchestrable.
 assert.equal(Eligibility.evaluate('ftn-fire-local-procedural', 'INSTRUMENTAL_GENERATION', {}).status, 'INELIGIBLE', 'FTN Fire\'s local engine is real and live at its own page, but has no shared adapter yet -- must stay ineligible for attemptInOrder() until one exists');
+
+// ibis-local-project-qc: real, deterministic, zero-cost, genuinely live -- the QC capability
+// completing the SCREENWRITING taxonomy group.
+assert.equal(Eligibility.evaluate('ibis-local-project-qc', 'QC', {}).status, 'ELIGIBLE', 'ibis-local-project-qc is real and live today -- no server, no secrets, no deployment step');
+assert.equal(Eligibility.find('QC', {}).length, 1, 'Exactly one QC provider is eligible: ibis-local-project-qc');
 
 // -- find(): only returns providers that pass every gate -------------------
 assert.equal(Eligibility.find('TEXT', { authenticated: false }).length, 0, 'No TEXT provider is eligible for a guest right now -- this is the honest current state, not a bug');
