@@ -1,6 +1,6 @@
 # IBIS-MAP — Current State Audit
 
-**Date:** 2026-08-20 (updated same day with the Phase-1 reconciliation below)
+**Date:** 2026-08-20 (updated same day with the Phase 1 and Phase 2 sections below)
 **Purpose:** Ground-truth audit requested by two build briefs ("Ibis v6 — multimodal creation" and
 the "Master Engineering Prompt — Caribbean AI Operating Layer"). Both briefs require this step
 before any implementation. §§1–9 below are the original audit (no code changed to produce it). §0
@@ -57,6 +57,101 @@ only one real provider (Anthropic) behind the widget, so there is nothing yet to
 **Files changed:** `js/ibis-widget.js`, `js/nav.js` (cache-bust bump), `css/components/
 ibis-widget.css` (route-suggestion list styling), `supabase/functions/ibis-assistant/index.ts`.
 No new Supabase tables, no RLS changes, no changes to any other Edge Function.
+
+## 0.5 Phase 2 — provider fabric foundation (implemented 2026-08-20)
+
+The Phase 2 directive asked for a provider registry, capability model, eligibility engine,
+economic router, adapter pattern, failover, health tracking, RAG/Creole extension points, and
+tests — while also explicitly saying "do not overbuild," "do not claim redundancy when only one
+provider exists," and "implement the smallest complete increment." Those two instructions bound
+what actually got built.
+
+**What's real and shipped:**
+
+- **`js/ibis-provider-registry.js` broadened, not replaced.** It was scoped to Creative Studio
+  (image/video/instrumental) candidates; it's now the one registry for every external AI provider
+  IBIS touches. The original `categories`/`byCategory()` shape `ibis-creative-studio.js` already
+  depends on is untouched. Added, additively: `capabilities` (the standardized taxonomy — TEXT,
+  IMAGE_GENERATION, VIDEO_GENERATION, INSTRUMENTAL_GENERATION, AUDIO_GENERATION are the ones any
+  real provider here actually uses; the rest of Phase 2B's list — VISION, OCR, CODE, etc. — isn't
+  added because nothing in this registry does those yet, and an unused enum value isn't a
+  capability, it's decoration), `costToIbis` (the field the economic router actually gates on),
+  and two new entries for the two real TEXT providers already live in this codebase (`ibis-query`
+  → Gemini, `ibis-assistant` → Anthropic) so capability lookups have one place to check.
+- **`js/ibis-eligibility.js` — the eligibility engine, for real.** `evaluate(providerId,
+  capability, context)` returns ELIGIBLE / INELIGIBLE / USER_AUTH_REQUIRED /
+  TEMPORARILY_UNAVAILABLE / UNKNOWN. Fails closed: an unrecognized provider id, or an unrecognized
+  `costToIbis` value, is UNKNOWN — never treated as safe to call. `find(capability, context)`
+  returns only ELIGIBLE providers, ranked by real observed health (successes minus failures), not
+  a hand-typed quality score. `recordOutcome()`/`getHealth()` track real call outcomes in memory;
+  three straight observed failures demote a provider to TEMPORARILY_UNAVAILABLE. This is a genuine
+  implementation of Phase 2A/2D's flow (capability → registry → eligibility filter → ranking), not
+  a diagram — see `tests/ibis-eligibility-audit.mjs` for the proof.
+- **The economic invariant is enforced, not just documented.** Both the eligibility engine
+  (`evaluate()` rejects any `costToIbis` not in an explicit allow-list) and a dedicated CI test
+  assert: *no provider with `enabled: true` may carry a cost classification that wasn't explicitly
+  reviewed.* This is now a release-gate check (`.github/workflows/functional-release.yml` runs
+  `tests/ibis-eligibility-audit.mjs`), not a promise in a comment.
+- **`js/ibis-widget.js` is the first real adapter consumer.** Before calling the paid Anthropic
+  backend, it now calls `evaluate('ibis-assistant-anthropic', 'TEXT', {...})`. Today that
+  correctly returns INELIGIBLE (the provider record's `enabled` is still `false` until the
+  function is actually deployed — see §0), so the widget shows an honest "not turned on yet"
+  message instead of attempting a network call that would just fail. This is a real behavior
+  change and a real improvement: previously a failed call produced a generic "check your
+  connection" message that misattributed the cause. Every real call outcome (success/failure/
+  latency) is now recorded via `recordOutcome()`.
+
+**What this deliberately does NOT do, and why:**
+
+- **No failover.** Phase 2I's own text says "once at least TWO genuinely executable providers
+  exist for a capability, implement automatic failover." There is exactly one real TEXT provider
+  candidate reachable without sign-in (`ibis-assistant-anthropic`, and it isn't deployed yet).
+  Building failover logic with nothing to fail over *to* would be exactly the "claim redundancy
+  when only one provider exists" the directive explicitly forbids.
+- **No new provider research was added to the registry.** Phase 2F asked for freshly verified
+  provider discovery via authoritative sources. The 7 pre-existing creative-studio entries are
+  dated 2026-08-10 — 10 days old, not stale enough to justify re-verification right now — and I
+  didn't fabricate new "verified" entries for providers I hadn't actually checked against current
+  documentation. If you want a real, bounded research pass on 1–2 new zero-cost-to-IBIS candidates
+  for a specific capability, that's a good, scoped next request — distinct from this pass.
+  RAG/pgvector, Creole/Caribbean-language metadata, and the open-source inference ecosystem
+  (Phase 2G/2N/2O) are genuine extension points, not yet built: no code exists for any of them, and
+  none was added. Building empty scaffolding for them now would be exactly the "meaningless
+  metadata" / "fake integration" the directive also explicitly forbids.
+- **No Node backend, no GPU hosting.** Still nothing in this repo's own infrastructure that could
+  run a self-hosted open model. `ace-step` and `stable-audio-3` remain `costToIbis:
+  WOULD_REQUIRE_IBIS_COMPUTE_SPEND` — correctly ineligible until that's a deliberate, budgeted
+  infrastructure decision.
+
+**Files changed:** `js/ibis-provider-registry.js`, `js/ibis-eligibility.js` (new), `js/ibis-widget.js`,
+`js/nav.js` (cache-bust bump), `tests/ibis-eligibility-audit.mjs` (new), `.github/workflows/
+functional-release.yml` (new CI step). No Supabase schema changes, no changes to any Edge Function
+other than what Phase 1 already changed in `ibis-assistant`.
+
+**Report, per the directive's own requested format:**
+
+- **WHAT EXISTS:** a real provider registry (9 entries, 2 of them TEXT/chat, 7 creative-studio
+  candidates, all correctly disabled except the pre-existing `ibis-query`); a real eligibility
+  engine with fail-closed unknown handling; real in-memory health tracking; one real adapter
+  consumer (the widget).
+- **WHAT WAS ADDED:** `capabilities` + `costToIbis` fields on every registry entry; two new
+  registry entries documenting the two real TEXT providers; the eligibility engine; a CI-enforced
+  economic-invariant test.
+- **WHAT IS ACTUALLY LIVE:** `ibis-query` (Gemini, authenticated) — pre-existing, untouched.
+  Nothing new went live; `ibis-assistant` (Anthropic) still needs manual Supabase deployment.
+- **WHAT IS FREE TO IBIS:** nothing new. The 7 creative-studio candidates that are genuinely
+  `ZERO_CUSTOMER_FUNDED` are all still `enabled: false`, pending real account/rights review — that
+  status didn't change in this pass, only its visibility to the eligibility engine did.
+- **WHAT REQUIRES USER AUTHORIZATION:** `ibis-query` (sign-in, CI-enforced). Nothing else yet
+  declares `userAuthorizationRequired`.
+- **WHAT STILL DOES NOT EXIST:** multi-provider failover, provider health beyond simple in-memory
+  success/failure counts, RAG, Creole/Caribbean-language layer, any open-model inference
+  infrastructure, any second real TEXT/IMAGE/VIDEO provider.
+- **NEXT REDUNDANCY TARGET:** TEXT is the obvious next target once `ibis-assistant` is actually
+  deployed — it's the only capability with two registry entries already, just not two *live*,
+  *guest-eligible* ones yet. IMAGE has zero live candidates (both PixVerse and Kling require
+  prepaid customer credits IBIS doesn't yet collect); that's a product decision (build the credit
+  purchase flow) before it's an eligibility-engine decision.
 
 ---
 

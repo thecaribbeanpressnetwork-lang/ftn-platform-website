@@ -156,6 +156,17 @@
       .then(function () { return loadScriptOnce('/js/product-registry.js', 'data-ibis-widget-registry'); })
       .then(function () { return loadScriptOnce('/js/intent-router.js', 'data-ibis-widget-intent-router'); });
   }
+  // The Phase 2 provider-fabric layer: js/ibis-provider-registry.js (provider records) +
+  // js/ibis-eligibility.js (fail-closed eligibility engine + real observed health). Right now
+  // there is exactly one provider behind this widget, so this doesn't yet pick between options --
+  // it establishes the real plumbing (evaluate before calling, record what actually happened) so
+  // a second provider can be added later without rewiring the widget.
+  var ASSISTANT_PROVIDER_ID = 'ibis-assistant-anthropic';
+  function ensureEligibilityEngine() {
+    if (global.FTN && global.FTN.IbisEligibility) return Promise.resolve();
+    return loadScriptOnce('/js/ibis-provider-registry.js', 'data-ibis-widget-provider-registry')
+      .then(function () { return loadScriptOnce('/js/ibis-eligibility.js', 'data-ibis-widget-eligibility'); });
+  }
   // A confident match requires at least one of the query's real words to be a product's own
   // registered keyword (not just an incidental word overlap in its name/tagline/description) --
   // the same bar js/intent-router.js already documents as its honest-match standard.
@@ -212,26 +223,44 @@
   }
 
   function callAssistant() {
-    appendThinking();
-    return fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', apikey: PUBLISHABLE_KEY, authorization: 'Bearer ' + PUBLISHABLE_KEY },
-      body: JSON.stringify({ messages: history, products: productSummaryForServer() }),
-    })
-      .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
-      .then(function (result) {
-        removeThinking();
-        if (!result.ok || !result.body || !result.body.answer) {
-          appendMessage('error', (result.body && result.body.error) || 'ibis is temporarily unavailable. Please try again in a moment.');
-          return;
-        }
-        appendMessage('assistant', result.body.answer);
-        history.push({ role: 'assistant', content: result.body.answer });
+    return ensureEligibilityEngine().then(function () {
+      var Eligibility = global.FTN && global.FTN.IbisEligibility;
+      var check = Eligibility ? Eligibility.evaluate(ASSISTANT_PROVIDER_ID, 'TEXT', { authenticated: false }) : { status: 'UNKNOWN' };
+      if (check.status !== 'ELIGIBLE') {
+        // Honest per-status messaging instead of a generic network-failure message -- most of
+        // these reasons have nothing to do with the user's connection.
+        var message = check.status === 'TEMPORARILY_UNAVAILABLE'
+          ? 'ibis’s conversational answers aren’t turned on yet. Try rephrasing to name an FTN product directly, or check the Directory.'
+          : check.reason || 'ibis can’t answer that right now.';
+        appendMessage('error', message);
+        return null;
+      }
+      var startedAt = Date.now();
+      appendThinking();
+      return fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', apikey: PUBLISHABLE_KEY, authorization: 'Bearer ' + PUBLISHABLE_KEY },
+        body: JSON.stringify({ messages: history, products: productSummaryForServer() }),
       })
-      .catch(function () {
-        removeThinking();
-        appendMessage('error', 'ibis could not be reached. Check your connection and try again.');
-      });
+        .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+        .then(function (result) {
+          removeThinking();
+          var latencyMs = Date.now() - startedAt;
+          if (!result.ok || !result.body || !result.body.answer) {
+            if (Eligibility) Eligibility.recordOutcome(ASSISTANT_PROVIDER_ID, { success: false, latencyMs: latencyMs, errorType: 'SERVER_ERROR' });
+            appendMessage('error', (result.body && result.body.error) || 'ibis is temporarily unavailable. Please try again in a moment.');
+            return;
+          }
+          if (Eligibility) Eligibility.recordOutcome(ASSISTANT_PROVIDER_ID, { success: true, latencyMs: latencyMs });
+          appendMessage('assistant', result.body.answer);
+          history.push({ role: 'assistant', content: result.body.answer });
+        })
+        .catch(function () {
+          removeThinking();
+          if (Eligibility) Eligibility.recordOutcome(ASSISTANT_PROVIDER_ID, { success: false, latencyMs: Date.now() - startedAt, errorType: 'TIMEOUT' });
+          appendMessage('error', 'ibis could not be reached. Check your connection and try again.');
+        });
+    });
   }
 
   function send(event) {

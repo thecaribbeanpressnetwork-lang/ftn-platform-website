@@ -35,6 +35,9 @@ jobs:
       - name: Audit visual asset manifest coverage
         run: node tests/asset-manifest-audit.mjs
 
+      - name: Audit ibis provider eligibility and economic invariants
+        run: node tests/ibis-eligibility-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
