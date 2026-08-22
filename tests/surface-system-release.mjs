@@ -72,7 +72,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:320
   if(CAPTURE_DIR&&viewport.width!==320)await page.screenshot({path:path.join(CAPTURE_DIR,`homepage-${viewport.width}x${viewport.height}.png`),fullPage:false});
   await page.locator('[data-ecosystem-toggle]').press('Enter');
   await page.waitForSelector('[data-ecosystem-reveal]:not([hidden])');
-  assert.equal(await page.locator('.ecosystem-product-link').count(),21);
+  assert.equal(await page.locator('.ecosystem-product-link').count(),23);
   assert.equal(await page.locator('.ftn-directory-group').count(),6);
   await context.close();
 }
