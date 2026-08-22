@@ -101,29 +101,32 @@
         </div>
         <p class="workspace-fallback__note">The interactive track-metadata workspace below needs JavaScript. The four pathways above work without it.</p>
       </section>
-      <section class="workspace__content riddim-studio-search" aria-label="Find a studio or producer near me">
-        <h2 class="workspace-fallback__heading">Find a studio or producer near me</h2>
-        <p class="workspace-fallback__note">FTN does not run its own studio directory — this hands off to real, current local search so results stay accurate.</p>
-        <div class="riddim-studio-search__featured">
-          <p class="riddim-studio-search__featured-label">FTN House</p>
-          <div class="workspace-fallback__grid" id="riddim-house-brands"></div>
-        </div>
-        <form class="riddim-studio-search__form" id="riddim-studio-form">
-          <label class="sr-only" for="riddim-studio-location">Your area</label>
-          <input type="text" id="riddim-studio-location" placeholder="San Fernando, Port of Spain, Scarborough…" value="Trinidad and Tobago">
-          <select id="riddim-studio-intent" aria-label="What are you looking for">
-            <option value="recording studio">Recording Studio</option>
-            <option value="music producer">Music Producer</option>
-            <option value="mixing mastering engineer">Mixing / Mastering</option>
-            <option value="DJ">DJ</option>
-            <option value="audio post production">Audio Post</option>
-          </select>
-          <button type="submit" class="btn btn-primary btn-sm">Search near me &rarr;</button>
-        </form>
-      </section>
       <footer class="workspace__footer">FTN Riddim is part of the FTN Platform ecosystem. <a href="/applications/">Explore all products &rarr;</a></footer>
     </div>
     <div id="workspace-root"></div>
+    <!-- Sibling of #workspace-fallback (which JS removes once the real workspace mounts) and
+         #workspace-root -- placed here so it survives regardless of JS state, instead of
+         disappearing along with the no-JS fallback the moment riddim-workspace.js initializes. -->
+    <section class="workspace__content riddim-studio-search" aria-label="Find a studio or producer near me">
+      <h2 class="workspace-fallback__heading">Find a studio or producer near me</h2>
+      <p class="workspace-fallback__note">FTN does not run its own studio directory — this hands off to real, current local search so results stay accurate.</p>
+      <div class="riddim-studio-search__featured">
+        <p class="riddim-studio-search__featured-label">FTN House</p>
+        <div class="workspace-fallback__grid" id="riddim-house-brands"></div>
+      </div>
+      <form class="riddim-studio-search__form" id="riddim-studio-form">
+        <label class="sr-only" for="riddim-studio-location">Your area</label>
+        <input type="text" id="riddim-studio-location" placeholder="San Fernando, Port of Spain, Scarborough…" value="Trinidad and Tobago">
+        <select id="riddim-studio-intent" aria-label="What are you looking for">
+          <option value="recording studio">Recording Studio</option>
+          <option value="music producer">Music Producer</option>
+          <option value="mixing mastering engineer">Mixing / Mastering</option>
+          <option value="DJ">DJ</option>
+          <option value="audio post production">Audio Post</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Search near me &rarr;</button>
+      </form>
+    </section>
   </main>
   <footer class="site-footer">
     <div class="container">
