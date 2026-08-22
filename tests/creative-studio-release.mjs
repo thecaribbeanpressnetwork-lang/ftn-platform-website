@@ -54,17 +54,23 @@ await scenario('daw-multitrack-arrangement-and-real-mix',async page=>{
   await page.waitForFunction(()=>/WAV mix exported/.test(document.querySelector('#daw-arrangement-status')?.textContent||''),null,{timeout:30000});
 });
 
-await scenario('dj-local-rights-aware-two-deck-mode',async page=>{
-  await open(page,'/riddim/dj/');await page.waitForSelector('#dj-local');
-  assert.match(await page.locator('.dj-reference-label').innerText(),/No ripping.*no export/i);
-  await page.check('#dj-local-rights');
-  await page.setInputFiles('#dj-file-A',{name:'owned-soca.wav',mimeType:'audio/wav',buffer:wavBuffer(220,1)});
-  await page.waitForFunction(()=>/BPM estimate/.test(document.querySelector('#dj-analysis-A')?.textContent||''));
-  await page.setInputFiles('#dj-file-B',{name:'licensed-reggae.wav',mimeType:'audio/wav',buffer:wavBuffer(110,1)});
-  await page.waitForFunction(()=>/BPM estimate/.test(document.querySelector('#dj-analysis-B')?.textContent||''));
-  await page.fill('#dj-key-A','F minor');await page.fill('#dj-loop-out-A','0.5');await page.click('#dj-loop-A');await page.fill('#dj-local-cross','70');
-  const download=page.waitForEvent('download');await page.click('#dj-local-save');const recipe=await download;assert.equal(recipe.suggestedFilename(),'ftn-dj-local-project.json');
-  assert.match(await page.locator('#dj-local-status').innerText(),/source audio remains local/i);
+await scenario('dj-local-file-two-deck-mode',async page=>{
+  // Pass 16 DJ Tube consolidation: the old, separate rights-gated local workspace (#dj-local,
+  // per-deck rights checkbox, key entry, loop points, a downloadable JSON "project recipe") was
+  // replaced with a real per-deck source toggle (#sourceA/#sourceB) inside the unified workstation
+  // -- see js/ftn-dj-workstation.js. The genuine capability that survived the consolidation is a
+  // real Web Audio decode + autocorrelation BPM estimate for a local file on either deck; that is
+  // what this scenario now verifies, on the real, current markup.
+  await open(page,'/riddim/dj/');await page.waitForSelector('#deckA');
+  assert.match(await page.locator('body').innerText(),/does not download, rip, export or re-host/i);
+  await page.selectOption('#sourceA','local');
+  await page.setInputFiles('#fileA',{name:'owned-soca.wav',mimeType:'audio/wav',buffer:wavBuffer(220,1)});
+  await page.waitForFunction(()=>/BPM estimate/.test(document.querySelector('#bpmA')?.textContent||''));
+  assert.match(await page.locator('#subA').innerText(),/your device only/i);
+  await page.selectOption('#sourceB','local');
+  await page.setInputFiles('#fileB',{name:'licensed-reggae.wav',mimeType:'audio/wav',buffer:wavBuffer(110,1)});
+  await page.waitForFunction(()=>/BPM estimate/.test(document.querySelector('#bpmB')?.textContent||''));
+  await page.fill('#cross','70');assert.equal(await page.locator('#cross').inputValue(),'70');
 });
 
 await scenario('riddim-hierarchy-includes-fire',async page=>{await open(page,'/riddim/');await page.waitForSelector('.riddim-card--fire');assert.equal(await page.locator('.riddim-card--fire').getAttribute('href'),'/riddim/fire/');},{width:390,height:844});
