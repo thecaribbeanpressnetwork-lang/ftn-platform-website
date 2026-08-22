@@ -86,9 +86,30 @@
 .observer-card__top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 6px;
+}
+
+.observer-card__signal {
+  margin-right: auto;
+}
+
+.observer-card__save {
+  border: 1px solid #2a2c31;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: #8a919c;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.observer-card__save.is-saved {
+  border-color: var(--color-red-on-dark);
+  color: var(--color-red-on-dark);
 }
 
 .observer-card__signal {

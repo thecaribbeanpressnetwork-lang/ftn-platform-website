@@ -190,6 +190,38 @@
       .then(function () { return loadScriptOnce('/js/ibis-capability-taxonomy.js', 'data-ibis-widget-taxonomy'); })
       .then(function () { return loadScriptOnce('/js/ibis-client.js', 'data-ibis-widget-client'); });
   }
+  // FTN Account pass: the strongest genuinely available authenticated context today is the
+  // user's own browser-local FTN.Save list. Answered entirely client-side -- explicit
+  // authenticated user only, never sent to a TEXT provider, so no personal data reaches a model
+  // prompt for a question the client can already answer honestly by itself.
+  var SAVED_ITEMS_PATTERN = /\b(my saved|what did i save|show my saves?|saved items|things i('ve)? saved)\b/i;
+  function ensureSavedItemsContext() {
+    return loadScriptOnce('/js/storage.js', 'data-ibis-widget-storage')
+      .then(function () { return loadScriptOnce('/js/ftn-save.js', 'data-ibis-widget-save'); })
+      .then(function () { return loadScriptOnce('/js/ftn-auth.js', 'data-ibis-widget-auth'); });
+  }
+  function trySavedItemsRoute(text) {
+    if (!SAVED_ITEMS_PATTERN.test(text)) return Promise.resolve(null);
+    return ensureSavedItemsContext().then(function () {
+      if (!global.FTN || !global.FTN.Auth || !global.FTN.Save) return null;
+      return global.FTN.Auth.getVerifiedUser().then(function (user) {
+        if (!user) return { needsAuth: true };
+        return { items: global.FTN.Save.list() };
+      }).catch(function () { return null; });
+    });
+  }
+  function appendSavedItemsAnswer(result) {
+    var text;
+    if (result.needsAuth) {
+      text = 'Sign in to your FTN Account to see your saved items — nothing is saved to this browser until then.';
+    } else if (!result.items.length) {
+      text = 'You don’t have any saved FTN items yet. Look for the ☆ Save control on pages like FTN Observer.';
+    } else {
+      text = 'Your saved FTN items:\n' + result.items.map(function (i) { return '• ' + i.title; }).join('\n');
+    }
+    appendMessage('assistant', text);
+    history.push({ role: 'assistant', content: text });
+  }
   // A confident match requires at least one of the query's real words to be a product's own
   // registered keyword (not just an incidental word overlap in its name/tagline/description) --
   // the same bar js/intent-router.js already documents as its honest-match standard.
@@ -293,15 +325,18 @@
     // /ibis-ai/ (js/intent-router.js). Only calls the paid Anthropic backend when that doesn't
     // confidently answer the question -- see IBIS-MAP.md for why this consolidation is scoped
     // this way rather than merging into the existing authenticated ibis-query function.
-    ensureIntentRouter()
-      .then(function () {
-        var matches = tryDeterministicRoute(text);
-        if (matches) {
-          var summary = appendRouteSuggestion(matches);
-          history.push({ role: 'assistant', content: 'Suggested: ' + summary });
-          return null;
-        }
-        return callAssistant();
+    trySavedItemsRoute(text)
+      .then(function (savedResult) {
+        if (savedResult) { appendSavedItemsAnswer(savedResult); return null; }
+        return ensureIntentRouter().then(function () {
+          var matches = tryDeterministicRoute(text);
+          if (matches) {
+            var summary = appendRouteSuggestion(matches);
+            history.push({ role: 'assistant', content: 'Suggested: ' + summary });
+            return null;
+          }
+          return callAssistant();
+        });
       })
       .catch(function () {
         return callAssistant();

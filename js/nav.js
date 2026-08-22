@@ -43,7 +43,10 @@
     document.querySelectorAll('.site-nav').forEach(function(nav){nav.setAttribute('aria-label','Primary');nav.innerHTML='<ul class="site-nav__list">'+PRIMARY_LINKS.map(function(item){var current=location.pathname===item[1]||(item[1]!=='/'&&location.pathname.indexOf(item[1])===0);return'<li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="'+item[1]+'"'+(current?' aria-current="page"':'')+' title="'+item[2]+'" aria-label="'+item[0]+' — '+item[2]+'">'+item[0]+'</a></li>';}).join('')+'</ul>';});
     document.querySelectorAll('.nexus-nav').forEach(function(nav){nav.setAttribute('aria-label','Primary');nav.innerHTML=links('');});
     document.querySelectorAll('.mobile-nav__links').forEach(function(nav){nav.innerHTML=links('mobile-nav__link--top');});
-    document.querySelectorAll('[data-sign-in-entry]').forEach(function(a){a.href='/account/';a.textContent='Account';a.setAttribute('aria-label','Open FTN Account');});
+    // Return-to-origin href is set by js/platform-foundation.js's accountLinks() (loaded a few
+    // lines below, and the actual authority here since it always runs after this synchronous
+    // block) -- this just sets the accessible label; not duplicating its return= logic.
+    document.querySelectorAll('[data-sign-in-entry]').forEach(function(a){a.textContent='Account';a.setAttribute('aria-label','Open FTN Account');});
     document.querySelectorAll('.nexus-header__bar').forEach(function(bar){if(bar.querySelector('[data-nexus-nav-toggle]'))return;var panel=document.createElement('div');panel.className='nexus-mobile-nav';panel.id='nexus-mobile-nav';panel.innerHTML=links('');bar.parentNode.appendChild(panel);var button=document.createElement('button');button.type='button';button.className='nexus-nav-toggle';button.setAttribute('data-nexus-nav-toggle','');button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','nexus-mobile-nav');button.textContent='Menu';bar.appendChild(button);button.onclick=function(){var open=button.getAttribute('aria-expanded')==='true';button.setAttribute('aria-expanded',String(!open));panel.classList.toggle('is-open',!open);};});
   }
   normalizeNavigation();
@@ -98,20 +101,44 @@
     var email=user.email||'';
     return email.slice(0,2).toUpperCase()||'FT';
   }
+  function ensureSaveLoaded(callback){
+    if(globalThis.FTN&&globalThis.FTN.Save){callback();return;}
+    // storage.js is already a static <script> tag on most pages (not loaded via loadOnce), so
+    // dedupe by checking any existing src rather than a loadOnce marker that would never match
+    // those static tags and would otherwise inject a second copy.
+    function withStorage(next){
+      if(globalThis.FTN&&globalThis.FTN.storage){next();return;}
+      if(document.querySelector('script[src="/js/storage.js"]')){var tries=0;(function poll(){if((globalThis.FTN&&globalThis.FTN.storage)||tries++>80)next();else setTimeout(poll,25);})();return;}
+      var s=document.createElement('script');s.src='/js/storage.js';s.onload=function(){next();};s.onerror=function(){next();};document.head.appendChild(s);
+    }
+    withStorage(function(){
+      if(document.querySelector('script[data-ftn-save-shared]')){var tries=0;(function poll(){if((globalThis.FTN&&globalThis.FTN.Save)||tries++>80)callback();else setTimeout(poll,25);})();return;}
+      var script=document.createElement('script');script.src='/js/ftn-save.js';script.setAttribute('data-ftn-save-shared','');script.onload=function(){callback();};script.onerror=function(){callback();};
+      document.head.appendChild(script);
+    });
+  }
   function mountAccountIdentity(){
     if(!hasLikelySession())return;
     ensureAuthLoaded(function(){
       if(!globalThis.FTN||!globalThis.FTN.Auth)return;
       globalThis.FTN.Auth.getVerifiedUser().then(function(user){
         if(!user)return;
+        ensureSaveLoaded(function(){renderAccountChip(user);});
+      }).catch(function(){});
+    });
+  }
+  function renderAccountChip(user){
         var label=(user.user_metadata&&(user.user_metadata.full_name||user.user_metadata.name))||user.email||'Signed in';
         var initials=chipInitials(user);
+        // Only ever added when a real saved item exists -- no decorative/empty menu rows.
+        var savedCount=(globalThis.FTN.Save&&globalThis.FTN.Save.count)?globalThis.FTN.Save.count():0;
+        var savedItem=savedCount>0?'<a role="menuitem" href="/account/#saved">Saved ('+savedCount+')</a>':'';
         document.querySelectorAll('[data-sign-in-entry]').forEach(function(a){
           if(!a||a.closest('[data-account-chip]'))return;
           var chip=document.createElement('div');
           chip.className='ftn-account-chip';
           chip.setAttribute('data-account-chip','');
-          chip.innerHTML='<button type="button" class="ftn-account-chip__trigger" aria-haspopup="menu" aria-expanded="false" aria-label="Account menu — signed in as '+escText(label)+'"><span class="ftn-account-chip__avatar" aria-hidden="true">'+escText(initials)+'</span><span class="ftn-account-chip__name">'+escText(label)+'</span></button><div class="ftn-account-chip__menu" role="menu" hidden><p class="ftn-account-chip__signed-in">Signed in as<br><strong>'+escText(label)+'</strong></p><a role="menuitem" href="/account/">Account</a><button role="menuitem" type="button" data-account-sign-out>Sign out</button></div>';
+          chip.innerHTML='<button type="button" class="ftn-account-chip__trigger" aria-haspopup="menu" aria-expanded="false" aria-label="Account menu — signed in as '+escText(label)+'"><span class="ftn-account-chip__avatar" aria-hidden="true">'+escText(initials)+'</span><span class="ftn-account-chip__name">'+escText(label)+'</span></button><div class="ftn-account-chip__menu" role="menu" hidden><p class="ftn-account-chip__signed-in">Signed in as<br><strong>'+escText(label)+'</strong></p><a role="menuitem" href="/account/">Account</a>'+savedItem+'<button role="menuitem" type="button" data-account-sign-out>Sign out</button></div>';
           a.replaceWith(chip);
           var trigger=chip.querySelector('.ftn-account-chip__trigger'),menu=chip.querySelector('.ftn-account-chip__menu');
           trigger.addEventListener('click',function(e){e.stopPropagation();var open=trigger.getAttribute('aria-expanded')==='true';trigger.setAttribute('aria-expanded',String(!open));menu.hidden=open;});
@@ -119,8 +146,6 @@
         });
         document.addEventListener('click',function(e){document.querySelectorAll('[data-account-chip]').forEach(function(chip){if(chip.contains(e.target))return;var trigger=chip.querySelector('.ftn-account-chip__trigger'),menu=chip.querySelector('.ftn-account-chip__menu');if(trigger)trigger.setAttribute('aria-expanded','false');if(menu)menu.hidden=true;});});
         document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;document.querySelectorAll('[data-account-chip] .ftn-account-chip__menu').forEach(function(m){m.hidden=true;});document.querySelectorAll('[data-account-chip] .ftn-account-chip__trigger').forEach(function(t){t.setAttribute('aria-expanded','false');});});
-      }).catch(function(){});
-    });
   }
   mountAccountIdentity();
 

@@ -510,6 +510,14 @@
     return map[status] || 'observer-status--external';
   }
 
+  // Observer's real consumer of the shared Save primitive (js/ftn-save.js). Namespaced under
+  // type 'observer' so its ids never collide with another product's saved items.
+  function saveButton(view) {
+    var Save = global.FTN && global.FTN.Save;
+    var isSaved = Save ? Save.isSaved('observer', view.id) : false;
+    return '<button type="button" class="observer-card__save' + (isSaved ? ' is-saved' : '') + '" data-save-toggle data-save-type="observer" data-save-id="' + esc(view.id) + '" data-save-title="' + esc(view.title) + '" data-save-url="' + esc(view.sourceUrl) + '" aria-pressed="' + (isSaved ? 'true' : 'false') + '" aria-label="' + (isSaved ? 'Unsave ' : 'Save ') + esc(view.title) + '">' + (isSaved ? '★ Saved' : '☆ Save') + '</button>';
+  }
+
   function sourceCard(view) {
     var blockedNote = view.framingBlocked
       ? '<p class="observer-card__blocked">Embedding is blocked by the provider — FTN does not bypass X-Frame-Options/CSP.</p>'
@@ -519,6 +527,7 @@
         '<div class="observer-card__top">' +
           '<span class="observer-card__signal" aria-hidden="true">' + esc(view.signal || '') + '</span>' +
           '<span class="observer-status ' + statusPillClass(view.status) + '">' + esc(view.status) + '</span>' +
+          saveButton(view) +
         '</div>' +
         '<h3 class="observer-card__title">' + esc(view.title) + '</h3>' +
         '<p class="observer-card__desc">' + esc(view.description) + '</p>' +
@@ -542,6 +551,7 @@
         '<div class="observer-card__top">' +
           '<span class="observer-card__signal" aria-hidden="true">' + esc(view.signal || '') + '</span>' +
           '<span class="observer-status ' + statusPillClass(view.status) + '">' + esc(view.status) + '</span>' +
+          saveButton(view) +
         '</div>' +
         '<h3 class="observer-card__title">' + esc(view.title) + '</h3>' +
         '<div class="observer-card__frame observer-card__frame--image">' +
@@ -564,6 +574,7 @@
         '<div class="observer-card__top">' +
           '<span class="observer-card__signal" aria-hidden="true">' + esc(view.signal || '') + '</span>' +
           '<span class="observer-status ' + statusPillClass(view.status) + '">' + esc(view.status) + '</span>' +
+          saveButton(view) +
         '</div>' +
         '<h3 class="observer-card__title">' + esc(view.title) + '</h3>' +
         '<div class="observer-card__frame observer-card__frame--iframe">' +
@@ -585,6 +596,7 @@
         '<div class="observer-card__top">' +
           '<span class="observer-card__signal" aria-hidden="true">' + esc(view.signal || '') + '</span>' +
           '<span class="observer-status ' + statusPillClass(view.status) + '">' + esc(view.status) + '</span>' +
+          saveButton(view) +
         '</div>' +
         '<h3 class="observer-card__title">' + esc(view.title) + '</h3>' +
         '<p class="observer-card__desc">' + esc(view.description) + '</p>' +
@@ -752,6 +764,19 @@
           var base = img.src.split('?')[0];
           img.src = base + '?ftn=' + Date.now();
         }
+        return;
+      }
+      var saveBtn = e.target.closest && e.target.closest('[data-save-toggle]');
+      if (saveBtn && global.FTN.Save) {
+        var nowSaved = global.FTN.Save.toggle({
+          type: saveBtn.getAttribute('data-save-type'),
+          id: saveBtn.getAttribute('data-save-id'),
+          title: saveBtn.getAttribute('data-save-title'),
+          url: saveBtn.getAttribute('data-save-url')
+        });
+        saveBtn.classList.toggle('is-saved', nowSaved);
+        saveBtn.setAttribute('aria-pressed', nowSaved ? 'true' : 'false');
+        saveBtn.textContent = nowSaved ? '★ Saved' : '☆ Save';
       }
     });
 
