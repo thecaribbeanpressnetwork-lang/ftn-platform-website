@@ -1452,6 +1452,35 @@ Integration Adapter Layer 7 (every workspace with a real save action — ibis.ai
 have none, since neither has anything to save locally), Workspace Shell 9 (all flagship product
 workspaces), Product Registry 10 (9 JS consumers + the homepage's hand-synced static markup).
 
+## 7.17 Founder Decision (2026-08-22) — Community Connect distribution is URL/PWA-first
+
+Community Connect's primary distribution strategy is the web/PWA experience at
+`community.ftnplatform.org`, not an app-store listing. The existing native/Capacitor Android path
+(§7.11) remains available, but App Store/Play Store distribution must never become a prerequisite
+for public adoption — a visitor must always be able to use Community Connect immediately from a
+link or QR code, with no store visit, no install, and no account required first.
+
+Confirmed already compliant, no page changes required by this decision: `community-connect/
+index.html`'s current integration already leads with "Open Community Connect" straight to the real
+subdomain (no store badge, no store link, no gating language anywhere on the page — verified by
+direct search), and already embeds the live application in-page for a same-site trial before
+anyone leaves FTN.
+
+Binding for future work built on top of this:
+- Any shared/public Community Connect object (e.g. a shared report) must deep-link directly into
+  the web/PWA experience — never require an app-store download first.
+- Sharing UI for Community Connect content should be optimized for WhatsApp and Facebook first,
+  consistent with §27-30 of the founder's Intelligence/Distribution pass brief (2026-08-22), which
+  also calls for one shared FTN Share primitive across the ecosystem rather than a second one built
+  specifically for Community Connect. That shared primitive does not exist yet (deferred, not
+  fabricated, in the same pass) — this decision is the binding constraint for whenever it is built,
+  not a claim that it already reuses one today.
+- "Install" / Add to Home Screen is a retention mechanism offered after real value is demonstrated
+  (matches the existing sitewide Install FTN App pattern, §7.15's `data-sign-in-entry` precedent) —
+  never a barrier shown before first use.
+- Reuse the existing FTN Save primitive (`js/ftn-save.js`) for any future "save this report" style
+  capability; do not build a second save/bookmark mechanism for Community Connect specifically.
+
 ## 8. HTML Standards
 
 - Semantic HTML5 landmarks (`header`, `nav`, `main`, `footer`, `section`, `article`) on every page —
