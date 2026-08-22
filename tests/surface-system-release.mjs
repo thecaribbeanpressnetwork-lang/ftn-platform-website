@@ -117,7 +117,7 @@ for(const surface of customSurfaces){
   const background=await page.locator(surface.selector).evaluate(el=>getComputedStyle(el).backgroundImage);
   assert(background.includes(surface.asset),`${surface.path} does not render its approved production scene`);
   if(surface.path==='/tv/')assert.equal(await page.locator('#tv-frame').count(),1,'FTN TV player disappeared during the visual pass');
-  if(surface.path==='/riddim/dj/')assert.equal(await page.locator('#controller').count(),1,'DJ Tube controller disappeared during the visual pass');
+  if(surface.path==='/riddim/dj/')assert.equal(await page.locator('.console').count(),1,'DJ Tube controller disappeared during the visual pass');
   if(surface.path==='/riddim/fire/')assert.equal(await page.locator('#fire-form').count(),1,'FTN Fire creation form disappeared during the visual pass');
   if(surface.path==='/community-connect/')assert.equal(await page.locator('.cc-app__frame').count(),1,'Community Connect app handoff disappeared during the visual pass');
   if(surface.path==='/account/')assert.equal(await page.locator('#account-state').count(),1,'FTN Account controls disappeared during the visual pass');
