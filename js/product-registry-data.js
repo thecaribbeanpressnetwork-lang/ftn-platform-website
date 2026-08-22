@@ -137,8 +137,8 @@ product({
   description:'A source-backed Caribbean observation deck for current indicators, scheduled coverage and explicit source states and fallbacks.',route:'/observatory/',status:'AVAILABLE',
   primaryUser:'People following current Caribbean conditions and scheduled coverage',primaryJourney:'Open a current or scheduled signal, inspect its source/time and follow its accurate next state.',
   callsToAction:[{label:'Open FTN Live',route:'/observatory/'}],visualMnemonic:'Caribbean signal constellation',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
-  dataSources:['NOAA satellite products','Open-Meteo','World Bank','FTN public source registry'],accessRules:['guest'],featureFlags:['live-sources','satellite'],relatedProducts:['events','tv','mission-control'],
-  legalNotices:['External source availability','Calculated context notice'],keywords:['indicators','data','live','satellite','weather','schedule','replay','change'],capabilities:['current-satellite-imagery','connected-public-sources','indicator-context','accurate-state','fallback']
+  dataSources:['NOAA satellite products','Open-Meteo','World Bank','FTN public source registry','Trinidad and Tobago Meteorological Service','UWI Seismic Research Centre'],accessRules:['guest'],featureFlags:['live-sources','satellite','observer-console'],relatedProducts:['events','tv','mission-control'],
+  legalNotices:['External source availability','Calculated context notice'],keywords:['indicators','data','live','satellite','weather','schedule','replay','change','observer','correlation','flood','ferry','airport','vessel','earthquake','air quality','crime','parliament','power outage'],capabilities:['current-satellite-imagery','connected-public-sources','indicator-context','accurate-state','fallback','observer-console','observer-correlation-engine']
 }),
 product({
   id:'radio',name:'FTN Radio',shortName:'Radio',tagline:'The Soundtrack of the Caribbean.',

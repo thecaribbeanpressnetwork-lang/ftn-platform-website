@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="/css/components/trust-card.css">
   <link rel="stylesheet" href="/css/components/charts.css">
   <link rel="stylesheet" href="/css/components/observatory.css">
+  <link rel="stylesheet" href="/css/components/observer-console.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
   <link rel="stylesheet" href="/css/utilities.css">
@@ -204,6 +205,17 @@
     </section>
 
     <div class="container">
+      <section class="observer-console" id="observer-console" aria-label="Trinidad and Tobago live observation console">
+        <div class="observer-console__head">
+          <div>
+            <span class="observer-console__eyebrow">FTN Observer</span>
+            <h2 class="observer-console__title">What's happening in Trinidad &amp; Tobago right now.</h2>
+          </div>
+        </div>
+        <div class="observer-nav" id="observer-nav" role="tablist" aria-label="Observer categories"></div>
+        <div class="observer-canvas" id="observer-canvas" role="tabpanel" data-active-category="now"></div>
+      </section>
+
       <section class="section" id="today-in-tt">
         <div class="section__header">
           <span class="section__eyebrow">Right Now</span>
@@ -410,6 +422,10 @@
   <script src="/js/national-memory.js"></script>
   <script src="/js/community-profile-data.js"></script>
   <script src="/js/community-profile.js"></script>
+  <script src="/js/ftn-source-provenance.js"></script>
+  <script src="/js/observer-data.js"></script>
+  <script src="/js/observer-correlation.js"></script>
+  <script src="/js/observer-console.js"></script>
   <script src="/js/observatory.js"></script>
   <script src="/js/presentation-control.js"></script>
 </body>

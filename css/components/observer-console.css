@@ -1,0 +1,408 @@
+/* FTN Platform Website — Observer Console (FTN Live → Trinidad & Tobago observation console).
+   A bounded dark treatment, consistent with the Observatory/Mission-Control-Demo precedent
+   (CLAUDE.md §5) — not a site-wide theme change. Primary observation canvas = category nav +
+   grid; secondary = the NOW status list; tertiary = each card's own source/meta line. */
+
+.observer-console {
+  background: var(--color-black);
+  color: var(--color-white);
+  border-radius: var(--radius-24);
+  padding: clamp(16px, 3vw, 32px);
+  margin-top: var(--space-24);
+}
+
+.observer-console__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-16);
+}
+
+.observer-console__eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-red-on-dark);
+}
+
+.observer-console__title {
+  margin: 4px 0 0;
+  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
+  color: var(--color-white);
+}
+
+.observer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.observer-nav__item {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border: 1px solid #2a2c31;
+  border-radius: var(--radius-full);
+  background: #14161a;
+  color: var(--color-silver);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.observer-nav__item.is-active {
+  background: var(--color-red);
+  border-color: var(--color-red);
+  color: var(--color-white);
+}
+
+.observer-canvas {
+  margin-top: var(--space-16);
+  min-height: 120px;
+}
+
+.observer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.observer-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid #24272c;
+  border-radius: var(--radius-16);
+  background: #101216;
+  min-width: 0;
+}
+
+.observer-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.observer-card__signal {
+  font-family: var(--font-heading, Montserrat, sans-serif);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #565b64;
+}
+
+.observer-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.observer-status--live { background: rgba(34, 197, 94, 0.16); color: #4ade80; }
+.observer-status--current { background: rgba(59, 130, 246, 0.16); color: #7cb3fb; }
+.observer-status--delayed { background: rgba(245, 158, 11, 0.18); color: #fbbf65; }
+.observer-status--scheduled { background: rgba(148, 163, 184, 0.18); color: #cbd3df; }
+.observer-status--historical { background: rgba(148, 163, 184, 0.12); color: #9aa2ad; }
+.observer-status--external { background: rgba(233, 71, 80, 0.14); color: var(--color-red-on-dark); }
+
+.observer-card__title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: var(--color-white);
+}
+
+.observer-card__desc {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #aab1bc;
+  flex: 1 0 auto;
+}
+
+.observer-card__blocked {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--color-red-on-dark);
+  background: rgba(233, 71, 80, 0.08);
+  font-size: 11px;
+  color: #d8a3a6;
+}
+
+.observer-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.observer-card__authority {
+  font-size: 10.5px;
+  color: #7d848f;
+}
+
+.observer-card__freshness {
+  font-size: 10px;
+  color: #565b64;
+}
+
+.observer-card__freshness::before {
+  content: '· ';
+}
+
+.observer-card__action {
+  align-self: flex-start;
+}
+
+.observer-card__frame {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-12);
+  overflow: hidden;
+  background: #05070b;
+  margin-bottom: 10px;
+}
+
+.observer-card__frame--image {
+  aspect-ratio: 4 / 3;
+}
+
+.observer-card__frame--image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.observer-card__frame--iframe {
+  aspect-ratio: 4 / 3;
+}
+
+.observer-card__frame--iframe iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.observer-card__error {
+  padding: 20px;
+  font-size: 12px;
+  color: #ff8790;
+}
+
+.observer-card__refresh {
+  margin-bottom: 8px;
+}
+
+.observer-card--anchor {
+  background: linear-gradient(145deg, #14171d, #0a0b0e);
+}
+
+.observer-empty {
+  color: var(--color-silver);
+  font-size: 13px;
+}
+
+/* --- NOW view: two-column synthesis (weather snapshot + cross-category status list) --- */
+.observer-now {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 16px;
+}
+
+.observer-now__weather {
+  padding: 18px;
+  border: 1px solid #24272c;
+  border-radius: var(--radius-16);
+  background: linear-gradient(150deg, #14171d, #0a0b0e);
+}
+
+.observer-now__weather-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.observer-now__weather-time {
+  font-size: 11px;
+  color: #7d848f;
+}
+
+.observer-now__weather-value {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-weight: 800;
+  font-family: var(--font-heading, Montserrat, sans-serif);
+  color: var(--color-white);
+}
+
+.observer-now__weather-sub {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #aab1bc;
+}
+
+.observer-now__weather-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-red-on-dark);
+}
+
+.observer-now__loading { color: #8a919c; font-size: 13px; }
+
+.observer-now__status {
+  padding: 18px;
+  border: 1px solid #24272c;
+  border-radius: var(--radius-16);
+  background: #101216;
+}
+
+.observer-now__heading {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #cbd1da;
+}
+
+.observer-now__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.observer-now__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-8);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.observer-now__label {
+  font-size: 12.5px;
+  color: #d3d8e0;
+}
+
+.observer-now__row a {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-red-on-dark);
+  white-space: nowrap;
+}
+
+.observer-now__note {
+  margin: 10px 0 0;
+  font-size: 10.5px;
+  color: #6c7480;
+}
+
+@media (max-width: 900px) {
+  .observer-now {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Correlation Engine: tertiary detail panel beneath the NOW synthesis --- */
+.observer-correlation {
+  margin-top: 12px;
+  padding: 16px 18px;
+  border: 1px solid #24272c;
+  border-radius: var(--radius-16);
+  background: #101216;
+}
+
+.observer-correlation__explain {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #aab1bc;
+  max-width: 70ch;
+}
+
+.observer-correlation__list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.observer-correlation__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-8);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.observer-correlation__label {
+  font-size: 12.5px;
+  color: #d3d8e0;
+}
+
+.observer-correlation__row a {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-red-on-dark);
+  white-space: nowrap;
+}
+
+.observer-correlation__confidence {
+  margin: 0;
+  font-size: 11px;
+  color: #7d848f;
+}
+
+@media (max-width: 480px) {
+  .observer-console {
+    border-radius: var(--radius-16);
+    padding: 14px;
+  }
+  .observer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .observer-now__row {
+    grid-template-columns: auto 1fr;
+  }
+  .observer-now__row a {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .observer-correlation__row {
+    grid-template-columns: auto 1fr;
+  }
+  .observer-correlation__row a {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .observer-nav__item {
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+}
