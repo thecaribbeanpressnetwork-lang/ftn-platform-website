@@ -56,7 +56,7 @@ const groupedIds=ecosystemGroups.flatMap(group=>group.products.map(product=>prod
 for(const id of firstClassDirectoryIds)assert(groupedIds.includes(id),`Active product missing from Product Registry ecosystem groups: ${id}`);
 assert(directorySource.includes('Registry.ecosystemGroups()'),'FTN Directory must consume registry-defined ecosystem groups');
 assert(!directorySource.includes("'mission-control'"),'Mission Control must not be exposed in the FTN Directory');
-for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis.ai','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks','FTN Display','FTN Observer','FTN Learn'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
+for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks','FTN Display','FTN Observer','FTN Learn'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
 for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(groupedIds.includes(p.id),`${p.name} has no registry group mapping`);
 
 // Sitewide ecosystem-header pass (founder directive): the global nav dropped abstract pillar
@@ -68,7 +68,7 @@ for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(
 // Observer -- deep investigation, distinct from the new ambient FTN Display) and FTN Now retired
 // outright (superseded by FTN Display). Both old routes redirect rather than 404.
 const navSource=fs.readFileSync('js/nav.js','utf8');
-for(const name of ['FTN Platform','FTN Community Connect','FTN Display','FTN Observer','FTN Kaiso','FTN Parliament','FTN TV','FTN Riddim','FTN Opportunities','FTN Learn','FTN ibis.ai','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global navigation missing canonical FTN product name: ${name}`);
+for(const name of ['FTN Platform','FTN Community Connect','FTN Display','FTN Observer','FTN Kaiso','FTN Parliament','FTN TV','FTN Riddim','FTN Opportunities','FTN Learn','FTN ibis','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global navigation missing canonical FTN product name: ${name}`);
 assert(navSource.includes('FTN Invest-in'),'Global navigation must use the canonical FTN Invest-in name');
 assert(!navSource.includes("'FTN Live'"),'FTN Live must not appear as an independent product name in global navigation -- it is FTN Observer now');
 assert(!fs.existsSync('now/index.html'),'NOW homepage should be retired, not rebuilt as an independent product page');
@@ -92,7 +92,7 @@ assert(!/email|access_token|user_id|textContent\s*[,)]/.test(analyticsSource),'A
 assert(navSource.includes('/js/analytics.js?v=20260818.3'),'Global navigation must load the current privacy-safe analytics module');
 
 const htmlFiles=[];function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules'].includes(entry.name))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(entry.name.endsWith('.html'))htmlFiles.push(full);}}walk('.');
-for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260822.1'),`${file} uses a stale global navigation asset URL`);}
+for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260822.2'),`${file} uses a stale global navigation asset URL`);}
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of ['product-registry-data','product-registry'])if(html.includes(`/js/${asset}.js`))assert(html.includes(`/js/${asset}.js?v=20260822.1`),`${file} uses a stale ${asset} asset URL`);}
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8'),match=html.match(/<link rel=["']canonical["'] href=["']([^"']+)/i);if(match)assert(/^https:\/\/ftnplatform\.org\//.test(match[1]),`${file} has non-apex canonical ${match[1]}`);}
 for(const file of htmlFiles.filter(file=>!['love/index.html','health/index.html'].includes(file))){

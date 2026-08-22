@@ -72,6 +72,51 @@ body.trust-card-open {
   margin-bottom: var(--space-8);
 }
 
+.trust-card__math {
+  margin-top: var(--space-16);
+  padding: var(--space-12);
+  background: var(--color-off-white, #F7F7F8);
+  border-radius: var(--radius-8);
+  font-size: var(--text-small-size);
+}
+
+.trust-card__math summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--color-red);
+}
+
+.trust-card__math p {
+  margin-top: var(--space-8);
+  color: var(--color-graphite);
+}
+
+.trust-card__trace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: var(--space-8) 0;
+  padding-left: var(--space-20);
+}
+
+.trust-card__trace li {
+  position: relative;
+  font-size: var(--text-small-size);
+}
+
+.trust-card__trace li:not(:last-child)::after {
+  content: '↓';
+  position: absolute;
+  left: -18px;
+  color: var(--color-red);
+}
+
+.trust-card__trace-note,
+.trust-card__trace-empty {
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+}
+
 .trust-card__value {
   font-family: var(--font-heading);
   font-weight: 700;

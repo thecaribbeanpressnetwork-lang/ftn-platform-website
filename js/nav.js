@@ -50,7 +50,7 @@
     ['FTN Riddim','/riddim/','Caribbean music creation hub — Fire, DJ Tube, DAW, EPK'],
     ['FTN Opportunities','/opportunities/','Jobs, grants and Caribbean opportunities'],
     ['FTN Learn','/learn/','Find something to learn — FTN Skills and FTN School'],
-    ['FTN ibis.ai','/ibis-ai/','Ask ibis — FTN’s Caribbean-first AI assistant']
+    ['FTN ibis','/ibis-ai/','Ask FTN ibis — Ai powered by Caribbean intelligence']
   ];
   function escNav(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function isCurrent(route){return location.pathname===route||(route!=='/'&&location.pathname.indexOf(route)===0);}
@@ -134,10 +134,26 @@
   // Canonical Platform / Company / Legal structure -- one shared footer, same on every
   // site-footer page (see CLAUDE.md FIX 6). Social icons are normalized separately below
   // since they live in .site-footer__brand, a sibling this function does not touch.
-  var FOOTER_PLATFORM=[['About FTN','/about/'],['Community Connect','/community-connect/'],['FTN Display','/display/'],['FTN Observer','/observatory/'],['FTN Learn','/learn/'],['Scenario Workspace','/scenario-workspace/'],['FTN Events','/events/'],['Face The Nation','/facethenation'],['ibis.ai','/ibis-ai/'],['FTN Riddim','/riddim/'],['FTN Kaiso','/kaiso/'],['FTN Radio','/radio/'],['FTN Screen','/screen/'],['FTN Opportunities','/opportunities/'],['Display Network','/display-network/']];
+  var FOOTER_PLATFORM=[['About FTN','/about/'],['Community Connect','/community-connect/'],['FTN Display','/display/'],['FTN Observer','/observatory/'],['FTN Learn','/learn/'],['Scenario Workspace','/scenario-workspace/'],['FTN Events','/events/'],['Face The Nation','/facethenation'],['FTN ibis','/ibis-ai/'],['FTN Riddim','/riddim/'],['FTN Kaiso','/kaiso/'],['FTN Radio','/radio/'],['FTN Screen','/screen/'],['FTN Opportunities','/opportunities/'],['Display Network','/display-network/']];
   var FOOTER_COMPANY=[['About FTN','/about/'],['FTN Invest-in','/invest/'],['Contact','/contact/'],['Trust Centre','/trust/']];
   var FOOTER_LEGAL=[['Privacy Policy','/legal/privacy-policy/'],['Terms of Service','/legal/terms-of-service/'],['Cookie Policy','/legal/cookie-policy/'],['Data Retention','/legal/data-retention/']];
-  var FOOTER_SOCIAL=[['https://x.com/realityarttv','X','social-x.svg'],['https://facebook.com/realityarttv','Facebook','social-facebook.svg'],['https://instagram.com/realityarttv','Instagram','social-instagram.svg'],['https://youtube.com/realityarttv','YouTube','social-youtube.svg'],['https://linkedin.com/company/realityarttv','LinkedIn','social-linkedin.svg']];
+  // @FaceTheNationTT is FTN's canonical public social handle (founder-stated); X and YouTube were
+  // independently, mechanically verified live (real account title/og:title matched the handle) --
+  // Facebook and Instagram apply the same founder-confirmed handle since direct verification is
+  // blocked by those platforms' own anti-scraping behavior for logged-out requests, not because
+  // the handle is a guess. LinkedIn is RealityArtTV Media's own company page, a distinct
+  // professional identity the founder did not fold into the @FaceTheNationTT handle set.
+  var FOOTER_SOCIAL=[['https://x.com/FaceTheNationTT','X','social-x'],['https://www.facebook.com/FaceTheNationTT','Facebook','social-facebook'],['https://www.instagram.com/FaceTheNationTT','Instagram','social-instagram'],['https://www.youtube.com/@FaceTheNationTT','YouTube','social-youtube'],['https://linkedin.com/company/realityarttv','LinkedIn','social-linkedin']];
+  // Inline SVG, not <img> -- these icons use stroke="currentColor" so they take the surrounding
+  // link's text color; an <img> renders the SVG in its own isolated document (currentColor
+  // defaults to black there), which is exactly why they were invisible against the black footer.
+  var SOCIAL_ICON_SVG={
+    'social-x':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg>',
+    'social-facebook':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 8.5h2.5V5.5H14c-1.9 0-3.5 1.6-3.5 3.5v2H8.5v3H10.5V21h3v-7h2.3l.7-3H13.5V9c0-.3.2-.5.5-.5z"/></svg>',
+    'social-instagram':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3.5"/><circle cx="16.5" cy="7.5" r="0.7" fill="currentColor" stroke="none"/></svg>',
+    'social-youtube':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3"/><polygon points="10.5 9.5 15 12 10.5 14.5" fill="currentColor" stroke="none"/></svg>',
+    'social-linkedin':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><line x1="8" y1="11" x2="8" y2="16"/><circle cx="8" cy="8" r="0.6" fill="currentColor" stroke="none"/><path d="M12 16v-3.2c0-1.1.9-1.8 2-1.8s2 .7 2 1.8V16"/><line x1="12" y1="11" x2="12" y2="16"/></svg>'
+  };
   function footerColumn(title,items){return '<div><p class="site-footer__heading">'+title+'</p><div class="site-footer__links">'+items.map(function(i){return '<a href="'+i[1]+'">'+i[0]+'</a>';}).join('')+'</div></div>';}
   function normalizeFooter(){
     document.querySelectorAll('.site-footer__columns').forEach(function(footer){footer.innerHTML=footerColumn('Platform',FOOTER_PLATFORM)+footerColumn('Company',FOOTER_COMPANY)+footerColumn('Legal',FOOTER_LEGAL);});
@@ -146,7 +162,7 @@
       if(brand.querySelector('.site-footer__social'))return;
       var wrap=document.createElement('div');
       wrap.className='site-footer__social';
-      wrap.innerHTML=FOOTER_SOCIAL.map(function(s){return '<a href="'+s[0]+'" aria-label="FTN Platform on '+s[1]+'"><img src="/assets/icons/'+s[2]+'" alt="" width="16" height="16"></a>';}).join('');
+      wrap.innerHTML=FOOTER_SOCIAL.map(function(s){return '<a href="'+s[0]+'" aria-label="FTN Platform on '+s[1]+'">'+SOCIAL_ICON_SVG[s[2]]+'</a>';}).join('');
       brand.appendChild(wrap);
     });
   }

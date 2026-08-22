@@ -21,19 +21,17 @@
 .page-hero {
   position: relative;
   overflow: hidden;
-  padding-block: var(--space-64) var(--space-48);
+  /* Authorized first-viewport fix (Intelligence/Distribution/Resilience pass): this shared
+     template's 96px/64px desktop padding plus a Display-scale h1 (var(--text-display-size))
+     pushed About and every other .page-hero consumer to 69-122% viewport occupancy across
+     breakpoints. Trimmed to the same proportional ceiling already proven for .nexus-hero. */
+  padding-block: clamp(28px, 3.2vw, 44px) clamp(21px, 2.4vw, 34px);
   border-bottom: 1px solid var(--color-border);
 }
 
 .page-hero > .container {
   position: relative;
   z-index: 1;
-}
-
-@media (min-width: 1024px) {
-  .page-hero {
-    padding-block: var(--space-96) var(--space-64);
-  }
 }
 
 /* Community Connect's own icon mark (v1.6, extracted from the AEB-13 reference board) --
@@ -65,14 +63,14 @@
 }
 
 .page-hero__title {
-  font-size: var(--text-display-size);
-  line-height: var(--text-display-line);
+  font-size: clamp(1.75rem, 3.4vw, 3rem);
+  line-height: 1.08;
   margin-bottom: var(--space-16);
 }
 
 .page-hero__lede {
-  font-size: var(--text-h3-size);
-  line-height: var(--text-h3-line);
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+  line-height: 1.5;
   color: var(--color-graphite);
   max-width: 56ch;
 }
@@ -96,7 +94,7 @@
 }
 
 .page-hero__panel {
-  margin-top: var(--space-32);
+  margin-top: var(--space-24);
 }
 
 /* About — a real numbered index of the page's own sections (a genuine sequence,
@@ -115,7 +113,7 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-16);
-  padding-block: var(--space-16);
+  padding-block: var(--space-12);
   padding-inline-start: 0;
   text-decoration: none;
   color: var(--color-black);

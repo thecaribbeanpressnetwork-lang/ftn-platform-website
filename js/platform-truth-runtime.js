@@ -16,7 +16,7 @@ function aboutTruth(){
     'Face The Nation':['Programme Hub','Interviews, public affairs and national conversation.'],
     'FTN Observer':['Working Foundation','Investigate current Caribbean satellite imagery, source-backed signals and change radar.'],
     'FTN Events':['Working MVP','Plan, procure and operate Caribbean events.'],
-    'ibis.ai':['Working Foundation','Shared FTN intelligence, analysis, search and useful outputs.'],
+    'FTN ibis':['Working Foundation','Shared FTN intelligence, analysis, search and useful outputs.'],
     'FTN Riddim':['Working in Phases','Caribbean music tools, FTN DAW and FTN DJ Tube.'],
     'FTN Kaiso':['Working MVP','The Caribbean Newsroom.'],
     'FTN Radio':['Working MVP','Caribbean listening, discovery and creator workflows.'],
@@ -29,7 +29,7 @@ function aboutTruth(){
 function applicationsTruth(){
   document.querySelectorAll('.platform-tile').forEach(function(tile){var h=tile.querySelector('h3'),p=tile.querySelector('p');if(!h||!p)return;var name=(h.textContent||'').trim();var copy={
     'FTN Events':'Describe the event, generate an operating plan, find providers and prepare comparable RFQs.',
-    'ibis.ai':'Ask, find, analyze FTN data and create useful visual outputs from one intelligence surface.',
+    'FTN ibis':'Ask, find, analyze FTN data and create useful visual outputs from one intelligence surface.',
     'FTN Radio':'Play Caribbean music, browse genres, prepare creator submissions and build an FTN EPK.',
     'FTN Screen':'Watch sourced Caribbean films, build filmmaker packages and compare festival readiness.',
     'FTN TV':'Turn on the scheduled Caribbean station, see what is on now and tune the guide.',

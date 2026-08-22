@@ -63,7 +63,7 @@
   trigger.className = 'ibis-widget-trigger';
   trigger.setAttribute('aria-haspopup', 'dialog');
   trigger.setAttribute('aria-expanded', 'false');
-  trigger.setAttribute('aria-label', 'Ask ibis, FTN’s Caribbean assistant');
+  trigger.setAttribute('aria-label', 'Ask FTN ibis — Ai powered by Caribbean intelligence');
   trigger.innerHTML = '<span class="ibis-widget-trigger__ring" aria-hidden="true"></span>' + IBIS_SVG;
 
   var panel = document.createElement('section');
@@ -75,7 +75,7 @@
   panel.hidden = true;
   panel.innerHTML =
     '<div class="ibis-widget-panel__head">' + IBIS_SVG +
-    '<div><h2 id="ibis-widget-title">Ask ibis</h2><span id="ibis-widget-subtitle">FTN’s Caribbean assistant</span><span id="ibis-widget-status"></span></div>' +
+    '<div><h2 id="ibis-widget-title">Ask FTN ibis</h2><span id="ibis-widget-subtitle">Ai powered by Caribbean intelligence.</span><span id="ibis-widget-status"></span></div>' +
     '<button type="button" class="ibis-widget-close" aria-label="Close ibis">&times;</button>' +
     '</div>' +
     '<div class="ibis-widget-messages" id="ibis-widget-messages" role="log" aria-live="polite"></div>' +

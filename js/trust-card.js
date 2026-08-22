@@ -71,7 +71,8 @@
   // recurse into this.
   function relationshipsHTML(data) {
     if (!data.id || !global.FTN.Relationships) return '';
-    var rels = global.FTN.Relationships.forIndicator(data.id);
+    var Relationships = global.FTN.Relationships;
+    var rels = Relationships.forIndicator(data.id);
     if (!rels.length) return '';
     var rows = rels.map(function (r) {
       var isSource = r.fromIndicatorId === data.id;
@@ -82,10 +83,49 @@
       var trigger = otherId
         ? '<button type="button" class="trust-trigger" data-trust-card="' + otherId + '">' + otherLabel + '</button>'
         : '<span>' + otherLabel + '</span>';
+      var evidence = Relationships.evidenceLabel ? Relationships.evidenceLabel(r) : null;
       return '<li>' + arrow + ' <strong>' + verb + ':</strong> ' + trigger +
-        ' <span class="trust-card__rel-meta">(' + r.direction + ', ' + r.confidence.toLowerCase() + ' confidence)</span></li>';
+        ' <span class="trust-card__rel-meta">(' + r.direction + ', ' + r.confidence.toLowerCase() + ' confidence' +
+        (evidence ? ' · ' + evidence : '') + ')</span></li>';
     }).join('');
-    return '<div class="trust-card__relationships"><p class="trust-card__fields-heading">What this connects to</p><ul>' + rows + '</ul></div>';
+    var traceBtn = Relationships.traceEffects
+      ? '<button type="button" class="trust-trigger" data-trace-effects="' + data.id + '">Trace the Effects &rarr;</button>'
+      : '';
+    return '<div class="trust-card__relationships"><p class="trust-card__fields-heading">What this connects to</p><ul>' + rows + '</ul>' + traceBtn + '</div>';
+  }
+
+  // "Trace the Effects" — walks the real relationship chain outward from this indicator and
+  // shows it as a plain sequence, never presenting correlation as proven causation.
+  function traceEffectsHTML(indicatorId) {
+    var chain = global.FTN.Relationships.traceEffects(indicatorId, 4);
+    if (!chain.length) return '<p class="trust-card__trace-empty">No further connected signal found from here.</p>';
+    var steps = [esc(global.FTN.getIndicator ? (global.FTN.getIndicator(indicatorId) || {}).title || indicatorId : indicatorId)];
+    chain.forEach(function (r) { steps.push(esc(r.toLabel)); });
+    return (
+      '<p class="trust-card__fields-heading">Trace the Effects</p>' +
+      '<ol class="trust-card__trace">' + steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol>' +
+      '<p class="trust-card__trace-note">Each step is a real recorded relationship, shown with its own evidence type — not a confirmed prediction of what will happen next.</p>'
+    );
+  }
+
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  // "See the Math" — only ever rendered when a real formula exists (data.clock, the same
+  // config js/live-clocks.js already computes from). Reads the indicator's own real baseValue/
+  // ratePerSecond rather than re-deriving or inventing a formula, so this can never drift from
+  // what the visible ticking number actually does.
+  function seeTheMathHTML(data) {
+    if (!data.isLiveClock || !data.clock || typeof data.clock.baseValue !== 'number') return '';
+    var rate = data.clock.ratePerSecond || 0;
+    var perDay = (rate * 86400);
+    var direction = rate >= 0 ? 'increases' : 'decreases';
+    return (
+      '<details class="trust-card__math"><summary>See the Math</summary>' +
+        '<p>Estimated value = <strong>' + data.clock.baseValue.toLocaleString() + '</strong> (benchmark) ' +
+        (rate >= 0 ? '+ ' : '- ') + Math.abs(rate).toLocaleString() + ' &times; seconds elapsed since the benchmark was set.</p>' +
+        '<p>That ' + direction + ' the displayed estimate by about ' + Math.abs(perDay).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' per day. This is an FTN-modelled interpolation between the benchmark and now — not a second, independently measured figure.</p>' +
+      '</details>'
+    );
   }
 
   function render(data) {
@@ -115,6 +155,7 @@
         fieldRow('Limitations', data.limitations) +
         fieldRow('Contradictory evidence', data.contradictoryEvidence) +
       '</dl>' +
+      seeTheMathHTML(data) +
       relationshipsHTML(data);
   }
 
@@ -178,6 +219,11 @@
 
     dialog.addEventListener('click', function (e) {
       if (e.target.closest('[data-trust-close]')) close();
+      var traceBtn = e.target.closest('[data-trace-effects]');
+      if (traceBtn && global.FTN.Relationships) {
+        var mount = panel.querySelector('.trust-card__relationships');
+        if (mount) mount.innerHTML = traceEffectsHTML(traceBtn.getAttribute('data-trace-effects'));
+      }
     });
 
     // Delegate: any element with data-trust-card="<indicator-id>" opens that card.

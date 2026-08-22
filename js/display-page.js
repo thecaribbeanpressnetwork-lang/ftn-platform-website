@@ -74,50 +74,73 @@
   }
 
   // ---- FTN TV NOW ----
+  // Uses the one shared FTN Media Fallback resolver (js/ftn-media-fallback.js) rather than
+  // blindly embedding the first discovery result -- if a candidate is private/deleted/non-
+  // embeddable, it advances to the next one automatically, and only falls back to the honest
+  // Face The Nation house slate once every real candidate has been tried.
   function renderTvNow() {
     var frame = document.getElementById('display-tv-frame');
     var titleEl = document.getElementById('display-tv-title');
     var sourceEl = document.getElementById('display-tv-source');
     var nextList = document.getElementById('display-next-list');
+    var playerEl = document.querySelector('.display-tvnow__player');
     if (!frame || !global.FTN.MediaDiscovery) return;
     global.FTN.MediaDiscovery.discover({ mode: 'video', queries: ['Trinidad and Tobago news today', 'Trinidad Tobago live now'], limit: 20 }, { force: true })
-      .then(function (d) {
+      .then(async function (d) {
         var items = (d && d.results) || [];
-        if (!items.length) {
-          titleEl.textContent = 'No embeddable source available right now';
-          sourceEl.textContent = 'FTN TV NOW will resume once an authorized source is found.';
-          nextList.innerHTML = '<li class="display-next__empty">Nothing queued.</li>';
-          return;
-        }
-        var first = items[0];
-        frame.src = 'https://www.youtube.com/embed/' + encodeURIComponent(first.videoId) + '?autoplay=1&mute=1&rel=0&playsinline=1';
-        titleEl.textContent = first.title || 'FTN TV NOW';
-        sourceEl.textContent = (first.channel || 'YouTube') + ' · authorized public embed';
-        nextList.innerHTML = items.slice(1, 4).map(function (it) {
+        if (!items.length) { showHouseFallback(); return; }
+        var playable = global.FTN.MediaFallback
+          ? await global.FTN.MediaFallback.resolveFirstPlayable(frame, items, 6000)
+          : items[0];
+        if (!playable) { showHouseFallback(); return; }
+        titleEl.textContent = playable.title || 'FTN TV NOW';
+        sourceEl.textContent = (playable.channel || 'YouTube') + ' · authorized public embed';
+        var rest = items.filter(function (it) { return it.videoId !== playable.videoId; });
+        nextList.innerHTML = rest.slice(0, 3).map(function (it) {
           return '<li><strong>' + esc(it.title || 'Untitled') + '</strong><span>' + esc(it.channel || '') + '</span></li>';
         }).join('') || '<li class="display-next__empty">Nothing queued.</li>';
       })
-      .catch(function () {
-        titleEl.textContent = 'FTN TV NOW is temporarily unavailable';
-        sourceEl.textContent = 'Discovery could not be completed just now.';
-      });
+      .catch(function () { showHouseFallback(); });
+
+    function showHouseFallback() {
+      if (playerEl && global.FTN.MediaFallback) playerEl.innerHTML = global.FTN.MediaFallback.houseFallbackHTML();
+      else { titleEl.textContent = 'FTN TV NOW is temporarily unavailable'; sourceEl.textContent = 'Discovery could not be completed just now.'; }
+      if (nextList) nextList.innerHTML = '<li class="display-next__empty">Nothing queued.</li>';
+    }
   }
 
   // ---- World Now ----
-  var ZONES = [
+  // Real IANA zones, dynamically computed and dynamically grouped -- never a hard-coded
+  // "these cities always match" assumption, per the brief's own DST caution. Cities that
+  // currently share an identical local time (e.g. New York/Toronto/Miami on US Eastern Time)
+  // are combined into one display entry instead of repeating the same time three times; if a
+  // future DST edge case ever splits them, they simply render as separate entries again.
+  var ZONE_CITIES = [
     ['Port of Spain', 'America/Port_of_Spain'],
-    ['Kingston', 'America/Jamaica'],
-    ['London', 'Europe/London'],
     ['New York', 'America/New_York'],
+    ['Toronto', 'America/Toronto'],
+    ['Miami', 'America/New_York'],
+    ['Los Angeles', 'America/Los_Angeles'],
+    ['Vancouver', 'America/Vancouver'],
+    ['London', 'Europe/London'],
+    ['Beijing', 'Asia/Shanghai'],
   ];
 
   function renderWorldZones() {
     var root = document.getElementById('display-world-zones');
     if (!root) return;
     function paint() {
-      root.innerHTML = ZONES.map(function (z) {
-        var t = new Intl.DateTimeFormat('en-US', { timeZone: z[1], hour: '2-digit', minute: '2-digit' }).format(new Date());
-        return '<div class="world-zone"><span>' + esc(z[0]) + '</span><strong>' + esc(t) + '</strong></div>';
+      var now = new Date();
+      var byTime = {};
+      var order = [];
+      ZONE_CITIES.forEach(function (c) {
+        var t = new Intl.DateTimeFormat('en-US', { timeZone: c[1], hour: '2-digit', minute: '2-digit' }).format(now);
+        if (!byTime[t]) { byTime[t] = []; order.push(t); }
+        if (byTime[t].indexOf(c[0]) === -1) byTime[t].push(c[0]);
+      });
+      root.innerHTML = order.map(function (t) {
+        var label = byTime[t].length > 1 ? byTime[t].slice(0, 2).join(' / ') + (byTime[t].length > 2 ? ' + more' : '') : byTime[t][0];
+        return '<div class="world-zone"><span>' + esc(label) + '</span><strong>' + esc(t) + '</strong></div>';
       }).join('');
     }
     paint();

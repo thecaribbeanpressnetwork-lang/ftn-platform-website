@@ -114,5 +114,62 @@
     return active[Math.floor(Math.random() * active.length)];
   }
 
-  global.FTN.Relationships = { all: active, get: get, forIndicator: forIndicator, random: random };
+  // Uncertainty-gradation taxonomy (Intelligence/Correlation Engine pass) -- distinct from the
+  // existing `type` field (correlation/influence/dependency/parent-child, a structural axis: WHAT
+  // KIND of link this is). This is an epistemic axis: HOW CERTAIN is FTN that this link is real.
+  // Every relationship already in this registry carries classification:'Illustrative' and a real
+  // confidence/strength pair from its own honest data -- inferEvidenceType() reads those existing,
+  // already-true fields rather than requiring every one of them to be hand-edited, and a real
+  // relationship can still set its own evidenceType explicitly, which always wins.
+  var EVIDENCE_TYPES = {
+    OBSERVED_CORRELATION: 'Observed correlation',
+    TEMPORAL_SEQUENCE: 'Temporal sequence',
+    KNOWN_RELATIONSHIP: 'Known relationship',
+    POSSIBLE_CONTRIBUTOR: 'Possible contributor',
+    HYPOTHESIS: 'Hypothesis',
+    PREDICTIVE_SIGNAL: 'Predictive signal',
+    CONFIRMED_CAUSAL: 'Confirmed causal relationship',
+  };
+
+  function inferEvidenceType(r) {
+    if (r.evidenceType && EVIDENCE_TYPES[r.evidenceType]) return r.evidenceType;
+    if (r.classification === 'Verified' || r.classification === 'Official') return 'CONFIRMED_CAUSAL';
+    if (r.type === 'parent-child' || r.type === 'dependency') return 'KNOWN_RELATIONSHIP';
+    if (r.confidence === 'High') return 'OBSERVED_CORRELATION';
+    if (r.confidence === 'Medium') return 'OBSERVED_CORRELATION';
+    if (r.confidence === 'Low') return 'POSSIBLE_CONTRIBUTOR';
+    return 'HYPOTHESIS';
+  }
+
+  function evidenceLabel(r) {
+    return EVIDENCE_TYPES[inferEvidenceType(r)] || EVIDENCE_TYPES.HYPOTHESIS;
+  }
+
+  // "Trace the Effects" -- walks the relationship graph outward from a starting indicator up to
+  // `maxHops` steps, following whichever real edge each step's node has (first match), so the UI
+  // can render a real chain (A -> B -> C) instead of only ever showing one direct link at a time.
+  // Stops early if no further real edge exists -- never invents a next step.
+  function traceEffects(indicatorId, maxHops) {
+    var hops = maxHops || 4;
+    var chain = [];
+    var seen = {};
+    var currentId = indicatorId;
+    for (var i = 0; i < hops && currentId && !seen[currentId]; i++) {
+      seen[currentId] = true;
+      var edge = null;
+      for (var j = 0; j < active.length; j++) {
+        if (active[j].fromIndicatorId === currentId) { edge = active[j]; break; }
+      }
+      if (!edge) break;
+      chain.push(edge);
+      currentId = edge.toIndicatorId;
+    }
+    return chain;
+  }
+
+  global.FTN.Relationships = {
+    all: active, get: get, forIndicator: forIndicator, random: random,
+    EVIDENCE_TYPES: EVIDENCE_TYPES, evidenceType: inferEvidenceType, evidenceLabel: evidenceLabel,
+    traceEffects: traceEffects,
+  };
 })(window);
