@@ -51,35 +51,23 @@
     );
   }
 
-  // Applies a DisplayConfig (js/display-config.js) to the full indicator set:
-  // category allow-list first, then an overall count cap distributed evenly
-  // across whatever categories remain — the same function a future kiosk or
-  // widget renderer would call, not something Observatory-specific.
+  // Ecosystem Simplification pass: the venue/category-cap DisplayConfig system retired (that
+  // ambient/kiosk job now belongs to FTN Display) -- Observer's indicator wall just filters by
+  // the search box, unconditionally, for every visitor.
   var searchTerm = '';
 
-  function applyDisplayConfig(allIndicators, cfg) {
-    var pool = allIndicators;
-    if (global.FTN.FounderControls) {
-      pool = pool.filter(function (ind) { return !global.FTN.FounderControls.isDisabled(ind.id); });
-    }
-    if (searchTerm) {
-      var term = searchTerm.toLowerCase();
-      pool = pool.filter(function (ind) { return ind.title.toLowerCase().indexOf(term) !== -1 || ind.category.toLowerCase().indexOf(term) !== -1; });
-      return pool; // search overrides count/category limits — show every match
-    }
-    if (cfg && cfg.categories) {
-      pool = pool.filter(function (ind) { return cfg.categories.indexOf(ind.category) !== -1; });
-    }
-    if (!cfg || !cfg.indicatorCount || pool.length <= cfg.indicatorCount) return pool;
-    return pool.slice(0, cfg.indicatorCount);
+  function filterIndicators(allIndicators) {
+    if (!searchTerm) return allIndicators;
+    var term = searchTerm.toLowerCase();
+    return allIndicators.filter(function (ind) { return ind.title.toLowerCase().indexOf(term) !== -1 || ind.category.toLowerCase().indexOf(term) !== -1; });
   }
 
-  function initSearch(cfgGetter) {
+  function initSearch() {
     var input = document.getElementById('indicator-search');
     if (!input) return;
     input.addEventListener('input', function () {
       searchTerm = input.value.trim();
-      renderCategories(cfgGetter());
+      renderCategories();
       applyCategoryVisibility();
     });
   }
@@ -113,11 +101,11 @@
     }
   }
 
-  function renderCategories(cfg) {
+  function renderCategories() {
     var root = document.getElementById('indicator-wall');
     if (!root || !global.FTN || !global.FTN.indicators) return;
 
-    var indicatorsToRender = cfg ? applyDisplayConfig(global.FTN.indicators, cfg) : global.FTN.indicators;
+    var indicatorsToRender = filterIndicators(global.FTN.indicators);
 
     var byCategory = {};
     indicatorsToRender.forEach(function (ind) {
@@ -284,98 +272,6 @@
     });
   }
 
-  function initKioskMode() {
-    var toggle = document.getElementById('kiosk-toggle');
-    if (!toggle) return;
-    var body = document.body;
-    var cycleTimer = null;
-
-    function startCycle() {
-      var reduceMotion = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduceMotion) return;
-      var sections = Array.prototype.slice.call(document.querySelectorAll('[data-category-section]'));
-      var i = 0;
-      cycleTimer = setInterval(function () {
-        if (!sections.length) return;
-        sections[i].scrollIntoView({ behavior: 'smooth', block: 'start' });
-        i = (i + 1) % sections.length;
-      }, 8000);
-    }
-
-    function stopCycle() {
-      if (cycleTimer) clearInterval(cycleTimer);
-      cycleTimer = null;
-    }
-
-    toggle.addEventListener('click', function () {
-      var isKiosk = body.classList.toggle('kiosk-mode');
-      toggle.setAttribute('aria-pressed', String(isKiosk));
-      toggle.textContent = isKiosk ? 'Exit Kiosk Mode' : 'Enter Kiosk Mode';
-      if (isKiosk) startCycle(); else stopCycle();
-    });
-  }
-
-  // ---- Commercial ad packages (capability structures, no pricing) ----
-  // Pass 16 UX Guardian fix: these cards visually implied they were selectable (module-card
-  // styling, borders, hover states already existed) but had no href, button semantics or click
-  // handler at all -- a real "dead control" (Rule 5), not a heuristic false positive. Each card
-  // is now a real button that opens the existing, reused Trust Card dialog shell (no new modal
-  // system) with the package's real capability structure -- never invented pricing or promised
-  // inventory (js/ad-packages-data.js explicitly carries no prices) -- plus a real next action.
-  function packageTrustCardData(pkg) {
-    var promo = pkg.customerPromotionAllowed === true ? 'Yes, full customer promotion'
-      : pkg.customerPromotionAllowed === 'limited' ? 'Limited customer promotion' : 'Not included';
-    return {
-      classification: 'FTN Derived',
-      title: pkg.name,
-      value: pkg.tagline,
-      whyItMatters: 'A ' + pkg.name + ' deployment example layout combines ' + pkg.exampleCombination.indicators +
-        ' live indicators with ' + pkg.exampleCombination.ads + ' ad panel(s) on one screen.',
-      methodology: 'Network ad density: ' + pkg.networkAdDensity + '. Customer promotion: ' + promo + '.',
-      limitations: 'Branding requirement: ' + pkg.brandingRequired + '. No pricing is published -- capability structure only, per founder direction.',
-      sourceName: '<a href="/display-network/">Host a screen on this tier &rarr;</a> · <a href="/contact/#commercial">Discuss a Deployment &rarr;</a>',
-    };
-  }
-  function renderAdPackages() {
-    var mount = document.getElementById('ad-packages-grid');
-    if (!mount || !global.FTN.AdPackages) return;
-    mount.innerHTML = global.FTN.AdPackages.all.map(function (pkg) {
-      var promo = pkg.customerPromotionAllowed === true ? 'Yes'
-        : pkg.customerPromotionAllowed === 'limited' ? 'Limited' : 'No';
-      return (
-        '<button type="button" class="module-card package-card" data-package="' + pkg.id + '" aria-haspopup="dialog">' +
-          '<h3>' + pkg.name + '</h3>' +
-          '<p>' + pkg.tagline + '</p>' +
-          '<dl class="package-card__specs">' +
-            '<div><dt>Network ad density</dt><dd>' + pkg.networkAdDensity + '</dd></div>' +
-            '<div><dt>Customer promotion</dt><dd>' + promo + '</dd></div>' +
-            '<div><dt>Branding</dt><dd>' + pkg.brandingRequired + '</dd></div>' +
-            '<div><dt>Example layout</dt><dd>' + pkg.exampleCombination.indicators + ' indicators + ' + pkg.exampleCombination.ads + ' ad panels</dd></div>' +
-          '</dl>' +
-          '<span class="package-card__cta">View details &rarr;</span>' +
-        '</button>'
-      );
-    }).join('');
-    mount.querySelectorAll('[data-package]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var pkg = global.FTN.AdPackages.all.filter(function (p) { return p.id === btn.getAttribute('data-package'); })[0];
-        if (pkg && global.FTN.TrustCard) global.FTN.TrustCard.open(packageTrustCardData(pkg));
-      });
-    });
-
-    var comboMount = document.getElementById('ad-combo-demo');
-    if (comboMount) {
-      var labels = ['Advertisement', 'Sponsored', 'FTN Promotion', 'Public Service Message'];
-      comboMount.innerHTML = global.FTN.AdPackages.all.map(function (pkg, i) {
-        var combo = pkg.exampleCombination;
-        var tiles = '';
-        for (var d = 0; d < Math.min(combo.indicators, 6); d++) tiles += '<span class="ad-combo__tile ad-combo__tile--data"></span>';
-        for (var a = 0; a < combo.ads; a++) tiles += '<span class="ad-combo__tile ad-combo__tile--ad">' + labels[a % labels.length] + '</span>';
-        return '<div class="ad-combo"><p class="ad-combo__label">' + pkg.name + ': ' + combo.indicators + ' indicators + ' + combo.ads + ' ad panels</p><div class="ad-combo__row">' + tiles + '</div></div>';
-      }).join('');
-    }
-  }
-
   function initRefreshClock() {
     var el = document.getElementById('last-refresh');
     if (!el) return;
@@ -409,43 +305,20 @@
     else fn();
   }
 
-  function applyDensityClass(cfg) {
-    document.body.classList.remove('density-executive', 'density-balanced', 'density-observatory');
-    document.body.classList.add('density-' + ((cfg && cfg.density) || 'balanced'));
-  }
-
   ready(function () {
-    var cfg = global.FTN.DisplayConfig ? global.FTN.DisplayConfig.load() : null;
-    applyDensityClass(cfg);
+    document.body.classList.add('density-balanced');
     initRealityInsights();
     if (global.FTN.TodayPanel) global.FTN.TodayPanel.render('today-panel-mount');
     if (global.FTN.WhatChanged) global.FTN.WhatChanged.render('what-changed-mount');
-    initSearch(function () { return global.FTN.DisplayConfig ? global.FTN.DisplayConfig.load() : null; });
+    initSearch();
     initDiscovery();
     renderCategoryChips();
-    renderCategories(cfg);
+    renderCategories();
     applyCategoryVisibility();
     initCustomizePanel();
-    initPanelToggle('display-config-toggle', 'display-config-panel');
-    initKioskMode();
     initRefreshClock();
     initHeroVitals();
     initPauseControl();
-    if (global.FTN.DisplayConfig) global.FTN.DisplayConfig.init('display-config-panel');
     if (global.FTN.Ads) global.FTN.Ads.renderPlacement('ad-rail-mount', 'rail');
-    if (global.FTN.DisplayMode) global.FTN.DisplayMode.initToggle('fullscreen-toggle', 'display-mode-exit');
-    if (global.FTN.FounderControls) global.FTN.FounderControls.render('founder-controls-mount');
-    renderAdPackages();
-
-    global.addEventListener('ftn:display-config-changed', function (e) {
-      applyDensityClass(e.detail);
-      renderCategories(e.detail);
-      applyCategoryVisibility();
-    });
-
-    global.addEventListener('ftn:founder-controls-changed', function () {
-      renderCategories(cfg);
-      applyCategoryVisibility();
-    });
   });
 })(window);

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FTN Display | One Screen. Trinidad &amp; Tobago.</title>
+  <meta name="description" content="FTN Display is one standardized public FTN screen — the Trinidad &amp; Tobago national pulse, FTN TV NOW and a world strip. No account, no setup. Open it and go full screen.">
+  <link rel="canonical" href="https://ftnplatform.org/display/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FTN Platform">
+  <meta property="og:title" content="FTN Display | One Screen. Trinidad &amp; Tobago.">
+  <meta property="og:description" content="One standardized public FTN screen. No account, no setup. Open it and go full screen.">
+  <meta property="og:url" content="https://ftnplatform.org/display/">
+  <meta property="og:image" content="https://ftnplatform.org/assets/social/og-ftn-platform.jpg">
+  <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FTN Display | One Screen. Trinidad &amp; Tobago.">
+  <meta name="twitter:description" content="One standardized public FTN screen. No account, no setup. Open it and go full screen.">
+  <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-ftn-platform.jpg">
+  <meta name="robots" content="index,follow">
+  <link rel="icon" href="/assets/icons/ftn-shortcut-mark.svg?v=20260811.2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components/buttons.css">
+  <link rel="stylesheet" href="/css/components/nav.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/trust-card.css">
+  <link rel="stylesheet" href="/css/components/display.css">
+  <link rel="stylesheet" href="/css/utilities.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container site-header__bar">
+      <a class="site-header__logo" href="/" aria-label="FTN Platform home">
+        <svg viewBox="0 0 220 64" role="img" aria-labelledby="headerLogoTitle" class="logo-mark">
+          <title id="headerLogoTitle">FTN Platform</title>
+          <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#0B0B0B">F<tspan class="logo-mark__t">T</tspan>N</text>
+          <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#0B0B0B">PLATFORM</text>
+        </svg>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul class="site-nav__list">
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/">Home</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/applications/">FTN Directory</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/observatory/">FTN Observer</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="site-header__actions">
+        <a class="btn btn-primary btn-sm" href="/account/" data-sign-in-entry>Sign In</a>
+        <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
+          <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
+          <img class="icon-close" src="/assets/icons/icon-close.svg" alt="" width="20" height="20">
+        </button>
+      </div>
+    </div>
+    <div class="mobile-nav" id="mobile-nav">
+      <div class="mobile-nav__section">
+        <div class="mobile-nav__links">
+          <a href="/" class="mobile-nav__link--top">Home</a>
+          <a href="/applications/" class="mobile-nav__link--top">FTN Directory</a>
+          <a href="/observatory/" class="mobile-nav__link--top">FTN Observer</a>
+          <a href="/contact/" class="mobile-nav__link--top">Contact</a>
+        </div>
+      </div>
+      <div class="mobile-nav__actions">
+        <a class="btn btn-primary" href="/account/" data-sign-in-entry>Sign In</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1" class="display-screen">
+    <div class="display-topbar">
+      <div class="display-topbar__id">
+        <span class="display-topbar__mark">FTN Display</span>
+        <span class="display-topbar__clock" id="display-clock">—</span>
+        <span class="display-topbar__weather" id="display-weather-brief">—</span>
+      </div>
+      <div class="display-topbar__actions">
+        <span class="display-topbar__url">ftnplatform.org/display</span>
+        <button type="button" class="btn btn-primary btn-sm" id="display-fullscreen-toggle">Full Screen</button>
+      </div>
+    </div>
+
+    <p class="display-lede">
+      One standardized FTN screen for a waiting room, shop, office or reception area. No account, no setup —
+      open it and press Full Screen. Deep investigation, correlations and search live at <a href="/observatory/">FTN Observer</a>.
+    </p>
+
+    <section class="display-pulse" aria-label="Trinidad and Tobago national pulse" id="display-pulse"></section>
+
+    <section class="display-tvnow" aria-label="FTN TV NOW">
+      <div class="display-tvnow__player">
+        <div class="display-tvnow__video"><iframe id="display-tv-frame" title="FTN TV NOW" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
+        <div class="display-tvnow__meta">
+          <span class="display-tvnow__eyebrow">FTN TV NOW</span>
+          <strong id="display-tv-title">Tuning FTN TV…</strong>
+          <span id="display-tv-source">Resolving an authorized Trinidad &amp; Tobago source…</span>
+        </div>
+      </div>
+      <div class="display-next" aria-label="Next on FTN TV">
+        <p class="display-next__label">NEXT</p>
+        <ol id="display-next-list"><li class="display-next__empty">Loading…</li></ol>
+      </div>
+    </section>
+
+    <div class="display-grid">
+      <section class="display-panel" aria-label="Live conditions" id="display-conditions">
+        <h2>Live Conditions</h2>
+        <div class="display-panel__body" id="display-conditions-body">Loading…</div>
+      </section>
+
+      <section class="display-panel" aria-label="What's happening">
+        <h2>What's Happening</h2>
+        <ul class="display-links">
+          <li><a href="/kaiso/">FTN Kaiso — current reporting →</a></li>
+          <li><a href="/parliament/">FTN Parliament — public records →</a></li>
+          <li><a href="/observatory/">FTN Observer — full investigation deck →</a></li>
+        </ul>
+      </section>
+
+      <section class="display-panel" aria-label="Community">
+        <h2>Community</h2>
+        <ul class="display-links">
+          <li><a href="/community-connect/">FTN Community Connect — report an issue →</a></li>
+          <li><a href="/events/">FTN Events — what's on →</a></li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="display-world" aria-label="World Now">
+      <h2>World Now</h2>
+      <div class="display-world__grid">
+        <div class="display-world__zones" id="display-world-zones"></div>
+        <div class="display-world__economy" id="display-world-economy"></div>
+      </div>
+      <p class="display-world__note">Reference figures only, not a live market feed. Full international and regional context: <a href="/kaiso/">FTN Kaiso</a>.</p>
+    </section>
+
+    <p class="display-methodology">
+      Every figure states its own basis — current source, FTN modelled estimate, or not yet available. Modelled
+      and illustrative values are never presented as official measurements. <span id="display-presence-note"></span>
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__top">
+        <div class="site-footer__brand">
+          <svg viewBox="0 0 220 64" role="img" aria-labelledby="footerLogoTitle" class="logo-mark--footer">
+            <title id="footerLogoTitle">FTN Platform</title>
+            <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#FFFFFF">F<tspan class="logo-mark__t">T</tspan>N</text>
+            <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#FFFFFF">PLATFORM</text>
+          </svg>
+          <p class="site-footer__tagline">One Ecosystem. One Mission. Built for the Caribbean.</p>
+        </div>
+        <div class="site-footer__columns">
+          <div>
+            <p class="site-footer__heading">Platform</p>
+            <div class="site-footer__links">
+              <a href="/about/">About FTN</a>
+              <a href="/community-connect/">Community Connect</a>
+              <a href="/display/">FTN Display</a>
+              <a href="/observatory/">FTN Observer</a>
+              <a href="/learn/">FTN Learn</a>
+              <a href="/kaiso/">FTN Kaiso</a>
+              <a href="/opportunities/">FTN Opportunities</a>
+            </div>
+          </div>
+          <div>
+            <p class="site-footer__heading">Legal</p>
+            <div class="site-footer__links">
+              <a href="/legal/privacy-policy/">Privacy Policy</a>
+              <a href="/legal/terms-of-service/">Terms of Service</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="site-footer__bottom">
+        <p>&copy; 2026 RealityArtTV Media. All Rights Reserved.</p>
+        <div class="site-footer__bottom-links">
+          <a href="/sitemap/">Sitemap</a>
+          <a href="/accessibility/">Accessibility</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/persisted-flag.js"></script>
+  <script src="/js/platform-mode.js"></script>
+  <script src="/js/storage.js"></script>
+  <script src="/js/country.js"></script>
+  <script src="/js/nav.js?v=20260822.1"></script>
+  <script src="/js/source-registry.js"></script>
+  <script src="/js/data-source.js"></script>
+  <script src="/js/indicators-data.js"></script>
+  <script src="/js/trust-card.js"></script>
+  <script src="/js/live-clocks.js"></script>
+  <script src="/js/ftn-media-discovery.js"></script>
+  <script src="/js/display-presence.js"></script>
+  <script src="/js/display-page.js"></script>
+</body>
+</html>

@@ -89,7 +89,7 @@ product({
   primaryUser:'People trying to complete or create something across FTN',primaryJourney:'Describe the outcome, choose an intelligence or creative mode, inspect the source/provider/cost boundary and continue with an exportable project.',
   callsToAction:[{label:'Ask ibis',route:'/ibis-ai/'},{label:'Open Creative Studio',route:'/ibis-ai/#ibis-creative-studio'}],visualMnemonic:'Ibis creative command node',panelAsset:'/assets/panels/05-ibis-ai.png',panelRow:1,accent:'var(--color-ibis)',atmosphere:{accent:'var(--color-ibis)',background:'dark-minimal',motionProfile:'node-pulse',heroStyle:'calm-focused'},
   dataSources:['FTN Product Registry','FTN public source functions','authenticated approved AI provider','verified creative-provider registry'],accessRules:['guest deterministic tools','authenticated server AI','paid provider calls disabled until credits and server approval'],featureFlags:['ibis-router','ibis-visual','ibis-authenticated-ai','ibis-creative-studio','provider-cost-lock'],
-  relatedProducts:['platform-home','mission-control','kaiso','ftn-fire'],legalNotices:['Generated-output notice','Private conversation boundary','Provider transfer and cost notice','Responsible AI'],analyticsClassification:'private-content-no-replay',
+  relatedProducts:['platform-home','mission-control','kaiso','ftn-fire','learn'],legalNotices:['Generated-output notice','Private conversation boundary','Provider transfer and cost notice','Responsible AI'],analyticsClassification:'private-content-no-replay',
   keywords:['help','navigate','find','assist','goal','route','analyze','visual','image','video','creative studio','campaign','TV show','pilot','series','screenplay','script'],capabilities:['task-routing','ftn-data-analysis','media-discovery','on-device-visual-draft','creative-project-planning','provider-evidence','authenticated-server-ai','cross-product-handoff']
 }),
 product({
@@ -129,16 +129,36 @@ product({
   id:'tv',name:'FTN TV',shortName:'TV',tagline:'Caribbean Television, Programmed with Purpose.',
   description:'A scheduled and on-demand FTN programme surface using authorized sources and honest on-air, replay, off-air and provider-failure states.',route:'/tv/',status:'AVAILABLE',parentProduct:'screen',
   primaryUser:'Caribbean programme audiences',primaryJourney:'Select a programme, verify its current availability and play an authorized source.',callsToAction:[{label:'Open the programme guide',route:'/tv/'}],visualMnemonic:'Broadcast frame and clock',
-  dataSources:['FTN schedule data','authorized YouTube embeds'],accessRules:['guest viewing'],featureFlags:['tv-guide'],relatedProducts:['screen','facethenation','ftn-live'],legalNotices:['Programme rights and source notice'],
+  dataSources:['FTN schedule data','authorized YouTube embeds'],accessRules:['guest viewing'],featureFlags:['tv-guide'],relatedProducts:['screen','facethenation','ftn-live','display'],legalNotices:['Programme rights and source notice'],
   keywords:['television','tv','channel','schedule','guide','watch','programme','replay'],capabilities:['current-programme-resolution','authorized-playback','schedule','tune','failure-state']
 }),
 product({
-  id:'ftn-live',legacyIds:['observatory'],name:'FTN Live',shortName:'FTN Live',tagline:'See Trinidad and Tobago as it is unfolding.',
-  description:'A source-backed Caribbean observation deck for current indicators, scheduled coverage and explicit source states and fallbacks.',route:'/observatory/',status:'AVAILABLE',
-  primaryUser:'People following current Caribbean conditions and scheduled coverage',primaryJourney:'Open a current or scheduled signal, inspect its source/time and follow its accurate next state.',
-  callsToAction:[{label:'Open FTN Live',route:'/observatory/'}],visualMnemonic:'Caribbean signal constellation',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
-  dataSources:['NOAA satellite products','Open-Meteo','World Bank','FTN public source registry','Trinidad and Tobago Meteorological Service','UWI Seismic Research Centre'],accessRules:['guest'],featureFlags:['live-sources','satellite','observer-console'],relatedProducts:['events','tv','mission-control'],
-  legalNotices:['External source availability','Calculated context notice'],keywords:['indicators','data','live','satellite','weather','schedule','replay','change','observer','correlation','flood','ferry','airport','vessel','earthquake','air quality','crime','parliament','power outage'],capabilities:['current-satellite-imagery','connected-public-sources','indicator-context','accurate-state','fallback','observer-console','observer-correlation-engine']
+  // Ecosystem Simplification pass: FTN Live retired as an independent identity. Its deep
+  // investigation/indicator/correlation capability IS what "FTN Observer" now means -- the id
+  // stays 'ftn-live' (every relatedProducts reference across this file keys on it) but the public
+  // name/description/role changed to INVESTIGATE, distinct from the new ambient FTN Display.
+  id:'ftn-live',legacyIds:['observatory','ftn-live'],name:'FTN Observer',shortName:'Observer',tagline:'Investigate what is happening in Trinidad and Tobago.',
+  description:'FTN’s deep observation and investigation console: current indicators, scheduled coverage, correlations and explicit source states for people who want to look closely, not glance from across a room.',route:'/observatory/',status:'AVAILABLE',
+  primaryUser:'People investigating current Caribbean conditions in depth',primaryJourney:'Open a current or scheduled signal, inspect its source/time/correlations and follow its accurate next state.',
+  callsToAction:[{label:'Open FTN Observer',route:'/observatory/'}],visualMnemonic:'Caribbean signal constellation',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
+  dataSources:['NOAA satellite products','Open-Meteo','World Bank','FTN public source registry','Trinidad and Tobago Meteorological Service','UWI Seismic Research Centre'],accessRules:['guest'],featureFlags:['live-sources','satellite','observer-console'],relatedProducts:['events','tv','mission-control','display'],
+  legalNotices:['External source availability','Calculated context notice'],keywords:['indicators','data','investigate','satellite','weather','schedule','replay','change','observer','correlation','flood','ferry','airport','vessel','earthquake','air quality','crime','parliament','power outage'],capabilities:['current-satellite-imagery','connected-public-sources','indicator-context','accurate-state','fallback','observer-console','observer-correlation-engine']
+}),
+product({
+  id:'display',name:'FTN Display',shortName:'Display',tagline:'Watch what is happening. One screen. No setup.',
+  description:'One standardized public FTN information screen — a compact Trinidad & Tobago national pulse, FTN TV NOW and a world strip, meant to be opened and left full screen. No account, no configuration, no advertising.',route:'/display/',status:'AVAILABLE',
+  primaryUser:'Anyone near a shared screen — a waiting room, office, shop or reception area',primaryJourney:'Open FTN Display, press full screen and leave it running.',
+  callsToAction:[{label:'Open FTN Display',route:'/display/'}],visualMnemonic:'Ambient national pulse screen',panelAsset:'/assets/panels/02-mission-control.png',panelRow:2,accent:'var(--color-red-on-dark)',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
+  dataSources:['FTN Product Registry','FTN public source registry','authorized YouTube discovery'],accessRules:['guest'],featureFlags:['display-pulse','display-tv-now'],relatedProducts:['ftn-live','kaiso','tv','parliament','events','community-connect'],
+  legalNotices:['External source availability','Calculated context notice'],keywords:['screen','ambient','watch','pulse','fullscreen','signage','waiting room','national debt','weather','currency','tv now'],capabilities:['national-pulse','tv-now','world-now','fullscreen','anonymous-presence']
+}),
+product({
+  id:'learn',name:'FTN Learn',shortName:'Learn',tagline:'Find something to learn.',
+  description:'FTN discovers legitimate Caribbean learning and training opportunities and sends you to the real provider — FTN Skills for practical/professional training, FTN School for what you are studying.',route:'/learn/',status:'AVAILABLE',
+  primaryUser:'Anyone looking for a course, workshop, apprenticeship or exam help',primaryJourney:'Choose FTN Skills or FTN School, search or filter, then contact or visit the real provider.',
+  callsToAction:[{label:'Open FTN Learn',route:'/learn/'}],visualMnemonic:'Open learning path',accent:'var(--color-opportunities)',atmosphere:{accent:'var(--color-opportunities)',background:'dark-growth',motionProfile:'none',heroStyle:'momentum'},
+  dataSources:['FTN Learn source function','provider-supplied and publicly discovered listings'],accessRules:['guest discovery'],featureFlags:['learn-fork','learn-search'],relatedProducts:['opportunities','ibis-ai'],legalNotices:['No accreditation by FTN','Verify current availability with the provider'],
+  keywords:['learn','course','training','workshop','apprenticeship','certification','scholarship','tutor','SEA','CSEC','CAPE','electrician','plumbing','welding','coding','school'],capabilities:['skills-school-fork','learn-search','provider-directory','opportunities-crosslink']
 }),
 product({
   id:'radio',name:'FTN Radio',shortName:'Radio',tagline:'The Soundtrack of the Caribbean.',
@@ -171,7 +191,7 @@ product({
   primaryUser:'Caribbean readers and editorial contributors',primaryJourney:'Read current attributed headlines, open the original publisher and submit a correction or story lead.',
   callsToAction:[{label:'Explore Kaiso sources',route:'/kaiso/'}],visualMnemonic:'Editorial rhythm lines',panelAsset:'/assets/panels/07-ftn-kaiso.png',panelRow:2,accent:'var(--color-kaiso)',atmosphere:{accent:'var(--color-kaiso)',background:'dark-editorial',motionProfile:'none',heroStyle:'newsroom'},
   heroAsset:'/assets/heroes/ftn-kaiso-newsroom.webp',heroAlt:'Caribbean editors reviewing printed stories in a working newsroom',heroFocalDesktop:'67% 50%',heroFocalMobile:'68% 50%',
-  dataSources:['Trinidad and Tobago Guardian','Trinidad Express','CARICOM official releases','original international publisher links','user-submitted lead drafts'],accessRules:['guest discovery','consented submission'],featureFlags:['kaiso-source-radar'],relatedProducts:['ftn-live','parliament','facethenation'],legalNotices:['Editorial verification and correction notice'],
+  dataSources:['Trinidad and Tobago Guardian','Trinidad Express','CARICOM official releases','original international publisher links','user-submitted lead drafts'],accessRules:['guest discovery','consented submission'],featureFlags:['kaiso-source-radar'],relatedProducts:['ftn-live','parliament','facethenation','display'],legalNotices:['Editorial verification and correction notice'],
   keywords:['kaiso','news','current affairs','Caribbean','Trinidad and Tobago','reporting','headlines','source'],capabilities:['current-source-radar','regional-context','original-publisher-links','story-lead-desk','verification-state']
 }),
 product({
@@ -201,7 +221,7 @@ product({
   primaryUser:'Caribbean and diaspora opportunity seekers',primaryJourney:'Filter a current listing, verify issuer/source/eligibility, save its deadline and continue to the official destination.',
   callsToAction:[{label:'Find an opportunity',route:'/opportunities/'}],visualMnemonic:'Rising opportunity line',panelAsset:'/assets/panels/10-ftn-opportunities.png',panelRow:2,accent:'var(--color-opportunities)',atmosphere:{accent:'var(--color-opportunities)',background:'dark-growth',motionProfile:'rising-line',heroStyle:'momentum'},
   heroAsset:'/assets/heroes/ftn-opportunities-port.webp',heroAlt:'Caribbean logistics professionals reviewing work at a busy container port',heroFocalDesktop:'68% 50%',heroFocalMobile:'66% 50%',
-  dataSources:['FTN opportunities source function','official issuer destinations'],accessRules:['guest discovery and local saves'],featureFlags:['opportunity-sources'],relatedProducts:['events','invest','mission-control'],legalNotices:['No guarantee or endorsement','Official-destination notice'],
+  dataSources:['FTN opportunities source function','official issuer destinations'],accessRules:['guest discovery and local saves'],featureFlags:['opportunity-sources'],relatedProducts:['events','invest','mission-control','learn'],legalNotices:['No guarantee or endorsement','Official-destination notice'],
   keywords:['job','grant','contract','business','career','procurement','funding','scholarship','tender'],capabilities:['official-source-feed','search','filter','save','application-tracker','calendar-export']
 }),
 product({
@@ -250,10 +270,10 @@ product({
 ];
 var ECOSYSTEM_GROUPS=[
   {id:'civic-public-life',title:'Civic & public life',description:'Participate, find official paths and follow the public record.',productIds:['community-connect','govern','parliament','facethenation']},
-  {id:'information-intelligence',title:'Information & intelligence',description:'Follow current signals, source-backed reporting and Caribbean-first assistance.',productIds:['ftn-live','kaiso','ibis-ai','scenario-workspace']},
+  {id:'information-intelligence',title:'Information & intelligence',description:'Watch what is happening, investigate it in depth, and get source-backed reporting and Caribbean-first assistance.',productIds:['display','ftn-live','kaiso','ibis-ai','scenario-workspace']},
   {id:'media-culture',title:'Media & culture',description:'Watch, listen and discover Caribbean stories through permitted sources.',productIds:['radio','screen','tv']},
   {id:'music-creation',title:'Music & creation',description:'Move from a music idea to rights-aware preparation, production and performance.',productIds:['riddim','ftn-fire','dj-tube','daw','epk']},
-  {id:'opportunities-business',title:'Opportunities & business',description:'Find verified paths to work, funding, partnerships and useful tools.',productIds:['opportunities','invest','top-picks']},
+  {id:'opportunities-business',title:'Opportunities & business',description:'Find verified paths to work, funding, partnerships, training and useful tools.',productIds:['opportunities','learn','invest','top-picks']},
   {id:'community-infrastructure',title:'Community & infrastructure',description:'Plan gatherings and prepare messages for eligible Caribbean placements.',productIds:['events','display-network']}
 ];
 global.FTN=global.FTN||{};

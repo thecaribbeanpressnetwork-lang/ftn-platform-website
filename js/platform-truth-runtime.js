@@ -14,7 +14,7 @@ function aboutTruth(){
     'Community Connect':['Flagship App','Connect. Report. Improve.'],
     'Mission Control':['Working Illustrative','Evidence, calculated relationships and scenario exploration.'],
     'Face The Nation':['Programme Hub','Interviews, public affairs and national conversation.'],
-    'FTN Live':['Working Foundation','Current Caribbean satellite imagery, source-backed signals and change radar.'],
+    'FTN Observer':['Working Foundation','Investigate current Caribbean satellite imagery, source-backed signals and change radar.'],
     'FTN Events':['Working MVP','Plan, procure and operate Caribbean events.'],
     'ibis.ai':['Working Foundation','Shared FTN intelligence, analysis, search and useful outputs.'],
     'FTN Riddim':['Working in Phases','Caribbean music tools, FTN DAW and FTN DJ Tube.'],
@@ -35,10 +35,12 @@ function applicationsTruth(){
     'FTN TV':'Turn on the scheduled Caribbean station, see what is on now and tune the guide.',
     'FTN Opportunities':'Search current official Caribbean opportunities, save them and track your application work.',
     'Display Network':'Build, reorder, preview and export approved screen playlists locally.',
-    'FTN Live':'Open with current Caribbean satellite imagery, connected sources and a calculated change radar.'
+    'FTN Observer':'Investigate current Caribbean satellite imagery, connected sources and a calculated change radar.',
+    'FTN Display':'One standardized public screen: the national pulse, FTN TV NOW and a world strip. Open and leave full screen.',
+    'FTN Learn':'Find real Caribbean training and courses through FTN Skills and FTN School.'
   };if(copy[name])p.textContent=copy[name];});
 }
-function sitemapTruth(){textReplace(document.body,'National Observatory','FTN Live');textReplace(document.body,'News & Stories','FTN Kaiso');}
+function sitemapTruth(){textReplace(document.body,'National Observatory','FTN Observer');textReplace(document.body,'News & Stories','FTN Kaiso');}
 function insightsTruth(){
   document.querySelectorAll('a[href="/news/"],a[href="/news"]').forEach(function(a){a.href='/kaiso/';if(/news/i.test(a.textContent||''))a.textContent='Open FTN Kaiso';});
   var community=document.querySelector('#community-reports .chart-card');

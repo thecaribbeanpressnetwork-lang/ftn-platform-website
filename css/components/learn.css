@@ -1,0 +1,249 @@
+/* FTN Learn — fork, search, and listing/provider cards. Reuses .workspace-field, .btn and
+   .workspace-output from workspace-shell.css; only the Learn-specific pieces live here. */
+
+.learn-fork {
+  padding: 21px 0 13px;
+}
+
+.learn-fork__copy h2 {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  margin: 8px 0;
+}
+
+.learn-fork__copy p {
+  color: var(--color-silver);
+  max-width: 65ch;
+}
+
+.learn-fork__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+  margin-top: 21px;
+}
+
+@media (max-width: 600px) {
+  .learn-fork__buttons { grid-template-columns: 1fr; }
+}
+
+.learn-fork__btn {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 13px;
+  padding: 21px;
+  color: var(--color-white);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.learn-fork__btn strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.learn-fork__btn span {
+  color: var(--color-silver);
+  font-size: 0.85rem;
+}
+
+.learn-fork__btn.is-active {
+  border-color: var(--color-opportunities, var(--color-red-on-dark));
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.learn-search {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding: 13px 0 21px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.learn-search__field {
+  max-width: 480px;
+}
+
+.learn-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.learn-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--color-white);
+  border-radius: 999px;
+  padding: 4px 13px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.learn-chip:hover {
+  border-color: var(--color-opportunities, var(--color-red-on-dark));
+}
+
+.learn-results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 13px;
+  padding: 21px 0;
+}
+
+@media (min-width: 700px) {
+  .learn-results { grid-template-columns: repeat(2, 1fr); }
+}
+
+.learn-empty {
+  grid-column: 1 / -1;
+  color: var(--color-silver);
+  max-width: 65ch;
+}
+
+.learn-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 13px;
+  padding: 21px;
+}
+
+.learn-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.learn-card__status {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.learn-card__status--unverified { color: #F59E0B; border: 1px solid #F59E0B; background: transparent; }
+.learn-card__status--open { color: #16A34A; border: 1px solid #16A34A; background: transparent; }
+
+.learn-card__track {
+  color: var(--color-silver);
+  font-size: 0.75rem;
+}
+
+.learn-card h3 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.learn-card__provider {
+  color: var(--color-silver);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.learn-card__facts {
+  margin: 13px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.learn-card__facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
+}
+
+.learn-card__facts dt {
+  font-weight: 700;
+  color: var(--color-silver);
+}
+
+.learn-card__caution {
+  font-size: 0.78rem;
+  color: #F59E0B;
+  margin: 8px 0;
+}
+
+.learn-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.learn-card__actions a {
+  color: var(--color-white);
+  text-decoration: underline;
+  font-size: 0.85rem;
+}
+
+.learn-providers {
+  padding: 21px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.learn-providers h2 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.learn-providers__note {
+  color: var(--color-silver);
+  font-size: 0.85rem;
+  max-width: 65ch;
+  margin-bottom: 13px;
+}
+
+.learn-providers__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 13px;
+}
+
+@media (min-width: 700px) {
+  .learn-providers__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1100px) {
+  .learn-providers__grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.learn-provider-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 13px;
+  padding: 13px;
+}
+
+.learn-provider-card h3 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.learn-provider-card p {
+  color: var(--color-silver);
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+}
+
+.learn-provider-card__category {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.learn-crosslink {
+  padding: 13px 0 34px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.learn-crosslink a {
+  color: var(--color-opportunities, var(--color-red-on-dark));
+}

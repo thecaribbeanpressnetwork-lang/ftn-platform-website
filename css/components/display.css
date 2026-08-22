@@ -1,0 +1,312 @@
+/* FTN Display — one standardized public screen. Dark, ambient, built for a 3-second glance and a
+   20-minute stare. Fibonacci spacing rhythm (8/13/21/34/55/89/144) governs hierarchy here rather
+   than the site's general 8pt token scale, since this surface is read from across a room. */
+
+.display-screen {
+  background: var(--color-black);
+  color: var(--color-white);
+  padding: 21px max(13px, calc((100vw - 1400px) / 2)) 55px;
+}
+
+.display-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+  flex-wrap: wrap;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.display-topbar__id {
+  display: flex;
+  align-items: baseline;
+  gap: 13px 21px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.display-topbar__mark {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-red-on-dark);
+  font-size: 14px;
+}
+
+.display-topbar__clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.display-topbar__weather {
+  color: var(--color-silver);
+  font-size: 14px;
+}
+
+.display-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.display-topbar__url {
+  color: var(--color-silver);
+  font-size: 12px;
+}
+
+.display-lede {
+  max-width: 89ch;
+  color: var(--color-silver);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 13px 0 21px;
+}
+
+.display-lede a { color: var(--color-red-on-dark); }
+
+/* National Pulse — compact strip, not a card wall */
+.display-pulse {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 21px;
+}
+
+@media (min-width: 700px) {
+  .display-pulse { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 1100px) {
+  .display-pulse { grid-template-columns: repeat(6, 1fr); }
+}
+
+.pulse-card {
+  min-width: 0;
+  overflow-wrap: break-word;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 13px;
+}
+
+.pulse-card--empty { opacity: 0.72; }
+
+.pulse-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-silver);
+  margin-bottom: 8px;
+}
+
+.pulse-card__value {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pulse-card__value span { font-size: 13px; font-weight: 600; color: var(--color-silver); }
+
+.pulse-card__note {
+  font-size: 11px;
+  color: var(--color-silver);
+  margin-top: 4px;
+}
+
+.pulse-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+/* FTN TV NOW — the visually dominant surface, per the golden-ratio composition brief */
+.display-tvnow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 13px;
+  margin-bottom: 21px;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .display-tvnow { grid-template-columns: minmax(0, 1.618fr) minmax(0, 1fr); align-items: start; }
+}
+
+.display-tvnow__player {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 13px;
+  overflow: hidden;
+  background: #000;
+}
+
+.display-tvnow__video { aspect-ratio: 16 / 9; background: #000; }
+.display-tvnow__video iframe { width: 100%; height: 100%; border: 0; }
+
+.display-tvnow__meta { padding: 13px; }
+
+.display-tvnow__eyebrow {
+  display: block;
+  color: var(--color-red-on-dark);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.display-tvnow__meta strong { display: block; font-size: 18px; margin-top: 4px; }
+.display-tvnow__meta span { color: var(--color-silver); font-size: 13px; }
+
+.display-next {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 13px;
+  padding: 13px;
+}
+
+.display-next__label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-silver);
+  margin-bottom: 8px;
+}
+
+.display-next ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.display-next li { border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; font-size: 13px; }
+.display-next li:first-child { border-top: 0; padding-top: 0; }
+.display-next li strong { display: block; }
+.display-next li span { color: var(--color-silver); font-size: 12px; }
+.display-next__empty { color: var(--color-silver); }
+
+.display-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 13px;
+  margin-bottom: 21px;
+}
+
+@media (min-width: 900px) {
+  .display-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.display-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
+  padding: 13px;
+}
+
+.display-panel h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-silver);
+  margin-bottom: 13px;
+}
+
+.condition-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+}
+
+.condition-row:first-child { border-top: 0; padding-top: 0; }
+
+.display-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.display-links a { color: var(--color-white); font-size: 13px; text-decoration: none; }
+.display-links a:hover { color: var(--color-red-on-dark); }
+
+.display-world {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 21px;
+}
+
+.display-world h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-silver);
+  margin-bottom: 13px;
+}
+
+.display-world__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 13px;
+}
+
+@media (min-width: 700px) {
+  .display-world__grid { grid-template-columns: 1.618fr 1fr; }
+}
+
+.display-world__zones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+@media (min-width: 500px) {
+  .display-world__zones { grid-template-columns: repeat(4, 1fr); }
+}
+
+.world-zone {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 13px;
+  text-align: center;
+}
+
+.world-zone span { display: block; color: var(--color-silver); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.world-zone strong { display: block; font-size: 18px; font-variant-numeric: tabular-nums; margin-top: 4px; }
+
+.world-economy__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+}
+
+.world-economy__row:first-child { border-top: 0; padding-top: 0; }
+.world-economy__row--muted { color: var(--color-silver); }
+
+.display-world__note {
+  color: var(--color-silver);
+  font-size: 12px;
+  margin-top: 13px;
+}
+
+.display-world__note a { color: var(--color-red-on-dark); }
+
+.display-methodology {
+  color: var(--color-silver);
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 34px;
+  max-width: 89ch;
+}
+
+/* Full-screen broadcast state — legible from several metres away */
+body.display-fullscreen .site-header,
+body.display-fullscreen .site-footer,
+body.display-fullscreen .display-lede,
+body.display-fullscreen .display-methodology {
+  display: none;
+}
+
+body.display-fullscreen .display-screen { padding-top: 13px; }
+body.display-fullscreen .pulse-card__value { font-size: 26px; }
+body.display-fullscreen .display-topbar__clock { font-size: 26px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .display-screen * { animation: none !important; transition: none !important; }
+}

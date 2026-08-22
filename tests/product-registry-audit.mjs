@@ -8,7 +8,7 @@ const context={window:{}};vm.createContext(context);vm.runInContext(source,conte
 const products=context.window.FTN.ProductRegistryData;
 assert(Array.isArray(products),'Product Registry did not produce an array');
 
-const required=['platform-home','community-connect','mission-control','scenario-workspace','govern','ibis-ai','parliament','facethenation','events','screen','tv','ftn-live','radio','riddim','ftn-fire','kaiso','dj-tube','daw','epk','opportunities','love','display-network','invest','top-picks','account','health'];
+const required=['platform-home','community-connect','mission-control','scenario-workspace','govern','ibis-ai','parliament','facethenation','events','screen','tv','ftn-live','display','learn','radio','riddim','ftn-fire','kaiso','dj-tube','daw','epk','opportunities','love','display-network','invest','top-picks','account','health'];
 for(const id of required)assert(products.some(p=>p.id===id),`Required FTN product missing: ${id}`);
 assert.equal(new Set(products.map(p=>p.id)).size,products.length,'Product Registry IDs must be unique');
 
@@ -50,24 +50,34 @@ assert(context.window.FTN.ProductRegistry.ecosystemGroups().some(group=>group.pr
 assert(!/\bBETA\b/.test(publicHtml),'Public release source must not advertise a stale BETA state');
 
 const directorySource=fs.readFileSync('js/ftn-directory.js','utf8');
-const firstClassDirectoryIds=['community-connect','govern','parliament','facethenation','ftn-live','kaiso','ibis-ai','scenario-workspace','radio','screen','tv','riddim','ftn-fire','dj-tube','daw','epk','opportunities','invest','top-picks','events','display-network'];
+const firstClassDirectoryIds=['community-connect','govern','parliament','facethenation','ftn-live','display','learn','kaiso','ibis-ai','scenario-workspace','radio','screen','tv','riddim','ftn-fire','dj-tube','daw','epk','opportunities','invest','top-picks','events','display-network'];
 const ecosystemGroups=context.window.FTN.ProductRegistry.ecosystemGroups();
 const groupedIds=ecosystemGroups.flatMap(group=>group.products.map(product=>product.id));
 for(const id of firstClassDirectoryIds)assert(groupedIds.includes(id),`Active product missing from Product Registry ecosystem groups: ${id}`);
 assert(directorySource.includes('Registry.ecosystemGroups()'),'FTN Directory must consume registry-defined ecosystem groups');
 assert(!directorySource.includes("'mission-control'"),'Mission Control must not be exposed in the FTN Directory');
-for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis.ai','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
+for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis.ai','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks','FTN Display','FTN Observer','FTN Learn'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
 for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(groupedIds.includes(p.id),`${p.name} has no registry group mapping`);
 
 // Sitewide ecosystem-header pass (founder directive): the global nav dropped abstract pillar
 // labels (NOW/COMMUNITY/CULTURE/OPPORTUNITY) for real "FTN <Product>" names plus an "FTN
 // Ecosystem" overflow menu -- every FTN product keeps its FTN prefix in user-facing nav, never
 // abbreviated. See CLAUDE.md and js/nav.js's own PRIMARY_NAV comment for the full record.
+//
+// Ecosystem Simplification pass: FTN Live retired as an independent identity (renamed FTN
+// Observer -- deep investigation, distinct from the new ambient FTN Display) and FTN Now retired
+// outright (superseded by FTN Display). Both old routes redirect rather than 404.
 const navSource=fs.readFileSync('js/nav.js','utf8');
-for(const name of ['FTN Platform','FTN Community Connect','FTN Live','FTN Kaiso','FTN Parliament','FTN TV','FTN Screen','FTN Radio','FTN Riddim','FTN Opportunities','FTN ibis.ai','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global navigation missing canonical FTN product name: ${name}`);
+for(const name of ['FTN Platform','FTN Community Connect','FTN Display','FTN Observer','FTN Kaiso','FTN Parliament','FTN TV','FTN Riddim','FTN Opportunities','FTN Learn','FTN ibis.ai','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global navigation missing canonical FTN product name: ${name}`);
 assert(navSource.includes('FTN Invest-in'),'Global navigation must use the canonical FTN Invest-in name');
-assert(fs.existsSync('now/index.html'),'NOW homepage is missing');
-assert(sitemap.includes('https://ftnplatform.org/now/'),'NOW homepage is absent from the sitemap');
+assert(!navSource.includes("'FTN Live'"),'FTN Live must not appear as an independent product name in global navigation -- it is FTN Observer now');
+assert(!fs.existsSync('now/index.html'),'NOW homepage should be retired, not rebuilt as an independent product page');
+assert(!sitemap.includes('https://ftnplatform.org/now/'),'Retired /now/ must not be advertised in the sitemap');
+assert(sitemap.includes('https://ftnplatform.org/display/'),'FTN Display is absent from the sitemap');
+assert(sitemap.includes('https://ftnplatform.org/learn/'),'FTN Learn is absent from the sitemap');
+const redirectsSource=fs.readFileSync('_redirects','utf8');
+assert(/^\/live\/?\s+\/observatory\/\s+301/m.test(redirectsSource)||redirectsSource.includes('/live/ /observatory/ 301'),'/live/ must redirect to FTN Observer so no external link breaks');
+assert(redirectsSource.includes('/now/ /display/ 301'),'/now/ must redirect to FTN Display so no external link breaks');
 assert(!/PRIMARY_NAV[^;]+Mission Control/s.test(navSource),'Mission Control must not enter public navigation');
 assert(navSource.includes('ecosystemGroups()'),'FTN Ecosystem menu must be built from the Product Registry, not a second hardcoded list');
 assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.4\.0'/,'Service-worker cache namespace was not advanced for changed assets');
@@ -82,8 +92,8 @@ assert(!/email|access_token|user_id|textContent\s*[,)]/.test(analyticsSource),'A
 assert(navSource.includes('/js/analytics.js?v=20260818.3'),'Global navigation must load the current privacy-safe analytics module');
 
 const htmlFiles=[];function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules'].includes(entry.name))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(entry.name.endsWith('.html'))htmlFiles.push(full);}}walk('.');
-for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260818.3'),`${file} uses a stale global navigation asset URL`);}
-for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of ['product-registry-data','product-registry','ftn-directory'])if(html.includes(`/js/${asset}.js`)){const expected=asset==='product-registry-data'?/\/js\/product-registry-data\.js\?v=20260819\.(?:1|2)/:new RegExp(`/js/${asset}\\.js\\?v=20260819\\.1`);assert(expected.test(html),`${file} uses a stale ${asset} asset URL`);}}
+for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260822.1'),`${file} uses a stale global navigation asset URL`);}
+for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of ['product-registry-data','product-registry'])if(html.includes(`/js/${asset}.js`))assert(html.includes(`/js/${asset}.js?v=20260822.1`),`${file} uses a stale ${asset} asset URL`);}
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8'),match=html.match(/<link rel=["']canonical["'] href=["']([^"']+)/i);if(match)assert(/^https:\/\/ftnplatform\.org\//.test(match[1]),`${file} has non-apex canonical ${match[1]}`);}
 for(const file of htmlFiles.filter(file=>!['love/index.html','health/index.html'].includes(file))){
   const html=fs.readFileSync(file,'utf8');

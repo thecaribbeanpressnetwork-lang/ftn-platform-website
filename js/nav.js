@@ -34,17 +34,22 @@
   // list (an explicit founder-set order, not something the Product Registry encodes) -- the
   // FULL product list still comes from the registry itself, see buildEcosystemMenu() below, so
   // there's exactly one hardcoded list here, not two competing ones.
+  // Ecosystem Simplification pass: FTN Live retired as an independent identity (it is FTN
+  // Observer now -- deep investigation, not ambient viewing) and FTN Now retired outright; both
+  // roles are covered by the new FTN Display. Screen and Radio moved out of the primary row (they
+  // remain one click away in FTN Ecosystem) to make room for FTN Display and FTN Learn, per the
+  // founder's explicit priority order.
   var PRIMARY_NAV=[
     ['FTN Platform','/','The FTN Platform home — the Caribbean ecosystem entry point'],
     ['FTN Community Connect','/community-connect/','Report and track local civic issues'],
-    ['FTN Live','/observatory/','Trinidad & Tobago live observation console'],
+    ['FTN Display','/display/','One screen. Watch what is happening in Trinidad & Tobago'],
+    ['FTN Observer','/observatory/','Investigate Trinidad & Tobago in depth — indicators and correlations'],
     ['FTN Kaiso','/kaiso/','Caribbean current-affairs and news desk'],
     ['FTN Parliament','/parliament/','Parliament of Trinidad and Tobago public records'],
     ['FTN TV','/tv/','Caribbean television, programmed with purpose'],
-    ['FTN Screen','/screen/','Caribbean film and screen-work discovery'],
-    ['FTN Radio','/radio/','Caribbean audio discovery and creator delivery'],
     ['FTN Riddim','/riddim/','Caribbean music creation hub — Fire, DJ Tube, DAW, EPK'],
     ['FTN Opportunities','/opportunities/','Jobs, grants and Caribbean opportunities'],
+    ['FTN Learn','/learn/','Find something to learn — FTN Skills and FTN School'],
     ['FTN ibis.ai','/ibis-ai/','Ask ibis — FTN’s Caribbean-first AI assistant']
   ];
   function escNav(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -129,7 +134,7 @@
   // Canonical Platform / Company / Legal structure -- one shared footer, same on every
   // site-footer page (see CLAUDE.md FIX 6). Social icons are normalized separately below
   // since they live in .site-footer__brand, a sibling this function does not touch.
-  var FOOTER_PLATFORM=[['About FTN','/about/'],['Community Connect','/community-connect/'],['Scenario Workspace','/scenario-workspace/'],['FTN Events','/events/'],['Face The Nation','/facethenation'],['ibis.ai','/ibis-ai/'],['FTN Riddim','/riddim/'],['FTN Kaiso','/kaiso/'],['FTN Radio','/radio/'],['FTN Screen','/screen/'],['FTN Opportunities','/opportunities/'],['Display Network','/display-network/'],['FTN Live','/observatory/']];
+  var FOOTER_PLATFORM=[['About FTN','/about/'],['Community Connect','/community-connect/'],['FTN Display','/display/'],['FTN Observer','/observatory/'],['FTN Learn','/learn/'],['Scenario Workspace','/scenario-workspace/'],['FTN Events','/events/'],['Face The Nation','/facethenation'],['ibis.ai','/ibis-ai/'],['FTN Riddim','/riddim/'],['FTN Kaiso','/kaiso/'],['FTN Radio','/radio/'],['FTN Screen','/screen/'],['FTN Opportunities','/opportunities/'],['Display Network','/display-network/']];
   var FOOTER_COMPANY=[['About FTN','/about/'],['FTN Invest-in','/invest/'],['Contact','/contact/'],['Trust Centre','/trust/']];
   var FOOTER_LEGAL=[['Privacy Policy','/legal/privacy-policy/'],['Terms of Service','/legal/terms-of-service/'],['Cookie Policy','/legal/cookie-policy/'],['Data Retention','/legal/data-retention/']];
   var FOOTER_SOCIAL=[['https://x.com/realityarttv','X','social-x.svg'],['https://facebook.com/realityarttv','Facebook','social-facebook.svg'],['https://instagram.com/realityarttv','Instagram','social-instagram.svg'],['https://youtube.com/realityarttv','YouTube','social-youtube.svg'],['https://linkedin.com/company/realityarttv','LinkedIn','social-linkedin.svg']];
