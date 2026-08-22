@@ -27,27 +27,102 @@
     a.textContent = 'FTN Invest-in';
   });
 
-  // Pass 16 UX Guardian fix (FTN Rule 2, first-time-visitor comprehension): each brand-language
-  // label keeps its identity (do not discard the brand voice), but now carries a real title/
-  // aria-label describing what a visitor who has never seen FTN would actually find there.
-  var PRIMARY_LINKS=[
-    ['NOW','/now/','What is happening right now: live indicators, alerts, and current status'],
-    ['COMMUNITY','/community-connect/','Community Connect — report and track local civic issues'],
-    ['CULTURE','/riddim/','FTN Riddim, Fire, Kaiso, Radio and Screen — Caribbean music and creative tools'],
-    ['OPPORTUNITY','/opportunities/','Jobs, grants and civic opportunities across the region'],
-    ['MY FTN','/account/','Your FTN account, saved work and settings'],
-    ['ASK IBIS','/ibis-ai/','Ask IBIS — FTN’s AI assistant for finding what you need']
+  // Sitewide ecosystem-header pass: the global nav must show FTN is an ecosystem, not a set of
+  // abstract section labels -- every anchor keeps its real "FTN <Product>" name (the brand
+  // prefix is never stripped to save space; the "FTN Ecosystem" overflow menu is the answer to
+  // "not enough room," not shorter labels). This is a deliberately small, hand-ordered priority
+  // list (an explicit founder-set order, not something the Product Registry encodes) -- the
+  // FULL product list still comes from the registry itself, see buildEcosystemMenu() below, so
+  // there's exactly one hardcoded list here, not two competing ones.
+  var PRIMARY_NAV=[
+    ['FTN Platform','/','The FTN Platform home — the Caribbean ecosystem entry point'],
+    ['FTN Community Connect','/community-connect/','Report and track local civic issues'],
+    ['FTN Live','/observatory/','Trinidad & Tobago live observation console'],
+    ['FTN Kaiso','/kaiso/','Caribbean current-affairs and news desk'],
+    ['FTN Parliament','/parliament/','Parliament of Trinidad and Tobago public records'],
+    ['FTN TV','/tv/','Caribbean television, programmed with purpose'],
+    ['FTN Screen','/screen/','Caribbean film and screen-work discovery'],
+    ['FTN Radio','/radio/','Caribbean audio discovery and creator delivery'],
+    ['FTN Riddim','/riddim/','Caribbean music creation hub — Fire, DJ Tube, DAW, EPK'],
+    ['FTN Opportunities','/opportunities/','Jobs, grants and Caribbean opportunities'],
+    ['FTN ibis.ai','/ibis-ai/','Ask ibis — FTN’s Caribbean-first AI assistant']
   ];
-  function links(className){return PRIMARY_LINKS.map(function(item){var current=location.pathname===item[1]||(item[1]!=='/'&&location.pathname.indexOf(item[1])===0);return'<a href="'+item[1]+'"'+(className?' class="'+className+'"':'')+(current?' aria-current="page"':'')+' title="'+item[2]+'" aria-label="'+item[0]+' — '+item[2]+'">'+item[0]+'</a>';}).join('');}
+  function escNav(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function isCurrent(route){return location.pathname===route||(route!=='/'&&location.pathname.indexOf(route)===0);}
+  function primaryLinkHtml(item,idx,extraClass){
+    var current=isCurrent(item[1]);
+    return '<a href="'+item[1]+'"'+(extraClass?' class="'+extraClass+'"':'')+(current?' aria-current="page"':'')+
+      (idx!=null?' data-nav-priority="'+idx+'"':'')+' title="'+escNav(item[2])+'" aria-label="'+escNav(item[0])+' — '+escNav(item[2])+'">'+escNav(item[0])+'</a>';
+  }
+  function links(className){return PRIMARY_NAV.map(function(item){return primaryLinkHtml(item,null,className);}).join('');}
+
+  // FTN Ecosystem overflow menu -- the Product Registry (js/product-registry-data.js +
+  // js/product-registry.js) is the one source of truth for the full grouped list, per the
+  // brief's own instruction not to maintain a second hardcoded product directory. Lazily loaded
+  // (most pages don't otherwise need it) and rendered once available; the trigger itself is
+  // always present so nothing shifts layout while it loads.
+  function loadOnceBySrc(src,marker){
+    // Some pages (e.g. the homepage) already carry a static, versioned
+    // <script src="/js/product-registry-data.js?v=..."> tag for their own use -- loadOnce()'s
+    // marker-attribute check doesn't see those, so it would inject a second copy. Check by src
+    // substring first (ignoring any ?v= query) before falling back to a fresh load.
+    var base=src.split('?')[0];
+    if(document.querySelector('script[src^="'+base+'"]'))return;
+    loadOnce(src,marker);
+  }
+  function ensureRegistryLoaded(callback){
+    if(globalThis.FTN&&globalThis.FTN.ProductRegistry){callback();return;}
+    loadOnceBySrc('/js/product-registry-data.js','data-ftn-registry-data');
+    loadOnceBySrc('/js/product-registry.js','data-ftn-registry-api');
+    var tries=0;(function poll(){if((globalThis.FTN&&globalThis.FTN.ProductRegistry)||tries++>120)callback();else setTimeout(poll,25);})();
+  }
+  function ecosystemMenuHtml(){
+    var groups=globalThis.FTN.ProductRegistry.ecosystemGroups();
+    return '<div class="ecosystem-menu__grid">'+groups.map(function(group){
+      return '<div class="ecosystem-menu__group"><p class="ecosystem-menu__group-title">'+escNav(group.title)+'</p><ul>'+
+        group.products.map(function(p){return '<li><a href="'+p.route+'"'+(isCurrent(p.route)?' aria-current="page"':'')+'>'+escNav(p.name)+'</a></li>';}).join('')+
+      '</ul></div>';
+    }).join('')+'</div>';
+  }
+  function populateEcosystemMenus(){
+    ensureRegistryLoaded(function(){
+      if(!globalThis.FTN||!globalThis.FTN.ProductRegistry)return;
+      var html=ecosystemMenuHtml();
+      document.querySelectorAll('[data-ecosystem-menu-panel]').forEach(function(panel){panel.innerHTML=html;});
+      document.querySelectorAll('[data-ecosystem-menu-mobile]').forEach(function(panel){panel.innerHTML=html;});
+    });
+  }
+
   function normalizeNavigation(){
-    document.querySelectorAll('.site-nav').forEach(function(nav){nav.setAttribute('aria-label','Primary');nav.innerHTML='<ul class="site-nav__list">'+PRIMARY_LINKS.map(function(item){var current=location.pathname===item[1]||(item[1]!=='/'&&location.pathname.indexOf(item[1])===0);return'<li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="'+item[1]+'"'+(current?' aria-current="page"':'')+' title="'+item[2]+'" aria-label="'+item[0]+' — '+item[2]+'">'+item[0]+'</a></li>';}).join('')+'</ul>';});
-    document.querySelectorAll('.nexus-nav').forEach(function(nav){nav.setAttribute('aria-label','Primary');nav.innerHTML=links('');});
-    document.querySelectorAll('.mobile-nav__links').forEach(function(nav){nav.innerHTML=links('mobile-nav__link--top');});
+    document.querySelectorAll('.site-nav').forEach(function(nav){
+      nav.setAttribute('aria-label','Primary');
+      nav.innerHTML='<ul class="site-nav__list">'+
+        PRIMARY_NAV.map(function(item,idx){return '<li class="site-nav__item" data-nav-priority-item="'+idx+'">'+primaryLinkHtml(item,idx,'site-nav__trigger site-nav__trigger--link')+'</li>';}).join('')+
+        '<li class="site-nav__item" data-nav-item><button type="button" class="site-nav__trigger" data-nav-trigger aria-haspopup="true" aria-expanded="false">FTN Ecosystem<svg class="chevron" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><div class="site-nav__dropdown site-nav__dropdown--mega" data-ecosystem-menu-panel><p class="ecosystem-menu__loading">Loading FTN Ecosystem…</p></div></li>'+
+        '</ul>';
+    });
+    document.querySelectorAll('.nexus-nav').forEach(function(nav){
+      nav.setAttribute('aria-label','Primary');
+      nav.innerHTML=PRIMARY_NAV.map(function(item,idx){return primaryLinkHtml(item,idx,null);}).join('')+
+        '<div class="nexus-nav__item" data-nav-item><button type="button" class="nexus-nav__ecosystem-trigger" data-nav-trigger aria-haspopup="true" aria-expanded="false">FTN Ecosystem ▾</button><div class="site-nav__dropdown site-nav__dropdown--mega nexus-nav__dropdown" data-ecosystem-menu-panel><p class="ecosystem-menu__loading">Loading FTN Ecosystem…</p></div></div>';
+    });
+    document.querySelectorAll('.mobile-nav__links').forEach(function(nav){
+      nav.innerHTML=links('mobile-nav__link--top')+
+        '<details class="mobile-nav__ecosystem"><summary>More FTN products</summary><div data-ecosystem-menu-mobile><p class="ecosystem-menu__loading">Loading…</p></div></details>';
+    });
     // Return-to-origin href is set by js/platform-foundation.js's accountLinks() (loaded a few
     // lines below, and the actual authority here since it always runs after this synchronous
     // block) -- this just sets the accessible label; not duplicating its return= logic.
     document.querySelectorAll('[data-sign-in-entry]').forEach(function(a){a.textContent='Account';a.setAttribute('aria-label','Open FTN Account');});
-    document.querySelectorAll('.nexus-header__bar').forEach(function(bar){if(bar.querySelector('[data-nexus-nav-toggle]'))return;var panel=document.createElement('div');panel.className='nexus-mobile-nav';panel.id='nexus-mobile-nav';panel.innerHTML=links('');bar.parentNode.appendChild(panel);var button=document.createElement('button');button.type='button';button.className='nexus-nav-toggle';button.setAttribute('data-nexus-nav-toggle','');button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','nexus-mobile-nav');button.textContent='Menu';bar.appendChild(button);button.onclick=function(){var open=button.getAttribute('aria-expanded')==='true';button.setAttribute('aria-expanded',String(!open));panel.classList.toggle('is-open',!open);};});
+    document.querySelectorAll('.nexus-header__bar').forEach(function(bar){if(bar.querySelector('[data-nexus-nav-toggle]'))return;var panel=document.createElement('div');panel.className='nexus-mobile-nav';panel.id='nexus-mobile-nav';panel.innerHTML=links('')+'<details class="mobile-nav__ecosystem"><summary>More FTN products</summary><div data-ecosystem-menu-mobile><p class="ecosystem-menu__loading">Loading…</p></div></details>';bar.parentNode.appendChild(panel);var button=document.createElement('button');button.type='button';button.className='nexus-nav-toggle';button.setAttribute('data-nexus-nav-toggle','');button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','nexus-mobile-nav');button.textContent='Menu';bar.appendChild(button);button.onclick=function(){var open=button.getAttribute('aria-expanded')==='true';button.setAttribute('aria-expanded',String(!open));panel.classList.toggle('is-open',!open);};});
+    // Deferred to DOMContentLoaded: nav.js itself is a plain (non-deferred) <script> that can
+    // run before LATER static tags on the same page -- e.g. the homepage's own
+    // <script src="/js/product-registry-data.js?v=..."> -- have been parsed into the DOM. Calling
+    // this synchronously here made ensureRegistryLoaded()'s "is it already on the page" check
+    // race that later tag and load a second, unversioned copy. Waiting for DOMContentLoaded
+    // (or firing at once if it already passed) makes the DOM-presence check reliable, since the
+    // whole document is parsed by then; the dropdown itself is hidden until opened regardless.
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',populateEcosystemMenus);else populateEcosystemMenus();
   }
   normalizeNavigation();
 

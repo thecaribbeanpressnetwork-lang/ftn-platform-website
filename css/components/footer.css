@@ -4,20 +4,22 @@
   background: var(--color-black);
   color: var(--color-white);
   border-top: 2px solid var(--color-red);
-  padding-block: var(--space-64) var(--space-32);
+  /* Sitewide UX pass: 96px/64px top padding was disproportionate to the footer's own content
+     -- trimmed to the FTN proportional (Fibonacci-derived) rhythm: 55px desktop, 34px base. */
+  padding-block: 34px var(--space-32);
 }
 
 @media (min-width: 1024px) {
   .site-footer {
-    padding-block: var(--space-96) var(--space-32);
+    padding-block: 55px var(--space-32);
   }
 }
 
 .site-footer__top {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-48);
-  padding-bottom: var(--space-48);
+  gap: 34px;
+  padding-bottom: 34px;
 }
 
 .site-footer__brand img {

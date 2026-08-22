@@ -59,12 +59,17 @@ assert(!directorySource.includes("'mission-control'"),'Mission Control must not 
 for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis.ai','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
 for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(groupedIds.includes(p.id),`${p.name} has no registry group mapping`);
 
+// Sitewide ecosystem-header pass (founder directive): the global nav dropped abstract pillar
+// labels (NOW/COMMUNITY/CULTURE/OPPORTUNITY) for real "FTN <Product>" names plus an "FTN
+// Ecosystem" overflow menu -- every FTN product keeps its FTN prefix in user-facing nav, never
+// abbreviated. See CLAUDE.md and js/nav.js's own PRIMARY_NAV comment for the full record.
 const navSource=fs.readFileSync('js/nav.js','utf8');
-for(const name of ['NOW','COMMUNITY','CULTURE','OPPORTUNITY','MY FTN','ASK IBIS'])assert(navSource.includes(`'${name}'`),`Global navigation missing canonical pillar ${name}`);
+for(const name of ['FTN Platform','FTN Community Connect','FTN Live','FTN Kaiso','FTN Parliament','FTN TV','FTN Screen','FTN Radio','FTN Riddim','FTN Opportunities','FTN ibis.ai','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global navigation missing canonical FTN product name: ${name}`);
 assert(navSource.includes('FTN Invest-in'),'Global navigation must use the canonical FTN Invest-in name');
 assert(fs.existsSync('now/index.html'),'NOW homepage is missing');
 assert(sitemap.includes('https://ftnplatform.org/now/'),'NOW homepage is absent from the sitemap');
-assert(!/PRIMARY_LINKS[^;]+Mission Control/s.test(navSource),'Mission Control must not enter public navigation');
+assert(!/PRIMARY_NAV[^;]+Mission Control/s.test(navSource),'Mission Control must not enter public navigation');
+assert(navSource.includes('ecosystemGroups()'),'FTN Ecosystem menu must be built from the Product Registry, not a second hardcoded list');
 assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.4\.0'/,'Service-worker cache namespace was not advanced for changed assets');
 const analyticsSource=fs.readFileSync('js/analytics.js','utf8');
 assert(analyticsSource.includes('6b49afbc-3929-4855-bda8-eff8755f685d'),'Umami website ID is missing');

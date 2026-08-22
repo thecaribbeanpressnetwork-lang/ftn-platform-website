@@ -165,6 +165,100 @@
   color: var(--color-black);
 }
 
+/* FTN Ecosystem overflow menu -- a wider, grouped mega-menu variant of the same dropdown,
+   built from the Product Registry (js/nav.js populateEcosystemMenus()). Dark-on-light like the
+   existing dropdown (readable default contrast is the point of this whole pass, not a hover-only
+   fix), just wider and column-grouped instead of a single stacked link list. */
+.site-nav__dropdown--mega {
+  right: 0;
+  left: auto;
+  min-width: min(92vw, 760px);
+  padding: var(--space-16);
+}
+
+.ecosystem-menu__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-16);
+}
+
+.ecosystem-menu__group-title {
+  margin: 0 0 var(--space-8);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-graphite);
+}
+
+.ecosystem-menu__group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.ecosystem-menu__group ul a {
+  color: var(--color-charcoal);
+  text-decoration: none;
+  font-size: var(--text-small-size);
+}
+
+.ecosystem-menu__group ul a:hover {
+  color: var(--color-red);
+}
+
+.ecosystem-menu__loading {
+  padding: var(--space-8) var(--space-12);
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+}
+
+@media (max-width: 900px) {
+  .site-nav__dropdown--mega {
+    right: auto;
+    left: 0;
+  }
+  .ecosystem-menu__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Progressive collapse (FTN ecosystem header pass): 11 real "FTN <Product>" anchors is a lot
+   for a laptop-width header. Priority 0 (FTN Platform) is always visible; higher-priority-number
+   items collapse away first as width shrinks, at breakpoints picked to keep 1366x768/1280x720
+   (the two mandated laptop viewports) compact and readable rather than wrapped or microscopic --
+   every hidden item is still in the always-present "FTN Ecosystem" menu, so nothing is lost. */
+@media (min-width: 1240px) {
+  .site-nav__item[data-nav-priority-item="4"],
+  .site-nav__item[data-nav-priority-item="5"],
+  .site-nav__item[data-nav-priority-item="6"],
+  .site-nav__item[data-nav-priority-item="7"],
+  .site-nav__item[data-nav-priority-item="8"],
+  .site-nav__item[data-nav-priority-item="9"],
+  .site-nav__item[data-nav-priority-item="10"] {
+    display: none;
+  }
+}
+
+@media (min-width: 1600px) {
+  .site-nav__item[data-nav-priority-item="4"],
+  .site-nav__item[data-nav-priority-item="5"],
+  .site-nav__item[data-nav-priority-item="6"],
+  .site-nav__item[data-nav-priority-item="7"] {
+    display: flex;
+  }
+}
+
+@media (min-width: 1900px) {
+  .site-nav__item[data-nav-priority-item="8"],
+  .site-nav__item[data-nav-priority-item="9"],
+  .site-nav__item[data-nav-priority-item="10"] {
+    display: flex;
+  }
+}
+
 .site-header__actions {
   display: flex;
   align-items: center;
@@ -258,6 +352,68 @@
   color: #e5e5e8;
   text-decoration: none;
   font-size: var(--text-small-size);
+}
+
+/* FTN Ecosystem overflow menu, mobile variant: a native <details>/<summary> disclosure so it
+   works with JS disabled too (progressive enhancement) and needs no extra open/close script.
+   .mobile-nav's own background is near-black (#070708) -- the shared .ecosystem-menu__* rules
+   above assume a light dropdown, so colors are explicitly overridden here rather than left to
+   inherit dark-on-dark. */
+.mobile-nav__ecosystem {
+  margin-top: var(--space-16);
+  padding-top: var(--space-16);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav__ecosystem summary {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-body-size);
+  cursor: pointer;
+  list-style: none;
+}
+
+.mobile-nav__ecosystem summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobile-nav__ecosystem summary::after {
+  content: " ▾";
+}
+
+.mobile-nav__ecosystem[open] summary::after {
+  content: " ▴";
+}
+
+.mobile-nav__ecosystem .ecosystem-menu__grid {
+  grid-template-columns: 1fr;
+  gap: var(--space-16);
+  margin-top: var(--space-12);
+}
+
+/* .mobile-nav (site-header's mobile panel) is near-black -- .nexus-mobile-nav (the Nexus page
+   family's own mobile panel) is white. Same markup, two different ambient backgrounds, so the
+   light-on-dark override is scoped to .mobile-nav specifically rather than assumed globally. */
+.mobile-nav .mobile-nav__ecosystem {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-nav .mobile-nav__ecosystem summary {
+  color: #fff;
+}
+
+.mobile-nav .mobile-nav__ecosystem .ecosystem-menu__group-title {
+  color: #9a9fa8;
+}
+
+.mobile-nav .mobile-nav__ecosystem .ecosystem-menu__group ul a {
+  color: #e5e5e8;
+  display: block;
+  padding: var(--space-4) 0;
+}
+
+.mobile-nav .mobile-nav__ecosystem .ecosystem-menu__loading {
+  color: #9a9fa8;
 }
 
 .mobile-nav__link--top {

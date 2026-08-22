@@ -53,6 +53,14 @@ const HEADER_BUDGET = { desktop: 0.14, tablet: 0.16, mobile: 0.20 };
 // viewport pushes a product's real, useful capability below the fold.
 const HERO_BUDGET = { desktop: 0.75, tablet: 0.85, mobile: 0.92 };
 
+// Sitewide first-viewport pass (founder directive): header-occupancy and hero-occupancy above
+// each check ONE element against its own generous budget, so a page can pass both individually
+// (header just under 14%, hero just under 75%) while the two TOGETHER still consume ~89% of a
+// laptop viewport -- leaving the user's first screen as chrome and a title, not product content.
+// This budget is deliberately tighter than HERO_BUDGET alone: it's the ceiling for header+hero
+// combined, not the hero by itself.
+const FIRST_VIEWPORT_BUDGET = { desktop: 0.62, tablet: 0.75, mobile: 0.85 };
+
 const MIN_TAP_TARGET_PX = 44; // WCAG 2.2 SC 2.5.8 minimum, matches the upstream tool's ~43.5px check
 const TRAILING_BLANK_BUDGET_PX = { desktop: 260, tablet: 320, mobile: 320 };
 
@@ -89,6 +97,13 @@ export function evaluatePage(route, breakpoint, metrics) {
     const ratio = metrics.heroHeight / breakpoint.height;
     const budget = HERO_BUDGET[klass];
     if (ratio > budget) push('MAJOR', 'hero-occupancy', `Hero/banner consumes ${(ratio * 100).toFixed(1)}% of the ${breakpoint.name} viewport (budget ${(budget * 100).toFixed(0)}%) -- product content pushed below the fold`, { heroHeight: metrics.heroHeight, viewportHeight: breakpoint.height });
+  }
+
+  if (typeof metrics.headerHeight === 'number' && typeof metrics.heroHeight === 'number' && metrics.headerHeight > 0 && metrics.heroHeight > 0) {
+    const combined = metrics.headerHeight + metrics.heroHeight;
+    const ratio = combined / breakpoint.height;
+    const budget = FIRST_VIEWPORT_BUDGET[klass];
+    if (ratio > budget) push('MAJOR', 'first-viewport-chrome', `Header + hero together consume ${(ratio * 100).toFixed(1)}% of the ${breakpoint.name} viewport (budget ${(budget * 100).toFixed(0)}%) -- the first screen is mostly chrome/title, not product content`, { headerHeight: metrics.headerHeight, heroHeight: metrics.heroHeight, viewportHeight: breakpoint.height });
   }
 
   if (Array.isArray(metrics.smallTapTargets) && metrics.smallTapTargets.length) {
@@ -268,6 +283,12 @@ async function main() {
     if (okHeader.some((f) => f.rule === 'header-occupancy')) throw new Error('Header-occupancy false-positive self-test failed');
     const overflow = evaluatePage('/x/', BREAKPOINTS[0], { horizontalOverflowPx: 40 });
     if (!overflow.some((f) => f.rule === 'horizontal-overflow' && f.severity === 'BLOCKER')) throw new Error('Horizontal-overflow self-test failed');
+    // Each individually under its own budget (header 12% + hero 55% of a 768px-tall viewport),
+    // but combined they're 67% -- over the 62% desktop first-viewport-chrome budget.
+    const stacked = evaluatePage('/x/', BREAKPOINTS[0], { headerHeight: 92, heroHeight: 422, horizontalOverflowPx: 0 });
+    if (!stacked.some((f) => f.rule === 'first-viewport-chrome' && f.severity === 'MAJOR')) throw new Error('First-viewport-chrome combined-budget self-test failed');
+    const compact = evaluatePage('/x/', BREAKPOINTS[0], { headerHeight: 80, heroHeight: 300, horizontalOverflowPx: 0 });
+    if (compact.some((f) => f.rule === 'first-viewport-chrome')) throw new Error('First-viewport-chrome false-positive self-test failed');
     console.log('FTN UX Guardian self-test passed.');
     return;
   }
