@@ -19,7 +19,11 @@
 /node_modules/
 
 # Local Claude Code tooling state (settings, session lock files) — not part of the shipped site.
-/.claude/
+# Exception: .claude/context/ is repository-owned on-demand documentation for CLAUDE.md's routing
+# table (added 2026-08-23 CLAUDE.md restructuring) — same category as GOVERNANCE/, tracked on
+# purpose, not local tooling state.
+/.claude/*
+!/.claude/context/
 
 # Local wrangler CLI cache (account id/name only, no secret -- the real OAuth token lives outside
 # the repo in the CLI's own user-level config). Not part of the shipped site; this repo has no
