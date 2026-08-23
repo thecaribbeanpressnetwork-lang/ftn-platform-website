@@ -29,6 +29,8 @@
 .ecosystem-hero__actions .btn{min-height:58px;padding:17px 36px;border-radius:3px;font-size:12px;font-weight:600;letter-spacing:.16em}
 .ecosystem-button--secondary{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.72);background:rgba(3,3,4,.62);color:#fff;text-decoration:none}
 .ecosystem-button--secondary:hover,.ecosystem-button--secondary:focus-visible{border-color:#fff;background:#fff;color:#08080a}
+.ecosystem-hero__tertiary{display:inline-flex;align-items:center;gap:8px;margin-top:22px;padding:0;border:0;background:none;color:#c9cad0;font:600 12px/1 Inter,sans-serif;letter-spacing:.06em;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.ecosystem-hero__tertiary:hover,.ecosystem-hero__tertiary:focus-visible{color:#fff}
 .ecosystem-hero__supporting{position:absolute;z-index:3;left:max(var(--grid-margin),calc((100vw - 1440px)/2 + 24px));bottom:clamp(34px,4vw,54px);margin:0;color:#9ea0a8;font-size:12px;line-height:1.5;letter-spacing:.02em}
 
 .ecosystem-intro{position:relative;isolation:isolate;min-height:320px;overflow:hidden;padding:58px 0 92px;background:#030304;color:#fff;border-bottom:1px solid rgba(255,255,255,.11)}
