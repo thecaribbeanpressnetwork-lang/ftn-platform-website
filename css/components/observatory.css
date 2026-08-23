@@ -194,6 +194,18 @@
   gap: var(--space-12);
 }
 
+/* Same fix as .pulse-card__meta .trust-badge (css/components/display.css): the shared
+   .trust-badge's solid pale fill is tuned for a white Trust Card modal, and reads as a bright
+   attention-grabbing chip against this card's dark background -- worse still for "modelled",
+   whose classification color is FTN's own brand red. Neutralize to one quiet outlined tone so
+   the number stays the loudest thing on the card; classification text is unchanged. */
+.hero-clock__meta .trust-badge {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--color-silver) !important;
+  margin-bottom: 0;
+}
+
 /* "The Nation Is Speaking" — Reality Insight rotator */
 .reality-insight {
   /* Pass 16 UX Guardian fix (trimmed once already); sitewide first-viewport pass trimmed

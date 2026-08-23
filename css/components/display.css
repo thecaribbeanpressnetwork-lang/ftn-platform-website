@@ -129,10 +129,14 @@
    loud, dominant chrome on this card's near-black background, competing with the actual number
    for attention on a screen meant to be glanced at, not audited. Recede it to a small outlined
    label; the classification and Trust Card link stay, just no longer the loudest thing on the
-   card. */
+   card. Color is intentionally overridden to one neutral tone regardless of classification --
+   currentColor here would mean "modelled" renders in FTN's own brand red, which reads as the
+   loudest, most brand-urgent thing on the card and defeats the recede. The classification text
+   itself (MODELLED/ILLUSTRATIVE/etc.) stays exactly as truthful; only its color is neutralized. */
 .pulse-card__meta .trust-badge {
   background: transparent;
-  border: 1px solid currentColor;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--color-silver) !important;
   padding: 2px 8px;
   font-size: 10px;
   margin-bottom: 0;

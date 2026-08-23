@@ -79,9 +79,6 @@
     <div class="clock-topbar">
       <span class="clock-topbar__mark">FTN Clock</span>
       <div class="clock-topbar__actions">
-        <button type="button" class="btn btn-outline--on-dark btn-sm" id="clock-personalize-toggle" aria-expanded="false" aria-controls="clock-personalize">Personalize</button>
-        <button type="button" class="btn btn-outline--on-dark btn-sm" id="clock-share">Share</button>
-        <button type="button" class="btn btn-outline--on-dark btn-sm" id="clock-install" hidden>Add to Home Screen</button>
         <button type="button" class="btn btn-primary btn-sm" id="clock-fullscreen-toggle">Full Screen</button>
       </div>
     </div>
@@ -114,6 +111,12 @@
         <span class="clock-radio__expand" id="clock-radio-expand-label">Expand</span>
       </button>
       <div class="radio-listen clock-radio__shell" id="clock-radio-shell" hidden></div>
+    </div>
+
+    <div class="clock-secondary-actions">
+      <button type="button" class="clock-secondary-actions__item" id="clock-personalize-toggle" aria-expanded="false" aria-controls="clock-personalize">Personalize</button>
+      <button type="button" class="clock-secondary-actions__item" id="clock-share">Share</button>
+      <button type="button" class="clock-secondary-actions__item" id="clock-install" hidden>Add to Home Screen</button>
     </div>
 
     <section class="clock-personalize" id="clock-personalize" hidden aria-label="Personalize FTN Clock">
