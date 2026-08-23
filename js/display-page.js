@@ -160,25 +160,48 @@
   // The single-screen fullscreen composition (css/components/display.css) has one tertiary
   // "rotate" grid slot shared by Live Conditions, What's Happening, Community and World Now --
   // showing all four stacked would force a scrollbar, defeating the point of fullscreen. Cycles
-  // through real, already-rendered panels; never invents content or reloads the page.
-  function initRotation() {
-    var candidates = Array.prototype.slice.call(document.querySelectorAll('.display-grid .display-panel, .display-world'));
-    if (!candidates.length) return;
-    var idx = 0, timer = null, paused = false, resumeTimer = null;
+  // through real, already-rendered panels; never invents content or reloads the page. Re-entrant
+  // (setupRotation, not a one-shot init) because Customize can change which modules exist to
+  // rotate through, or switch to Dense density where every module is shown at once and rotation
+  // has nothing to do.
+  var rotationState = null;
+
+  function teardownRotation() {
+    if (!rotationState) return;
+    if (rotationState.state.timer) global.clearInterval(rotationState.state.timer);
+    global.clearTimeout(rotationState.state.resumeTimer);
+    rotationState.listeners.forEach(function (rec) { rec.el.removeEventListener(rec.type, rec.fn); });
+    rotationState = null;
+  }
+
+  function setupRotation() {
+    teardownRotation();
+    var toggle = document.getElementById('display-rotate-toggle');
+    var density = global.FTN.DisplayCustomize ? global.FTN.DisplayCustomize.getDensity() : 'focus';
+    if (density === 'dense') {
+      if (toggle) toggle.hidden = true;
+      return;
+    }
+    var candidates = Array.prototype.slice.call(document.querySelectorAll('.display-grid .display-panel, .display-world'))
+      .filter(function (el) { return !el.classList.contains('display-module-hidden'); });
+    if (!candidates.length) { if (toggle) toggle.hidden = true; return; }
+    var idx = 0, paused = false, listeners = [];
+    var state = { timer: null, resumeTimer: null };
     var reduceMotion = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function show(i) {
       candidates.forEach(function (el, j) { el.classList.toggle('is-rotate-active', j === i); });
     }
     function tick() { idx = (idx + 1) % candidates.length; show(idx); }
-    function start() { if (timer || reduceMotion || paused) return; timer = global.setInterval(tick, 8000); }
-    function stop() { if (timer) { global.clearInterval(timer); timer = null; } }
+    function start() { if (state.timer || reduceMotion || paused) return; state.timer = global.setInterval(tick, 8000); }
+    function stop() { if (state.timer) { global.clearInterval(state.timer); state.timer = null; } }
     show(0);
     start();
-    if (reduceMotion) return;
 
-    var toggle = document.getElementById('display-rotate-toggle');
+    function on(el, type, fn) { el.addEventListener(type, fn); listeners.push({ el: el, type: type, fn: fn }); }
+
+    if (toggle) toggle.hidden = !document.body.classList.contains('display-fullscreen');
     if (toggle) {
-      toggle.addEventListener('click', function () {
+      on(toggle, 'click', function () {
         paused = !paused;
         toggle.textContent = paused ? '▶' : '⏸';
         toggle.setAttribute('aria-label', paused ? 'Resume module rotation' : 'Pause module rotation');
@@ -187,23 +210,172 @@
       });
     }
 
-    // Real interaction pause, not decoration: a click/tap/keyboard focus inside the rotating
-    // panel (e.g. opening its Trust Card) shouldn't have the ground shift from under it mid-read.
-    // Auto-resumes 15s after the interaction ends, unless the user has explicitly paused via the
-    // toggle above.
-    candidates.forEach(function (el) {
-      el.addEventListener('pointerenter', function () { stop(); });
-      el.addEventListener('focusin', function () { stop(); });
-      el.addEventListener('pointerleave', function () {
-        if (paused) return;
-        global.clearTimeout(resumeTimer);
-        resumeTimer = global.setTimeout(start, 15000);
+    if (!reduceMotion) {
+      // Real interaction pause, not decoration: a click/tap/keyboard focus inside the rotating
+      // panel (e.g. opening its Trust Card) shouldn't have the ground shift from under it mid-read.
+      // Auto-resumes 15s after the interaction ends, unless the user has explicitly paused via the
+      // toggle above.
+      candidates.forEach(function (el) {
+        on(el, 'pointerenter', function () { stop(); });
+        on(el, 'focusin', function () { stop(); });
+        on(el, 'pointerleave', function () {
+          if (paused) return;
+          global.clearTimeout(state.resumeTimer);
+          state.resumeTimer = global.setTimeout(start, 15000);
+        });
+        on(el, 'focusout', function () {
+          if (paused) return;
+          global.clearTimeout(state.resumeTimer);
+          state.resumeTimer = global.setTimeout(start, 15000);
+        });
       });
-      el.addEventListener('focusout', function () {
-        if (paused) return;
-        global.clearTimeout(resumeTimer);
-        resumeTimer = global.setTimeout(start, 15000);
+    }
+
+    rotationState = { state: state, listeners: listeners };
+  }
+
+  // ---- Customize: module visibility + density (Focus / Dense) ----
+  // Presentation densities per the founder walkthrough: FOCUS (default) is the six-real-module
+  // view above, with a rotating tertiary slot. DENSE ("information wall") shows every visible
+  // module at once in a tighter grid, no rotation -- an airport/newsroom-board feel built from
+  // the same six real modules, not a fabricated larger module count. Module visibility and
+  // presets both operate on the same six real Display modules; a preset is just a saved module
+  // set, never a module that doesn't exist elsewhere on this page.
+  var DISPLAY_MODULES = [
+    { id: 'pulse', selector: '#display-pulse', label: 'National Pulse (KPIs)' },
+    { id: 'tv', selector: '.display-tvnow', label: 'FTN TV NOW' },
+    { id: 'conditions', selector: '#display-conditions', label: 'Live Conditions' },
+    { id: 'whats-happening', selector: '#display-whats-happening', label: 'What’s Happening' },
+    { id: 'community', selector: '#display-community', label: 'Community' },
+    { id: 'world', selector: '.display-world', label: 'World Now' },
+  ];
+  var DISPLAY_PRESETS = [
+    { id: 'general', label: 'General', modules: ['pulse', 'tv', 'conditions', 'whats-happening', 'community', 'world'] },
+    { id: 'newsroom', label: 'Newsroom', modules: ['tv', 'whats-happening', 'conditions', 'world'] },
+    { id: 'business', label: 'Business', modules: ['pulse', 'world', 'tv'] },
+    { id: 'civic', label: 'Civic', modules: ['whats-happening', 'conditions', 'community', 'pulse'] },
+  ];
+  var ALL_MODULE_IDS = DISPLAY_MODULES.map(function (m) { return m.id; });
+  var MODULES_KEY = 'ftn_display_modules_v1';
+  var DENSITY_KEY = 'ftn_display_density_v1';
+
+  function initCustomize() {
+    var toggleBtn = document.getElementById('display-customize-toggle');
+    if (!toggleBtn || !global.FTN.Sheet) return;
+
+    var activeModules = loadModules();
+    var density = loadDensity();
+
+    function loadModules() {
+      try {
+        var raw = JSON.parse(localStorage.getItem(MODULES_KEY));
+        if (Array.isArray(raw) && raw.length) return raw.filter(function (id) { return ALL_MODULE_IDS.indexOf(id) !== -1; });
+      } catch (e) {}
+      return ALL_MODULE_IDS.slice();
+    }
+    function loadDensity() {
+      var v = null;
+      try { v = localStorage.getItem(DENSITY_KEY); } catch (e) {}
+      return v === 'dense' ? 'dense' : 'focus';
+    }
+    function saveModules() { try { localStorage.setItem(MODULES_KEY, JSON.stringify(activeModules)); } catch (e) {} }
+    function saveDensity() { try { localStorage.setItem(DENSITY_KEY, density); } catch (e) {} }
+
+    function applyModules() {
+      DISPLAY_MODULES.forEach(function (m) {
+        var el = document.querySelector(m.selector);
+        if (!el) return;
+        el.classList.toggle('display-module-hidden', activeModules.indexOf(m.id) === -1);
       });
+      setupRotation();
+    }
+    function applyDensity() {
+      document.body.setAttribute('data-display-density', density);
+      setupRotation();
+    }
+
+    global.FTN.DisplayCustomize = {
+      getDensity: function () { return density; },
+      getModules: function () { return activeModules.slice(); },
+    };
+
+    applyModules();
+    applyDensity();
+
+    function matchingPresetId() {
+      var sorted = activeModules.slice().sort().join(',');
+      var found = DISPLAY_PRESETS.filter(function (p) { return p.modules.slice().sort().join(',') === sorted; })[0];
+      return found ? found.id : 'custom';
+    }
+
+    function renderPanel(panel) {
+      var currentPreset = matchingPresetId();
+      panel.innerHTML =
+        '<button type="button" class="ftn-sheet__close" data-sheet-close aria-label="Close">&times;</button>' +
+        '<p class="display-customize__eyebrow">FTN DISPLAY</p>' +
+        '<h2 id="display-customize-title" class="display-customize__title">Customize this screen</h2>' +
+        '<div class="display-customize">' +
+          '<fieldset class="display-customize__group">' +
+            '<legend>Presentation density</legend>' +
+            '<label class="display-customize__radio"><input type="radio" name="display-density" value="focus"' + (density === 'focus' ? ' checked' : '') + '> Focus — fewer modules, larger, tertiary panel rotates</label>' +
+            '<label class="display-customize__radio"><input type="radio" name="display-density" value="dense"' + (density === 'dense' ? ' checked' : '') + '> Dense (Information Wall) — every visible module shown at once</label>' +
+          '</fieldset>' +
+          '<fieldset class="display-customize__group">' +
+            '<legend>Preset</legend>' +
+            '<div class="display-customize__presets">' +
+              DISPLAY_PRESETS.map(function (p) {
+                return '<button type="button" class="btn btn-outline btn-sm display-customize__preset' + (currentPreset === p.id ? ' is-active' : '') + '" data-preset="' + p.id + '">' + esc(p.label) + '</button>';
+              }).join('') +
+            '</div>' +
+          '</fieldset>' +
+          '<fieldset class="display-customize__group">' +
+            '<legend>Modules shown</legend>' +
+            DISPLAY_MODULES.map(function (m) {
+              return '<label class="display-customize__check"><input type="checkbox" data-module="' + m.id + '"' + (activeModules.indexOf(m.id) !== -1 ? ' checked' : '') + '> ' + esc(m.label) + '</label>';
+            }).join('') +
+          '</fieldset>' +
+          '<p class="display-customize__note">Choices are saved on this screen only — no account, no server-side config.</p>' +
+        '</div>';
+
+      panel.querySelector('[data-sheet-close]').addEventListener('click', function () { global.FTN.Sheet.close(); });
+      panel.querySelectorAll('input[name="display-density"]').forEach(function (input) {
+        input.addEventListener('change', function () {
+          density = input.value === 'dense' ? 'dense' : 'focus';
+          saveDensity();
+          applyDensity();
+        });
+      });
+      panel.querySelectorAll('[data-preset]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var preset = DISPLAY_PRESETS.filter(function (p) { return p.id === btn.getAttribute('data-preset'); })[0];
+          if (!preset) return;
+          activeModules = preset.modules.slice();
+          saveModules();
+          applyModules();
+          renderPanel(panel);
+        });
+      });
+      panel.querySelectorAll('input[data-module]').forEach(function (input) {
+        input.addEventListener('change', function () {
+          var id = input.getAttribute('data-module');
+          if (input.checked) {
+            if (activeModules.indexOf(id) === -1) activeModules.push(id);
+          } else {
+            // At least one module must stay visible -- an empty Display isn't a valid state.
+            if (activeModules.length <= 1) { input.checked = true; return; }
+            activeModules = activeModules.filter(function (mId) { return mId !== id; });
+          }
+          saveModules();
+          applyModules();
+          var presetButtons = panel.querySelectorAll('[data-preset]');
+          var current = matchingPresetId();
+          presetButtons.forEach(function (b) { b.classList.toggle('is-active', b.getAttribute('data-preset') === current); });
+        });
+      });
+    }
+
+    toggleBtn.addEventListener('click', function () {
+      global.FTN.Sheet.open({ id: 'display-customize-sheet', labelledBy: 'display-customize-title', render: renderPanel });
     });
   }
 
@@ -275,8 +447,7 @@
       var isFull = !!document.fullscreenElement;
       document.body.classList.toggle('display-fullscreen', isFull);
       btn.textContent = isFull ? 'Exit Full Screen' : 'Full Screen';
-      var rotateToggle = document.getElementById('display-rotate-toggle');
-      if (rotateToggle) rotateToggle.hidden = !isFull;
+      setupRotation();
       if (global.FTN.DisplayPresence) global.FTN.DisplayPresence.setFullscreen(isFull);
     });
   }
@@ -311,7 +482,8 @@
     initOrientation();
     initFullscreen();
     initPresence();
-    initRotation();
+    initCustomize();
+    setupRotation();
     renderTicker();
     setTimeout(renderTicker, 3000);
     setInterval(renderTicker, 60000);

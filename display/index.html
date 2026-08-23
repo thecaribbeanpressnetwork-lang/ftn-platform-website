@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="/css/components/trust-card.css">
   <link rel="stylesheet" href="/css/components/display.css">
   <link rel="stylesheet" href="/css/components/motion-system.css">
+  <link rel="stylesheet" href="/css/components/ftn-sheet.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
 <body>
@@ -91,6 +92,7 @@
           <button type="button" class="display-orientation__opt" data-orientation-option="portrait" aria-pressed="false">Portrait</button>
         </div>
         <a class="btn btn-outline--on-dark btn-sm" href="/clock/">Clock Mode</a>
+        <button type="button" class="btn btn-outline--on-dark btn-sm" id="display-customize-toggle">Customize</button>
         <button type="button" class="btn btn-outline--on-dark btn-sm" id="display-rotate-toggle" aria-pressed="false" aria-label="Pause module rotation" hidden>⏸</button>
         <button type="button" class="btn btn-primary btn-sm" id="display-fullscreen-toggle">Full Screen</button>
       </div>
@@ -124,7 +126,7 @@
         <div class="display-panel__body" id="display-conditions-body">Loading…</div>
       </section>
 
-      <section class="display-panel" aria-label="What's happening">
+      <section class="display-panel" aria-label="What's happening" id="display-whats-happening">
         <h2>What's Happening</h2>
         <ul class="display-links">
           <li><a href="/kaiso/">FTN Kaiso — current reporting →</a></li>
@@ -133,7 +135,7 @@
         </ul>
       </section>
 
-      <section class="display-panel" aria-label="Community">
+      <section class="display-panel" aria-label="Community" id="display-community">
         <h2>Community</h2>
         <ul class="display-links">
           <li><a href="/community-connect/">FTN Community Connect — report an issue →</a></li>
@@ -216,6 +218,7 @@
   <script src="/js/ftn-media-fallback.js"></script>
   <script src="/js/display-presence.js"></script>
   <script src="/js/ambient-hours.js"></script>
+  <script src="/js/ftn-sheet.js"></script>
   <script src="/js/display-page.js"></script>
 </body>
 </html>

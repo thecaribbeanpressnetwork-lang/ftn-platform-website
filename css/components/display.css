@@ -608,3 +608,159 @@ body.display-fullscreen[data-display-orientation="portrait"] .display-pulse {
     grid-template-rows: repeat(2, 1fr);
   }
 }
+
+/* Customize: module visibility. One dedicated !important class rather than the native `hidden`
+   attribute -- .display-pulse/.display-tvnow/.display-panel/.display-world all carry their own
+   unconditional `display:` rules, and an author-origin display: always beats [hidden] regardless
+   of specificity (this exact cascade footgun has bitten Clock's face/personalize toggles and the
+   sitewide ibis widget already this pass). */
+.display-module-hidden {
+  display: none !important;
+}
+
+/* Dense density ("Information Wall") -- every visible module shown at once instead of one
+   tertiary panel rotating through the slot. Still exactly the six real Display modules; nothing
+   fabricated. Live Conditions / What's Happening / Community / World Now each take a fixed
+   quadrant of the old single "rotate" area rather than stacking, so no module is ever hidden by
+   the density choice itself (Customize's own module checkboxes are the only thing that hides a
+   module). */
+body.display-fullscreen[data-display-density="dense"]:not([data-display-orientation="portrait"]) .display-screen {
+  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-rows: auto 0.85fr 0.65fr 0.65fr auto;
+  grid-template-areas:
+    "topbar topbar topbar"
+    "tv     pulse  pulse"
+    "tv     rot1   rot2"
+    "tv     rot3   rot4"
+    "ticker ticker ticker";
+}
+
+body.display-fullscreen[data-display-orientation="portrait"][data-display-density="dense"] .display-screen,
+body.display-fullscreen[data-display-orientation="auto"][data-display-density="dense"] .display-screen {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1.1fr 0.6fr 0.55fr 0.55fr auto;
+  grid-template-areas:
+    "topbar topbar"
+    "tv     tv"
+    "pulse  pulse"
+    "rot1   rot2"
+    "rot3   rot4"
+    "ticker ticker";
+}
+
+@media (orientation: landscape) {
+  body.display-fullscreen[data-display-orientation="auto"][data-display-density="dense"] .display-screen {
+    grid-template-columns: 1.4fr 1fr 1fr;
+    grid-template-rows: auto 0.85fr 0.65fr 0.65fr auto;
+    grid-template-areas:
+      "topbar topbar topbar"
+      "tv     pulse  pulse"
+      "tv     rot1   rot2"
+      "tv     rot3   rot4"
+      "ticker ticker ticker";
+  }
+}
+
+body.display-fullscreen[data-display-density="dense"] #display-conditions { grid-area: rot1; }
+body.display-fullscreen[data-display-density="dense"] #display-whats-happening { grid-area: rot2; }
+body.display-fullscreen[data-display-density="dense"] #display-community { grid-area: rot3; }
+body.display-fullscreen[data-display-density="dense"] .display-world { grid-area: rot4; }
+
+body.display-fullscreen[data-display-density="dense"] .display-panel,
+body.display-fullscreen[data-display-density="dense"] .display-world {
+  display: flex !important;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px 13px;
+  overflow: hidden;
+}
+
+body.display-fullscreen[data-display-density="dense"] .display-panel h2,
+body.display-fullscreen[data-display-density="dense"] .display-world h2 {
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+body.display-fullscreen[data-display-density="dense"] .display-world__note,
+body.display-fullscreen[data-display-density="dense"] .display-next {
+  display: none;
+}
+
+body.display-fullscreen[data-display-density="dense"] .display-world__grid {
+  flex: 1;
+  min-height: 0;
+}
+
+body.display-fullscreen[data-display-density="dense"] .condition-row,
+body.display-fullscreen[data-display-density="dense"] .display-links a,
+body.display-fullscreen[data-display-density="dense"] .world-zone strong,
+body.display-fullscreen[data-display-density="dense"] .world-economy__row {
+  font-size: 11px;
+}
+
+body.display-fullscreen[data-display-density="dense"] .display-pulse {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+body.display-fullscreen[data-display-density="dense"] .pulse-card__value {
+  font-size: 16px;
+}
+
+/* Customize sheet content -- reuses the shared FTN.Sheet chrome (light-surface panel, same as
+   every other Sheet consumer sitewide) even though Display itself is dark; consistency with the
+   one shared dialog primitive matters more than a bespoke dark variant for an occasional-use
+   settings panel. */
+.display-customize__eyebrow {
+  color: var(--color-red);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.display-customize__title {
+  margin-bottom: 21px;
+}
+
+.display-customize__group {
+  border: 0;
+  padding: 0;
+  margin: 0 0 21px;
+}
+
+.display-customize__group legend {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.display-customize__radio,
+.display-customize__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.display-customize__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.display-customize__preset.is-active {
+  background: var(--color-black);
+  color: var(--color-white);
+  border-color: var(--color-black);
+}
+
+.display-customize__note {
+  color: var(--color-charcoal);
+  font-size: 12px;
+}
