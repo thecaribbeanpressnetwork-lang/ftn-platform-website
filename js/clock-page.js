@@ -6,7 +6,7 @@
   'use strict';
 
   var PREF_KEY = 'ftn-clock-prefs-v1';
-  var DEFAULT_PREFS = { style: 'analog', background: 'default', date: true, worldNow: false, radio: false, remember: true };
+  var DEFAULT_PREFS = { style: 'analog', background: 'default', date: true, worldNow: false, worldCities: null, radio: false, remember: true };
 
   function loadPrefs() {
     var storage = global.FTN && global.FTN.storage;
@@ -70,16 +70,79 @@
     }
   }
 
-  var WORLD_ZONES = [['Port of Spain', 'America/Port_of_Spain'], ['New York', 'America/New_York'], ['London', 'Europe/London']];
+  // Real IANA zones throughout (Intl.DateTimeFormat resolves each one against the actual tz
+  // database -- nothing here is a hand-computed offset). Trinidad & Tobago is not in this list;
+  // it's rendered separately, always first, in renderWorldNow() below. Cities that share an IANA
+  // zone (e.g. Scarborough with Port of Spain, Miami with New York) keep their own real label
+  // rather than being collapsed into one entry -- the brief's own explicit allowance.
+  var WORLD_CITIES = [
+    ['scarborough', 'Scarborough', 'America/Port_of_Spain', true],
+    ['bridgetown', 'Bridgetown', 'America/Barbados', true],
+    ['georgetown', 'Georgetown', 'America/Guyana', false],
+    ['kingston', 'Kingston', 'America/Jamaica', true],
+    ['castries', 'Castries', 'America/St_Lucia', false],
+    ['stgeorges', "St George's", 'America/Grenada', false],
+    ['nassau', 'Nassau', 'America/Nassau', false],
+    ['havana', 'Havana', 'America/Havana', false],
+    ['santodomingo', 'Santo Domingo', 'America/Santo_Domingo', false],
+    ['sanjuan', 'San Juan', 'America/Puerto_Rico', false],
+    ['paramaribo', 'Paramaribo', 'America/Paramaribo', false],
+    ['newyork', 'New York', 'America/New_York', true],
+    ['miami', 'Miami', 'America/New_York', true],
+    ['toronto', 'Toronto', 'America/Toronto', false],
+    ['london', 'London', 'Europe/London', true],
+    ['paris', 'Paris', 'Europe/Paris', false],
+    ['dubai', 'Dubai', 'Asia/Dubai', false],
+    ['delhi', 'Delhi', 'Asia/Kolkata', false],
+    ['singapore', 'Singapore', 'Asia/Singapore', false],
+    ['tokyo', 'Tokyo', 'Asia/Tokyo', false],
+    ['sydney', 'Sydney', 'Australia/Sydney', false]
+  ];
+  var DEFAULT_WORLD_CITY_KEYS = WORLD_CITIES.filter(function (c) { return c[3]; }).map(function (c) { return c[0]; });
+
+  function worldCityByKey(key) {
+    for (var i = 0; i < WORLD_CITIES.length; i++) if (WORLD_CITIES[i][0] === key) return WORLD_CITIES[i];
+    return null;
+  }
 
   function renderWorldNow() {
     var root = document.getElementById('clock-worldnow');
     if (!root) return;
     var now = new Date();
-    root.innerHTML = WORLD_ZONES.map(function (z) {
-      var t = new Intl.DateTimeFormat('en-US', { timeZone: z[1], hour: '2-digit', minute: '2-digit' }).format(now);
-      return '<div class="clock-worldnow__item"><span>' + z[0] + '</span><strong>' + t + '</strong></div>';
+    function cell(label, zone) {
+      var t = '—';
+      try { t = new Intl.DateTimeFormat('en-US', { timeZone: zone, hour: '2-digit', minute: '2-digit' }).format(now); } catch (e) {}
+      return '<div class="clock-worldnow__item"><span>' + label + '</span><strong>' + t + '</strong></div>';
+    }
+    var keys = Array.isArray(prefs.worldCities) ? prefs.worldCities : DEFAULT_WORLD_CITY_KEYS;
+    var html = cell('Port of Spain', 'America/Port_of_Spain');
+    keys.forEach(function (key) {
+      var c = worldCityByKey(key);
+      if (c) html += cell(c[1], c[2]);
+    });
+    root.innerHTML = html;
+  }
+
+  function renderWorldCityPicker() {
+    var root = document.getElementById('clock-world-cities');
+    if (!root) return;
+    var keys = Array.isArray(prefs.worldCities) ? prefs.worldCities : DEFAULT_WORLD_CITY_KEYS;
+    root.innerHTML = WORLD_CITIES.map(function (c) {
+      var checked = keys.indexOf(c[0]) >= 0;
+      return '<label class="clock-world-city"><input type="checkbox" data-world-city="' + c[0] + '"' + (checked ? ' checked' : '') + '> ' + c[1] + '</label>';
     }).join('');
+    root.querySelectorAll('[data-world-city]').forEach(function (box) {
+      box.addEventListener('change', function () {
+        var key = box.getAttribute('data-world-city');
+        var current = Array.isArray(prefs.worldCities) ? prefs.worldCities.slice() : DEFAULT_WORLD_CITY_KEYS.slice();
+        var i = current.indexOf(key);
+        if (box.checked && i < 0) current.push(key);
+        else if (!box.checked && i >= 0) current.splice(i, 1);
+        prefs.worldCities = current;
+        savePrefs(prefs);
+        renderWorldNow();
+      });
+    });
   }
 
   // ---- Apply personalization state to the DOM ----
@@ -91,7 +154,7 @@
     document.querySelectorAll('[data-clock-style]').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-clock-style') === prefs.style));
     });
-    document.querySelectorAll('[data-clock-bg]').forEach(function (b) {
+    document.querySelectorAll('.clock-chip[data-clock-bg]').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-clock-bg') === prefs.background));
     });
     document.getElementById('main').setAttribute('data-clock-bg', prefs.background);
@@ -100,6 +163,7 @@
     if (dateEl) dateEl.hidden = !prefs.date;
     var worldEl = document.getElementById('clock-worldnow');
     if (worldEl) { worldEl.hidden = !prefs.worldNow; if (prefs.worldNow) renderWorldNow(); }
+    renderWorldCityPicker();
     var toggleDate = document.getElementById('clock-toggle-date');
     if (toggleDate) toggleDate.setAttribute('aria-pressed', String(prefs.date));
     var toggleWorld = document.getElementById('clock-toggle-worldnow');
@@ -148,7 +212,7 @@
     document.querySelectorAll('[data-clock-style]').forEach(function (b) {
       b.addEventListener('click', function () { prefs.style = b.getAttribute('data-clock-style'); savePrefs(prefs); applyPrefs(); tick(); });
     });
-    document.querySelectorAll('[data-clock-bg]').forEach(function (b) {
+    document.querySelectorAll('.clock-chip[data-clock-bg]').forEach(function (b) {
       b.addEventListener('click', function () { prefs.background = b.getAttribute('data-clock-bg'); savePrefs(prefs); applyPrefs(); });
     });
     // Real toggle buttons (aria-pressed), matching the already-proven [data-clock-style]/

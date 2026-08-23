@@ -232,6 +232,33 @@
   margin: 8px 0 0;
 }
 
+.clock-world-cities {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px 12px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-8);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.clock-world-city {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--color-white);
+  cursor: pointer;
+}
+
+.clock-world-city input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--color-red);
+}
+
 /* Personalize toggles are real buttons with aria-pressed, not checkboxes -- matches the already-
    proven [data-clock-style]/[data-clock-bg] chip pattern on this same page rather than a second
    interaction model. */
