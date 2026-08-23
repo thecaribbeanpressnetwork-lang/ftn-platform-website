@@ -310,14 +310,49 @@ body[data-display-orientation="portrait"] .display-screen {
 
 .condition-row {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px 8px;
   padding: 8px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 13px;
 }
 
 .condition-row:first-child { border-top: 0; padding-top: 0; }
+
+.condition-row__note {
+  color: var(--color-silver);
+  font-size: 12px;
+}
+
+/* Classification badge + Trust Card trigger, receded the same way as the Pulse strip's own
+   (css comment above .pulse-card__meta .trust-badge explains why: a solid pale badge or brand-
+   red "modelled" text would out-shout the number itself on a near-black glance-read surface). */
+.condition-row .trust-badge,
+.world-economy__row .trust-badge {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--color-silver) !important;
+  padding: 2px 8px;
+  font-size: 10px;
+  margin-bottom: 0;
+  order: 3;
+}
+
+.condition-row .trust-trigger,
+.world-economy__row .trust-trigger {
+  order: 4;
+}
+
+/* Illustrative values get one honest, unmissable visual tell wherever they appear on Display --
+   a dashed rather than solid badge outline -- distinguishing "no live source, placeholder figure"
+   from FTN Modelled/Derived/Estimated at the same glance a viewer reads the number itself. This
+   changes presentation only; it never touches classification data (js/indicators-data.js is
+   explicit that classification is never bulk-relabelled -- see ANALYTICS_STANDARD.md §1). */
+.display-screen .trust-badge--demo {
+  border-style: dashed !important;
+}
 
 .display-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .display-links a { color: var(--color-white); font-size: 13px; text-decoration: none; }
@@ -364,7 +399,10 @@ body[data-display-orientation="portrait"] .display-screen {
 
 .world-economy__row {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 4px 8px;
   padding: 8px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 13px;

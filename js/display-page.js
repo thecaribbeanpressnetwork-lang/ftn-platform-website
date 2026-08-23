@@ -60,17 +60,40 @@
   }
 
   // ---- Live Conditions ----
+  // Unlike National Pulse, this panel used to render bare numbers with no classification badge
+  // and no Trust Card link -- on a commercial public screen that's a genuine truth-in-data gap
+  // (founder walkthrough defect #7), not just an inconsistency: a passerby had no way to tell
+  // these were Illustrative placeholder figures rather than a live feed. Brought in line with
+  // Pulse's own badge + Trust Card pattern; never fabricates a classification the indicator
+  // itself doesn't already carry.
   var CONDITION_IDS = ['flood-alerts', 'utility-outages', 'traffic-index'];
+
+  function classificationRowHTML(ind) {
+    var badgeClass = global.FTN.TrustCard ? global.FTN.TrustCard.classificationBadgeClass(ind.classification) : '';
+    var noValue = ind.value === '—' || ind.value === '-';
+    return (
+      '<div class="condition-row' + (noValue ? ' condition-row--empty' : '') + '">' +
+        '<span>' + esc(ind.title) + '</span>' +
+        (noValue
+          ? '<span class="condition-row__note">Not yet available</span>'
+          : '<strong>' + esc(ind.value) + ' ' + esc(ind.units) + '</strong>') +
+        '<span class="trust-badge ' + badgeClass + '">' + esc(ind.classification) + '</span>' +
+        '<button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(ind.id) + '">Trust Card</button>' +
+      '</div>'
+    );
+  }
 
   function renderConditions() {
     var root = document.getElementById('display-conditions-body');
     if (!root || !global.FTN.getIndicator) return;
     var rows = CONDITION_IDS.map(function (id) {
       var ind = global.FTN.getIndicator(id);
-      if (!ind) return '';
-      return '<div class="condition-row"><span>' + esc(ind.title) + '</span><strong>' + esc(ind.value) + ' ' + esc(ind.units) + '</strong></div>';
+      return ind ? classificationRowHTML(ind) : '';
     }).join('');
     root.innerHTML = rows || '<p>No condition signals available right now.</p>';
+    root.querySelectorAll('[data-trust-card]').forEach(function (btn) {
+      btn.addEventListener('click', function () { global.FTN.TrustCard.open(btn.getAttribute('data-trust-card')); });
+    });
   }
 
   // ---- FTN TV NOW ----
@@ -151,9 +174,16 @@
     var root = document.getElementById('display-world-economy');
     if (!root || !global.FTN.getIndicator) return;
     var fx = global.FTN.getIndicator('exchange-rate');
+    var badgeClass = fx && global.FTN.TrustCard ? global.FTN.TrustCard.classificationBadgeClass(fx.classification) : '';
     root.innerHTML =
-      '<div class="world-economy__row"><span>USD/TTD</span><strong>' + (fx ? esc(fx.value) : '—') + '</strong></div>' +
+      '<div class="world-economy__row">' +
+        '<span>USD/TTD</span><strong>' + (fx ? esc(fx.value) : '—') + '</strong>' +
+        (fx ? '<span class="trust-badge ' + badgeClass + '">' + esc(fx.classification) + '</span><button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(fx.id) + '">Trust Card</button>' : '') +
+      '</div>' +
       '<div class="world-economy__row world-economy__row--muted"><span>CAD, GBP, EUR</span><strong>Not yet available</strong></div>';
+    root.querySelectorAll('[data-trust-card]').forEach(function (btn) {
+      btn.addEventListener('click', function () { global.FTN.TrustCard.open(btn.getAttribute('data-trust-card')); });
+    });
   }
 
   // ---- Fullscreen rotation ----
