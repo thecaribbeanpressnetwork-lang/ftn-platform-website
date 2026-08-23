@@ -1,0 +1,89 @@
+/* FTN Sheet — shared foundation (js/ftn-sheet.js). Desktop: right-anchored panel. Mobile
+   (<=640px): edge-to-edge bottom sheet. transform/opacity only for the open/close transition. */
+
+.ftn-sheet {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+}
+
+.ftn-sheet.is-mounted {
+  display: block;
+}
+
+.ftn-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 11, 11, 0.55);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ftn-sheet.is-open .ftn-sheet__backdrop {
+  opacity: 1;
+}
+
+body.ftn-sheet-open {
+  overflow: hidden;
+}
+
+.ftn-sheet__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(420px, 100%);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-32) var(--space-24);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.24s ease;
+}
+
+.ftn-sheet.is-open .ftn-sheet__panel {
+  transform: translateX(0);
+}
+
+@media (max-width: 640px) {
+  .ftn-sheet__panel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    max-height: 85vh;
+    border-radius: var(--radius-16) var(--radius-16) 0 0;
+    transform: translateY(100%);
+  }
+
+  .ftn-sheet.is-open .ftn-sheet__panel {
+    transform: translateY(0);
+  }
+}
+
+.ftn-sheet__close {
+  position: absolute;
+  top: var(--space-16);
+  right: var(--space-16);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-white);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ftn-sheet__backdrop,
+  .ftn-sheet__panel {
+    transition: none;
+  }
+}
