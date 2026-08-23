@@ -94,10 +94,25 @@
     var title = data.title || 'FTN Platform';
     var text = data.text || '';
     var url = data.url || global.location.href;
+    // Prefer the native Web Share API, but never let a broken/incomplete implementation leave
+    // the button doing nothing. Some browser contexts (headless/automated/some restricted
+    // embeds) expose navigator.share as a function that either rejects unpredictably or never
+    // settles its promise at all -- there's no reliable way to feature-detect that in advance.
+    // A generous timeout race guards against exactly that: if navigator.share() hasn't settled
+    // within a few seconds (real users deciding in a genuine native sheet almost always resolve
+    // well inside that window), fall back to the on-page sheet rather than leaving Share silently
+    // inert. If navigator.share() does settle afterward, the `settled` flag stops it from also
+    // triggering the fallback on top of whatever the user already did.
     if (global.navigator && navigator.share) {
-      navigator.share({ title: title, text: text, url: url }).catch(function (e) {
-        if (e && e.name !== 'AbortError') openSheet(title, text, url);
+      var settled = false;
+      navigator.share({ title: title, text: text, url: url }).then(function () {
+        settled = true;
+      }).catch(function () {
+        if (!settled) { settled = true; openSheet(title, text, url); }
       });
+      setTimeout(function () {
+        if (!settled) { settled = true; openSheet(title, text, url); }
+      }, 2500);
       return;
     }
     openSheet(title, text, url);

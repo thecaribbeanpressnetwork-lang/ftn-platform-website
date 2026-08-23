@@ -101,13 +101,13 @@
     var worldEl = document.getElementById('clock-worldnow');
     if (worldEl) { worldEl.hidden = !prefs.worldNow; if (prefs.worldNow) renderWorldNow(); }
     var toggleDate = document.getElementById('clock-toggle-date');
-    if (toggleDate) toggleDate.checked = prefs.date;
+    if (toggleDate) toggleDate.setAttribute('aria-pressed', String(prefs.date));
     var toggleWorld = document.getElementById('clock-toggle-worldnow');
-    if (toggleWorld) toggleWorld.checked = prefs.worldNow;
+    if (toggleWorld) toggleWorld.setAttribute('aria-pressed', String(prefs.worldNow));
     var toggleRadio = document.getElementById('clock-toggle-radio');
-    if (toggleRadio) toggleRadio.checked = prefs.radio;
+    if (toggleRadio) toggleRadio.setAttribute('aria-pressed', String(prefs.radio));
     var toggleRemember = document.getElementById('clock-remember');
-    if (toggleRemember) toggleRemember.checked = prefs.remember;
+    if (toggleRemember) toggleRemember.setAttribute('aria-pressed', String(prefs.remember));
 
     var radioWrap = document.getElementById('clock-radio');
     if (radioWrap) {
@@ -151,18 +151,15 @@
     document.querySelectorAll('[data-clock-bg]').forEach(function (b) {
       b.addEventListener('click', function () { prefs.background = b.getAttribute('data-clock-bg'); savePrefs(prefs); applyPrefs(); });
     });
-    // Self-controlled toggles: listen on 'click' and own the state transition explicitly (read
-    // the checkbox's own state, prevent the native default action, then set .checked to the
-    // opposite value ourselves) rather than relying on 'change' + the browser's native toggle.
-    // This is a deliberately defensive pattern -- it means a checkbox's visible state is always
-    // driven by `prefs`, never by whatever the browser's own default action happened to do.
+    // Real toggle buttons (aria-pressed), matching the already-proven [data-clock-style]/
+    // [data-clock-bg] chip pattern above rather than <input type="checkbox">. State is always
+    // driven by `prefs` and read back from the button's own aria-pressed attribute.
     function wireToggle(id, onToggle) {
-      var box = document.getElementById(id);
-      if (!box) return;
-      box.addEventListener('click', function (e) {
-        e.preventDefault();
-        var next = !box.checked;
-        box.checked = next;
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var next = btn.getAttribute('aria-pressed') !== 'true';
+        btn.setAttribute('aria-pressed', String(next));
         onToggle(next);
       });
     }

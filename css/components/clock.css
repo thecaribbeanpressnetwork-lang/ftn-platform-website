@@ -216,14 +216,47 @@
   margin: 8px 0 0;
 }
 
-.clock-check {
+/* Personalize toggles are real buttons with aria-pressed, not checkboxes -- matches the already-
+   proven [data-clock-style]/[data-clock-bg] chip pattern on this same page rather than a second
+   interaction model. */
+.clock-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
   font-size: 14px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-8);
+  background: transparent;
+  color: var(--color-white);
   cursor: pointer;
 }
+
+.clock-toggle::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+}
+
+.clock-toggle[aria-pressed="true"] {
+  border-color: var(--color-red);
+  background: rgba(225, 6, 19, 0.08);
+}
+
+.clock-toggle[aria-pressed="true"]::before {
+  background: var(--color-red);
+  border-color: var(--color-red);
+}
+
+.clock-toggle:hover { border-color: var(--color-white); }
+.clock-toggle:focus-visible { outline: 2px solid var(--color-red-on-dark); outline-offset: 2px; }
 
 .clock-explore { text-align: center; margin: 0; }
 .clock-explore a { color: var(--color-silver); font-size: 13px; text-decoration: none; }

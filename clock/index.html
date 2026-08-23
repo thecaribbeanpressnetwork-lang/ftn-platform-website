@@ -134,15 +134,15 @@
       </div>
       <div class="clock-personalize__group">
         <p class="clock-personalize__label">Information</p>
-        <div class="clock-check"><input type="checkbox" id="clock-toggle-date" checked><label for="clock-toggle-date">Date</label></div>
-        <div class="clock-check"><input type="checkbox" id="clock-toggle-worldnow"><label for="clock-toggle-worldnow">World Now (Port of Spain, New York, London)</label></div>
+        <button type="button" class="clock-toggle" id="clock-toggle-date" aria-pressed="true">Date</button>
+        <button type="button" class="clock-toggle" id="clock-toggle-worldnow" aria-pressed="false">World Now (Port of Spain, New York, London)</button>
       </div>
       <div class="clock-personalize__group">
         <p class="clock-personalize__label">Audio</p>
-        <div class="clock-check"><input type="checkbox" id="clock-toggle-radio"><label for="clock-toggle-radio">FTN Radio</label></div>
+        <button type="button" class="clock-toggle" id="clock-toggle-radio" aria-pressed="false">FTN Radio</button>
       </div>
       <div class="clock-personalize__group">
-        <div class="clock-check"><input type="checkbox" id="clock-remember" checked><label for="clock-remember">Remember these settings on this device</label></div>
+        <button type="button" class="clock-toggle" id="clock-remember" aria-pressed="true">Remember these settings on this device</button>
         <p class="clock-personalize__note">Stored only in this browser's local storage — never a cookie, never sent anywhere, never required to use the clock.</p>
       </div>
     </section>

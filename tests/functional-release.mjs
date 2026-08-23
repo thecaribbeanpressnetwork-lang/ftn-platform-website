@@ -286,8 +286,11 @@ await scenario('clock-personalize-share-and-fullscreen', async page=>{
   await page.waitForSelector('.clock-worldnow__item');
   assert.equal(await page.locator('.clock-worldnow__item').count(),3,'World Now did not render 3 zones');
   await page.click('#clock-toggle-radio');
-  await page.waitForSelector('.ftn-radio-live',{timeout:10000});
-  assert.equal(await page.locator('#clock-radio').getAttribute('hidden'),null,'radio panel did not become visible');
+  await page.waitForSelector('.ftn-radio-live',{state:'attached',timeout:10000});
+  assert.equal(await page.locator('#clock-radio').getAttribute('hidden'),null,'radio indicator did not become visible');
+  await page.click('#clock-radio-indicator');
+  await page.waitForSelector('.ftn-radio-live',{state:'visible',timeout:10000});
+  await page.evaluate(()=>window.scrollTo(0,0));
   await page.click('#clock-share');
   await page.waitForSelector('.ftn-share-dialog.is-open');
   assert.match(await page.locator('.ftn-share-dialog__option--whatsapp').getAttribute('href'),/api\.whatsapp\.com/);
