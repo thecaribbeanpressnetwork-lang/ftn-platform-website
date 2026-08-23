@@ -665,14 +665,61 @@
       '</li>';
   }
 
+  var lastCorrelationResult = null;
+
   function renderCorrelation(result) {
     var host = $('#observer-correlation');
     if (!host) return;
+    lastCorrelationResult = result;
     host.innerHTML = '' +
       '<p class="observer-now__heading">Correlation engine — rule-based, not live-fitted</p>' +
       '<p class="observer-correlation__explain">' + esc(result.explanation) + '</p>' +
       '<ul class="observer-correlation__list">' + result.chain.map(correlationRow).join('') + '</ul>' +
-      '<p class="observer-correlation__confidence">Chain confidence: <strong>' + esc(result.overallConfidence) + '</strong> — capped by its weakest evidence, not by how many rules reference it.</p>';
+      '<p class="observer-correlation__confidence">Chain confidence: <strong>' + esc(result.overallConfidence) + '</strong> — capped by its weakest evidence, not by how many rules reference it.</p>' +
+      '<button type="button" class="btn btn-outline--on-dark btn-sm observer-correlation__math" data-see-math>See the Math →</button>';
+  }
+
+  // ---- See the Math (shared FTN Sheet — same primitive as Share, not a second dialog system) ----
+  function mathEdgeHtml(edge) {
+    var full = CORRELATION_EDGES.filter(function (e) { return e.id === edge.id; })[0] || {};
+    return '' +
+      '<article class="observer-math__edge">' +
+        '<h3>' + esc(edge.title) + '</h3>' +
+        '<p class="observer-math__status">Current status: <strong>' + esc(edge.status) + '</strong></p>' +
+        '<p><strong>Methodology:</strong> ' + esc(full.methodology || edge.methodology || '') + '</p>' +
+        (full.limitations ? '<p><strong>Limitations:</strong> ' + esc(full.limitations) + '</p>' : '') +
+        '<p class="observer-math__meta">Classification: ' + esc(full.classification || 'Illustrative') + ' · Geographic coverage: ' + esc(full.geoCoverage || 'National') + '</p>' +
+      '</article>';
+  }
+
+  function openSeeTheMath() {
+    var result = lastCorrelationResult;
+    var Sheet = global.FTN && global.FTN.Sheet;
+    if (!result || !Sheet) return;
+    Sheet.open({
+      id: 'observer-math-sheet',
+      labelledBy: 'observer-math-title',
+      render: function (panel) {
+        panel.innerHTML = '' +
+          '<div class="ftn-sheet__head"><h2 id="observer-math-title">See the Math — Correlation Engine</h2>' +
+          '<button type="button" class="ftn-sheet__close" data-sheet-close aria-label="Close">&times;</button></div>' +
+          '<div class="ftn-sheet__body observer-math">' +
+            '<p class="observer-math__method-badge">METHOD: HEURISTIC RULE CHAIN — not a statistically fitted coefficient.</p>' +
+            '<p><strong>Live input:</strong> current Port of Spain precipitation = ' +
+              (result.rainfall.mm == null ? 'unavailable' : esc(String(result.rainfall.mm)) + ' mm') +
+              ' · trigger threshold = ' + esc(String(result.rainfall.thresholdMm)) + ' mm · ' +
+              (result.rainfall.active ? 'threshold met' : 'threshold not met') + '</p>' +
+            '<p><strong>Source:</strong> Open-Meteo (direct fetch) · <strong>Generated:</strong> ' + esc(result.generatedAt) + '</p>' +
+            '<p><strong>Overall chain confidence:</strong> ' + esc(result.overallConfidence) +
+              (result.confidenceCeiling ? ' (ceiling set by ' + esc(result.confidenceCeiling) + ' evidence)' : '') + '</p>' +
+            '<p class="observer-math__note">' + esc(result.explanation) + '</p>' +
+            '<h3>Rule chain, in evaluation order</h3>' +
+            result.chain.map(mathEdgeHtml).join('') +
+            '<p class="observer-math__causation"><strong>Correlation does not establish causation.</strong> Each link above states a documented domain relationship, not a live-fitted statistical model — FTN has not measured whether current conditions are actually producing the downstream effect; open the linked category for the official source.</p>' +
+          '</div>';
+        panel.querySelector('[data-sheet-close]').addEventListener('click', function () { Sheet.close(); });
+      }
+    });
   }
 
   function fmt(v, d) { return Number.isFinite(v) ? v.toFixed(d == null ? 1 : d) : '—'; }
@@ -766,6 +813,8 @@
         }
         return;
       }
+      var seeMath = e.target.closest && e.target.closest('[data-see-math]');
+      if (seeMath) { openSeeTheMath(); return; }
       var saveBtn = e.target.closest && e.target.closest('[data-save-toggle]');
       if (saveBtn && global.FTN.Save) {
         var nowSaved = global.FTN.Save.toggle({
