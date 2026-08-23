@@ -67,8 +67,15 @@ for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(
 // Ecosystem Simplification pass: FTN Live retired as an independent identity (renamed FTN
 // Observer -- deep investigation, distinct from the new ambient FTN Display) and FTN Now retired
 // outright (superseded by FTN Display). Both old routes redirect rather than 404.
+// Founder Walkthrough Repair Pass (founder directive): 11 permanently-visible primary items read
+// as "microscopic" on wide displays and (at 1920px specifically) forced the header actions
+// cluster to wrap onto a second row. PRIMARY_NAV is now the 5 items the founder named directly;
+// everything else moved from "hardcoded in nav.js" to "generated into the Ecosystem menu from the
+// Product Registry" -- still one click away, still using its full canonical name, just no longer
+// asserted as literal nav.js source text. That discoverability requirement is covered by the
+// registry/ecosystem-group assertions above (lines 55-60), not duplicated here.
 const navSource=fs.readFileSync('js/nav.js','utf8');
-for(const name of ['FTN Platform','FTN Community Connect','FTN Display','FTN Observer','FTN Kaiso','FTN Parliament','FTN TV','FTN Riddim','FTN Opportunities','FTN Learn','FTN ibis','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global navigation missing canonical FTN product name: ${name}`);
+for(const name of ['FTN Platform','FTN Community Connect','FTN Display','FTN Observer','FTN TV','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global primary navigation missing canonical FTN product name: ${name}`);
 assert(navSource.includes('FTN Invest-in'),'Global navigation must use the canonical FTN Invest-in name');
 assert(!navSource.includes("'FTN Live'"),'FTN Live must not appear as an independent product name in global navigation -- it is FTN Observer now');
 assert(!fs.existsSync('now/index.html'),'NOW homepage should be retired, not rebuilt as an independent product page');

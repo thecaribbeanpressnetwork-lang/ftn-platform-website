@@ -39,18 +39,20 @@
   // roles are covered by the new FTN Display. Screen and Radio moved out of the primary row (they
   // remain one click away in FTN Ecosystem) to make room for FTN Display and FTN Learn, per the
   // founder's explicit priority order.
+  // Founder Walkthrough Repair Pass: wide-viewport headers were revealing all 11 items here
+  // simultaneously, which either wrapped the action cluster to a second row (see the
+  // .site-header__actions fix elsewhere in this file's CSS) or just read as visually cluttered --
+  // "microscopic" density, not literally small type. Cut to the five items the founder named
+  // directly plus the Ecosystem trigger; Kaiso/Parliament/Riddim/Opportunities/Learn/ibis remain
+  // one click away in the Ecosystem mega-menu (still the full 26-product registry, unchanged) and
+  // in relevant contextual links -- not removed from the site, just no longer permanently
+  // occupying header width at every viewport.
   var PRIMARY_NAV=[
     ['FTN Platform','/','The FTN Platform home — the Caribbean ecosystem entry point'],
     ['FTN Community Connect','/community-connect/','Report and track local civic issues'],
     ['FTN Display','/display/','One screen. Watch what is happening in Trinidad & Tobago'],
     ['FTN Observer','/observatory/','Investigate Trinidad & Tobago in depth — indicators and correlations'],
-    ['FTN Kaiso','/kaiso/','Caribbean current-affairs and news desk'],
-    ['FTN Parliament','/parliament/','Parliament of Trinidad and Tobago public records'],
-    ['FTN TV','/tv/','Caribbean television, programmed with purpose'],
-    ['FTN Riddim','/riddim/','Caribbean music creation hub — Fire, DJ Tube, DAW, EPK'],
-    ['FTN Opportunities','/opportunities/','Jobs, grants and Caribbean opportunities'],
-    ['FTN Learn','/learn/','Find something to learn — FTN Skills and FTN School'],
-    ['FTN ibis','/ibis-ai/','Ask FTN ibis — Ai powered by Caribbean intelligence']
+    ['FTN TV','/tv/','Caribbean television, programmed with purpose']
   ];
   function escNav(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function isCurrent(route){return location.pathname===route||(route!=='/'&&location.pathname.indexOf(route)===0);}

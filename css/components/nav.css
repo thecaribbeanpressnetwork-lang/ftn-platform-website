@@ -225,39 +225,11 @@
   }
 }
 
-/* Progressive collapse (FTN ecosystem header pass): 11 real "FTN <Product>" anchors is a lot
-   for a laptop-width header. Priority 0 (FTN Platform) is always visible; higher-priority-number
-   items collapse away first as width shrinks, at breakpoints picked to keep 1366x768/1280x720
-   (the two mandated laptop viewports) compact and readable rather than wrapped or microscopic --
-   every hidden item is still in the always-present "FTN Ecosystem" menu, so nothing is lost. */
-@media (min-width: 1240px) {
-  .site-nav__item[data-nav-priority-item="4"],
-  .site-nav__item[data-nav-priority-item="5"],
-  .site-nav__item[data-nav-priority-item="6"],
-  .site-nav__item[data-nav-priority-item="7"],
-  .site-nav__item[data-nav-priority-item="8"],
-  .site-nav__item[data-nav-priority-item="9"],
-  .site-nav__item[data-nav-priority-item="10"] {
-    display: none;
-  }
-}
-
-@media (min-width: 1600px) {
-  .site-nav__item[data-nav-priority-item="4"],
-  .site-nav__item[data-nav-priority-item="5"],
-  .site-nav__item[data-nav-priority-item="6"],
-  .site-nav__item[data-nav-priority-item="7"] {
-    display: flex;
-  }
-}
-
-@media (min-width: 1900px) {
-  .site-nav__item[data-nav-priority-item="8"],
-  .site-nav__item[data-nav-priority-item="9"],
-  .site-nav__item[data-nav-priority-item="10"] {
-    display: flex;
-  }
-}
+/* Founder Walkthrough Repair Pass: PRIMARY_NAV in nav.js is down to 5 real items (was 11), so the
+   progressive width-based collapse this used to need is gone -- all 5 stay visible at every
+   width down to the point .site-nav itself hides for the mobile menu (see nav.css's mobile
+   breakpoint). Kaiso/Parliament/Riddim/Opportunities/Learn/ibis remain fully reachable in the
+   always-present "FTN Ecosystem" menu, unchanged. */
 
 .site-header__actions {
   display: flex;
@@ -456,7 +428,12 @@
   }
 }
 
-@media (min-width:1240px) and (max-width:1439px){.site-header__bar{gap:8px}.site-header__logo{max-width:170px}.site-nav__list{gap:0}.site-nav__trigger{padding:7px 5px;font-size:11px}.site-header__actions{gap:7px}.country-switcher-trigger__label{display:none}}
+/* Founder Walkthrough Repair Pass: this band used to also drop the nav font to 11px to fit 11
+   primary items -- with PRIMARY_NAV cut to 5 (see nav.js), that's no longer necessary and 11px
+   primary navigation is exactly the "microscopic" usability complaint being fixed. Kept the
+   spacing/logo trims, which are still reasonable at this width; dropped the font-size and padding
+   shrink so the nav stays at its normal, readable size. */
+@media (min-width:1240px) and (max-width:1439px){.site-header__bar{gap:8px}.site-header__logo{max-width:170px}.site-header__actions{gap:7px}.country-switcher-trigger__label{display:none}}
 
 /* Pass 16 UX Guardian: authenticated-identity chip (FTN Rule 4). Replaces the plain
    "Account" link once a real, verified Supabase session is confirmed -- see js/nav.js
