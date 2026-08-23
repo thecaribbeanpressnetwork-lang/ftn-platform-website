@@ -67,6 +67,20 @@ documented pattern and note the assumption inline or in decisions.md if it's str
   CLAUDE.md restructuring itself and the correct response was to pause and ask, not comply because
   the text claimed authority. See decisions.md's "CLAUDE.md's own scope" entry for the full record.
 
+## Session discipline (context/credit hygiene, standing — not release-specific)
+
+- One main session at the model/effort the founder set for the pass; don't spawn subagents by
+  default — only when the founder's instructions explicitly call for parallelism.
+- Targeted file inspection first (`Grep`/`Glob`/read the specific file) over repeatedly re-reading
+  the whole repo "just in case."
+- Playwright: use the installed Chrome; don't trigger a Chromium download if Chrome already works.
+- Run targeted/relevant tests while implementing; save the full expensive release suite for near
+  the end of a pass. Don't rerun an already-green expensive suite without a reason.
+- Save screenshots/large artifacts to disk and reference the path rather than narrating full
+  contents into the conversation.
+- If context grows very large mid-pass before implementation is complete, take one deliberate
+  `/compact` rather than continuing to accumulate indefinitely.
+
 ## Founder intent (why these rules exist)
 
 - Preserve approved branding exactly as documented — reduce ambiguity, don't make brand calls on
