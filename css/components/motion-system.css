@@ -1,0 +1,38 @@
+/* FTN Motion System — shared primitives for the interaction and completion tiers.
+   Ambient tier already lives in css/base.css (.ftn-pulse) and css/components/heritage-layer.css
+   (.hl-drift/.hl-pulse/.hl-twinkle/.hl-sweep) — not duplicated here. Product-mnemonic-tier motion
+   stays scoped to its own component (e.g. Riddim's waveform drift) rather than living here.
+   transform/opacity only, so nothing here triggers layout. */
+
+.ftn-motion-lift {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.ftn-motion-lift:hover,
+.ftn-motion-lift:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+@keyframes ftn-motion-complete-pulse {
+  0% { transform: scale(0.96); opacity: 0.6; }
+  60% { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ftn-motion-complete.is-active {
+    animation: ftn-motion-complete-pulse 0.5s ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ftn-motion-lift {
+    transition: none;
+  }
+
+  .ftn-motion-lift:hover,
+  .ftn-motion-lift:focus-visible {
+    transform: none;
+  }
+}

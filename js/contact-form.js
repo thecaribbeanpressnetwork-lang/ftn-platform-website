@@ -76,6 +76,9 @@
       window.FTN.IntegrationAdapter.submit('contact', payload, { transaction:true, transactionType:'contact_enquiry', turnstileToken:token ? token.value : '' }).then(function (result) {
         if (!result.ok) { showSaved(result.message + ' No message was claimed as sent; use the email fallback if needed.'); return; }
         showSaved('FTN received this enquiry for review. Keep transaction ID ' + result.record.transactionId + '.');
+        status.classList.remove('is-active');
+        void status.offsetWidth;
+        status.classList.add('is-active');
         form.reset();
       });
     } else {
