@@ -7,6 +7,45 @@
 
   function fmtMoney(n, currency) { return n == null ? null : (currency || 'TTD') + ' $' + Number(n).toLocaleString(); }
 
+  // Contextual entry point into the ONE shared intent-routing engine (js/intent-router.js /
+  // js/product-registry.js), not a second AI brain. Only ever shown when Learn's own listing
+  // search has nothing for the term typed; scope:'learn' is a ranking priority signal only
+  // (see product-registry.js's scopeMatches()/SCOPE_BONUS) -- it never blocks a genuinely better
+  // FTN product (e.g. FTN Opportunities for a funding-shaped query) from surfacing instead.
+  function ibisFallbackHTML(term) {
+    if (!term || !global.FTN.IntentRouter) return '';
+    var matches = global.FTN.IntentRouter.route(term, { scopeProductId: 'learn' });
+    if (!matches.length) return '';
+    return '<div class="workspace-output"><h3>Other FTN products for that</h3><ul>' +
+      matches.slice(0, 3).map(function (m) { return '<li><a href="' + esc(m.product.route) + '">' + esc(m.product.name) + '</a> — ' + esc(m.product.tagline) + '</li>'; }).join('') +
+      '</ul></div>';
+  }
+
+  // FTN Learn's job is "find a provider, understand enough, go to the provider" -- not certifying
+  // every listing. UNVERIFIED is FTN's own internal discovery-status field, not a fact about the
+  // listing itself, so it no longer renders as a badge on ordinary cards (it read as bureaucratic
+  // clutter, not useful signal). A genuinely factual state label -- e.g. a future EXPIRED/CLOSED --
+  // still renders normally; only the blanket UNVERIFIED stamp is suppressed here.
+  var NON_FACTUAL_STATUSES = { UNVERIFIED: true };
+
+  // The underlying provenance (source platform, when FTN found it, accreditation state) is not
+  // deleted -- it now routes through the shared Trust Card modal (js/trust-card.js), the same
+  // source-provenance pattern Observatory/Display already use, instead of an inline paragraph on
+  // every card.
+  function listingTrustData(item) {
+    return {
+      title: item.title,
+      classification: item.status === 'UNVERIFIED' ? 'Community-sourced (unverified)' : (item.status || 'Sourced'),
+      whyItMatters: 'FTN found this listing rather than receiving it directly from the provider — confirm current availability and terms with ' + (item.provider || 'the provider') + ' before registering.',
+      confidence: item.status === 'UNVERIFIED' ? 'Not independently confirmed by FTN' : null,
+      methodology: 'Discovered via ' + (item.sourcePlatform || 'a public source') + '.',
+      sourceName: item.provider,
+      updateFrequency: 'Checked once, not continuously monitored',
+      lastUpdated: item.lastChecked || item.firstDiscovered,
+      limitations: item.accreditationState,
+    };
+  }
+
   function listingCardHTML(item) {
     var money = [];
     var reg = fmtMoney(item.registrationFee, item.currency);
@@ -16,9 +55,10 @@
     var contact = [];
     if (item.whatsapp) contact.push('<a href="https://wa.me/1868' + esc(item.whatsapp.replace(/[^0-9]/g, '')) + '" target="_blank" rel="noopener">WhatsApp ' + esc(item.whatsapp) + '</a>');
     if (item.phone) contact.push('<span>' + esc(item.phone) + '</span>');
+    var showStatusBadge = item.status && !NON_FACTUAL_STATUSES[item.status];
     return (
       '<article class="learn-card">' +
-        '<div class="learn-card__head"><span class="learn-card__status learn-card__status--' + esc((item.status || '').toLowerCase()) + '">' + esc(item.status) + '</span><span class="learn-card__track">' + esc(item.track === 'skills' ? 'FTN Skills' : 'FTN School') + '</span></div>' +
+        '<div class="learn-card__head">' + (showStatusBadge ? '<span class="learn-card__status learn-card__status--' + esc(item.status.toLowerCase()) + '">' + esc(item.status) + '</span>' : '') + '<span class="learn-card__track">' + esc(item.track === 'skills' ? 'FTN Skills' : 'FTN School') + '</span></div>' +
         '<h3>' + esc(item.title) + '</h3>' +
         '<p class="learn-card__provider">' + esc(item.provider) + '</p>' +
         '<p>' + esc(item.summary) + '</p>' +
@@ -28,8 +68,7 @@
           (money.length ? '<div><dt>Cost</dt><dd>' + esc(money.join(' · ')) + '</dd></div>' : '') +
           '<div><dt>Credential</dt><dd>' + esc(item.credentialType) + '</dd></div>' +
         '</dl>' +
-        (item.status === 'UNVERIFIED' ? '<p class="learn-card__caution">Sourced from a ' + esc(item.sourcePlatform || 'public post') + ' — confirm current availability with the provider before registering.</p>' : '') +
-        '<div class="learn-card__actions">' + contact.join(' ') + '</div>' +
+        '<div class="learn-card__actions">' + contact.join(' ') + '<button type="button" class="trust-trigger trust-trigger--on-dark" data-learn-trust="' + esc(item.id) + '">Source &amp; verification details</button></div>' +
       '</article>'
     );
   }
@@ -94,10 +133,16 @@
             : { results: pool };
           var items = result.results;
           if (!items.length) {
-            root.innerHTML = '<p class="learn-empty">No verified ' + (track === 'skills' ? 'FTN Skills' : 'FTN School') + ' listings match &ldquo;' + esc(searchTerm || 'this search') + '&rdquo; yet. Try a real provider below, or check back — FTN only lists what it can honestly describe.</p>';
+            root.innerHTML = '<p class="learn-empty">No verified ' + (track === 'skills' ? 'FTN Skills' : 'FTN School') + ' listings match &ldquo;' + esc(searchTerm || 'this search') + '&rdquo; yet. Try a real provider below, or check back — FTN only lists what it can honestly describe.</p>' + ibisFallbackHTML(searchTerm);
             return;
           }
           root.innerHTML = items.map(listingCardHTML).join('');
+          root.querySelectorAll('[data-learn-trust]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var listingItem = data.listings.filter(function (l) { return l.id === btn.getAttribute('data-learn-trust'); })[0];
+              if (listingItem && global.FTN.TrustCard) global.FTN.TrustCard.open(listingTrustData(listingItem));
+            });
+          });
         }
 
         function renderProviders() {

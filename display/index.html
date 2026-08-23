@@ -83,6 +83,7 @@
       </div>
       <div class="display-topbar__actions">
         <span class="display-topbar__url">ftnplatform.org/display</span>
+        <a class="btn btn-outline--on-dark btn-sm" href="/clock/">Clock Mode</a>
         <button type="button" class="btn btn-primary btn-sm" id="display-fullscreen-toggle">Full Screen</button>
       </div>
     </div>
@@ -146,6 +147,8 @@
       Every figure states its own basis — current source, FTN modelled estimate, or not yet available. Modelled
       and illustrative values are never presented as official measurements. <span id="display-presence-note"></span>
     </p>
+
+    <div class="display-ticker" id="display-ticker" aria-hidden="true"><div class="display-ticker__track" id="display-ticker-track">FTN Display</div></div>
   </main>
 
   <footer class="site-footer">
@@ -204,6 +207,7 @@
   <script src="/js/ftn-media-discovery.js"></script>
   <script src="/js/ftn-media-fallback.js"></script>
   <script src="/js/display-presence.js"></script>
+  <script src="/js/ambient-hours.js"></script>
   <script src="/js/display-page.js"></script>
 </body>
 </html>

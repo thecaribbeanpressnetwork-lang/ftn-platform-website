@@ -1,0 +1,274 @@
+/* FTN Clock — a beautiful, shareable clock for any screen. Lives on the same dark, ambient
+   foundation as FTN Display (css/components/display.css) since both are "ambient utility"
+   surfaces, but composed for exactly one job: be worth staring at from across a room. */
+
+.clock-screen {
+  background: var(--color-black);
+  color: var(--color-white);
+  min-height: calc(100vh - 1px);
+  display: flex;
+  flex-direction: column;
+  padding: 21px max(13px, calc((100vw - 1400px) / 2)) 34px;
+}
+
+.clock-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+
+.clock-topbar__mark {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-red-on-dark);
+  font-size: 14px;
+}
+
+.clock-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.clock-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 21px;
+  min-height: 0;
+  padding: 34px 0;
+  transition: background 0.4s ease;
+}
+
+.clock-screen[data-clock-bg="accent"] .clock-stage {
+  background: radial-gradient(ellipse at center, rgba(225, 6, 19, 0.16), transparent 65%);
+}
+
+.clock-face { display: flex; align-items: center; justify-content: center; }
+
+/* ---- Analog ---- */
+.clock-analog-svg {
+  width: min(52vh, 420px, 80vw);
+  height: min(52vh, 420px, 80vw);
+}
+
+.clock-analog__dial {
+  fill: rgba(255, 255, 255, 0.02);
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1.5;
+}
+
+.clock-analog-tick {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1.5;
+}
+
+.clock-analog-tick--major {
+  stroke: var(--color-white);
+  stroke-width: 2.5;
+}
+
+.clock-hand {
+  stroke-linecap: round;
+  transform-origin: 100px 100px;
+  transition: transform 0.2s cubic-bezier(0.4, 2.2, 0.2, 1);
+}
+
+.clock-hand--hour { stroke: var(--color-white); stroke-width: 5; }
+.clock-hand--minute { stroke: var(--color-white); stroke-width: 3.5; }
+.clock-hand--second { stroke: var(--color-red-on-dark); stroke-width: 1.5; }
+
+.clock-analog__pivot { fill: var(--color-red-on-dark); }
+
+@media (prefers-reduced-motion: reduce) {
+  .clock-hand { transition: none; }
+}
+
+/* ---- Digital ---- */
+.clock-digital__time {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(3rem, 4vw + 2rem, 8rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.clock-digital__meridiem {
+  font-size: 0.28em;
+  font-weight: 700;
+  color: var(--color-silver);
+  letter-spacing: 0.06em;
+}
+
+/* ---- Minimal ---- */
+.clock-minimal__time {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(4rem, 8vw + 2rem, 11rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.clock-date {
+  color: var(--color-silver);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.clock-worldnow {
+  display: flex;
+  gap: 21px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.clock-worldnow__item {
+  text-align: center;
+  padding: 8px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+
+.clock-worldnow__item span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-silver); }
+.clock-worldnow__item strong { display: block; font-size: 16px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+
+/* ---- Radio ---- */
+.clock-radio {
+  width: min(720px, 100%);
+  margin: 0 auto 21px;
+}
+
+.clock-radio__indicator {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  color: var(--color-white);
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.clock-radio__note { color: var(--color-red-on-dark); font-size: 16px; }
+.clock-radio__expand { margin-left: auto; color: var(--color-silver); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.clock-radio__shell { margin-top: 13px; }
+
+/* ---- Personalize panel ---- */
+.clock-personalize {
+  width: min(720px, 100%);
+  margin: 0 auto 21px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-16);
+  padding: 21px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.clock-personalize__label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-silver);
+  margin: 0 0 8px;
+}
+
+.clock-personalize__options { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.clock-chip {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: var(--color-white);
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.clock-chip[aria-pressed="true"] { background: var(--color-red); border-color: var(--color-red); }
+.clock-chip:hover { border-color: var(--color-white); }
+.clock-chip:focus-visible { outline: 2px solid var(--color-red-on-dark); outline-offset: 2px; }
+
+.clock-personalize__note {
+  color: var(--color-silver);
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+
+.clock-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.clock-explore { text-align: center; margin: 0; }
+.clock-explore a { color: var(--color-silver); font-size: 13px; text-decoration: none; }
+.clock-explore a:hover { color: var(--color-red-on-dark); }
+
+/* ---- Fullscreen: one screen, nothing else ---- */
+body.clock-fullscreen .site-header,
+body.clock-fullscreen .site-footer,
+body.clock-fullscreen .clock-explore,
+body.clock-fullscreen .clock-topbar__mark,
+body.clock-fullscreen #clock-personalize-toggle,
+body.clock-fullscreen #clock-share,
+body.clock-fullscreen #clock-install {
+  display: none;
+}
+
+body.clock-fullscreen {
+  overflow: hidden;
+}
+
+body.clock-fullscreen .clock-screen {
+  box-sizing: border-box;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  padding: 13px 21px;
+}
+
+body.clock-fullscreen .clock-topbar {
+  justify-content: flex-end;
+}
+
+body.clock-fullscreen .clock-topbar__actions { gap: 0; }
+
+body.clock-fullscreen #clock-fullscreen-toggle {
+  opacity: 0.35;
+}
+
+body.clock-fullscreen #clock-fullscreen-toggle:hover,
+body.clock-fullscreen #clock-fullscreen-toggle:focus-visible {
+  opacity: 1;
+}
+
+body.clock-fullscreen .clock-personalize { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .clock-screen * { transition: none !important; }
+}

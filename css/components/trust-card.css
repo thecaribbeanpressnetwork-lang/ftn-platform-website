@@ -247,6 +247,16 @@ body.trust-card-open {
   color: var(--color-red);
 }
 
+/* On-dark variant, moved here from observatory.css (v1.9.x) so any page loading trust-card.css
+   gets it -- not just Observatory. Same values Observatory already used; no new color introduced. */
+.trust-trigger--on-dark {
+  color: var(--color-silver);
+}
+
+.trust-trigger--on-dark:hover {
+  color: var(--color-white);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .trust-card-dialog__panel {
     animation: trustCardIn 0.15s ease-out;

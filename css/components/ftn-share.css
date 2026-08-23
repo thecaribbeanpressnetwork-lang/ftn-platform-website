@@ -1,0 +1,112 @@
+/* FTN Platform Website — shared Share dialog (js/ftn-share.js). Same overlay/backdrop/panel
+   convention as .trust-card-dialog (css/components/trust-card.css) so the two shared modals feel
+   like one family rather than two competing patterns. */
+
+.ftn-share-dialog {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+}
+
+.ftn-share-dialog.is-open {
+  display: block;
+}
+
+.ftn-share-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 11, 11, 0.55);
+}
+
+.ftn-share-dialog__panel {
+  position: relative;
+  z-index: 1;
+  max-width: 380px;
+  width: calc(100% - var(--space-32));
+  margin: 14vh auto 0;
+  background: var(--color-white);
+  border-radius: var(--radius-16);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-32) var(--space-24) var(--space-24);
+}
+
+body.ftn-share-open {
+  overflow: hidden;
+}
+
+.ftn-share-dialog__close {
+  position: absolute;
+  top: var(--space-16);
+  right: var(--space-16);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-white);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ftn-share-dialog__eyebrow {
+  font-size: var(--text-caption-size);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-red);
+  margin: 0 0 var(--space-8);
+}
+
+.ftn-share-dialog__title {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  margin: 0 0 var(--space-4);
+}
+
+.ftn-share-dialog__text {
+  color: var(--color-graphite);
+  font-size: var(--text-small-size);
+  margin: 0 0 var(--space-24);
+}
+
+.ftn-share-dialog__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.ftn-share-dialog__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-8);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-small-size);
+  color: var(--color-black);
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ftn-share-dialog__option:hover { border-color: var(--color-graphite); }
+.ftn-share-dialog__option:focus-visible { outline: 2px solid var(--color-red); outline-offset: 2px; }
+
+.ftn-share-dialog__option--whatsapp { border-color: #25D366; }
+.ftn-share-dialog__option--facebook { border-color: #1877F2; }
+
+.ftn-share-dialog__status {
+  margin: var(--space-12) 0 0;
+  font-size: var(--text-caption-size);
+  color: var(--color-graphite);
+  min-height: 1em;
+}

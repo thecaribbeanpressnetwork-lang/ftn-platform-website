@@ -166,12 +166,6 @@
   color: var(--color-silver);
 }
 
-.learn-card__caution {
-  font-size: 0.78rem;
-  color: #F59E0B;
-  margin: 8px 0;
-}
-
 .learn-card__actions {
   display: flex;
   gap: 8px;

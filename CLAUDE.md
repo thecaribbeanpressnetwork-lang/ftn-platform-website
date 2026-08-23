@@ -1481,6 +1481,148 @@ Binding for future work built on top of this:
 - Reuse the existing FTN Save primitive (`js/ftn-save.js`) for any future "save this report" style
   capability; do not build a second save/bookmark mechanism for Community Connect specifically.
 
+## 7.18 Version 1.10 — Ambient Utility, Clock, Media Integrity & Organic Distribution Release
+
+**Strategic doctrine, formalized internally per founder brief (2026-08-23):**
+
+- **FTN ALWAYS ON** — FTN's distribution doctrine: build so the platform earns a place people
+  voluntarily keep open, rather than forcing continuous interaction.
+- **AMBIENT UTILITY** — the public-facing framing of that doctrine. Public consumer marketing
+  leads with ambient utility ("useful when you need it, present when you don't"), not the phrase
+  "Always On" — that stays an internal/product-mode term, used sparingly in consumer copy.
+- **AMBIENT HOURS** — FTN's own measurement framework, defined and implemented this pass (see
+  below). FTN does not claim to have invented the English phrase; this is FTN's own specific
+  methodology under that name.
+- Core brand doctrine line (use strategically, never plastered across every page): "FTN — Always
+  On. Useful when you need it. Present when you don't. Ambient utility for the Caribbean."
+
+**FTN Clock (`/clock/`, `js/clock-page.js`, `css/components/clock.css`) — built this pass, the
+platform's primary organic-acquisition wedge.** Link → clock immediately, no signup wall, no
+explanation page, no app-store requirement. Analog (SVG, smooth-interpolated hands, recomputed
+fresh from `Date` every 250ms — never an incremented/drifting counter) and Digital/Minimal faces,
+switchable via a Personalize panel kept deliberately simple (clock style, background: FTN
+default/Accent Glow only — no photo upload yet, said honestly on-page rather than half-built).
+Fullscreen is a real single-screen composition (verified `scrollHeight`/`scrollWidth` ≤
+`innerHeight`/`innerWidth` at 1920×1080, 1366×768, 1280×720, 1024×768). FTN Radio turns on inside
+Clock by mounting the existing `js/radio-player.js` shell into Clock's own `.radio-listen`
+container — never a second audio player. "Remember on this device" is explicit and off means
+prefs are session-only; local preferences are never called a "cookie" in the UI, since they aren't
+implemented as one. Registered as a PWA manifest shortcut (`manifest.webmanifest`) rather than a
+second manifest, so "Add to Home Screen" launches straight back into Clock Mode using the site's
+one existing PWA architecture.
+
+**FTN Display fullscreen — genuinely rebuilt, not just re-flagged as already-done.** The prior
+release's fullscreen was header/footer-hidden but still a scrolling page; founder visual
+inspection correctly rejected that as insufficient. `body.display-fullscreen .display-screen` is
+now a real CSS Grid pinned to `100vh` (topbar / dominant FTN TV NOW / secondary National Pulse /
+one rotating tertiary zone cycling Live Conditions → What's Happening → Community → World Now
+every 8s, paused under `prefers-reduced-motion` / persistent bottom ticker), verified to fit all
+four required resolutions with zero scroll. Display also gained a "Clock Mode" link and a shared
+`js/ftn-media-fallback.js`-style discipline is unchanged (no new fallback logic needed here).
+
+**FTN Share (`js/ftn-share.js`, `css/components/ftn-share.css`)** is the one shared Share
+primitive the ecosystem was missing (radio-player.js previously had its own private
+Web-Share-or-mailto handler). Native Web Share API first; falls back to an on-page sheet
+prioritizing WhatsApp and Facebook (the founder's stated Trinidad & Tobago priority channels),
+then Copy Link. Used by Clock; other products' existing ad hoc share buttons were not migrated
+this pass (flagged as a natural follow-up, not silently left inconsistent — see the release
+report).
+
+**Ambient Hours (`js/ambient-hours.js`)** — the measurement engine behind the doctrine above. Real,
+conservative client-side measurement: a tick only counts toward a surface's total while
+`document.visibilityState==='visible'`, with a guard against large deltas (tab throttled, laptop
+slept) being miscounted as active time. A per-device local total never leaves the browser
+(`js/storage.js`). A real-time anonymous aggregate is published via a dedicated Supabase Realtime
+Presence channel (`ftn-ambient-presence`, same no-identity/no-location/no-fingerprint pattern as
+the existing `js/display-presence.js`), surfaced in FTN Nexus Command's new **Ambient Hours**
+panel (`js/god-mode.js`). A persisted, cross-session, historical Ambient Hours total was
+deliberately **not** built this pass — that needs a real server-side rollup (a migration + a
+deployed Supabase Edge Function), and this pass's environment had no authenticated Supabase CLI
+session to actually deploy one. The real-time "Ambient Hours accruing now" view is the honest,
+fully-working slice; the historical rollup is prepared conceptually, not built, and not claimed as
+built. Ambient Exposure Hours (screens × estimated audience × visibility × dwell) was **not**
+started — no fabricated audience multiplier exists anywhere in this codebase.
+
+**FTN TV — hero and copy corrected to match the brief's "show the result, hide the machinery"
+rule.** The full-bleed 460px control-room photo hero (which pushed the actual player off the first
+screen on every tested viewport) is now a compact ~90–130px identity strip; the player now appears
+at 20–27% down the viewport across 375/768/1440/1920px widths, verified with zero horizontal
+overflow. Headline changed from the filler line "Turn it on. Something should be on." to the
+approved "FTN TV / All Caribbean. One screen. Here." The hero paragraph that exposed internal
+routing language ("The guide determines the programming category; FTN discovery resolves
+embeddable Caribbean source content...") was removed outright — that detail was never load-bearing
+for a visitor and belongs behind Trust Card/source interactions if it's ever needed, not in the
+first thing a visitor reads.
+
+**Programme-category integrity — real defect found and fixed at its actual root cause.** The
+founder had directly observed "Roots & Culture" (FTN Radio's reggae slot) resolving Soca tracks.
+Root cause: `supabase/functions/dj-tube-discovery/index.ts`'s `GENRE_SEEDS` only shaped the
+*search query* sent outward — it never validated that a *returned* result actually matched the
+requested genre, so YouTube's own cross-genre Caribbean search results leaked through unfiltered.
+Fixed with a new `GENRE_TERMS` classification taxonomy and a post-search `genreAllowed()` filter
+applied regardless of which provider produced the results — unit-verified against known
+soca/reggae titles before being trusted. Radio also gained an "ALL" (unfiltered) genre option,
+implemented as `ALL_GENRES_SEED` (one query per real genre) rather than a second parallel query
+list. **This fix is source-complete but not yet deployed** — same Supabase CLI limitation as
+Ambient Hours above; the corrected classification logic will not take effect in production until
+a founder or a session with Supabase deploy credentials runs `supabase functions deploy
+dj-tube-discovery`.
+
+**Sitewide contrast — a real shared-component root cause fixed, not sixteen one-off patches.**
+Every `workspace-shell.css`-based product (Radio, Learn, Events, ibis, Kaiso, Opportunities,
+Riddim, Screen, Love, Display Network, ...) is a bounded-dark surface, but the shared `.btn-outline`
+button variant (`css/components/buttons.css`) is the *light*-surface variant — literal black
+text/border on a black background, invisible until hover. The already-approved dark-surface
+variant (`.btn-outline--on-dark`) existed but individual workspace JS files were never updated to
+request it. Fixed once, at the shared level: `.workspace .btn-outline` now inherits the
+`.btn-outline--on-dark` palette automatically (default/hover/active/disabled), closing the whole
+class of bug across every current and future workspace-shell product in one place, verified live
+on Radio's SAVE/SHARE controls (computed `color: rgb(255,255,255)`).
+
+**FTN Learn — UNVERIFIED badge removed from ordinary listings, provenance preserved via Trust
+Card.** Learn's job is "find, understand enough, go to the provider," not certify every listing;
+the blanket UNVERIFIED stamp read as bureaucratic clutter. The underlying provenance (source
+platform, discovery date, accreditation state) was not deleted — it now routes through the shared
+`js/trust-card.js` modal (a "Source & verification details" button per listing), the same pattern
+Observatory/Display already use, rather than an inline caution paragraph on every card.
+
+**One shared intelligence system, multiple contextual entry points.** `js/product-registry.js`'s
+`search()` gained an optional `scopeProductId` ranking-priority parameter (`scopeMatches()` /
+`SCOPE_BONUS`) — it only ever re-ranks products that already scored on real keyword overlap; it
+never invents a match or blocks a genuinely better cross-product answer. `js/intent-router.js`
+forwards this straight through. Learn, Opportunities, Screen and Riddim's own search fallbacks, and
+the sitewide `js/ibis-widget.js`, now all route through this one shared engine with their own
+`scopeProductId` (`'learn'`, `'opportunities'`, `'screen'`, `'ecosystem'` for the widget, which
+deliberately matches no real product id) rather than running independent, disconnected logic. Each
+page's own contextual placeholder prompts were preserved — they teach users what they can ask; the
+fix was consolidating the *engine* underneath, not removing the *entry points*.
+
+**Partner/Resource Registry (`js/ftn-partner-registry.js`)** — the shared registry for external
+businesses/services FTN links to, distinct from the Product Registry (FTN's own products) and the
+ibis Provider Registry (AI/media-generation providers). Migrates the existing house-brand records
+(`js/ftn-house-brands.js`, left intact and working unchanged) plus three real, WebFetch-verified
+external resources for Riddim's creator journey (Flow Music via `producer.ai`'s live redirect,
+DistroKid, ONErpm) — none marked as a confirmed partnership or affiliate; DistroKid's real
+affiliate/influencer program pages were found and recorded as `'unverified'` with their actual URLs
+for founder review, never auto-applied. Community Connect's "Founder Rewards" vendor data
+(Boss Consulting, BigV Records, Colab, etc.) was searched for exhaustively across this repository
+and **not found** — it is presumably held only in the separate Community Connect application
+repository, not accessible from here; nothing was fabricated to fill the gap.
+
+**FTN Motion System — ambient tier only, this pass.** One shared, restrained keyframe
+(`.ftn-pulse`, `css/base.css`, respects `prefers-reduced-motion`) applied to exactly two genuine
+live/now signals (FTN TV's "On Air" badge, FTN Clock's radio note glyph) rather than invented
+motion sprinkled everywhere. Interaction-tier and product-mnemonic-tier motion (per the founder's
+own three-tier framing) were not built out this pass — flagged for a future pass rather than
+rushed.
+
+**Deliberately not built this pass** (prepared conceptually where the brief asked for that, not
+fabricated): Ambient Exposure Hours, a persisted/historical Ambient Hours rollup, the FTN Referral
+Network foundation, outbound-referral measurement, business/venue Clock templates, podcast/audio
+discovery lanes, QR phone-handoff for Display, Screen Wake Lock, CAD/GBP/EUR currencies, and
+migrating every product's own share button onto the new `js/ftn-share.js` primitive. Each is real,
+scoped future work — not an abandoned promise.
+
 ## 8. HTML Standards
 
 - Semantic HTML5 landmarks (`header`, `nav`, `main`, `footer`, `section`, `article`) on every page —

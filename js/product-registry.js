@@ -80,7 +80,30 @@
   var STOPWORDS = ['the', 'and', 'for', 'are', 'with', 'that', 'this', 'you', 'your', 'have',
     'has', 'was', 'were', 'from', 'into', 'about', 'can', 'will', 'need', 'want', 'like', 'get'];
 
-  function search(query) {
+  // Sprint (Ecosystem Intelligence pass): scope is a PRIORITY SIGNAL for ranking, never a hard
+  // filter -- it only ever re-ranks products that already scored > 0 on real keyword overlap
+  // above. It never invents a match with zero real overlap, and it never removes a product that
+  // scored higher purely on keyword strength, so a query genuinely better answered by a
+  // different FTN product can still out-rank the scoped one. `scopeId` is matched case-
+  // insensitively against a product's own id, legacyIds, shortName, parentProduct and
+  // relatedProducts, so a caller can pass whichever natural name it knows for "the page I'm on"
+  // (e.g. 'observer' for FTN Observer, whose registry id is actually 'ftn-live').
+  function scopeMatches(p, scopeId) {
+    if (!scopeId) return false;
+    var s = String(scopeId).toLowerCase();
+    if (p.id && p.id.toLowerCase() === s) return true;
+    if (Array.isArray(p.legacyIds) && p.legacyIds.some(function (id) { return String(id).toLowerCase() === s; })) return true;
+    if (p.shortName && p.shortName.toLowerCase() === s) return true;
+    if (p.parentProduct && String(p.parentProduct).toLowerCase() === s) return true;
+    if (Array.isArray(p.relatedProducts) && p.relatedProducts.some(function (id) { return String(id).toLowerCase() === s; })) return true;
+    return false;
+  }
+
+  var SCOPE_BONUS = 0.5;
+
+  function search(query, options) {
+    options = options || {};
+    var scopeId = options.scopeProductId || null;
     var q = String(query || '').toLowerCase().trim();
     if (!q) return [];
     var qWords = q.split(/\W+/).filter(function (w) {
@@ -107,7 +130,8 @@
         return { product: p, score: score, matchedKeywords: matchedKeywords };
       })
       .filter(function (r) { return r.score > 0; })
-      .sort(function (a, b) { return b.score - a.score; });
+      .map(function (r) { r.rankScore = r.score + (scopeMatches(r.product, scopeId) ? SCOPE_BONUS : 0); return r; })
+      .sort(function (a, b) { return b.rankScore - a.rankScore || b.score - a.score; });
   }
 
   global.FTN = global.FTN || {};

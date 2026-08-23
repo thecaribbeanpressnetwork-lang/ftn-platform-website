@@ -154,3 +154,18 @@ select:focus-visible {
     max-width: 1600px;
   }
 }
+
+/* FTN Motion System — ambient tier (v1.10). One shared, restrained "alive, not busy" pulse for a
+   live/now signal (an On Air badge, a live-presence dot) — reused rather than each surface
+   inventing its own keyframe. Interaction-tier and product-mnemonic-tier motion stay scoped to
+   their own components; this is only the ambient-tier primitive every surface can share. */
+@media (prefers-reduced-motion: no-preference) {
+  .ftn-pulse {
+    animation: ftn-pulse-breathe 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes ftn-pulse-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}

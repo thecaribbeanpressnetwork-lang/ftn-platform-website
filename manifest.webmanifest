@@ -80,6 +80,17 @@
           "sizes": "any"
         }
       ]
+    },
+    {
+      "name": "FTN Clock",
+      "short_name": "Clock",
+      "url": "/clock/",
+      "icons": [
+        {
+          "src": "/assets/icons/ftn-shortcut-mark.svg?v=20260811.2",
+          "sizes": "any"
+        }
+      ]
     }
   ]
 }

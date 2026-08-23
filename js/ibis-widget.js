@@ -225,9 +225,14 @@
   // A confident match requires at least one of the query's real words to be a product's own
   // registered keyword (not just an incidental word overlap in its name/tagline/description) --
   // the same bar js/intent-router.js already documents as its honest-match standard.
+  // scope: 'ecosystem' -- this widget is sitewide with no reliable page-to-product mapping (see
+  // the file header), so it deliberately passes a scope that matches no real product id/
+  // shortName in js/product-registry-data.js. That's the honest "no priority bias" scope for a
+  // context-free caller, as opposed to a page-scoped caller (e.g. js/learn-workspace.js passing
+  // 'learn') which genuinely wants its own product's matches ranked first when relevant.
   function tryDeterministicRoute(text) {
     if (!global.FTN || !global.FTN.IntentRouter) return null;
-    var results = global.FTN.IntentRouter.route(text).filter(function (r) { return r.matchedKeywords.length > 0; });
+    var results = global.FTN.IntentRouter.route(text, { scopeProductId: 'ecosystem' }).filter(function (r) { return r.matchedKeywords.length > 0; });
     if (!results.length) return null;
     return results.slice(0, 3);
   }

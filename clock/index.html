@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FTN Clock | A beautiful clock for any screen.</title>
+  <meta name="description" content="FTN Clock is a beautiful, free fullscreen clock for any phone, tablet, desktop, TV or wall monitor. Analog or digital. No signup, no app store. Ambient utility by FTN.">
+  <link rel="canonical" href="https://ftnplatform.org/clock/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FTN Platform">
+  <meta property="og:title" content="FTN Clock | A beautiful clock for any screen.">
+  <meta property="og:description" content="A beautiful clock for any screen. Ambient utility by FTN. No signup, no app store — open it and go full screen.">
+  <meta property="og:url" content="https://ftnplatform.org/clock/">
+  <meta property="og:image" content="https://ftnplatform.org/assets/social/og-ftn-platform.jpg">
+  <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FTN Clock | A beautiful clock for any screen.">
+  <meta name="twitter:description" content="A beautiful clock for any screen. Ambient utility by FTN.">
+  <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-ftn-platform.jpg">
+  <meta name="robots" content="index,follow">
+  <link rel="icon" href="/assets/icons/ftn-shortcut-mark.svg?v=20260811.2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components/buttons.css">
+  <link rel="stylesheet" href="/css/components/nav.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/ftn-share.css">
+  <link rel="stylesheet" href="/css/components/clock.css">
+  <link rel="stylesheet" href="/css/utilities.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container site-header__bar">
+      <a class="site-header__logo" href="/" aria-label="FTN Platform home">
+        <svg viewBox="0 0 220 64" role="img" aria-labelledby="headerLogoTitle" class="logo-mark">
+          <title id="headerLogoTitle">FTN Platform</title>
+          <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#0B0B0B">F<tspan class="logo-mark__t">T</tspan>N</text>
+          <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#0B0B0B">PLATFORM</text>
+        </svg>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul class="site-nav__list">
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/">Home</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/display/">FTN Display</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/observatory/">FTN Observer</a></li>
+          <li class="site-nav__item"><a class="site-nav__trigger site-nav__trigger--link" href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="site-header__actions">
+        <a class="btn btn-primary btn-sm" href="/account/" data-sign-in-entry>Sign In</a>
+        <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
+          <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
+          <img class="icon-close" src="/assets/icons/icon-close.svg" alt="" width="20" height="20">
+        </button>
+      </div>
+    </div>
+    <div class="mobile-nav" id="mobile-nav">
+      <div class="mobile-nav__section">
+        <div class="mobile-nav__links">
+          <a href="/" class="mobile-nav__link--top">Home</a>
+          <a href="/display/" class="mobile-nav__link--top">FTN Display</a>
+          <a href="/observatory/" class="mobile-nav__link--top">FTN Observer</a>
+          <a href="/contact/" class="mobile-nav__link--top">Contact</a>
+        </div>
+      </div>
+      <div class="mobile-nav__actions">
+        <a class="btn btn-primary" href="/account/" data-sign-in-entry>Sign In</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1" class="clock-screen">
+    <div class="clock-topbar">
+      <span class="clock-topbar__mark">FTN Clock</span>
+      <div class="clock-topbar__actions">
+        <button type="button" class="btn btn-outline--on-dark btn-sm" id="clock-personalize-toggle" aria-expanded="false" aria-controls="clock-personalize">Personalize</button>
+        <button type="button" class="btn btn-outline--on-dark btn-sm" id="clock-share">Share</button>
+        <button type="button" class="btn btn-outline--on-dark btn-sm" id="clock-install" hidden>Add to Home Screen</button>
+        <button type="button" class="btn btn-primary btn-sm" id="clock-fullscreen-toggle">Full Screen</button>
+      </div>
+    </div>
+
+    <div class="clock-stage" id="clock-stage">
+      <div class="clock-face clock-face--analog" id="clock-face-analog">
+        <svg viewBox="0 0 200 200" class="clock-analog-svg" role="img" aria-label="Analog clock face">
+          <circle class="clock-analog__dial" cx="100" cy="100" r="96"></circle>
+          <g id="clock-analog-ticks"></g>
+          <line id="clock-hand-hour" class="clock-hand clock-hand--hour" x1="100" y1="100" x2="100" y2="58"></line>
+          <line id="clock-hand-minute" class="clock-hand clock-hand--minute" x1="100" y1="100" x2="100" y2="34"></line>
+          <line id="clock-hand-second" class="clock-hand clock-hand--second" x1="100" y1="114" x2="100" y2="22"></line>
+          <circle class="clock-analog__pivot" cx="100" cy="100" r="4"></circle>
+        </svg>
+      </div>
+      <div class="clock-face clock-face--digital" id="clock-face-digital" hidden>
+        <p class="clock-digital__time"><span id="clock-digital-time">--:--:--</span><span class="clock-digital__meridiem" id="clock-digital-meridiem"></span></p>
+      </div>
+      <div class="clock-face clock-face--minimal" id="clock-face-minimal" hidden>
+        <p class="clock-minimal__time" id="clock-minimal-time">--:--</p>
+      </div>
+      <p class="clock-date" id="clock-date"></p>
+      <div class="clock-worldnow" id="clock-worldnow" hidden></div>
+    </div>
+
+    <div class="clock-radio" id="clock-radio" hidden>
+      <button type="button" class="clock-radio__indicator" id="clock-radio-indicator">
+        <span class="clock-radio__note ftn-pulse">&#9835;</span>
+        <span>FTN Radio — <span id="clock-radio-programme">Tuning…</span></span>
+        <span class="clock-radio__expand" id="clock-radio-expand-label">Expand</span>
+      </button>
+      <div class="radio-listen clock-radio__shell" id="clock-radio-shell" hidden></div>
+    </div>
+
+    <section class="clock-personalize" id="clock-personalize" hidden aria-label="Personalize FTN Clock">
+      <div class="clock-personalize__group">
+        <p class="clock-personalize__label">Clock</p>
+        <div class="clock-personalize__options" role="radiogroup" aria-label="Clock style">
+          <button type="button" class="clock-chip" data-clock-style="analog" aria-pressed="true">Analog</button>
+          <button type="button" class="clock-chip" data-clock-style="digital" aria-pressed="false">Digital</button>
+          <button type="button" class="clock-chip" data-clock-style="minimal" aria-pressed="false">Minimal</button>
+        </div>
+      </div>
+      <div class="clock-personalize__group">
+        <p class="clock-personalize__label">Background</p>
+        <div class="clock-personalize__options" role="radiogroup" aria-label="Background">
+          <button type="button" class="clock-chip" data-clock-bg="default" aria-pressed="true">FTN Default</button>
+          <button type="button" class="clock-chip" data-clock-bg="accent" aria-pressed="false">Accent Glow</button>
+        </div>
+        <p class="clock-personalize__note">Custom photo and logo backgrounds are not built yet — this stays simple for now.</p>
+      </div>
+      <div class="clock-personalize__group">
+        <p class="clock-personalize__label">Information</p>
+        <div class="clock-check"><input type="checkbox" id="clock-toggle-date" checked><label for="clock-toggle-date">Date</label></div>
+        <div class="clock-check"><input type="checkbox" id="clock-toggle-worldnow"><label for="clock-toggle-worldnow">World Now (Port of Spain, New York, London)</label></div>
+      </div>
+      <div class="clock-personalize__group">
+        <p class="clock-personalize__label">Audio</p>
+        <div class="clock-check"><input type="checkbox" id="clock-toggle-radio"><label for="clock-toggle-radio">FTN Radio</label></div>
+      </div>
+      <div class="clock-personalize__group">
+        <div class="clock-check"><input type="checkbox" id="clock-remember" checked><label for="clock-remember">Remember these settings on this device</label></div>
+        <p class="clock-personalize__note">Stored only in this browser's local storage — never a cookie, never sent anywhere, never required to use the clock.</p>
+      </div>
+    </section>
+
+    <p class="clock-explore"><a href="/">Explore FTN →</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__top">
+        <div class="site-footer__brand">
+          <svg viewBox="0 0 220 64" role="img" aria-labelledby="footerLogoTitle" class="logo-mark--footer">
+            <title id="footerLogoTitle">FTN Platform</title>
+            <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#FFFFFF">F<tspan class="logo-mark__t">T</tspan>N</text>
+            <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#FFFFFF">PLATFORM</text>
+          </svg>
+          <p class="site-footer__tagline">Useful when you need it. Present when you don't.</p>
+        </div>
+        <div class="site-footer__columns">
+          <div>
+            <p class="site-footer__heading">Platform</p>
+            <div class="site-footer__links">
+              <a href="/about/">About FTN</a>
+              <a href="/community-connect/">Community Connect</a>
+              <a href="/display/">FTN Display</a>
+              <a href="/observatory/">FTN Observer</a>
+              <a href="/radio/">FTN Radio</a>
+            </div>
+          </div>
+          <div>
+            <p class="site-footer__heading">Legal</p>
+            <div class="site-footer__links">
+              <a href="/legal/privacy-policy/">Privacy Policy</a>
+              <a href="/legal/terms-of-service/">Terms of Service</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="site-footer__bottom">
+        <p>&copy; 2026 RealityArtTV Media. All Rights Reserved.</p>
+        <div class="site-footer__bottom-links">
+          <a href="/sitemap/">Sitemap</a>
+          <a href="/accessibility/">Accessibility</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/persisted-flag.js"></script>
+  <script src="/js/platform-mode.js"></script>
+  <script src="/js/storage.js"></script>
+  <script src="/js/country.js"></script>
+  <script src="/js/nav.js?v=20260822.2"></script>
+  <script src="/js/ftn-media-discovery.js"></script>
+  <script src="/js/radio-player.js"></script>
+  <script src="/js/ftn-share.js"></script>
+  <script src="/js/ambient-hours.js"></script>
+  <script src="/js/clock-page.js"></script>
+</body>
+</html>

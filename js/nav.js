@@ -134,7 +134,7 @@
   // Canonical Platform / Company / Legal structure -- one shared footer, same on every
   // site-footer page (see CLAUDE.md FIX 6). Social icons are normalized separately below
   // since they live in .site-footer__brand, a sibling this function does not touch.
-  var FOOTER_PLATFORM=[['About FTN','/about/'],['Community Connect','/community-connect/'],['FTN Display','/display/'],['FTN Observer','/observatory/'],['FTN Learn','/learn/'],['Scenario Workspace','/scenario-workspace/'],['FTN Events','/events/'],['Face The Nation','/facethenation'],['FTN ibis','/ibis-ai/'],['FTN Riddim','/riddim/'],['FTN Kaiso','/kaiso/'],['FTN Radio','/radio/'],['FTN Screen','/screen/'],['FTN Opportunities','/opportunities/'],['Display Network','/display-network/']];
+  var FOOTER_PLATFORM=[['About FTN','/about/'],['Community Connect','/community-connect/'],['FTN Display','/display/'],['FTN Clock','/clock/'],['FTN Observer','/observatory/'],['FTN Learn','/learn/'],['Scenario Workspace','/scenario-workspace/'],['FTN Events','/events/'],['Face The Nation','/facethenation'],['FTN ibis','/ibis-ai/'],['FTN Riddim','/riddim/'],['FTN Kaiso','/kaiso/'],['FTN Radio','/radio/'],['FTN Screen','/screen/'],['FTN Opportunities','/opportunities/'],['Display Network','/display-network/']];
   var FOOTER_COMPANY=[['About FTN','/about/'],['FTN Invest-in','/invest/'],['Contact','/contact/'],['Trust Centre','/trust/']];
   var FOOTER_LEGAL=[['Privacy Policy','/legal/privacy-policy/'],['Terms of Service','/legal/terms-of-service/'],['Cookie Policy','/legal/cookie-policy/'],['Data Retention','/legal/data-retention/']];
   // @FaceTheNationTT is FTN's canonical public social handle (founder-stated); X and YouTube were

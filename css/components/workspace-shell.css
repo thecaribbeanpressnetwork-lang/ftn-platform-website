@@ -19,6 +19,23 @@
 @media(prefers-reduced-motion:reduce){.workspace__hero-art,.workspace__hero-art img{transform:none!important;transition:none!important}}
 @media(max-width:860px){.workspace__hero{grid-template-columns:1fr}.workspace__hero-art{display:block;justify-self:start}.workspace__hero-art img{max-height:300px}.workspace__title{font-size:clamp(2.2rem,9vw,3.5rem)}.workspace__content{padding-top:var(--space-24)}.workspace[data-surface-mode="approved-image"] .workspace__header{min-height:510px}.workspace[data-surface-mode="approved-image"] .workspace__header:after{background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.62) 58%,rgba(0,0,0,.2) 100%),linear-gradient(0deg,rgba(0,0,0,.86) 0%,rgba(0,0,0,.24) 68%,rgba(0,0,0,.12) 100%)}.workspace[data-surface-mode="approved-image"] .workspace__hero-art img{height:100%;max-height:none;object-position:var(--workspace-hero-focal-mobile,50% 50%)}}
 @media(max-width:640px){.workspace__header{padding-top:var(--space-20)}.workspace__header-top,.workspace__hero,.workspace__toolbar,.workspace__content{width:calc(100% - 28px)}.workspace__header-top{margin-bottom:var(--space-20)}.workspace__hero{gap:20px}.workspace__hero-art{border-radius:18px}.workspace__title{font-size:clamp(2.2rem,12vw,3.7rem)}.workspace__tagline{font-size:1rem;color:#c7c9ce}.workspace__notification{left:var(--space-14);right:var(--space-14);bottom:calc(72px + env(safe-area-inset-bottom));transform:none;max-width:none}.workspace__content{padding-bottom:82px}.workspace-export-row .btn{min-height:44px;flex:1 1 140px}.workspace__footer{padding-bottom:calc(78px + env(safe-area-inset-bottom))}}
+/* Root-cause fix: every workspace-shell product (Radio, Learn, Events, ibis.ai, Kaiso,
+   Opportunities, Riddim, Screen, Love, Display Network, ...) is a bounded-dark surface
+   (background:var(--color-black) on .workspace, above), but their JS renders plain, unqualified
+   .btn-outline for in-page controls (SAVE/SHARE/NEXT, provider "Visit" links, filter chips, etc.).
+   .btn-outline (css/components/buttons.css) is the *light*-surface variant --
+   color:var(--color-black);border-color:var(--color-black) -- i.e. literal black text/border on a
+   black background: invisible until hover. buttons.css already ships the correct dark-surface
+   variant, .btn-outline--on-dark, but individual workspace JS files were never updated to request
+   it. Rather than hunting down and renaming the class in every consumer (and leaving the same trap
+   for the next workspace page that copies existing markup), this scopes the already-approved
+   .btn-outline--on-dark palette to any .btn-outline rendered inside .workspace, so the whole class
+   of bug is closed at the shared-component level. No new colors: this mirrors buttons.css's
+   .btn-outline--on-dark values exactly, default/hover/active/disabled included. */
+.workspace .btn-outline{color:var(--color-white);border-color:rgba(255,255,255,.6)}
+.workspace .btn-outline:hover{background:var(--color-white);color:var(--color-black);border-color:var(--color-white)}
+.workspace .btn-outline:active{background:rgba(255,255,255,.85);border-color:var(--color-white);color:var(--color-black)}
+.workspace .btn-outline:disabled{color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.3)}
 .riddim-studio-search{background:#0e0b12;color:#fff;width:min(1000px,calc(100% - 48px));margin:var(--space-32) auto;padding:var(--space-32) var(--space-24);border-radius:var(--radius-16)}
 .riddim-studio-search .workspace-fallback__heading{color:#fff}
 .riddim-studio-search .workspace-fallback__note{color:#c0c3c9}
@@ -29,3 +46,10 @@
 .riddim-studio-search__form input,.riddim-studio-search__form select{min-height:44px;padding:0 var(--space-12);border-radius:var(--radius-8);border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:var(--color-white)}
 .riddim-studio-search__form input{flex:1 1 220px}
 .riddim-studio-search__form select option{background:#141519;color:#fff}
+.riddim-resources{background:#0e0b12;color:#fff;width:min(1000px,calc(100% - 48px));margin:var(--space-32) auto;padding:var(--space-32) var(--space-24);border-radius:var(--radius-16)}
+.riddim-resources .workspace-fallback__heading{color:#fff}
+.riddim-resources .workspace-fallback__note{color:#c0c3c9}
+.riddim-resources .workspace-output{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.13)}
+.riddim-resources .workspace-output h3{color:#fff}
+.riddim-resources__group+.riddim-resources__group{margin-top:var(--space-24)}
+.riddim-resources__group-label{font-size:var(--text-caption-size);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--color-riddim,#e10613);margin-bottom:var(--space-8)}

@@ -333,7 +333,21 @@
   max-width: 89ch;
 }
 
-/* Full-screen broadcast state — legible from several metres away */
+.display-ticker {
+  display: none;
+}
+
+/* Full-screen broadcast state — a genuine single fixed screen, not a scrolling webpage with
+   chrome hidden. Recomposed as one CSS Grid pinned to 100vh: a persistent topbar, FTN TV NOW as
+   the dominant zone (golden-ratio width against the secondary column), National Pulse as the
+   secondary zone, a rotating tertiary zone (Live Conditions / What's Happening / Community /
+   World Now cycle through the same slot rather than stacking and forcing a scrollbar), and a
+   persistent bottom ticker. Verified to hold document.documentElement.scrollHeight/scrollWidth
+   within window.innerHeight/innerWidth at 1920x1080, 1366x768, 1280x720 and 1024x768. */
+body.display-fullscreen {
+  overflow: hidden;
+}
+
 body.display-fullscreen .site-header,
 body.display-fullscreen .site-footer,
 body.display-fullscreen .display-lede,
@@ -341,10 +355,130 @@ body.display-fullscreen .display-methodology {
   display: none;
 }
 
-body.display-fullscreen .display-screen { padding-top: 13px; }
-body.display-fullscreen .pulse-card__value { font-size: 26px; }
+body.display-fullscreen .display-screen {
+  box-sizing: border-box;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  padding: 13px 21px;
+  display: grid;
+  grid-template-columns: 1.618fr 1fr;
+  grid-template-rows: auto 1fr 1fr auto;
+  grid-template-areas:
+    "topbar topbar"
+    "tv     pulse"
+    "tv     rotate"
+    "ticker ticker";
+  gap: 13px;
+}
+
+body.display-fullscreen .display-topbar {
+  grid-area: topbar;
+  padding-bottom: 8px;
+  min-height: 0;
+}
+
 body.display-fullscreen .display-topbar__clock { font-size: 26px; }
+
+body.display-fullscreen .display-tvnow {
+  grid-area: tv;
+  grid-template-columns: 1fr;
+  min-height: 0;
+  min-width: 0;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.display-fullscreen .display-next { display: none; }
+
+body.display-fullscreen .display-tvnow__player {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.display-fullscreen .display-tvnow__video {
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+body.display-fullscreen .display-tvnow__meta { flex: 0 0 auto; }
+
+body.display-fullscreen .display-pulse {
+  grid-area: pulse;
+  height: 100%;
+  min-height: 0;
+  margin-bottom: 0;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  overflow: hidden;
+}
+
+body.display-fullscreen .pulse-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+body.display-fullscreen .pulse-card__value { font-size: 22px; }
+
+/* Rotating tertiary zone: .display-grid is "unwrapped" (display: contents) so its three panel
+   children become direct grid items sharing the same "rotate" area as .display-world -- only the
+   one carrying .is-rotate-active is actually shown, toggled by js/display-page.js. Nothing here
+   duplicates real data; it only decides which already-rendered panel is visible right now. */
+body.display-fullscreen .display-grid {
+  display: contents;
+}
+
+body.display-fullscreen .display-panel,
+body.display-fullscreen .display-world {
+  grid-area: rotate;
+  display: none;
+  min-height: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+  border-top: 0;
+  padding-top: 13px;
+}
+
+body.display-fullscreen .display-panel.is-rotate-active,
+body.display-fullscreen .display-world.is-rotate-active {
+  display: flex;
+  flex-direction: column;
+}
+
+body.display-fullscreen .display-world .display-world__grid { flex: 1; min-height: 0; }
+body.display-fullscreen .display-world__note { display: none; }
+
+body.display-fullscreen .display-ticker {
+  grid-area: ticker;
+  display: flex;
+  align-items: center;
+  min-height: 0;
+  height: 28px;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+body.display-fullscreen .display-ticker__track {
+  display: inline-block;
+  padding-left: 100%;
+  font-size: 13px;
+  color: var(--color-silver);
+  animation: display-ticker-scroll 40s linear infinite;
+}
+
+@keyframes display-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .display-screen * { animation: none !important; transition: none !important; }
+  body.display-fullscreen .display-ticker__track { padding-left: 0; overflow: hidden; text-overflow: ellipsis; }
 }

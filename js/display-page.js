@@ -156,6 +156,44 @@
       '<div class="world-economy__row world-economy__row--muted"><span>CAD, GBP, EUR</span><strong>Not yet available</strong></div>';
   }
 
+  // ---- Fullscreen rotation ----
+  // The single-screen fullscreen composition (css/components/display.css) has one tertiary
+  // "rotate" grid slot shared by Live Conditions, What's Happening, Community and World Now --
+  // showing all four stacked would force a scrollbar, defeating the point of fullscreen. Cycles
+  // through real, already-rendered panels; never invents content or reloads the page.
+  function initRotation() {
+    var candidates = Array.prototype.slice.call(document.querySelectorAll('.display-grid .display-panel, .display-world'));
+    if (!candidates.length) return;
+    var idx = 0;
+    var reduceMotion = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function show(i) {
+      candidates.forEach(function (el, j) { el.classList.toggle('is-rotate-active', j === i); });
+    }
+    show(0);
+    if (!reduceMotion) {
+      setInterval(function () { idx = (idx + 1) % candidates.length; show(idx); }, 8000);
+    }
+  }
+
+  // ---- Bottom information ticker (fullscreen only; built from data already on screen) ----
+  function renderTicker() {
+    var track = document.getElementById('display-ticker-track');
+    if (!track) return;
+    var parts = [];
+    var titleEl = document.getElementById('display-tv-title');
+    if (titleEl && titleEl.textContent && titleEl.textContent.indexOf('…') === -1) parts.push('FTN TV NOW: ' + titleEl.textContent);
+    if (global.FTN.getIndicator) {
+      PULSE_IDS.forEach(function (id) {
+        var ind = global.FTN.getIndicator(id);
+        if (ind && ind.value !== '—' && ind.value !== '-') parts.push(ind.title + ': ' + ind.value + (ind.units ? ' ' + ind.units : ''));
+      });
+    }
+    parts.push('FTN Kaiso — current reporting');
+    parts.push('FTN Parliament — public records');
+    parts.push('FTN Observer — full investigation deck');
+    track.textContent = parts.join('     ·     ');
+  }
+
   // ---- Full screen ----
   function initFullscreen() {
     var btn = document.getElementById('display-fullscreen-toggle');
@@ -204,5 +242,12 @@
     renderWorldEconomy();
     initFullscreen();
     initPresence();
+    initRotation();
+    renderTicker();
+    setTimeout(renderTicker, 3000);
+    setInterval(renderTicker, 60000);
+    if (global.FTN.AmbientHours) {
+      global.FTN.AmbientHours.track('display', { isFullscreen: function () { return document.body.classList.contains('display-fullscreen'); } });
+    }
   });
 })(window);

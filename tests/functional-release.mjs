@@ -270,7 +270,34 @@ await scenario('riddim-hub-links', async page=>{
   await open(page,'/riddim/');assert(await page.locator('a[href="/riddim/daw/"]').count()>0,'DAW link missing');assert(await page.locator('a[href="/riddim/dj/"]').count()>0,'DJ link missing');await page.click('#riddim-track-choice');await page.waitForSelector('#riddim-form',{timeout:5000});
 });
 
-for (const path of ['/about/','/applications/','/contact/','/news/','/insights/','/resources/','/top-picks/','/trust/','/glossary/','/investor-room/','/display/','/learn/']) {
+await scenario('clock-personalize-share-and-fullscreen', async page=>{
+  await open(page,'/clock/');
+  await page.waitForSelector('#clock-face-analog');
+  const t1=await page.locator('#clock-hand-second').getAttribute('style');
+  await page.waitForTimeout(1100);
+  const t2=await page.locator('#clock-hand-second').getAttribute('style');
+  assert.notEqual(t1,t2,'analog second hand is not moving');
+  await page.click('#clock-personalize-toggle');
+  await page.waitForSelector('#clock-personalize:not([hidden])');
+  await page.click('[data-clock-style="digital"]');
+  assert.equal(await page.locator('#clock-face-digital').getAttribute('hidden'),null,'digital face did not activate');
+  assert.match(await page.locator('#clock-digital-time').innerText(),/^\d{2}:\d{2}:\d{2}$/);
+  await page.click('#clock-toggle-worldnow');
+  await page.waitForSelector('.clock-worldnow__item');
+  assert.equal(await page.locator('.clock-worldnow__item').count(),3,'World Now did not render 3 zones');
+  await page.click('#clock-toggle-radio');
+  await page.waitForSelector('.ftn-radio-live',{timeout:10000});
+  assert.equal(await page.locator('#clock-radio').getAttribute('hidden'),null,'radio panel did not become visible');
+  await page.click('#clock-share');
+  await page.waitForSelector('.ftn-share-dialog.is-open');
+  assert.match(await page.locator('.ftn-share-dialog__option--whatsapp').getAttribute('href'),/api\.whatsapp\.com/);
+  await page.evaluate(()=>document.body.classList.add('clock-fullscreen'));
+  await page.waitForTimeout(200);
+  const m=await page.evaluate(()=>({sh:document.documentElement.scrollHeight,ih:innerHeight,sw:document.documentElement.scrollWidth,iw:innerWidth}));
+  assert(m.sh-m.ih<=2 && m.sw-m.iw<=2, 'Clock fullscreen does not fit the viewport: '+JSON.stringify(m));
+});
+
+for (const path of ['/about/','/applications/','/contact/','/news/','/insights/','/resources/','/top-picks/','/trust/','/glossary/','/investor-room/','/display/','/clock/','/learn/']) {
   await scenario('route-'+path.replaceAll('/','-'), async page=>{await open(page,path);assert(await page.locator('main').count()===1);});
 }
 

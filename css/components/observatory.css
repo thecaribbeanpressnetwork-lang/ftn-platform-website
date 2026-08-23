@@ -605,13 +605,9 @@
 /* .btn-outline--on-dark now lives in buttons.css (v1.5 consolidation) — this page used to
    define its own slightly-different variant; unified to the one shared definition. */
 
-.trust-trigger--on-dark {
-  color: var(--color-silver);
-}
-
-.trust-trigger--on-dark:hover {
-  color: var(--color-white);
-}
+/* .trust-trigger--on-dark now lives in trust-card.css, alongside the base .trust-trigger rule it
+   modifies — moved so any page loading trust-card.css (e.g. FTN Learn) gets it too, not just
+   Observatory. */
 
 .indicator-category {
   scroll-margin-top: 130px;

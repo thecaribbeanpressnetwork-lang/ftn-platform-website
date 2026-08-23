@@ -7,11 +7,16 @@
 (function (global) {
   'use strict';
 
-  function route(goalText) {
+  // options.scopeProductId (optional): the FTN product/page a caller is asking from (e.g.
+  // 'learn', 'opportunities', 'observer', or 'ecosystem' for the sitewide widget, which
+  // deliberately matches no real product -- see js/product-registry.js's scopeMatches()). This
+  // is forwarded straight to Registry.search() as a ranking priority signal, never a filter --
+  // route() can still return a product with no keyword relationship to the caller's own page.
+  function route(goalText, options) {
     var Registry = global.FTN && global.FTN.ProductRegistry;
     if (!Registry) throw new Error('IntentRouter requires FTN.ProductRegistry to be loaded first');
 
-    return Registry.search(goalText).map(function (r) {
+    return Registry.search(goalText, options).map(function (r) {
       var explanation = r.matchedKeywords.length
         ? 'Matched because your goal mentioned: ' + r.matchedKeywords.join(', ') + '.'
         : 'Matched ' + r.score + ' word' + (r.score === 1 ? '' : 's') + ' in ' + r.product.name + '’s name, tagline, or description.';

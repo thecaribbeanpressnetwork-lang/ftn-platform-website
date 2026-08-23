@@ -19,6 +19,44 @@ const GENRE_SEEDS: Record<string, string[]> = {
   gospel: ["Caribbean gospel official video", "Trinidad gospel official audio", "Jamaica gospel official video", "Caribbean gospel artist official"],
 };
 
+// "ALL" (unfiltered/broad discovery) draws one seed query from every real genre above rather than
+// inventing a second, parallel query list -- see js/radio-player.js's "ALL" genre option.
+const ALL_GENRES_SEED: string[] = Object.values(GENRE_SEEDS).map((seeds) => seeds[0]);
+
+// Post-search genre classification. YouTube's own search/ranking for a broad query like
+// "reggae Caribbean official video" can and does surface cross-genre Caribbean results (observed:
+// Soca tracks returned for the "Roots & Culture" reggae slot) -- GENRE_SEEDS only shapes the query,
+// it never guaranteed the *result* actually belongs to that genre. GENRE_TERMS is the classification
+// taxonomy every returned title is checked against before being accepted for a given genre: a result
+// is rejected if it carries another genre's distinctive term set and none of the requested genre's
+// own terms. Extends GENRE_SEEDS's per-genre shape rather than bolting on an unrelated structure.
+const GENRE_TERMS: Record<string, string[]> = {
+  soca: ["soca", "power soca", "groovy soca", "soca gold", "fete mix", "fete"],
+  reggae: ["reggae", "roots reggae", "conscious reggae", "dub", "nyabinghi", "rastafari", "rasta"],
+  dancehall: ["dancehall", "bashment", "riddim"],
+  "zouk-kompa": ["zouk", "kompa", "konpa", "compas"],
+  chutney: ["chutney", "chutney soca", "chutney soca"],
+  calypso: ["calypso", "kaiso"],
+  steelpan: ["steelpan", "steel pan", "steel orchestra", "panorama", "pan round de neck"],
+  gospel: ["gospel"],
+};
+
+// True unless the title carries another genre's distinctive term(s) and none of the requested
+// genre's own -- i.e. it excludes cross-genre bleed-through without touching titles that carry no
+// recognizable genre term at all (those pass through unchanged, same as before this fix).
+function genreAllowed(title: string, genre: string) {
+  const terms = GENRE_TERMS[genre];
+  if (!genre || !terms) return true;
+  const lower = String(title || "").toLowerCase();
+  const ownHit = terms.some((term) => lower.includes(term));
+  if (ownHit) return true;
+  for (const [otherGenre, otherTerms] of Object.entries(GENRE_TERMS)) {
+    if (otherGenre === genre) continue;
+    if (otherTerms.some((term) => lower.includes(term))) return false;
+  }
+  return true;
+}
+
 function originAllowed(req: Request) {
   const origin = req.headers.get("origin") || "";
   const referer = req.headers.get("referer") || "";
@@ -285,6 +323,7 @@ async function discovery(body: any) {
   let queries: string[] = [];
 
   if (Array.isArray(body.queries)) queries = body.queries.map(cleanText).filter(Boolean).slice(0, 6);
+  if (!queries.length && genre === "all") queries = ALL_GENRES_SEED;
   if (!queries.length && genre && GENRE_SEEDS[genre]) queries = GENRE_SEEDS[genre];
   if (!queries.length && cleanText(body.query)) queries = [cleanText(body.query)];
   if (!queries.length) throw new Error("query, queries, or supported genre required");
@@ -310,6 +349,13 @@ async function discovery(body: any) {
     const batches = await Promise.all(queries.map((query) => ytWebSearch(query, perQuery).catch(() => [])));
     results = filterWeb(batches.flat(), mode);
     provider = "youtube-public-search";
+  }
+
+  // Root-cause fix for cross-genre bleed-through (e.g. Soca returned for a Reggae request): apply
+  // the shared GENRE_TERMS classification after search, regardless of which provider produced the
+  // results. Genre "all" (or no genre) intentionally skips this -- it is the unfiltered/broad state.
+  if (mode === "music" && genre && genre !== "all" && GENRE_TERMS[genre]) {
+    results = results.filter((item) => genreAllowed(item.title, genre));
   }
 
   return {
