@@ -79,7 +79,7 @@ product({
   id:'govern',name:'FTN Govern',shortName:'Govern',tagline:'Find the official path. Follow the public record.',
   description:'An independent civic gateway to official Trinidad and Tobago government services, Parliament, departments and public-information sources.',route:'/govern/',status:'AVAILABLE',
   primaryUser:'Residents and civic-information seekers',primaryJourney:'Choose a civic task, see the source owner and continue to the official destination.',
-  callsToAction:[{label:'Open FTN Govern',route:'/govern/'}],visualMnemonic:'Civic gateway',accent:'#c9a45c',atmosphere:{accent:'#c9a45c',background:'dark-civic',motionProfile:'none',heroStyle:'civic-gateway'},
+  callsToAction:[{label:'Open FTN Govern',route:'/govern/'}],visualMnemonic:'Civic gateway',heroAsset:'/assets/heroes/ftn-govern-red-house.webp',heroAlt:'The Red House, seat of Parliament, in Port of Spain, Trinidad and Tobago',accent:'#c9a45c',atmosphere:{accent:'#c9a45c',background:'dark-civic',motionProfile:'none',heroStyle:'civic-gateway'},
   dataSources:['ttconnect','Parliament of Trinidad and Tobago'],accessRules:['guest source gateway'],featureFlags:['govern-gateway'],relatedProducts:['parliament','community-connect','facethenation'],
   legalNotices:['Independent non-government service','Official destinations remain source-owned'],keywords:['government','service','department','parliament','public notice','civic'],capabilities:['official-source-gateway','country-boundary','service-routing']
 }),
