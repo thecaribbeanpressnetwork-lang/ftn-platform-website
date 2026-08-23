@@ -53,6 +53,13 @@
 
 .clock-face { display: flex; align-items: center; justify-content: center; }
 
+/* An author-origin `display` declaration beats the UA stylesheet's [hidden]{display:none} rule
+   regardless of selector specificity (origin is compared before specificity) -- so the rule
+   above was silently keeping the digital and minimal faces rendered underneath the analog one
+   any time [hidden] was toggled by clock-page.js, producing three simultaneous time displays
+   instead of the one primary face the mode switcher is meant to select. */
+.clock-face[hidden] { display: none; }
+
 /* ---- Analog ---- */
 .clock-analog-svg {
   width: min(52vh, 420px, 80vw);
