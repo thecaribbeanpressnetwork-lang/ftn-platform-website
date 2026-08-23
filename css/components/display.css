@@ -94,6 +94,34 @@
   .display-pulse { grid-template-columns: repeat(6, 1fr); }
 }
 
+/* Orientation must have a real, immediately visible effect on the normal page too -- not only
+   once Full Screen is entered. A founder clicking Landscape/Portrait needs to see the layout
+   actually change right away; the fullscreen-only rules further down remain for the dedicated
+   kiosk composition, this is the on-page preview responding to the same choice. Higher
+   specificity than the width-based rules above (attribute selector on body + the class) and
+   later in source order, so it wins regardless of the actual viewport width. */
+body[data-display-orientation="portrait"] .display-pulse {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body[data-display-orientation="landscape"] .display-pulse {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+body[data-display-orientation="portrait"] .display-tvnow {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-display-orientation="landscape"] .display-tvnow {
+  grid-template-columns: minmax(0, 1.618fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+body[data-display-orientation="portrait"] .display-screen {
+  max-width: 620px;
+  margin-inline: auto;
+}
+
 .pulse-card {
   min-width: 0;
   overflow-wrap: break-word;
