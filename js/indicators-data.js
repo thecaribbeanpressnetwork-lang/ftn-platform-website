@@ -276,8 +276,8 @@
     // benchmark can be dropped in without any component changes.
     ind('recorded-murders', 'Public Sector & National Life', 'Recorded Murders (current year)', '—', 'recorded', {
       classification: 'Illustrative', sourceId: 'tt-ttps', secondarySourceId: 'tt-cso-crime', confidence: 'Illustrative',
-      methodology: 'Structural placeholder only. This indicator is designed to hold a manually-verified current-year total (recordedTotal) separate from a derived annual pace (recordedPace) — the pace must never overwrite the recorded total. No current total is published here because it has not been supplied by the founder; a fabricated figure for a sensitive public-safety statistic would misrepresent real crime data.',
-      limitations: 'No live value. Requires a founder- or news-verified benchmark before this card can show a number.',
+      methodology: 'This indicator is designed to hold a manually verified current-year total (recordedTotal), tracked separately from a derived annual pace (recordedPace) — the pace never overwrites the verified total. No current total is shown here because a verified figure has not yet been published for this year; FTN will not estimate or infer a number for a sensitive public-safety statistic.',
+      limitations: 'No live value shown. An official or verified news benchmark is required before this card can display a number.',
     })
   );
 
