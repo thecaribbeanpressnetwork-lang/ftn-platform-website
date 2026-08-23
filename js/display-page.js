@@ -38,7 +38,7 @@
       : esc(ind.value);
     var noValue = ind.value === '—' || ind.value === '-';
     return (
-      '<article class="pulse-card' + (noValue ? ' pulse-card--empty' : '') + '">' +
+      '<article class="pulse-card ftn-motion-lift' + (noValue ? ' pulse-card--empty' : '') + '">' +
         '<p class="pulse-card__label">' + esc(ind.title) + '</p>' +
         '<p class="pulse-card__value">' + valueHTML + (ind.units && !noValue ? ' <span>' + esc(ind.units) + '</span>' : '') + '</p>' +
         (noValue ? '<p class="pulse-card__note">Not yet available — no fabricated figure.</p>' : '') +
