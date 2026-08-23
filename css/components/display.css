@@ -159,10 +159,13 @@ body[data-display-orientation="portrait"] .display-screen {
 .pulse-card__meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 8px;
   margin-top: 13px;
 }
+
+.pulse-card__meta .trust-badge { margin-right: auto; }
 
 /* The shared .trust-badge is tuned for a white Trust Card modal -- a solid pale fill reads as
    loud, dominant chrome on this card's near-black background, competing with the actual number
@@ -801,4 +804,22 @@ body.display-fullscreen[data-display-density="dense"] .pulse-card__value {
 .display-customize__note {
   color: var(--color-charcoal);
   font-size: 12px;
+}
+
+.display-math p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 13px;
+}
+
+.display-math strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.display-math__note {
+  color: var(--color-charcoal);
+  font-size: 12px;
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px solid var(--color-border);
 }

@@ -113,19 +113,25 @@
   // "See the Math" — only ever rendered when a real formula exists (data.clock, the same
   // config js/live-clocks.js already computes from). Reads the indicator's own real baseValue/
   // ratePerSecond rather than re-deriving or inventing a formula, so this can never drift from
-  // what the visible ticking number actually does.
-  function seeTheMathHTML(data) {
+  // what the visible ticking number actually does. mathContentHTML is exported separately (see
+  // global.FTN.TrustCard below) so a page like FTN Display can surface the same real math in its
+  // own, more prominent FTN.Sheet entry point instead of only this modal's collapsed <details> —
+  // one formula, two presentations, never two derivations.
+  function mathContentHTML(data) {
     if (!data.isLiveClock || !data.clock || typeof data.clock.baseValue !== 'number') return '';
     var rate = data.clock.ratePerSecond || 0;
     var perDay = (rate * 86400);
     var direction = rate >= 0 ? 'increases' : 'decreases';
     return (
-      '<details class="trust-card__math"><summary>See the Math</summary>' +
-        '<p>Estimated value = <strong>' + data.clock.baseValue.toLocaleString() + '</strong> (benchmark) ' +
-        (rate >= 0 ? '+ ' : '- ') + Math.abs(rate).toLocaleString() + ' &times; seconds elapsed since the benchmark was set.</p>' +
-        '<p>That ' + direction + ' the displayed estimate by about ' + Math.abs(perDay).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' per day. This is an FTN-modelled interpolation between the benchmark and now — not a second, independently measured figure.</p>' +
-      '</details>'
+      '<p>Estimated value = <strong>' + data.clock.baseValue.toLocaleString() + '</strong> (benchmark) ' +
+      (rate >= 0 ? '+ ' : '- ') + Math.abs(rate).toLocaleString() + ' &times; seconds elapsed since the benchmark was set.</p>' +
+      '<p>That ' + direction + ' the displayed estimate by about ' + Math.abs(perDay).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' per day. This is an FTN-modelled interpolation between the benchmark and now — not a second, independently measured figure.</p>'
     );
+  }
+
+  function seeTheMathHTML(data) {
+    var content = mathContentHTML(data);
+    return content ? '<details class="trust-card__math"><summary>See the Math</summary>' + content + '</details>' : '';
   }
 
   function render(data) {
@@ -243,5 +249,5 @@
   }
 
   global.FTN = global.FTN || {};
-  global.FTN.TrustCard = { open: open, close: close, classificationBadgeClass: classificationBadgeClass };
+  global.FTN.TrustCard = { open: open, close: close, classificationBadgeClass: classificationBadgeClass, mathContentHTML: mathContentHTML };
 })(window);
