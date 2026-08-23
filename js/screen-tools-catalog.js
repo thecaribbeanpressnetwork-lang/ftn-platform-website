@@ -21,7 +21,7 @@
     section.id = 'screen-tool-catalog';
     section.className = 'screen-tools screen-panel';
     section.innerHTML = '<span class="screen-kicker">Filmmaker tool catalogue</span><h2>Build, finish and present the work.</h2><p class="workspace-muted">Official tool destinations verified ' + VERIFIED + '. Price labels describe the publisher’s public model, not an FTN offer. Affiliate availability is not claimed because no FTN relationship has been approved.</p><div class="screen-tools__grid">' + tools.map(function (item) {
-      return '<article><div class="screen-tools__meta"><span>' + esc(item.cost) + '</span><span>Affiliate: not verified</span></div><h3>' + esc(item.name) + '</h3><p>' + esc(item.purpose) + '</p><p><small>' + esc(item.dependency) + ' · Last verified ' + VERIFIED + '</small></p><a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">Open official tool ↗</a></article>';
+      return '<article><div class="screen-tools__meta"><span>' + esc(item.cost) + '</span><span>No FTN affiliate relationship</span></div><h3>' + esc(item.name) + '</h3><p>' + esc(item.purpose) + '</p><p><small>' + esc(item.dependency) + ' · Last verified ' + VERIFIED + '</small></p><a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">Open official tool ↗</a></article>';
     }).join('') + '</div>';
     var discovery = document.getElementById('screen-discovery');
     if (discovery) discovery.insertAdjacentElement('afterend', section);
