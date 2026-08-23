@@ -405,6 +405,11 @@ body.display-fullscreen .display-tvnow {
   margin-bottom: 0;
   display: flex;
   flex-direction: column;
+  /* The >=900px desktop rule sets align-items: start for its side-by-side player/next-list
+     columns; that rule doesn't stop applying just because this block changes flex-direction, so
+     without an explicit reset here the player shrinks to its content width instead of filling
+     the tv grid area -- the actual cause of the large dead space next to the broadcast panel. */
+  align-items: stretch;
 }
 
 body.display-fullscreen .display-next { display: none; }
@@ -498,4 +503,69 @@ body.display-fullscreen .display-ticker__track {
 @media (prefers-reduced-motion: reduce) {
   .display-screen * { animation: none !important; transition: none !important; }
   body.display-fullscreen .display-ticker__track { padding-left: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* Orientation toggle -- Auto (default, follows the real viewport below), Landscape and Portrait
+   are explicit overrides for a commercial screen whose mounting hardware rotates the physical
+   panel without changing the resolution the browser reports. */
+.display-orientation {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+
+.display-orientation__opt {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-silver);
+  padding: 5px 11px;
+  font: 700 11px/1 var(--font-body, Inter, sans-serif);
+  cursor: pointer;
+}
+
+.display-orientation__opt.is-active {
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+/* Portrait fullscreen composition -- a genuinely different layout for a vertically installed
+   screen, not the landscape grid squeezed into a narrow width (which clips pulse-card content
+   and leaves the signature TV panel a thin sliver). Single column, TV kept as the dominant zone.
+   Explicit "portrait" always applies; "auto" only applies it when the viewport itself is
+   portrait, so a screen reporting landscape resolution isn't force-fit into this layout. */
+body.display-fullscreen[data-display-orientation="portrait"] .display-screen {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1.35fr 1fr 0.85fr auto;
+  grid-template-areas:
+    "topbar"
+    "tv"
+    "pulse"
+    "rotate"
+    "ticker";
+}
+
+body.display-fullscreen[data-display-orientation="portrait"] .display-pulse {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+@media (orientation: portrait) {
+  body.display-fullscreen[data-display-orientation="auto"] .display-screen {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1.35fr 1fr 0.85fr auto;
+    grid-template-areas:
+      "topbar"
+      "tv"
+      "pulse"
+      "rotate"
+      "ticker";
+  }
+
+  body.display-fullscreen[data-display-orientation="auto"] .display-pulse {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
 }

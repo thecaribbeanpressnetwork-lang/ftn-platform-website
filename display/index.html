@@ -75,6 +75,7 @@
   </header>
 
   <main id="main" tabindex="-1" class="display-screen">
+    <h1 class="sr-only">FTN Display — Trinidad &amp; Tobago on one screen</h1>
     <div class="display-topbar">
       <div class="display-topbar__id">
         <span class="display-topbar__mark">FTN Display</span>
@@ -83,6 +84,11 @@
       </div>
       <div class="display-topbar__actions">
         <span class="display-topbar__url">ftnplatform.org/display</span>
+        <div class="display-orientation" role="group" aria-label="Screen orientation">
+          <button type="button" class="display-orientation__opt" data-orientation-option="auto" aria-pressed="true">Auto</button>
+          <button type="button" class="display-orientation__opt" data-orientation-option="landscape" aria-pressed="false">Landscape</button>
+          <button type="button" class="display-orientation__opt" data-orientation-option="portrait" aria-pressed="false">Portrait</button>
+        </div>
         <a class="btn btn-outline--on-dark btn-sm" href="/clock/">Clock Mode</a>
         <button type="button" class="btn btn-primary btn-sm" id="display-fullscreen-toggle">Full Screen</button>
       </div>

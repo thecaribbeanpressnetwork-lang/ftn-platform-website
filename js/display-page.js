@@ -194,6 +194,40 @@
     track.textContent = parts.join('     ·     ');
   }
 
+  // ---- Orientation (Auto / Landscape / Portrait) ----
+  // Auto follows the real viewport via the CSS `(orientation: portrait)` media query in
+  // display.css. Landscape/Portrait are explicit overrides for commercial screens whose hardware
+  // rotates the panel without changing the resolution the browser reports -- a real deployment
+  // need, not a decorative toggle. Persisted so a screen keeps its setting across reloads/power
+  // cycles without anyone re-configuring it on site.
+  var ORIENTATION_KEY = 'ftn_display_orientation_v1';
+
+  function initOrientation() {
+    var opts = Array.prototype.slice.call(document.querySelectorAll('[data-orientation-option]'));
+    if (!opts.length) return;
+
+    function apply(mode) {
+      document.body.setAttribute('data-display-orientation', mode);
+      opts.forEach(function (btn) {
+        var active = btn.getAttribute('data-orientation-option') === mode;
+        btn.setAttribute('aria-pressed', String(active));
+        btn.classList.toggle('is-active', active);
+      });
+    }
+
+    var saved = null;
+    try { saved = localStorage.getItem(ORIENTATION_KEY); } catch (e) {}
+    apply(saved === 'landscape' || saved === 'portrait' ? saved : 'auto');
+
+    opts.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var mode = btn.getAttribute('data-orientation-option') || 'auto';
+        apply(mode);
+        try { localStorage.setItem(ORIENTATION_KEY, mode); } catch (e) {}
+      });
+    });
+  }
+
   // ---- Full screen ----
   function initFullscreen() {
     var btn = document.getElementById('display-fullscreen-toggle');
@@ -240,6 +274,7 @@
     renderTvNow();
     renderWorldZones();
     renderWorldEconomy();
+    initOrientation();
     initFullscreen();
     initPresence();
     initRotation();
