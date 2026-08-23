@@ -164,15 +164,47 @@
   function initRotation() {
     var candidates = Array.prototype.slice.call(document.querySelectorAll('.display-grid .display-panel, .display-world'));
     if (!candidates.length) return;
-    var idx = 0;
+    var idx = 0, timer = null, paused = false, resumeTimer = null;
     var reduceMotion = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function show(i) {
       candidates.forEach(function (el, j) { el.classList.toggle('is-rotate-active', j === i); });
     }
+    function tick() { idx = (idx + 1) % candidates.length; show(idx); }
+    function start() { if (timer || reduceMotion || paused) return; timer = global.setInterval(tick, 8000); }
+    function stop() { if (timer) { global.clearInterval(timer); timer = null; } }
     show(0);
-    if (!reduceMotion) {
-      setInterval(function () { idx = (idx + 1) % candidates.length; show(idx); }, 8000);
+    start();
+    if (reduceMotion) return;
+
+    var toggle = document.getElementById('display-rotate-toggle');
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        paused = !paused;
+        toggle.textContent = paused ? '▶' : '⏸';
+        toggle.setAttribute('aria-label', paused ? 'Resume module rotation' : 'Pause module rotation');
+        toggle.setAttribute('aria-pressed', String(paused));
+        if (paused) stop(); else start();
+      });
     }
+
+    // Real interaction pause, not decoration: a click/tap/keyboard focus inside the rotating
+    // panel (e.g. opening its Trust Card) shouldn't have the ground shift from under it mid-read.
+    // Auto-resumes 15s after the interaction ends, unless the user has explicitly paused via the
+    // toggle above.
+    candidates.forEach(function (el) {
+      el.addEventListener('pointerenter', function () { stop(); });
+      el.addEventListener('focusin', function () { stop(); });
+      el.addEventListener('pointerleave', function () {
+        if (paused) return;
+        global.clearTimeout(resumeTimer);
+        resumeTimer = global.setTimeout(start, 15000);
+      });
+      el.addEventListener('focusout', function () {
+        if (paused) return;
+        global.clearTimeout(resumeTimer);
+        resumeTimer = global.setTimeout(start, 15000);
+      });
+    });
   }
 
   // ---- Bottom information ticker (fullscreen only; built from data already on screen) ----
@@ -243,6 +275,8 @@
       var isFull = !!document.fullscreenElement;
       document.body.classList.toggle('display-fullscreen', isFull);
       btn.textContent = isFull ? 'Exit Full Screen' : 'Full Screen';
+      var rotateToggle = document.getElementById('display-rotate-toggle');
+      if (rotateToggle) rotateToggle.hidden = !isFull;
       if (global.FTN.DisplayPresence) global.FTN.DisplayPresence.setFullscreen(isFull);
     });
   }
