@@ -245,6 +245,18 @@
   gap: 16px;
 }
 
+/* Situation-room density pass: at desk-width viewports, Correlation joins Weather and Status as
+   a genuine third simultaneous column instead of a full-width block stacked below both -- the
+   single biggest lever in getting the Now view's real height down without hiding or shrinking
+   any of the three signals themselves. Below 1300px there isn't room for three meaningful
+   columns without the text wrapping badly, so it drops back to spanning full width below the
+   first two (the pre-existing stacked behavior). */
+@media (min-width: 1300px) {
+  .observer-now {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
 .observer-now__weather {
   padding: 18px;
   border: 1px solid #24272c;
@@ -345,13 +357,22 @@
   }
 }
 
-/* --- Correlation Engine: tertiary detail panel beneath the NOW synthesis --- */
+/* --- Correlation Engine: third simultaneous NOW-view signal at >=1300px (see .observer-now
+   above), full-width beneath Weather+Status below that. --- */
 .observer-correlation {
+  grid-column: 1 / -1;
   margin-top: 12px;
   padding: 16px 18px;
   border: 1px solid #24272c;
   border-radius: var(--radius-16);
   background: #101216;
+}
+
+@media (min-width: 1300px) {
+  .observer-correlation {
+    grid-column: auto;
+    margin-top: 0;
+  }
 }
 
 .observer-correlation__explain {

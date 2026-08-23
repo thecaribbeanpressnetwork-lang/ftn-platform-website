@@ -85,7 +85,7 @@
   background: var(--color-charcoal);
   border: 1px solid #2A2C2F;
   border-radius: var(--radius-16);
-  padding: var(--space-16);
+  padding: var(--space-12);
 }
 
 .live-status__top {
@@ -128,11 +128,11 @@
 .live-status__time {
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   line-height: 1.05;
   color: var(--color-white);
   font-variant-numeric: tabular-nums;
-  margin-top: var(--space-8);
+  margin-top: var(--space-4);
 }
 
 .live-status__sub {
@@ -157,7 +157,7 @@
   background: var(--color-charcoal);
   border: 1px solid #2A2C2F;
   border-radius: var(--radius-16);
-  padding: var(--space-12);
+  padding: var(--space-8) var(--space-12);
   min-width: 0;
   box-shadow: var(--shadow-md);
 }
@@ -168,13 +168,13 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--color-silver);
-  margin-bottom: var(--space-4);
+  margin-bottom: 2px;
 }
 
 .hero-clock__value {
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   color: var(--color-white);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
@@ -187,7 +187,7 @@
 }
 
 .hero-clock__meta {
-  margin-top: var(--space-8);
+  margin-top: var(--space-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -216,6 +216,16 @@
   border-left: 3px solid var(--color-red);
   border-radius: var(--radius-12);
   max-width: 68ch;
+}
+
+/* Observer first-viewport density pass: this is real, valuable editorial content, but it's a
+   supplementary rotating observation, not one of the primary simultaneous signals the first
+   1366x768 view needs to earn its keep -- moved out of the hero (was 174px of dark-hero height on
+   every load) to sit right after the compact scan console instead. Still real, still reachable
+   with zero extra clicks, just no longer gating the situation-room view above it. */
+.reality-insight--below-fold {
+  max-width: none;
+  margin: 21px 0 34px;
 }
 
 .reality-insight__title {

@@ -639,9 +639,9 @@
           '<ul class="observer-now__list">' + feeds.map(nowStatusRow).join('') + '</ul>' +
           '<p class="observer-now__note">Only sources FTN can actually verify are listed here. No active-emergency state is asserted — open any row for the official source.</p>' +
         '</div>' +
-      '</div>' +
-      '<div class="observer-correlation" id="observer-correlation">' +
-        '<p class="observer-now__loading">Loading correlation engine…</p>' +
+        '<div class="observer-correlation" id="observer-correlation">' +
+          '<p class="observer-now__loading">Loading correlation engine…</p>' +
+        '</div>' +
       '</div>';
     return html;
   }

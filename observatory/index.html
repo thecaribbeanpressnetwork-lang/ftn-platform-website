@@ -128,23 +128,11 @@
           <div class="observatory-hero__main">
             <span class="page-hero__eyebrow">FTN Observer · Investigation room</span>
             <h1 class="observatory-hero__title">Trinidad &amp; Tobago, in context.</h1>
-            <p class="observatory-hero__lede">
-              A source-aware investigation deck for Trinidad &amp; Tobago — economy, weather, infrastructure and more,
-              each signal clearly labelled current, modelled or illustrative. Looking for one ambient screen instead?
-              Open <a href="/display/">FTN Display</a>.
-            </p>
+            <p class="observatory-hero__lede">Source-aware, every signal labelled current, modelled or illustrative. Ambient screen instead? <a href="/display/">Open FTN Display</a>.</p>
             <div class="observatory-controls">
               <button type="button" id="pause-toggle" class="btn btn-outline btn-outline--on-dark btn-sm" aria-pressed="false">Pause Counter Updates</button>
             </div>
             <p class="callout callout--on-dark u-mt-24 u-max-60ch" data-country-scope-notice hidden></p>
-
-            <div class="reality-insight">
-              <p class="reality-insight__title">The Nation Is Speaking</p>
-              <div id="reality-insight" role="status" aria-live="polite">
-                <p class="reality-insight__text">Loading&hellip;</p>
-              </div>
-              <button type="button" class="reality-insight__next" id="reality-insight-next">Next observation &rarr;</button>
-            </div>
           </div>
 
           <div class="observatory-hero__vitals">
@@ -207,6 +195,14 @@
         <div class="observer-nav" id="observer-nav" role="tablist" aria-label="Observer categories"></div>
         <div class="observer-canvas" id="observer-canvas" role="tabpanel" data-active-category="now"></div>
       </section>
+
+      <div class="reality-insight reality-insight--below-fold">
+        <p class="reality-insight__title">The Nation Is Speaking</p>
+        <div id="reality-insight" role="status" aria-live="polite">
+          <p class="reality-insight__text">Loading&hellip;</p>
+        </div>
+        <button type="button" class="reality-insight__next" id="reality-insight-next">Next observation &rarr;</button>
+      </div>
 
       <section class="section" id="today-in-tt">
         <div class="section__header">
