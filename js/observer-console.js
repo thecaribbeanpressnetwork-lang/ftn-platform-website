@@ -658,7 +658,7 @@
       ? '<a href="#observer/' + esc(matchView.category) + '" data-observer-tab="' + esc(matchView.category) + '">Open →</a>'
       : '';
     return '' +
-      '<li class="observer-correlation__row">' +
+      '<li class="observer-correlation__row ftn-motion-lift">' +
         '<span class="observer-status ' + (statusMap[node.status] || 'observer-status--external') + '">' + esc(node.status) + '</span>' +
         '<span class="observer-correlation__label">' + esc(node.title) + '</span>' +
         link +
@@ -671,12 +671,18 @@
     var host = $('#observer-correlation');
     if (!host) return;
     lastCorrelationResult = result;
+    host.classList.add('ftn-motion-complete');
+    host.classList.remove('is-active');
     host.innerHTML = '' +
       '<p class="observer-now__heading">Correlation engine — rule-based, not live-fitted</p>' +
       '<p class="observer-correlation__explain">' + esc(result.explanation) + '</p>' +
       '<ul class="observer-correlation__list">' + result.chain.map(correlationRow).join('') + '</ul>' +
       '<p class="observer-correlation__confidence">Chain confidence: <strong>' + esc(result.overallConfidence) + '</strong> — capped by its weakest evidence, not by how many rules reference it.</p>' +
       '<button type="button" class="btn btn-outline--on-dark btn-sm observer-correlation__math" data-see-math>See the Math →</button>';
+    // Real state-change signal (live rainfall reading resolved -> chain evaluated), not
+    // decoration -- reduced-motion users get the class with no animation (see motion-system.css).
+    void host.offsetWidth;
+    host.classList.add('is-active');
   }
 
   // ---- See the Math (shared FTN Sheet — same primitive as Share, not a second dialog system) ----
