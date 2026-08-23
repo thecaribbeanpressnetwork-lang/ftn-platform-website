@@ -49,7 +49,18 @@
 .display-topbar__actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 13px;
+}
+
+/* The ftnplatform.org/display URL is a nice-to-have context cue, not load-bearing information --
+   the first thing to drop on a narrow phone rather than force the real controls (orientation,
+   Clock Mode, Full Screen) to wrap or overflow. */
+@media (max-width: 480px) {
+  .display-topbar__url {
+    display: none;
+  }
 }
 
 .display-topbar__url {
