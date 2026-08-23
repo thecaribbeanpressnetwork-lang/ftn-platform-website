@@ -125,6 +125,19 @@
   margin-top: 13px;
 }
 
+/* The shared .trust-badge is tuned for a white Trust Card modal -- a solid pale fill reads as
+   loud, dominant chrome on this card's near-black background, competing with the actual number
+   for attention on a screen meant to be glanced at, not audited. Recede it to a small outlined
+   label; the classification and Trust Card link stay, just no longer the loudest thing on the
+   card. */
+.pulse-card__meta .trust-badge {
+  background: transparent;
+  border: 1px solid currentColor;
+  padding: 2px 8px;
+  font-size: 10px;
+  margin-bottom: 0;
+}
+
 /* FTN TV NOW — the visually dominant surface, per the golden-ratio composition brief */
 .display-tvnow {
   display: grid;

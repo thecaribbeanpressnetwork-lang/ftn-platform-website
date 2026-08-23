@@ -98,7 +98,7 @@
 
         content.innerHTML =
           '<section class="learn-fork">' +
-            '<div class="learn-fork__copy"><span class="workspace__eyebrow">FTN Learn</span><h2>What do you want to learn?</h2><p>Practical skills you can use, or something you are already studying — FTN finds the real provider and gets out of the way.</p></div>' +
+            '<div class="learn-fork__copy"><h2>What do you want to learn?</h2><p>Practical skills you can use, or something you are already studying — FTN finds the real provider and gets out of the way.</p></div>' +
             '<div class="learn-fork__buttons">' +
               '<button type="button" class="learn-fork__btn is-active" data-track="skills"><strong>FTN Skills</strong><span>Learn something you can use — trades, tech, business, creative.</span></button>' +
               '<button type="button" class="learn-fork__btn" data-track="school"><strong>FTN School</strong><span>Learn something you are studying — SEA, CSEC, CAPE and more.</span></button>' +

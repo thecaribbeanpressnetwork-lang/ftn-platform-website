@@ -1,6 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const MUSIC_EXCLUDED = /\b(?:dj\s*)?mix(?:es|tape)?\b|\bfull\s+mix\b|\bmega\s+mix\b|\bcontinuous\s+mix\b|\bmix\s*20\d\d\b|\bhour\s+mix\b|\bnonstop\b|\bnon-stop\b|\bcompilation\b|\bmedley\b|\bplaylist\b/i;
+// genreAllowed() (below) only rejects cross-genre bleed -- a soca track showing up in the reggae
+// lane. It does nothing about a title that's genuinely soca-*related* but isn't a song at all: an
+// interview, a news clip, a documentary, a reaction video. Those carry the genre term honestly, so
+// genreAllowed() correctly lets them through -- this second pattern is what keeps non-music content
+// out of a music lane in the first place, same mechanism as the mix/compilation exclusion below.
+const MUSIC_EXCLUDED = /\b(?:dj\s*)?mix(?:es|tape)?\b|\bfull\s+mix\b|\bmega\s+mix\b|\bcontinuous\s+mix\b|\bmix\s*20\d\d\b|\bhour\s+mix\b|\bnonstop\b|\bnon-stop\b|\bcompilation\b|\bmedley\b|\bplaylist\b|\binterview\b|\bdocumentary\b|\bpodcast\b|\bvlog\b|\breacts?\b|\breaction\b|\breview\b|\bdiscussion\b|\bdebate\b|\bcommentary\b|\bpress\s+conference\b|\btalk\s+show\b|\bpanel\b|\bnews\b|\bheadlines\b|\bbreaking\b|\bbehind\s+the\s+scenes\b/i;
 const ALLOWED_ORIGINS = new Set([
   "https://ftnplatform.org",
   "https://www.ftnplatform.org",
