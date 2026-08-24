@@ -591,6 +591,107 @@ await scenario('clock-fullscreen-mobile-digital-composition', async page=>{
   assert(geometry.digitalFaceFullyVisible,'Digital clock face overflows the mobile viewport width: '+JSON.stringify(geometry.digitalFace));
 }, {width:390,height:844});
 
+await scenario('observer-console-no-exposed-gap', async page=>{
+  // Founder visual redteam: .observer-console (a rounded card, margin-top:24px) is a sibling of
+  // the full-bleed black .observatory-hero above it -- this site is light-first by default, so the
+  // page's own white body background showed through that 24px gap as a bare white flash between
+  // two solid-black panels. Fixed with a same-color ::before bridging the gap; assert the bridge
+  // is actually present and sized to cover it, not just that the gap "looks" filled in one shot.
+  await open(page,'/observatory/');
+  await page.waitForSelector('#observer-console');
+  const bridge=await page.evaluate(()=>{
+    const cs=getComputedStyle(document.getElementById('observer-console'),'::before');
+    return {content:cs.content, background:cs.backgroundColor, top:cs.top, position:cs.position};
+  });
+  assert.notEqual(bridge.content,'none','#observer-console::before gap-bridge is missing');
+  assert.equal(bridge.position,'absolute','#observer-console::before must be positioned to bridge the gap');
+  assert.match(bridge.background,/rgb\(1[0-2], ?1[0-2], ?1[0-2]\)|rgb\(0, ?0, ?0\)/,'#observer-console::before is not painted the same near-black as the hero/console');
+});
+
+await scenario('display-dense-portrait-fullscreen-no-overlap', async page=>{
+  // Founder visual redteam BLOCKER: the same combination that broke Clock fullscreen (Radio +
+  // World Now + Fullscreen) broke Display too -- Dense + Portrait + Fullscreen collapsed all 6 KPI
+  // pulse-cards' internal grid rows into each other (a too-small fr-share on the "pulse" grid area
+  // for portrait+dense specifically), rendering completely overlapping, illegible text. Regression-
+  // guard real bounding-box geometry, not just that the DOM nodes exist.
+  await open(page,'/display/');
+  await page.waitForSelector('#display-pulse .pulse-card');
+  await page.click('#display-customize-toggle');
+  await page.waitForSelector('.ftn-sheet.is-open');
+  await page.click('input[name="display-density"][value="dense"]');
+  await page.click('[data-sheet-close]');
+  await page.click('[data-orientation-option="portrait"]');
+  await page.evaluate(()=>document.body.classList.add('display-fullscreen'));
+  await page.waitForTimeout(300);
+  const cards=await page.evaluate(()=>[...document.querySelectorAll('.pulse-card')].map(c=>{
+    const b=c.getBoundingClientRect();return{top:b.top,bottom:b.bottom,left:b.left,right:b.right};
+  }));
+  assert.equal(cards.length,6,'Display dense pulse row must render all 6 KPI cards');
+  function intersects(a,b){return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;}
+  for(let i=0;i<cards.length;i++) for(let j=i+1;j<cards.length;j++)
+    assert(!intersects(cards[i],cards[j]),`Display Dense+Portrait+Fullscreen: pulse-card ${i} overlaps pulse-card ${j}`);
+  await page.evaluate(()=>document.body.classList.remove('display-fullscreen'));
+});
+
+await scenario('radio-controls-no-clipped-button', async page=>{
+  // Founder visual redteam: the PLAY/NEXT/SAVE/SHARE row used flex:1 with no min-width and no
+  // wrap, so on the real /radio/ page's narrower left column SHARE's min-content width pushed it
+  // past the card's own right edge -- clipped invisible by the card's overflow:hidden, at full
+  // 1920px desktop width, not just a narrow viewport.
+  await open(page,'/radio/');
+  await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>5,{timeout:45000});
+  const geo=await page.evaluate(()=>{
+    const share=document.getElementById('ftn-radio-share').getBoundingClientRect();
+    const player=document.querySelector('.ftn-radio-live__player').getBoundingClientRect();
+    return {shareRight:share.right, playerRight:player.right};
+  });
+  assert(geo.shareRight<=geo.playerRight+1,`SHARE button (right:${geo.shareRight}) is clipped outside its player card (right:${geo.playerRight})`);
+});
+
+await scenario('kaiso-heading-line-height-fits-font-size', async page=>{
+  // Founder visual redteam: .kaiso-current h2 overrode font-size (clamp up to 48px) without
+  // overriding the inherited base h2 line-height token (32px, tuned for a smaller default size) --
+  // multi-line headings visually overlapped their own adjacent lines. line-height must never be
+  // smaller than font-size for any multi-line heading.
+  await open(page,'/kaiso/');
+  const style=await page.evaluate(()=>{
+    const h2=[...document.querySelectorAll('h2')].find(h=>h.textContent.includes('What matters'));
+    const cs=getComputedStyle(h2);
+    return {fontSize:parseFloat(cs.fontSize), lineHeight:parseFloat(cs.lineHeight)};
+  });
+  assert(style.lineHeight>=style.fontSize,`Kaiso "What matters" h2 line-height (${style.lineHeight}px) is smaller than its font-size (${style.fontSize}px) -- lines will overlap`);
+});
+
+await scenario('djtube-sticky-header-fully-opaque', async page=>{
+  // Founder visual redteam: the sticky topbar (.top) used a 96%-opacity background with no blur,
+  // so scrolled content faintly ghosted through behind it -- reproduced specifically after loading
+  // a track onto a deck (the click scrolls the page under the sticky header).
+  await open(page,'/riddim/dj/');
+  await page.waitForFunction(()=>document.querySelectorAll('.item').length>5,{timeout:45000});
+  await page.locator('[data-load]').first().click();
+  await page.waitForTimeout(400);
+  const alpha=await page.evaluate(()=>{
+    const m=getComputedStyle(document.querySelector('.top')).backgroundColor.match(/[\d.]+/g);
+    return m && m.length===4 ? parseFloat(m[3]) : 1;
+  });
+  assert.equal(alpha,1,'DJ Tube sticky topbar background is not fully opaque -- scrolled content will ghost through it');
+});
+
+await scenario('scenario-workspace-deep-link-not-clipped-by-sticky-headers', async page=>{
+  // Founder visual redteam: /scenario-workspace/#correlation-engine's native anchor-scroll puts
+  // the panel's top edge flush with the viewport top, but .site-header + .mc-tablist are BOTH
+  // sticky and together cover ~144px -- the panel's own heading/lede rendered clipped underneath
+  // them on first load.
+  await open(page,'/scenario-workspace/#correlation-engine');
+  await page.waitForSelector('.mc-live-engine',{timeout:10000});
+  const geo=await page.evaluate(()=>{
+    const panel=document.getElementById('correlation-engine').getBoundingClientRect();
+    const tablist=document.querySelector('.mc-tablist').getBoundingClientRect();
+    return {panelTop:panel.top, tablistBottom:tablist.bottom};
+  });
+  assert(geo.panelTop>=geo.tablistBottom-1,`Deep-linked #correlation-engine panel (top:${geo.panelTop}) is clipped under the sticky tablist (bottom:${geo.tablistBottom})`);
+});
+
 for (const path of ['/about/','/applications/','/contact/','/news/','/insights/','/resources/','/top-picks/','/trust/','/glossary/','/investor-room/','/display/','/clock/','/learn/']) {
   await scenario('route-'+path.replaceAll('/','-'), async page=>{await open(page,path);assert(await page.locator('main').count()===1);});
 }

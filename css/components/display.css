@@ -524,6 +524,7 @@ body.display-fullscreen .pulse-card {
   flex-direction: column;
   justify-content: center;
   min-height: 0;
+  overflow: hidden;
 }
 
 body.display-fullscreen .pulse-card__value { font-size: 22px; }
@@ -679,7 +680,12 @@ body.display-fullscreen[data-display-density="dense"]:not([data-display-orientat
 body.display-fullscreen[data-display-orientation="portrait"][data-display-density="dense"] .display-screen,
 body.display-fullscreen[data-display-orientation="auto"][data-display-density="dense"] .display-screen {
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto 1.1fr 0.6fr 0.55fr 0.55fr auto;
+  /* "pulse" was 0.6fr -- not enough height for 6 real KPI cards in a 2x3 grid, and .display-pulse's
+     own 2 internal rows would compress into each other's space (root-caused via founder redteam:
+     national debt/recorded-murders/inflation text overlapping in this exact Dense+Portrait+
+     Fullscreen combination). Taking share from "tv" and the rot1-4 quadrants keeps every zone real
+     content stays legible instead of one working, one silently corrupted. */
+  grid-template-rows: auto 0.85fr 1fr 0.5fr 0.5fr auto;
   grid-template-areas:
     "topbar topbar"
     "tv     tv"
@@ -744,8 +750,97 @@ body.display-fullscreen[data-display-density="dense"] .display-pulse {
   grid-template-rows: repeat(3, 1fr);
 }
 
+/* At <=480px, 2 narrow ~150px columns force the long KPI values ("22,316,573,668 TTD") and the
+   FTN MODELLED/Trust Card meta row to wrap across extra lines each -- taller content than a 1fr
+   share of an already-short phone viewport can hold, so it was still clipping/overlapping (found
+   via founder redteam AFTER the desktop overlap fix: cards showed only their badge, or a label
+   overlapping the row above). Single column removes the width-driven wrapping (each card gets the
+   full row width instead), and "pulse" takes most of its extra height directly from "tv" -- on a
+   phone this small, the six live KPI numbers are more load-bearing than the video panel. Must come
+   after the rule above: identical specificity, so source order is what makes this win at <=480px. */
+@media (max-width: 480px) {
+  body.display-fullscreen[data-display-orientation="portrait"][data-display-density="dense"] .display-screen,
+  body.display-fullscreen[data-display-orientation="auto"][data-display-density="dense"] .display-screen {
+    grid-template-rows: auto 0.5fr 2fr 0.5fr 0.5fr auto;
+  }
+
+  body.display-fullscreen[data-display-density="dense"] .display-pulse {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, 1fr);
+  }
+
+  /* Six KPI cards + TV + four rotating-zone panels genuinely do not fit a phone-height viewport
+     without either illegible cramming or clipped/missing text (both found and rejected during
+     founder redteam) -- Display's own product framing is a waiting-room/shop/office screen, not a
+     phone held in dense fullscreen, so a deliberate, cleanly-contained scroll is the honest
+     degradation here, not a bug to hide. */
+  body.display-fullscreen[data-display-orientation="portrait"][data-display-density="dense"] .display-screen,
+  body.display-fullscreen[data-display-orientation="auto"][data-display-density="dense"] .display-screen {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  body.display-fullscreen[data-display-orientation="portrait"][data-display-density="dense"] .display-pulse,
+  body.display-fullscreen[data-display-orientation="auto"][data-display-density="dense"] .display-pulse {
+    height: auto;
+    grid-template-rows: repeat(6, minmax(56px, auto));
+  }
+
+  body.display-fullscreen[data-display-orientation="portrait"][data-display-density="dense"] .pulse-card,
+  body.display-fullscreen[data-display-orientation="auto"][data-display-density="dense"] .pulse-card {
+    overflow: visible;
+  }
+}
+
 body.display-fullscreen[data-display-density="dense"] .pulse-card__value {
   font-size: 16px;
+}
+
+body.display-fullscreen[data-display-density="dense"] .pulse-card {
+  padding: 8px 10px;
+}
+
+body.display-fullscreen[data-display-density="dense"] .pulse-card__label {
+  margin-bottom: 3px;
+  font-size: 10px;
+}
+
+body.display-fullscreen[data-display-density="dense"] .pulse-card__note {
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+body.display-fullscreen[data-display-density="dense"] .pulse-card__meta {
+  margin-top: 6px;
+}
+
+/* Below ~480px the same fr-share still isn't enough: cards run narrower, so labels/values wrap to
+   an extra line and need MORE height per card, not less -- the note (secondary explanatory prose)
+   is the one droppable line; keeping it would silently clip the label/value that replaced it
+   above, which is worse than not showing the note at all. */
+@media (max-width: 480px) {
+  body.display-fullscreen[data-display-density="dense"] .pulse-card__note {
+    display: none;
+  }
+
+  body.display-fullscreen[data-display-density="dense"] .pulse-card {
+    padding: 6px 8px;
+  }
+
+  body.display-fullscreen[data-display-density="dense"] .pulse-card__label {
+    font-size: 9px;
+    margin-bottom: 2px;
+  }
+
+  body.display-fullscreen[data-display-density="dense"] .pulse-card__value {
+    font-size: 14px;
+  }
+
+  body.display-fullscreen[data-display-density="dense"] .pulse-card__meta {
+    margin-top: 3px;
+  }
 }
 
 /* Customize sheet content -- reuses the shared FTN.Sheet chrome (light-surface panel, same as

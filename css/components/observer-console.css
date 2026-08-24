@@ -4,11 +4,29 @@
    grid; secondary = the NOW status list; tertiary = each card's own source/meta line. */
 
 .observer-console {
+  position: relative;
   background: var(--color-black);
   color: var(--color-white);
   border-radius: var(--radius-24);
   padding: clamp(16px, 3vw, 32px);
   margin-top: var(--space-24);
+}
+
+/* .observatory-hero is a separate full-bleed <section>, so the light page background (this site
+   is light-first by default) shows through this gap as a bare white flash between two solid-black
+   panels -- visually reads as a rendering seam, not a deliberate "card on canvas" moment. Bridge
+   it with a same-color fill rather than removing the gap/radius outright, so #observer-console
+   still reads as its own module. */
+.observer-console::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(-1 * var(--space-24));
+  height: var(--space-24);
+  background: var(--color-black);
+  border-radius: var(--radius-24) var(--radius-24) 0 0;
+  z-index: -1;
 }
 
 .observer-console__head {

@@ -99,6 +99,11 @@ body:not(.mc-tabs-active) .mc-tablist {
 }
 
 .mc-panel {
+  /* Deep-linking straight to a tab (e.g. /scenario-workspace/#correlation-engine) lands the
+     browser's native anchor-scroll with this panel's top edge flush against the viewport top --
+     but .site-header (57px) + .mc-tablist (another 75px, both sticky) then cover that top edge,
+     clipping the panel's own heading/lede underneath them. Found via founder redteam. */
+  scroll-margin-top: 148px;
   padding-block: var(--space-48);
   border-bottom: 1px solid var(--color-border);
 }
