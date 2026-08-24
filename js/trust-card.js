@@ -126,7 +126,7 @@
     var rows = rels.map(function (r) {
       var isSource = r.fromIndicatorId === data.id;
       var otherId = isSource ? r.toIndicatorId : r.fromIndicatorId;
-      var otherLabel = isSource ? r.toLabel : r.fromLabel;
+      var otherLabel = publicCopy(isSource ? r.toLabel : r.fromLabel);
       var verb = isSource ? 'Influences' : 'Influenced by';
       var arrow = isSource ? '&rarr;' : '&larr;';
       var trigger = otherId

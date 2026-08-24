@@ -389,6 +389,7 @@ await scenario('observer-public-trust-score-opens-evidence', async page=>{
   await open(page,'/observatory/');
   await page.waitForSelector('.indicator-card [data-trust-card]',{state:'visible'});
   const wall=page.locator('#indicator-wall');
+  assert.doesNotMatch(await page.locator('body').innerText(),/illustrative|illustrated|modelled|FTN Derived/i,'retired confidence-lowering language remains visible on Observer');
   assert.equal(await wall.getByText(/FTN Modelled|FTN Derived|FTN Estimated|Illustrative/i).count(),0,'technical evidence classifications are exposed on the public indicator wall');
   assert.equal(await page.getByText(/See the Math/i).count(),0,'a redundant See the Math action is exposed outside the Trust Card');
   assert.match(await wall.locator('.trust-badge').first().innerText(),/^Trust Score \d+\/100$/,'public indicator badge does not show a Trust Score');
@@ -400,6 +401,17 @@ await scenario('observer-public-trust-score-opens-evidence', async page=>{
   assert.match(await dialog.innerText(),/Score = identifiable-source base/,'Trust Score traceability formula is missing');
   await dialog.getByText('See the Math',{exact:true}).click();
   assert.match(await dialog.innerText(),/Vdisplay\(t\) = Vsource\(t\)|V\(t\) = round|P\(t\) = 100|D\(t\) = max/,'Trust Card does not disclose a calculation formula');
+});
+
+await scenario('observer-crime-series-and-period-control', async page=>{
+  await open(page,'/observatory/');
+  await page.waitForSelector('#crime-intelligence .crime-kpi',{state:'visible'});
+  const crime=page.locator('#crime-intelligence');
+  assert.match(await crime.innerText(),/2026 recorded murders\s+120/,'current official TTPS murder total is blank or incorrect');
+  assert.equal(await crime.locator('.crime-chart__dot').count(),10,'CSO annual murder series is incomplete');
+  assert.equal(await crime.locator('.crime-bar').count(),9,'CSO police-division comparison is incomplete');
+  await crime.getByRole('button',{name:'Week'}).click();
+  assert.match(await crime.innerText(),/Collecting official daily snapshots/,'weekly comparison fabricates a change before enough official snapshots exist');
 });
 
 await scenario('display-network-studio', async page=>{

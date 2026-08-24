@@ -274,10 +274,11 @@
     // rules out. The structure below is real and ready — recordedTotal and
     // pace are intentionally separate fields (per §4) so a founder-supplied
     // benchmark can be dropped in without any component changes.
-    ind('recorded-murders', 'Public Sector & National Life', 'Recorded Murders (current year)', '—', 'recorded', {
-      classification: 'Illustrative', sourceId: 'tt-ttps', secondarySourceId: 'tt-cso-crime', confidence: 'Illustrative',
-      methodology: 'This indicator is designed to hold a manually verified current-year total (recordedTotal), tracked separately from a derived annual pace (recordedPace) — the pace never overwrites the verified total. No current total is shown here because a verified figure has not yet been published for this year; FTN will not estimate or infer a number for a sensitive public-safety statistic.',
-      limitations: 'No live value shown. An official or verified news benchmark is required before this card can display a number.',
+    ind('recorded-murders', 'Public Sector & National Life', 'Recorded Murders (2026 YTD)', '120', 'recorded', {
+      classification: 'Sourced', sourceId: 'tt-ttps', secondarySourceId: 'tt-cso-crime', confidence: 'Source traceable',
+      lastUpdated: '2026-08-24', updateFrequency: 'Daily source check',
+      methodology: 'The displayed headline is the current-year reported-murders total published by the TTPS Comparative Chart. FTN does not add an inferred daily count. Historical comparisons use the separate CSO workbook supplied by the TTPS Crime and Problem Analysis Unit.',
+      limitations: 'TTPS publishes a cumulative current-year total, not incident-level dates on this page. Month and week changes become available only after FTN has collected enough dated official snapshots.',
     })
   );
 

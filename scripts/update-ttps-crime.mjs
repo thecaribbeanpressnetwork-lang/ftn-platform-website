@@ -1,0 +1,20 @@
+import fs from 'node:fs/promises';
+
+const url = 'https://ttps.gov.tt/statistics/comparative/?year=2026';
+const path = new URL('../data/crime-statistics.json', import.meta.url);
+const response = await fetch(url, {headers: {'user-agent': 'FTN-Observer-Source-Check/1.0'}});
+if (!response.ok) throw new Error(`TTPS source returned ${response.status}`);
+const html = await response.text();
+const match = html.match(/var\s+data\s*=\s*(\[[\s\S]*?\]);/);
+if (!match) throw new Error('TTPS comparative data payload was not found');
+const rows = JSON.parse(match[1]);
+const murders = rows.find((row) => /^murders$/i.test(row.offence_name));
+if (!murders || !Number.isFinite(murders.reported) || !Number.isFinite(murders.detected)) throw new Error('TTPS murder row was invalid');
+const data = JSON.parse(await fs.readFile(path, 'utf8'));
+const date = new Intl.DateTimeFormat('en-CA', {timeZone:'America/Port_of_Spain',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+data.current = {...data.current, asOf: date, reported: murders.reported, detected: murders.detected};
+data.dailySnapshots = (data.dailySnapshots || []).filter((row) => row.date !== date);
+data.dailySnapshots.push({date, reported: murders.reported, detected: murders.detected});
+data.dailySnapshots.sort((a,b) => a.date.localeCompare(b.date));
+await fs.writeFile(path, JSON.stringify(data, null, 2) + '\n');
+console.log(`TTPS ${date}: ${murders.reported} reported, ${murders.detected} detected`);

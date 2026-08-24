@@ -135,8 +135,8 @@
       org: 'TT Meteorological Service',
     },
     'tt-ttps': {
-      name: 'Trinidad and Tobago Police Service',
-      url: 'https://www.ttps.gov.tt/',
+      name: 'TTPS — Current Comparative Chart',
+      url: 'https://ttps.gov.tt/statistics/comparative/?year=2026',
       org: 'TT Police Service',
     },
     'worldbank-tt': {

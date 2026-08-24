@@ -29,6 +29,12 @@
     return line ? '<p class="indicator-card__pace">' + line + '</p>' : '';
   }
 
+  function visitorReady(ind) {
+    if (!ind || !ind.sourceId) return false;
+    var auditText = [ind.title, ind.sourceName, ind.methodology, ind.limitations, ind.confidence].join(' ');
+    return !/illustrat(?:ive|ed|ion)|demonstration|placeholder|pending (?:the )?(?:actual|current|published)/i.test(auditText);
+  }
+
   function cardHTML(ind) {
     var live = ind.isLiveClock
       ? '<span data-live-clock="' + ind.id + '" aria-live="off">' + ind.value + '</span>'
@@ -84,7 +90,7 @@
 
     if (randomIndBtn) {
       randomIndBtn.addEventListener('click', function () {
-        var pool = global.FTN.indicators || [];
+        var pool = (global.FTN.indicators || []).filter(visitorReady);
         if (!pool.length) return;
         var pick = pool[Math.floor(Math.random() * pool.length)];
         global.FTN.TrustCard.open(pick.id);
@@ -109,7 +115,7 @@
     var root = document.getElementById('indicator-wall');
     if (!root || !global.FTN || !global.FTN.indicators) return;
 
-    var indicatorsToRender = filterIndicators(global.FTN.indicators);
+    var indicatorsToRender = filterIndicators(global.FTN.indicators.filter(visitorReady));
 
     var byCategory = {};
     indicatorsToRender.forEach(function (ind) {

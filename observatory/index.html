@@ -39,6 +39,8 @@
   <link rel="stylesheet" href="/css/components/ftn-sheet.css">
   <link rel="stylesheet" href="/css/components/observatory.css">
   <link rel="stylesheet" href="/css/components/observer-console.css">
+  <link rel="stylesheet" href="/css/components/crime-intelligence.css?v=20260824.1">
+  <link rel="stylesheet" href="/css/components/crime-controls.css?v=20260824.1">
   <link rel="stylesheet" href="/css/components/motion-system.css">
   <link rel="stylesheet" href="/css/components/mission-control-demo.css">
   <link rel="stylesheet" href="/css/components/presentation-control.css">
@@ -193,6 +195,8 @@
         <div class="observer-canvas" id="observer-canvas" role="tabpanel" data-active-category="now"></div>
       </section>
 
+      <div id="crime-intelligence" class="crime-intel" aria-live="polite"></div>
+
       <div class="reality-insight reality-insight--below-fold">
         <p class="reality-insight__title">The Nation Is Speaking</p>
         <div id="reality-insight" role="status" aria-live="polite">
@@ -224,10 +228,9 @@
         <div class="methodology-banner">
           <span aria-hidden="true">&#9432;</span>
           <p>
-            The indicator wall is not one official real-time feed. Each card states its own basis and
-            date in a Trust Card: current connected source, latest published benchmark, FTN calculated
-            counter, FTN derived indicator, or illustrative scenario. Modelled and illustrative values
-            are never presented as official measurements.
+            Every published card has an identifiable source and an openable Trust Score. The card
+            discloses the source date, any FTN calculation, the exact formula, and its limitations.
+            Entries without traceable source and calculation details are withheld from this public view.
           </p>
         </div>
       </div>
@@ -376,7 +379,7 @@
   <script src="/js/ads-data.js"></script>
   <script src="/js/ads.js"></script>
   <script src="/js/charts.js"></script>
-  <script src="/js/trust-card.js?v=20260824.3"></script>
+  <script src="/js/trust-card.js?v=20260824.4"></script>
   <script src="/js/live-clocks.js"></script>
   <script src="/js/reality-insights.js"></script>
   <script src="/js/today-panel.js"></script>
@@ -387,7 +390,8 @@
   <script src="/js/ftn-source-provenance.js"></script>
   <script src="/js/ftn-sheet.js"></script>
   <script src="/js/observer-console.js"></script>
-  <script src="/js/observatory.js?v=20260824.3"></script>
+  <script src="/js/crime-intelligence.js?v=20260824.1"></script>
+  <script src="/js/observatory.js?v=20260824.4"></script>
   <script src="/js/presentation-control.js"></script>
 </body>
 </html>
