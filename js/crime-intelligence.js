@@ -37,6 +37,6 @@
     host.querySelectorAll('[data-crime-measure]').forEach(function(btn){btn.addEventListener('click',function(){measure=btn.getAttribute('data-crime-measure');host.querySelectorAll('[data-crime-measure]').forEach(function(b){b.classList.toggle('is-active',b===btn);});updateChart();});});
     if(!global.matchMedia('(prefers-reduced-motion: reduce)').matches){var observer=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){host.classList.add('is-visible');observer.disconnect();}});},{threshold:.2});observer.observe(host);}else host.classList.add('is-visible');
   }
-  function init(){var host=document.getElementById('crime-intelligence');if(!host)return;fetch('/data/crime-statistics.json?v=20260824.1').then(function(r){if(!r.ok)throw new Error();return r.json();}).then(function(data){render(host,data);}).catch(function(){host.innerHTML='<p class="callout">Crime statistics are temporarily unavailable. Open the official CSO and TTPS sources from the Observer source directory.</p>';});}
+  function init(){var host=document.getElementById('crime-intelligence');if(!host)return;fetch('/data/crime-statistics.json?v=20260824.2').then(function(r){if(!r.ok)throw new Error();return r.json();}).then(function(data){render(host,data);}).catch(function(){host.innerHTML='<p class="callout">Crime statistics are temporarily unavailable. Open the official CSO and TTPS sources from the Observer source directory.</p>';});}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(window);

@@ -6,7 +6,7 @@
     var path=global.location.pathname,sources=[];
     if(path==='/')sources.push('/js/home-live-rail.js?v=20260812.1');
     if(path.indexOf('/scenario-workspace/')===0)sources.push('/js/mission-control-functional.js');
-    if(path.indexOf('/observatory/')===0)sources.push('/js/observatory-functional.js');
+    if(path.indexOf('/observatory/')===0)sources.push('/js/observatory-functional.js?v=20260824.2');
     if(path.indexOf('/display-network/')===0)sources.push('/js/display-network-preview.js');
     if(path.indexOf('/radio/')===0)sources.push('/js/radio-submission-fallback.js');
     if(path.indexOf('/events/')===0)sources.push('/js/events-runtime-fix.js');
