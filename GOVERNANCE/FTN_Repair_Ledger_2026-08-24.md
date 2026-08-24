@@ -106,7 +106,70 @@ here. Summary:
 | `sitemap.xml` converted from hand-maintained to registry-generated (`scripts/generate-sitemap.mjs`) | Deployed and verified live (commit `08042e7`); `--check` mode confirms zero URLs added/removed, ordering only. |
 | Live/Observer/NOW/Display/Screen responsibility matrix | Documented — flagged a direct conflict between the founder brief's target architecture and the prior "Ecosystem Simplification pass" decision. **Founder reviewed and approved Option B** ("phased compatibility migration") the same day. See the row below for implementation. |
 | **FTN Live compatibility migration (Option B, approved and executed)** | **Deployed and verified live (commit `39b9cc2`).** `ftn-live` renamed to public name "FTN Live" (route unchanged, `/observatory/`, `routeAliases:['/live/']`); NOW and Observer Console confirmed as already-existing views inside `js/observer-console.js` (no new registry entries, no new UI built — only branding connected); `display` given `parentProduct:'screen'` and renamed "FTN Screen — Display Mode" (route unchanged, `/display/`, still 200 OK live). `_redirects`: `/live/` → `/observatory/` unchanged; `/now/` retargeted from `/display/` to `/observatory/`. `nav.js` PRIMARY_NAV relabeled (Display's label deliberately left unchanged for lowest risk to the physically-deployed kiosk product). Sitewide `FTN Observer` → `FTN Live` text consistency pass across ~38 HTML files and 8 JS files (one file deliberately excluded: a `noindex,nofollow` personal portfolio page describing historical work). `tests/product-registry-audit.mjs`'s pre-existing hard guards against this exact migration (dating from the prior decision) inverted in place, documented inline, not weakened. Full local suite re-verified passing after the change (61 functional scenarios + foundation/mobile/all-public-routes/surface-system/performance-budget + static audits). `.claude/context/decisions.md` and `products.md` updated with an explicit "do not reverse accidentally" note for future sessions. Direct production verification: `/live/` and `/now/` both confirmed 301→`/observatory/` via `curl -I`; `/observatory/` title and hero eyebrow show FTN Live/Observer Console branding; registry names confirmed live; `/display/` confirmed still 200 OK. |
-| 32-file footer duplication, `PRIMARY_NAV` full registry-driven consolidation, `service-worker.js` private-route consolidation | Mapped and sequenced (governance doc §5). Footer consolidation **approved by the founder**, explicitly sequenced to begin only after this migration's deployment was verified (now true) — **not yet started this session**, next unit of work. |
+| `PRIMARY_NAV` full registry-driven consolidation, `service-worker.js` private-route consolidation | Mapped and sequenced (governance doc §5). Still not started — real duplication, lower priority than the footer work, no founder approval requested for these two yet. |
+
+### Footer consolidation (approved 2026-08-24, executed same session)
+
+Build-time synchronized footer per the founder's explicit spec: canonical data source
+(`data/footer-config.mjs`) + sync script (`scripts/sync-footer.mjs`, `--check`/`--group=` modes,
+following the `scripts/generate-sitemap.mjs` pattern) writing generated HTML directly into each
+page's static file inside `<!-- FTN:FOOTER:START/END -->` markers — no runtime JS injection, works
+with JavaScript disabled.
+
+Classified all 43 footer-bearing pages by actual rendered content (not assumed) before touching
+anything: two genuine variants, not one to force everything into.
+- **26 generic/utility pages** (legal, About, Contact, Resources, product-neutral pages) had
+  drifted into two near-identical, incompletely-overlapping copies of what was clearly meant to be
+  one shared footer — reconciled into one canonical version. Commit `542a4cf`.
+- **19 product-specific pages** (FTN Screen, FTN TV, FTN ibis, FTN Riddim, FTN Radio, the homepage,
+  and others) hand-curate real, page-specific footer navigation (headings like "Watch",
+  "Creators", "Intelligence") — left completely untouched; only their bottom bar is synced.
+  Commit `96b17df`.
+
+Closed a real, sitewide accessibility-critical link gap in the process: Contact and Trust Centre
+were missing from roughly half the site's footers before this pass (confirmed by direct content
+inspection, not assumed) — now present in every configured page's bottom bar, resolved via the
+bottom-bar consolidation itself rather than a separate fix.
+
+Three pages had no working footer at all before this pass and were brought up to the same
+baseline rather than left as "variants": `riddim/fire/index.html` had a bespoke footer missing
+Privacy/Terms/Contact/Trust entirely (its real disclosure content was preserved, not discarded);
+`riddim/dj/index.html` and `riddim/daw/index.html` had no footer element whatsoever. All three
+also lacked `css/components/footer.css` entirely and needed it added.
+
+**A real bug was caught and fixed before anything was pushed**, not glossed over: the sync
+script's fallback logic (used only on a page's first-ever sync, before markers exist) picked which
+existing HTML structure to wrap by trying the `full`-variant pattern first regardless of the
+page's actual configured variant. Run against the 19-page Group 2 during local testing, this
+would have silently replaced several pages' entire hand-curated footer (brand + Watch/Creators/
+Intelligence columns) with just a bottom bar — caught by this pass's own required testing (a
+Playwright visibility/overflow check) before any commit, root-caused, and fixed by making the
+fallback path variant-aware. Verified after the fix by diffing every affected file's pre-bottom-
+bar content against its last-committed version (byte-identical) before trusting it and moving on.
+
+**One local-only diagnostic dead end, disclosed rather than hidden:** an ad-hoc Playwright script
+checking `riddim/dj/` and `riddim/daw/` specifically and repeatedly returned stale 3-link content
+against this session's own minimal Node test server, surviving cache-disable, isolated browser
+profiles and full server restarts — while `curl` against the exact same server, the official
+`functional-release.mjs` suite (same Playwright/Chrome mechanism), and the actual file on disk all
+consistently showed the correct 5-link content. Diagnosed as an artifact specific to this session's
+throwaway test server (most likely a service-worker interaction it doesn't handle the way real
+Cloudflare Pages infrastructure does), not a real defect — confirmed conclusively by direct
+production `curl` after deploy (`riddim/dj` and `riddim/daw` both show `contact_links=1
+trust_links=1` live). Recorded here rather than silently reconciled, since the investigation
+consumed real effort and a future session hitting the same local-server quirk shouldn't re-diagnose
+it from scratch.
+
+**Verified across every affected route directly in production** (not just CI): all 19 Group 2
+routes plus a Group 1 sample (`/legal/privacy-policy/`) returned `200`, every route showed at least
+one live Contact and Trust Centre link, and `/screen/`'s curated "Watch"/"Creators" column headings
+were confirmed still present and unmodified live — direct proof the variant-aware fix holds in the
+real deployed environment, not just locally.
+
+**Deferred, not started:** the structural footer redesign was explicitly out of scope by the
+founder's own instruction ("this is structural consolidation, not a redesign") and wasn't
+attempted. `PRIMARY_NAV`/`service-worker.js` consolidation (§5.2/§5.3 of the governance doc) remain
+open, lower-priority items.
 
 ## Phases 4–8
 
