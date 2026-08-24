@@ -32,6 +32,19 @@
     return lastUpdated + ' (' + age + ')';
   }
 
+  // Statistical reference ("as at") date vs FTN's retrieval date — two different things a
+  // stale-but-official source can blur together. `data.referenceDate` is either a real date
+  // string the source itself publishes, or explicitly `null` once FTN has checked and confirmed
+  // the source publishes no such date (see trustScore below — that null is what triggers the
+  // freshness penalty). Indicators that haven't been reviewed for this yet simply omit the field,
+  // so this stays fully backward-compatible with every indicator not touched by this repair.
+  function referenceDateRow(data) {
+    if (!('referenceDate' in data)) return '';
+    return fieldRow('Statistical reference date', data.referenceDate
+      ? freshness(data.referenceDate)
+      : 'Not published by the source — currency of this figure cannot be confirmed');
+  }
+
   function publicCopy(value) {
     return String(value == null ? '' : value)
       .replace(/FTN[ -]Modelled:?/gi, 'FTN calculation:')
@@ -86,7 +99,21 @@
     var methodPoints = data.methodology ? 12 : 0;
     var limitationPoints = data.limitations ? 4 : 0;
     var freshnessPoints = 0;
-    if (data.lastUpdated) {
+    // An explicit `null` means FTN checked and the source publishes no statistical reference
+    // ("as at") date — an official, frequently-retrieved source is not the same thing as a fresh
+    // one, so this is a real penalty regardless of how recently FTN itself last checked. A real
+    // referenceDate string is used instead of lastUpdated (FTN's retrieval/processing time) for
+    // this scoring. Indicators without the field at all fall back to the original lastUpdated-only
+    // behavior, unchanged.
+    if (data.referenceDate === null) {
+      freshnessPoints = -8;
+    } else if (data.referenceDate) {
+      var ref = new Date(data.referenceDate);
+      if (!isNaN(ref.getTime())) {
+        var refDays = Math.max(0, Math.round((Date.now() - ref.getTime()) / 86400000));
+        freshnessPoints = refDays <= 31 ? 3 : refDays <= 183 ? 1 : refDays > 730 ? -6 : -2;
+      }
+    } else if (data.lastUpdated) {
       var updated = new Date(data.lastUpdated);
       if (!isNaN(updated.getTime())) {
         var ageDays = Math.max(0, Math.round((Date.now() - updated.getTime()) / 86400000));
@@ -111,7 +138,7 @@
   function trustScoreDetailsHTML(data) {
     return '<details class="trust-card__math"><summary>How this Trust Score is calculated</summary>' +
       '<p><strong>' + trustScoreLabel(data) + '</strong> measures how clearly FTN can trace and explain this figure. It does not certify the upstream publisher\'s collection process.</p>' +
-      '<p>Score = identifiable-source base + source-coverage points + freshness adjustment + calculation-disclosure points + limitation-disclosure points, capped from 0 to 99.</p></details>';
+      '<p>Score = identifiable-source base + source-coverage points + freshness adjustment + calculation-disclosure points + limitation-disclosure points, capped from 0 to 99. A source that does not publish a statistical reference ("as at") date is scored as unconfirmed-fresh, not neutral — an official publisher is not the same thing as a current one.</p></details>';
   }
 
   // "What influences it / what it influences" — Phase 4 Relationship Engine
@@ -246,7 +273,8 @@
         (data.secondarySourceId ? sourceLinkRow('Secondary source', data.secondarySourceId, null) : '') +
         (data.comparisonSourceId ? sourceLinkRow('Comparison source', data.comparisonSourceId, 'comparison, not primary') : '') +
         fieldRow('Update frequency', data.updateFrequency) +
-        fieldRow('Last updated', freshness(data.lastUpdated)) +
+        referenceDateRow(data) +
+        fieldRow(data.referenceDate !== undefined ? 'FTN retrieved' : 'Last updated', freshness(data.lastUpdated)) +
         fieldRow('Time coverage', data.timeCoverage) +
         fieldRow('Geographic coverage', data.geoCoverage) +
         fieldRow('Sample size', data.sampleSize) +

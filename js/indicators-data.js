@@ -118,21 +118,26 @@
     }),
     ind('debt-to-gdp', 'National Economy', 'Debt-to-GDP Ratio', '68.4', '%', {
       trend: 'up', changeLabel: '+0.6pp vs last quarter', status: 'watch',
-      history: spark(67, 12, 0.3, 0.1), isLiveClock: true, clock: { kind: 'debt-to-gdp', baseValue: 68.4, ratePerSecond: 0.0000009 },
+      history: spark(67, 12, 0.3, 0.1),
       sourceId: 'tt-mof-roe-2025', comparisonSourceId: 'worldbank-tt',
-      methodology: 'FTN Modelled: illustrative ratio, interpolated between quarterly illustrative benchmarks using a constant assumed growth rate. Benchmark anchor and rate are illustrative pending an actual Review of the Economy figure.',
-      classification: 'FTN Modelled',
+      classification: 'FTN Modelled', referenceDate: null,
+      methodology: 'FTN calculation: illustrative ratio pending an actual published Review of the Economy figure. FTN does not interpolate or animate this value — the benchmark has no official reference date, so no rate of change can be defended.',
+      limitations: 'No official baseline, reference date or formula is currently available for this ratio. FTN stopped animating this figure until those exist — see FTN Math Mode.',
+      formula: 'No live formula is applied. Awaiting an official baseline, a statistical reference date and a defensible calculation before this figure moves again.',
     }),
     ind('national-debt', 'National Economy', 'National Debt', '19.4B', 'TTD', {
-      trend: 'up', changeLabel: 'rising', isLiveClock: true,
-      clock: { kind: 'currency', baseValue: 19400000000, ratePerSecond: 620 },
-      classification: 'FTN Modelled', sourceId: 'tt-mof-roe-2025',
-      methodology: 'FTN Modelled: illustrative debt clock. Interpolates between a fixed benchmark and an assumed borrowing rate for visual effect — see Trust Card. Benchmark value is illustrative pending the actual published annual figure.',
+      trend: 'up', changeLabel: 'benchmark pending official update',
+      classification: 'FTN Modelled', sourceId: 'tt-mof-roe-2025', referenceDate: null,
+      methodology: 'FTN calculation: static illustrative benchmark pending the actual published annual figure. FTN previously animated this value using an assumed borrowing rate; that animation has been removed because the rate was not defensible.',
+      limitations: 'No official baseline, reference date or formula is currently available for this figure. FTN stopped animating this figure until those exist — see FTN Math Mode.',
+      formula: 'No live formula is applied. Awaiting an official baseline, a statistical reference date and a defensible calculation before this figure moves again.',
     }),
     ind('debt-per-citizen', 'National Economy', 'Debt per Citizen', '13,050', 'TTD', {
-      trend: 'up', isLiveClock: true, clock: { kind: 'currency', baseValue: 13050, ratePerSecond: 0.0004 },
-      classification: 'FTN Modelled', sourceId: 'tt-mof-roe-2025',
-      methodology: 'FTN Modelled: national debt benchmark divided by estimated population — both components illustrative.',
+      trend: 'up',
+      classification: 'FTN Modelled', sourceId: 'tt-mof-roe-2025', referenceDate: null,
+      methodology: 'FTN calculation: national debt benchmark divided by an estimated population figure — both components illustrative and undated.',
+      limitations: 'No official baseline, reference date or formula is currently available for this figure. FTN stopped animating this figure until those exist — see FTN Math Mode.',
+      formula: 'No live formula is applied. Awaiting an official baseline, a statistical reference date and a defensible calculation before this figure moves again.',
     }),
     ind('repo-rate', 'National Economy', 'Repo Rate', '3.50', '%', { trend: 'flat', sourceId: 'tt-cbtt' }),
     ind('inflation', 'National Economy', 'Inflation (headline)', '2.1', '%', { trend: 'flat', history: spark(2, 12, 0.15, 0), sourceId: 'tt-cso-rpi' }),
@@ -276,9 +281,9 @@
     // benchmark can be dropped in without any component changes.
     ind('recorded-murders', 'Public Sector & National Life', 'Recorded Murders (2026 YTD)', '120', 'recorded', {
       classification: 'Sourced', sourceId: 'tt-ttps', secondarySourceId: 'tt-cso-crime', confidence: 'Source traceable',
-      lastUpdated: '2026-08-24', updateFrequency: 'Daily source check',
+      lastUpdated: '2026-08-24', updateFrequency: 'Daily source check', referenceDate: null,
       methodology: 'The displayed headline is the current-year reported-murders total published by the TTPS Comparative Chart. FTN does not add an inferred daily count. Historical comparisons use the separate CSO workbook supplied by the TTPS Crime and Problem Analysis Unit.',
-      limitations: 'TTPS publishes a cumulative current-year total, not incident-level dates on this page. Month and week changes become available only after FTN has collected enough dated official snapshots.',
+      limitations: 'TTPS does not publish a statistical "as at" date for this total, and FTN checking the page daily does not make the underlying count current — the date shown elsewhere is FTN’s retrieval date, not confirmation the source updated. FTN cannot currently confirm this total reflects the same period as other public reporting on this topic; treat it as source-traceable, not confirmed-current. TTPS publishes a cumulative current-year total, not incident-level dates. Month and week changes become available only after FTN has collected enough dated official snapshots.',
     })
   );
 

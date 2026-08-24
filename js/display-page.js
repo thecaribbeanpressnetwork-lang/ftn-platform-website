@@ -36,7 +36,12 @@
   }
 
   // ---- National Pulse ----
-  var PULSE_IDS = ['national-debt', 'debt-to-gdp', 'recorded-murders', 'inflation', 'fuel-price', 'exchange-rate'];
+  // 'recorded-murders' is deliberately excluded from this current-condition pulse: the TTPS
+  // source it draws from publishes no statistical reference date, so FTN cannot confirm the
+  // figure reflects "now" rather than a stale snapshot (see js/indicators-data.js referenceDate
+  // and the FTN Trust Card). It remains visible, with that caveat, in FTN Observer's investigative
+  // context — this pulse is specifically the glanceable current-condition surface.
+  var PULSE_IDS = ['national-debt', 'debt-to-gdp', 'inflation', 'fuel-price', 'exchange-rate'];
 
   function pulseCardHTML(ind) {
     if (!ind) return '';
