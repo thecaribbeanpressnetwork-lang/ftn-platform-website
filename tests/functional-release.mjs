@@ -381,6 +381,8 @@ await scenario('observer-hero-clocks-no-clipping', async page=>{
     assert(e.right<=2,`hero-clock card ${i}: Trust Card button escapes its card by ${e.right}px on the right`);
     assert(e.bottom<=2,`hero-clock card ${i}: Trust Card button escapes its card by ${e.bottom}px on the bottom`);
   });
+  assert.equal(await page.locator('.observatory-hero .trust-badge--modelled').count(),0,'Observer hero leads with modelled data instead of current or official source views');
+  assert.equal(await page.locator('#pause-toggle').count(),0,'Observer hero still promotes a control for pausing modelled counters');
 }, {width:1024,height:900});
 
 await scenario('display-network-studio', async page=>{
