@@ -6,6 +6,20 @@ proposed registry schema, Live/Observer/NOW/Display/Screen responsibility matrix
 sequence with risks, and the decision gate the brief explicitly asked for before anything
 route-renaming or destructive happens.
 
+## DECIDED (2026-08-24, same day): Option B approved, BUILD NOW — see §7
+
+§§1–6 below are the original analysis and decision-gate document, written and presented *before*
+this decision, recommending Option A as the safer default with Option B requiring explicit
+founder confirmation. **The founder reviewed both and explicitly approved Option B** — "phased
+compatibility migration," reviving FTN Live as the canonical umbrella and consolidating FTN
+Display into FTN Screen as Display Mode. That decision is now implemented, tested and deployed;
+§7 records what was actually built, migrated and verified. §§1–6 are kept intact below as the
+historical record of the analysis that led to the decision — read §7 for current, binding state.
+
+This also updates `.claude/context/decisions.md` and `.claude/context/products.md` directly (not
+just this document), per the founder's explicit instruction that future agents must not reverse
+this accidentally.
+
 ## 1. Current-state duplication map
 
 Six independent places currently hold product identity/routing/visibility data. Only two are
@@ -190,3 +204,66 @@ renames, "FTN Live" revival, a real NOW view) pending founder confirmation.
   remaining item (32 files) even done incrementally.
 - Nothing in §4 (already implemented) requires a gate — it's additive/reversible and already
   shipped; listed here for completeness, not for approval.
+
+## 7. Implementation record (Option B, executed 2026-08-24)
+
+### What changed, concretely
+
+- **Registry** (`js/product-registry-data.js`): `ftn-live` renamed to public name **FTN Live**
+  (`shortName:'Live'`), route unchanged (`/observatory/`), `routeAliases:['/live/']` added.
+  `display` given `parentProduct:'screen'` (identical pattern to `tv`'s existing
+  `parentProduct:'screen'`) and renamed to **FTN Screen — Display Mode**; route unchanged
+  (`/display/`) — this is a real, physically-deployed kiosk/waiting-room product, so its URL was
+  never touched. `screen`'s `integrations` gained a `{productId:'display',kind:'parent'}` edge.
+- **`_redirects`** (the real mechanism — corrects §5's assumption above that a new
+  `js/redirect-*.js` stub would be needed): `/live/` → `/observatory/` **already existed** and
+  needed no change. `/now/` → `/display/` **existed and was retargeted** to `/now/` →
+  `/observatory/`, since NOW is FTN Live's view now, not FTN Display's. Neither redirect was
+  removed; both still resolve.
+- **`observatory/index.html`**: title/meta/OG/Twitter copy rebranded to FTN Live; hero eyebrow
+  → "FTN Live · Observer Console"; the existing live-status badge (previously "Current view")
+  → "FTN NOW"; the existing `#observer-console` section (which already had a `now` category
+  tagged `eyebrow:'Default view'` in `js/observer-console.js`, unmodified) relabeled from "FTN
+  Observer" to "FTN Live · Observer Console". No new views were built — NOW and Observer Console
+  were already-existing sections/categories in the code; only branding needed to catch up.
+- **`js/nav.js`**: `PRIMARY_NAV`'s Observer entry relabeled "FTN Live" (href unchanged); its
+  Display entry **deliberately left as "FTN Display"** (same href) — lowest-risk choice for a
+  primary-nav label that real physical screens and muscle-memory navigation depend on; the
+  registry's own `navPlacement` metadata (schema-only, not yet consumed by any renderer) already
+  reflects the consolidation for whenever `PRIMARY_NAV` itself becomes registry-driven (§5.2).
+- **Sitewide text**: every remaining `>FTN Observer<` occurrence found in this repo (39 initial
+  matches, one deliberately left untouched — see below) updated to FTN Live/Observer Console
+  framing, across ~30 HTML files (footers, headers, About/Insights product cards) and 8 JS files
+  (`account.js`, `display-page.js`, `god-mode.js`, `home-live-rail.js`, `ibis-ai-workspace.js`,
+  `ibis-widget.js`, `observer-console.js`, `platform-truth-runtime.js`). `legal/terms-of-service`'s
+  trademark/brand-name lists updated to match. **Deliberately not touched:**
+  `portfolio/rg-brand-7f3k2/index.html` — a `noindex,nofollow` personal portfolio/CV page
+  describing past work done under the "FTN Observer" name at the time; out of scope for a
+  navigation/branding migration, not a stale reference.
+- **Cache versioning**: `js/nav.js?v=` bumped `20260824.3` → `20260824.4` across all 45 referencing
+  HTML files (content changed, needs cache-busting); `service-worker.js`'s `VERSION` bumped
+  `ftn-public-v2.4.0` → `ftn-public-v2.4.1` (forces a fresh cache namespace for the real content
+  changes in this pass, per the file's own stated purpose).
+- **`tests/product-registry-audit.mjs`**: this file already had hard CI guards actively
+  *forbidding* reintroducing "FTN Live" to navigation and requiring `/now/` → `/display/` — dating
+  from the original "Ecosystem Simplification pass." Inverted/updated in place (documented inline,
+  each change explaining the founder-approved reversal it reflects), not weakened — the assertions
+  still verify real invariants (a canonical name exists, redirects resolve, service-worker cache
+  namespace advances for changed assets), just against the new, current policy.
+- **`sitemap.xml`**: regenerated via `scripts/generate-sitemap.mjs`; unchanged (routes didn't move,
+  only names did, and the sitemap only lists URLs).
+
+### What was deliberately not done (still open, per §5)
+
+- 32-file footer *structural* consolidation (shared component) — approved by the founder but
+  explicitly sequenced to start only after this compatibility layer's deployment is verified.
+- `PRIMARY_NAV` becoming registry-driven, and `service-worker.js`'s private-route list becoming
+  registry-derived — both still hand-maintained, both still correct, both still queued in §5.
+
+### Verification
+
+Full local suite (61 `functional-release.mjs` scenarios, `foundation-release`, `mobile-release`,
+`all-public-routes`, `surface-system-release`, `performance-budget`, plus every Node-only static
+audit) passing before push — see the repair ledger's Phase 3 entry for the complete list and the
+production verification evidence (commit, `/live/` and `/now/` redirect checks against the live
+domain, since `_redirects` is a Cloudflare-only mechanism this local static server cannot exercise).

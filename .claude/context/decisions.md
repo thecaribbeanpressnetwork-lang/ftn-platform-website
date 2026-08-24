@@ -114,6 +114,35 @@ output, introduces no runtime dependency, requires no production build step, and
 committed to the repo. This is the one narrow exception to the vanilla HTML/CSS/JS mandate — do
 not read it as opening the door to a general build-tooling introduction without asking first.
 
+### FTN Live revived as canonical umbrella; FTN Display consolidated into FTN Screen — **Active** (2026-08-24, BUILD NOW)
+
+**Supersedes** a 2026-08-23 "Ecosystem Simplification pass" that had retired both "FTN Live" and
+"FTN Now" as independent identities (never itself recorded here as its own entry — only in
+`js/product-registry-data.js` and `js/nav.js` code comments, and in products.md's "Superseded
+naming" section, both now updated). That pass's outcome renamed the `ftn-live` registry product to
+"FTN Observer" and moved the ambient/glanceable role to a separate "FTN Display" product.
+
+**Current, binding decision:** FTN Live is the canonical registry product and public umbrella
+again. FTN NOW is its default current-information view. Observer Console is its advanced interface
+— not a competing product, no separate registry entry. FTN Display is consolidated into FTN Screen
+as Display Mode (`parentProduct:'screen'` on the `display` registry entry, the same pattern `tv`
+already used under `screen`).
+
+**Explicitly preserved through this migration, not treated as up for grabs:** every existing public
+URL (`/observatory/`, `/display/`, `/live/`, `/now/` all still resolve — the last two via
+`_redirects`, retargeted rather than removed), all service-worker private-route/offline behavior,
+and existing analytics event history (routes unchanged, so analytics continuity holds).
+
+Full record, including the current-state duplication map, registry schema, and the
+Live/Observer/NOW/Display/Screen responsibility matrix this decision resolves:
+`GOVERNANCE/FTN_Phase3_Product_Registry_and_Live_Consolidation_2026-08-24.md`. Implementation and
+test detail: the repair ledger's Phase 3 entry.
+
+**If a future session finds code or copy that still says "FTN Observer" as the canonical product
+name, or "FTN Display" as an independent top-level product:** that is stale content this migration
+missed, not a reason to revert this decision — fix the stale reference to match this entry, don't
+restore the old naming.
+
 ---
 
 ## Still-open conflicts (do not silently resolve)

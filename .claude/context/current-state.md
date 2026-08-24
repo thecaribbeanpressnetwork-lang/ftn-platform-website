@@ -44,9 +44,12 @@ The full, authoritative product table (26 registry entries, statuses, visibility
 relationships) lives in [products.md](products.md) — not duplicated here. Headline facts worth
 keeping in this snapshot: `mission-control` is now **PRIVATE** (no public marketing page, no CTAs);
 `love` and `health` are **VAULTED** (page routes exist, `publicVisibility:false`, pending safety/
-governance gates); `ftn-live` was renamed in public-facing copy to **FTN Observer** (deep
-investigation) with the ambient "one screen" role moved to the new `display` product; `invest` is
-a real dedicated product page now, not just a Contact category (see "Resolved" below).
+governance gates); `ftn-live` is **FTN Live** again as of a 2026-08-24 founder decision (see
+products.md's "FTN Live is canonical again" section) — canonical public umbrella, FTN NOW its
+default view, Observer Console its advanced interface, same `/observatory/` route; `display` is
+now consolidated into `screen` as Display Mode (`parentProduct:'screen'`), still served at its own
+`/display/` route; `invest` is a real dedicated product page now, not just a Contact category (see
+"Resolved" below).
 
 Additional live routes not (yet) in the Product Registry as of this check: `/trust/` ("FTN Trust
 Centre — Sources, privacy and product states"), `/god-mode/` ("FTN Nexus Command — Private founder
