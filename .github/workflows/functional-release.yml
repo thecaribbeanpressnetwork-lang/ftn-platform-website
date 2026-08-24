@@ -94,7 +94,11 @@ jobs:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
         run: |
           npm init -y >/dev/null 2>&1
-          npm install --no-save playwright@1.55.0
+          # Installed together deliberately: with no committed package.json, a later
+          # `npm install --no-save X` in a separate step silently prunes whatever an earlier
+          # step installed and isn't listed this time -- pixelmatch/pngjs (visual-regression.mjs)
+          # must ship in this same command as playwright, not a step of their own.
+          npm install --no-save playwright@1.55.0 pixelmatch pngjs
           # ubuntu-latest already carries Chromium's shared-library dependencies.
           # Avoid `--with-deps`: it can hang indefinitely when an apt mirror is
           # unavailable and prevent the browser release gates from running.
@@ -179,6 +183,17 @@ jobs:
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/performance-budget.mjs
+
+      - name: Visual regression (flagship surfaces)
+        # continue-on-error deliberately: tests/visual-baselines/ was captured on a local Windows
+        # Chrome, not this ubuntu-latest runner -- cross-platform font rendering can produce a
+        # real, systematic pixel difference with nothing actually broken. Informational until the
+        # baselines are regenerated from an actual run on this runner (--update-baselines here,
+        # commit the result), at which point remove continue-on-error to make it a hard gate.
+        continue-on-error: true
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/visual-regression.mjs
 
       - name: Static broken-local-reference scan
         run: |
