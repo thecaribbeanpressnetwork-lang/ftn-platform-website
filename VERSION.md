@@ -2,6 +2,23 @@
 
 This internal record separates verified production state from prepared work. The public website does not display build/version badges.
 
+## Deployment path (reconciled 2026-08-24)
+
+`ftnplatform.org` is served by **Cloudflare Pages, via its native GitHub integration** — not by
+the `.github/workflows/static-pages.yml` (GitHub Pages) workflow alone. Evidence: `curl -I
+https://ftnplatform.org/` returns `Server: cloudflare` plus a `CF-RAY` header, and every response
+header (CSP, Permissions-Policy, X-Frame-Options, the full set) matches this repo's root
+`_headers` file character-for-character — `_headers` is a Cloudflare Pages convention with no
+GitHub Pages equivalent, so GitHub Pages cannot be the header source for the live domain. A
+`Cloudflare Pages` GitHub check also runs and reports success on every push to `main`, alongside
+the separate `deploy` (GitHub Pages) check.
+
+Both deploy in parallel from the same `main` branch push — GitHub Pages is not disabled or
+superseded, it simply isn't what `ftnplatform.org` itself resolves to. This record previously
+named the GitHub Pages workflow as *the* production path; that undercounted what actually serves
+the custom domain. No deployment configuration was changed to produce this correction — it is a
+documentation fix, verified by direct inspection of the live response, not a reconfiguration.
+
 ## Verified production baseline
 
 | Field | Value |
@@ -9,7 +26,8 @@ This internal record separates verified production state from prepared work. The
 | Production branch | `main` |
 | Verified code commit | `3b5394c4012fbabbf7d9e5c1984a09e676263896` |
 | Production verification date | 2026-08-19 |
-| Production workflow | `.github/workflows/static-pages.yml` |
+| Production deploy path (custom domain) | Cloudflare Pages, native GitHub integration (no committed workflow file — see "Deployment path" above) |
+| Parallel deploy path | `.github/workflows/static-pages.yml` (GitHub Pages) |
 | Production domain | `ftnplatform.org` |
 | Production shell namespace | `ftn-public-v2.3.1` |
 | Community Connect | Separate protected application and repository |
