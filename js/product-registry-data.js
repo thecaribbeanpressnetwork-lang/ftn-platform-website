@@ -6,7 +6,11 @@
 var RELEASE='2.4.0',VERIFIED='2026-08-19',OWNER='RealityArtTV Media';
 function product(config){
   var accent=config.accent||'var(--color-red-on-dark)';
-  return Object.assign({
+  // Phase 3 (Product Registry consolidation) additive fields -- see
+  // GOVERNANCE/FTN_Phase3_Product_Registry_and_Live_Consolidation_2026-08-24.md §2. Every field
+  // here is a safe default so no existing entry or consumer breaks; only a handful of entries
+  // populate real values for these so far (incremental migration, not a sitewide rewrite).
+  var merged=Object.assign({
     shortName:config.name,
     parentProduct:null,
     productType:config.parentProduct?'capability':'product',
@@ -38,8 +42,19 @@ function product(config){
     panelRow:null,
     atmosphere:{accent:accent,background:'dark-minimal',motionProfile:'none',heroStyle:'editorial'},
     keywords:[],
-    capabilities:[]
+    capabilities:[],
+    // -- Phase 3 additive fields --
+    purposeStatement:null,
+    routeAliases:[],
+    navPlacement:{primary:false,ecosystemGroup:null,footer:true},
+    authRequirement:'guest',
+    dataProduced:[],
+    integrations:[],
+    provenanceLevel:'none',
+    ownerModules:[]
   },config,{accent:undefined});
+  if(!('analyticsId' in config))merged.analyticsId='ftn_'+String(merged.id||'').replace(/-/g,'_');
+  return merged;
 }
 var PRODUCTS=[
 product({
@@ -123,14 +138,25 @@ product({
   callsToAction:[{label:'Discover Caribbean screen work',route:'/screen/'}],visualMnemonic:'Cinema frame aperture',panelAsset:'/assets/panels/09-ftn-screen.png',panelRow:2,accent:'var(--color-screen)',atmosphere:{accent:'var(--color-screen)',background:'dark-cinematic',motionProfile:'none',heroStyle:'cinematic'},
   heroAsset:'/assets/heroes/ftn-screen-film-crew.webp',heroAlt:'A Caribbean film crew working on location above a coastal town',heroFocalDesktop:'66% 50%',heroFocalMobile:'64% 50%',
   dataSources:['authorized public embeds','creator-declared metadata','official festival sources'],accessRules:['guest discovery','creator preparation'],featureFlags:['screen-catalog','festival-package'],relatedProducts:['tv','facethenation'],legalNotices:['Media rights and destination notice'],
-  keywords:['film','movie','cinema','documentary','filmmaker','festival','trailer'],capabilities:['film-discovery','authorized-embedded-playback','film-metadata','festival-readiness','festival-matching','export']
+  keywords:['film','movie','cinema','documentary','filmmaker','festival','trailer'],capabilities:['film-discovery','authorized-embedded-playback','film-metadata','festival-readiness','festival-matching','export'],
+  purposeStatement:'Editorial/broadcast discovery for Caribbean film and screen work — unrelated to current-conditions intelligence (see Phase 3 responsibility matrix).',
+  navPlacement:{primary:false,ecosystemGroup:'media-culture',footer:true},authRequirement:'guest',
+  integrations:[{productId:'tv',kind:'parent'},{productId:'facethenation',kind:'routes-to'}],
+  provenanceLevel:'editorial',ownerModules:['screen/index.html','css/components/screen-production.css']
 }),
 product({
   id:'tv',name:'FTN TV',shortName:'TV',tagline:'Caribbean Television, Programmed with Purpose.',
   description:'A scheduled and on-demand FTN programme surface using authorized sources and honest on-air, replay, off-air and provider-failure states.',route:'/tv/',status:'AVAILABLE',parentProduct:'screen',
   primaryUser:'Caribbean programme audiences',primaryJourney:'Select a programme, verify its current availability and play an authorized source.',callsToAction:[{label:'Open the programme guide',route:'/tv/'}],visualMnemonic:'Broadcast frame and clock',
   dataSources:['FTN schedule data','authorized YouTube embeds'],accessRules:['guest viewing'],featureFlags:['tv-guide'],relatedProducts:['screen','facethenation','ftn-live','display'],legalNotices:['Programme rights and source notice'],
-  keywords:['television','tv','channel','schedule','guide','watch','programme','replay'],capabilities:['current-programme-resolution','authorized-playback','schedule','tune','failure-state']
+  keywords:['television','tv','channel','schedule','guide','watch','programme','replay'],capabilities:['current-programme-resolution','authorized-playback','schedule','tune','failure-state'],
+  purposeStatement:'Scheduled/on-demand programme guide, a capability of FTN Screen — not a current-conditions or Live product.',
+  navPlacement:{primary:false,ecosystemGroup:'media-culture',footer:true},authRequirement:'guest',
+  // Not claiming a direct integration with 'display': FTN Display's "TV NOW" module and this
+  // product both independently call the same shared js/ftn-media-discovery.js capability -- they
+  // don't consume each other's output, so a product-to-product edge here would overclaim.
+  integrations:[{productId:'screen',kind:'child'}],
+  provenanceLevel:'editorial',ownerModules:['tv/index.html','js/tv-guide.js']
 }),
 product({
   // Ecosystem Simplification pass: FTN Live retired as an independent identity. Its deep
@@ -142,7 +168,15 @@ product({
   primaryUser:'People investigating current Caribbean conditions in depth',primaryJourney:'Open a current or scheduled signal, inspect its source/time/correlations and follow its accurate next state.',
   callsToAction:[{label:'Open FTN Observer',route:'/observatory/'}],visualMnemonic:'Caribbean signal constellation',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
   dataSources:['NOAA satellite products','Open-Meteo','World Bank','FTN public source registry','Trinidad and Tobago Meteorological Service','UWI Seismic Research Centre'],accessRules:['guest'],featureFlags:['live-sources','satellite','observer-console'],relatedProducts:['events','tv','mission-control','display'],
-  legalNotices:['External source availability','Calculated context notice'],keywords:['indicators','data','investigate','satellite','weather','schedule','replay','change','observer','correlation','flood','ferry','airport','vessel','earthquake','air quality','crime','parliament','power outage'],capabilities:['current-satellite-imagery','connected-public-sources','indicator-context','accurate-state','fallback','observer-console','observer-correlation-engine']
+  legalNotices:['External source availability','Calculated context notice'],keywords:['indicators','data','investigate','satellite','weather','schedule','replay','change','observer','correlation','flood','ferry','airport','vessel','earthquake','air quality','crime','parliament','power outage'],capabilities:['current-satellite-imagery','connected-public-sources','indicator-context','accurate-state','fallback','observer-console','observer-correlation-engine'],
+  // Phase 3 Option A (see GOVERNANCE/FTN_Phase3_...md §3.3): formalizes the Observer/Display split
+  // as-is rather than reviving a "FTN Live" umbrella brand -- that's a separate founder decision
+  // (§3.2 of that document), not inferred here. purposeStatement exists precisely to make this
+  // product's distinct job legible next to Display's, without either page's copy changing.
+  purposeStatement:'Deep-investigation console: current indicators, satellite imagery, correlations and explicit source states, for people looking closely -- distinct from FTN Display\'s glanceable ambient job.',
+  navPlacement:{primary:true,ecosystemGroup:'information-intelligence',footer:true},authRequirement:'guest',
+  integrations:[{productId:'display',kind:'produces'},{productId:'community-connect',kind:'consumes'}],
+  provenanceLevel:'official',ownerModules:['observatory/index.html','js/observer-console.js','js/observatory.js','js/indicators-data.js']
 }),
 product({
   id:'display',name:'FTN Display',shortName:'Display',tagline:'Watch what is happening. One screen. No setup.',
@@ -150,7 +184,15 @@ product({
   primaryUser:'Anyone near a shared screen — a waiting room, office, shop or reception area',primaryJourney:'Open FTN Display, press full screen and leave it running.',
   callsToAction:[{label:'Open FTN Display',route:'/display/'}],visualMnemonic:'Ambient national pulse screen',panelAsset:'/assets/panels/02-mission-control.png',panelRow:2,accent:'var(--color-red-on-dark)',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
   dataSources:['FTN Product Registry','FTN public source registry','authorized YouTube discovery'],accessRules:['guest'],featureFlags:['display-pulse','display-tv-now'],relatedProducts:['ftn-live','kaiso','tv','parliament','events','community-connect'],
-  legalNotices:['External source availability','Calculated context notice'],keywords:['screen','ambient','watch','pulse','fullscreen','signage','waiting room','national debt','weather','currency','tv now'],capabilities:['national-pulse','tv-now','world-now','fullscreen','anonymous-presence']
+  legalNotices:['External source availability','Calculated context notice'],keywords:['screen','ambient','watch','pulse','fullscreen','signage','waiting room','national debt','weather','currency','tv now'],capabilities:['national-pulse','tv-now','world-now','fullscreen','anonymous-presence'],
+  purposeStatement:'Glanceable, no-account, kiosk/full-screen ambient view for a shared physical screen -- a distinct job from Observer\'s console, kept separate under Phase 3 Option A (see governance doc §3.3).',
+  navPlacement:{primary:true,ecosystemGroup:'information-intelligence',footer:true},authRequirement:'none',
+  // "FTN TV NOW" here is a module name only (js/display-page.js renderTvNow()), not the 'tv'
+  // product and not a real "NOW" view of FTN Live -- see governance doc §3.1. Recorded-murders is
+  // deliberately absent from what this consumes: suppressed from current-condition presentation
+  // per the Phase 1 Trust Engine repair (js/display-page.js PULSE_IDS).
+  integrations:[{productId:'ftn-live',kind:'consumes'},{productId:'community-connect',kind:'consumes'}],
+  provenanceLevel:'ftn-calculated',ownerModules:['display/index.html','js/display-page.js','css/components/display.css']
 }),
 product({
   id:'learn',name:'FTN Learn',shortName:'Learn',tagline:'Find something to learn.',
