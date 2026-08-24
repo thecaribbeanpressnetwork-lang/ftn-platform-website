@@ -52,7 +52,7 @@
     ['FTN Community Connect','/community-connect/','Report and track local civic issues'],
     ['FTN Display','/display/','One screen. Watch what is happening in Trinidad & Tobago'],
     ['FTN Observer','/observatory/','Investigate Trinidad & Tobago in depth — indicators and correlations'],
-    ['FTN TV','/tv/','Caribbean television, programmed with purpose']
+    ['FTN Directory','/applications/','Browse every public FTN product and go directly to its workspace']
   ];
   function escNav(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function isCurrent(route){return location.pathname===route||(route!=='/'&&location.pathname.indexOf(route)===0);}
