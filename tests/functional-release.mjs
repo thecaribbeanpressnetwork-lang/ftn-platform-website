@@ -190,9 +190,17 @@ await scenario('daw-live-audio', async page=>{
 
 await scenario('screen-view-and-festival', async page=>{
   await open(page,'/screen/');
-  await page.waitForSelector('#screen-discovery',{timeout:10000});assert.equal(await page.locator('.screen-discovery__card').count(),3);assert.match(await page.locator('#screen-discovery').innerText(),/Pavilion\+.*checked 2026-08-12/is);assert(await page.locator('[data-screen-save]').count()===3,'Screen save actions missing');await page.waitForSelector('#screen-tool-catalog',{timeout:10000});assert.equal(await page.locator('.screen-tools__grid article').count(),8,'verified filmmaker tool catalogue missing');
+  await page.waitForSelector('#screen-discovery',{timeout:10000});assert.equal(await page.locator('.screen-discovery__card').count(),3);assert.match(await page.locator('#screen-discovery').innerText(),/Pavilion\+.*checked 2026-08-12/is);assert(await page.locator('[data-screen-save]').count()===3,'Screen save actions missing');
+  // Filmmaker tool catalogue and Festival & Distribution Desk render inside collapsed native
+  // <details> (js/screen-progressive-disclosure.js) so discovery isn't buried under ~7000px of
+  // creator tooling on first load -- open each one before asserting on its contents.
+  await page.waitForSelector('#screen-tool-catalog',{state:'attached',timeout:10000});
+  await page.locator('#screen-tool-catalog').locator('xpath=ancestor::details[1]/summary').click();
+  await page.waitForSelector('#screen-tool-catalog',{timeout:10000});assert.equal(await page.locator('.screen-tools__grid article').count(),8,'verified filmmaker tool catalogue missing');
   await page.waitForFunction(()=>document.querySelectorAll('[data-screen-video]').length>5 || /failed|unavailable|error/i.test(document.querySelector('#screen-catalog-status')?.innerText||''),{timeout:45000});
   assert(await page.locator('[data-screen-video]').count()>5,'Screen catalog empty');
+  await page.waitForSelector('#screen-fest-form',{state:'attached',timeout:10000});
+  await page.locator('#screen-fest-form').locator('xpath=ancestor::details[1]/summary').click();
   await page.waitForSelector('#screen-fest-form',{timeout:10000});
   await page.fill('#screen-fest-form input[name="title"]','FTN Test Film');
   await page.fill('#screen-fest-form input[name="runtime"]','18 minutes');
@@ -284,7 +292,11 @@ await scenario('clock-personalize-share-and-fullscreen', async page=>{
   assert.match(await page.locator('#clock-digital-time').innerText(),/^\d{2}:\d{2}:\d{2}$/);
   await page.click('#clock-toggle-worldnow');
   await page.waitForSelector('.clock-worldnow__item');
-  assert.equal(await page.locator('.clock-worldnow__item').count(),3,'World Now did not render 3 zones');
+  // Founder walkthrough defect #2: World Now expanded from 3 fixed zones to a 21-city picker
+  // (Trinidad & Tobago always first, 6 defaults selected out of the box) -- see js/clock-page.js
+  // WORLD_CITIES/DEFAULT_WORLD_CITY_KEYS.
+  assert.equal(await page.locator('.clock-worldnow__item').count(),7,'World Now did not render Trinidad & Tobago plus its 6 default cities');
+  assert.match(await page.locator('.clock-worldnow__item').first().locator('span').innerText(),/^Port of Spain$/i,'Trinidad & Tobago must always render first in World Now');
   await page.click('#clock-toggle-radio');
   await page.waitForSelector('.ftn-radio-live',{state:'attached',timeout:10000});
   assert.equal(await page.locator('#clock-radio').getAttribute('hidden'),null,'radio indicator did not become visible');
