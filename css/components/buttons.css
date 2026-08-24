@@ -23,6 +23,16 @@
     transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* An author-origin `display` declaration always beats the UA stylesheet's [hidden]{display:none}
+   rule regardless of specificity -- this exact cascade footgun has already hit Clock's face/
+   personalize toggles and the sitewide ibis widget trigger. .btn's own unconditional `display:
+   inline-flex` above means every hidden-toggled button sitewide (Display's rotation-pause toggle,
+   Radio's Clear-all-local-tracks, and any future one) needs this override once, here, rather than
+   re-discovering the same bug per component. */
+.btn[hidden] {
+  display: none !important;
+}
+
 .btn:hover {
   transform: translateY(-1px);
 }

@@ -13,7 +13,7 @@ async function installDeterministicProviderFixtures(context){
   await context.route('https://fonts.gstatic.com/**',route=>route.fulfill({status:200,contentType:'font/woff2',body:Buffer.alloc(0)}));
   await context.route('https://i.ytimg.com/**',route=>route.fulfill({status:200,contentType:'image/png',body:fixturePng}));
   await context.route('https://fixtures.ftn.invalid/**',route=>route.fulfill({status:200,contentType:'image/png',body:fixturePng}));
-  await context.route('https://www.youtube.com/iframe_api',route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.YT={PlayerState:{ENDED:0,PLAYING:1,PAUSED:2},Player:function(id,o){this._state=2;this.loadVideoById=this.cueVideoById=function(){};this.playVideo=()=>{this._state=1};this.pauseVideo=()=>{this._state=2};this.getPlayerState=()=>this._state;this.setVolume=function(){};this.getCurrentTime=()=>0;this.getDuration=()=>180;setTimeout(()=>o&&o.events&&o.events.onReady&&o.events.onReady({target:this}),0)}};setTimeout(()=>window.onYouTubeIframeAPIReady&&window.onYouTubeIframeAPIReady(),0);`}));
+  await context.route('https://www.youtube.com/iframe_api',route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.YT={PlayerState:{ENDED:0,PLAYING:1,PAUSED:2},Player:function(id,o){this._state=2;this.loadVideoById=this.cueVideoById=function(){};this.playVideo=()=>{this._state=1;setTimeout(()=>o&&o.events&&o.events.onStateChange&&o.events.onStateChange({data:1,target:this}),0);};this.pauseVideo=()=>{this._state=2;setTimeout(()=>o&&o.events&&o.events.onStateChange&&o.events.onStateChange({data:2,target:this}),0);};this.getPlayerState=()=>this._state;this.setVolume=function(){};this.getCurrentTime=()=>0;this.getDuration=()=>180;setTimeout(()=>o&&o.events&&o.events.onReady&&o.events.onReady({target:this}),0)}};setTimeout(()=>window.onYouTubeIframeAPIReady&&window.onYouTubeIframeAPIReady(),0);`}));
   await context.route(/https:\/\/www\.youtube(?:-nocookie)?\.com\/embed\/.*/,route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Authorized fixture embed</title>'}));
   await context.route('**/functions/v1/dj-tube-discovery',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({results:fixtureTracks,providers:{fixture:true},fetchedAt:'2026-08-10T12:00:00Z'})}));
   await context.route('**/functions/v1/ftn-opportunities*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-08-10T12:00:00Z',warnings:[],items:[{title:'Caribbean Climate Programme Call',organization:'CARICOM Fixture Authority',country:'Regional',type:'Programme',sector:'Climate',summary:'Deterministic release-test record from an official-source adapter fixture.',deadline:'2026-12-15',sourceUrl:'https://caricom.org/',lastVerified:'2026-08-10T12:00:00Z'},{title:'Caribbean Development Procurement Notice',organization:'Caribbean Development Bank',country:'Barbados',type:'Tender',sector:'Procurement',summary:'Deterministic release-test record from the CDB adapter fixture.',deadline:'2026-11-30',sourceUrl:'https://www.caribank.org/',lastVerified:'2026-08-10T12:00:00Z'}]})}));
@@ -68,6 +68,26 @@ function wavBuffer(seconds=1,sampleRate=8000){
 await scenario('home-desktop', async page=>{await open(page,'/');assert.equal(await page.locator('.site-header--dark').count(),1,'homepage header must use the approved black surface');assert.equal(await page.locator('.ecosystem-hero__actions .btn').count(),2,'homepage hero must have exactly two actions');assert.equal(await page.locator('.ecosystem-hero h1').innerText(),'THE CARIBBEAN\nECOSYSTEM.');assert.match(await page.locator('.ecosystem-hero__copy>p').innerText(),/^One connected home for the region’s public life, information, culture and opportunity\.$/);assert.equal(await page.locator('[data-ecosystem-reveal]').isHidden(),true,'ecosystem directory must start collapsed');await page.locator('[data-ecosystem-toggle]').click();await page.waitForSelector('[data-ecosystem-reveal]:not([hidden])');assert.equal(await page.locator('[data-ecosystem-toggle]').getAttribute('aria-expanded'),'true');assert.equal(await page.locator('.ftn-directory-group').count(),6,'registry ecosystem group count changed');assert.equal(await page.locator('.ecosystem-product-link').count(),23,'complete grouped ecosystem is not revealed');assert.equal(await page.locator('.ecosystem-product-link[href="/account/"]').count(),0,'FTN Account became a first-class public product card');assert.equal(await page.locator('.ftn-account-utility a[href="/account/"]').count(),1,'FTN Account shared utility is missing');assert.equal(await page.locator('.ecosystem-product-link[href="/love/"],.ecosystem-product-link[href="/health/"],.ecosystem-product-link[href="/mission-control/"]').count(),0,'private or vaulted work leaked into the public reveal');assert(await page.locator('.ecosystem-product-link[href="/ibis-ai/"]').count()===1);assert(await page.locator('.ecosystem-product-link[href="/govern/"]').count()===1);const text=await page.locator('body').innerText();assert.doesNotMatch(text,/See what is happening now|Strengthen your community|Partner with FTN/);assert(await page.getByRole('link',{name:'FTN Invest-in',exact:true}).count()>0,'FTN Invest-in header path missing');});
 await scenario('home-release-assets-versioned', async page=>{await open(page,'/');assert.match(await page.locator('link[href*="ecosystem-homepage-refinement.css"]').getAttribute('href'),/\?v=20260823\.1$/,'homepage refinement CSS is not cache-versioned');assert.match(await page.locator('script[src*="ecosystem-homepage.js"]').getAttribute('src'),/\?v=20260819\.1$/,'homepage interaction is not cache-versioned');assert.match(await page.locator('script[src*="product-registry-data.js"]').getAttribute('src'),/\?v=20260822\.1$/,'homepage registry is not cache-versioned');});
 await scenario('home-mobile', async page=>{await open(page,'/');assert.equal(await page.locator('.ecosystem-hero__actions .btn').count(),2);await page.locator('[data-ecosystem-toggle]').press('Enter');await page.waitForSelector('[data-ecosystem-reveal]:not([hidden])');assert.equal(await page.locator('[data-ecosystem-toggle]').getAttribute('aria-expanded'),'true');assert.equal(await page.locator('.ecosystem-product-link').count(),23);},{width:390,height:844});
+
+await scenario('header-nav-usable-at-squeeze-width', async page=>{
+  // Founder walkthrough defect #16: the header was reduced from 11 items to 5 (js/nav.js
+  // PRIMARY_NAV) specifically because the previous progressive-reveal breakpoints shrank nav text
+  // to an unreadable 11px in the 1240-1439px band once enough items were showing. Regression-guard
+  // both the item count and a real usable minimum text size at exactly that width, not just that
+  // the header exists.
+  await open(page,'/');
+  // 5 flat PRIMARY_NAV items (js/nav.js) plus the single "FTN Ecosystem" mega-menu trigger = 6.
+  assert.equal(await page.locator('.site-nav__item').count(),6,'header nav item count changed from the founder-approved 5 flat items + Ecosystem trigger');
+  const homeNavFontPx=await page.locator('.site-nav__trigger').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  assert(homeNavFontPx>=13,`homepage header nav text is ${homeNavFontPx}px, below a usable minimum at this width -- css/components/ecosystem-homepage-refinement.css .site-header--dark .site-nav__trigger--link had its own separate, unguarded 11px override`);
+  // Sign In is deliberately hidden on the homepage itself (.ecosystem-home [data-sign-in-entry])
+  // -- check nav text and control height on a second, non-homepage page where it actually renders.
+  await open(page,'/clock/');
+  const navFontPx=await page.locator('.site-nav__trigger').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  assert(navFontPx>=13,`header nav text is ${navFontPx}px, below a usable minimum at this width`);
+  const btnHeight=await page.locator('.site-header__actions .btn').first().evaluate(el=>el.getBoundingClientRect().height);
+  assert(btnHeight>=28,`header Sign In control is ${btnHeight}px tall, below a usable minimum`);
+}, {width:1300,height:900});
 
 await scenario('ibis-visual-and-handoff', async page=>{
   await open(page,'/ibis-ai/?prompt=create%20a%20visual%20for%20a%20Caribbean%20film');
@@ -145,6 +165,14 @@ await scenario('radio-catalog', async page=>{
   const titles=(await page.locator('.ftn-radio-live__track').allInnerTexts()).slice(0,30).join(' ');assert(!/mega mix|full mix|continuous mix|hour mix|roadmix/i.test(titles),'radio mix exclusion failed');
   assert.match(await page.locator('.ftn-radio-live').innerText(),/Programme owner: FTN.*Last verified: 2026-08-11/is);
   await page.locator('.ftn-radio-live__track').first().click();await page.click('#ftn-radio-favourite');assert.equal(await page.locator('#ftn-radio-favourite').innerText(),'SAVED');assert(await page.locator('#ftn-radio-share').count()===1,'Radio share control missing');
+  // Founder walkthrough defect #1: the PLAY/PAUSE button used to flip optimistically on click,
+  // with no confirmation the embed actually started -- js/radio-player.js now waits for the
+  // player's own real onStateChange (PLAYING/PAUSED) before updating this text.
+  await page.click('#ftn-radio-play');
+  await page.waitForFunction(()=>document.querySelector('#ftn-radio-play')?.textContent==='PAUSE',{timeout:10000});
+  assert.match(await page.locator('#ftn-radio-status').innerText(),/Playing now/i,'radio status did not confirm real playback');
+  await page.click('#ftn-radio-play');
+  await page.waitForFunction(()=>document.querySelector('#ftn-radio-play')?.textContent==='PLAY',{timeout:10000});
 });
 
 await scenario('radio-empty-source-state', async page=>{
@@ -158,6 +186,41 @@ await scenario('radio-empty-source-state', async page=>{
 });
 
 await scenario('radio-creator-delivery',async page=>{await open(page,'/radio/');await page.waitForSelector('#radio-submit-form');assert.equal(await page.locator('text=Programming Desk').count(),0);assert.equal(await page.locator('#radio-submit-form [name="delivery"]').count(),1);assert.equal(await page.locator('#radio-submit-form [name="origin"]').count(),1);assert.equal(await page.locator('.radio-submit-dock').count(),0,'giant fixed radio submit button returned');assert.equal(await page.locator('.radio-knob').count(),0,'phone-hostile radio knob returned');assert.equal(await page.locator('input[type="range"]').count()>0,true,'radio slide dial missing');});
+
+await scenario('radio-workspace-media-guards', async page=>{
+  // Founder walkthrough defects #13/#14/#15: EPK photos and local audio previously shared a MIME-
+  // routing bug (an audio file misclassified into the photo pipeline and vice versa) with no way
+  // to remove either. Each guard checks file.type, not the accept attribute or extension, so
+  // setInputFiles here deliberately sets a real (mismatched) MIME type per file.
+  await open(page,'/radio/');
+  await page.waitForSelector('#epk-photo-files');
+  await page.waitForSelector('#radio-audio-files');
+  await page.setInputFiles('#epk-photo-files', { name: 'track.jpg', mimeType: 'audio/mpeg', buffer: Buffer.from([0,0,0,0]) });
+  await page.waitForSelector('#workspace-notification:not([hidden])');
+  assert.match(await page.locator('#workspace-notification').innerText(), /not an image/i, 'EPK photo intake accepted an audio-typed file');
+  assert.equal(await page.locator('#epk-photo-preview img').count(), 0, 'audio-typed file rendered as an EPK photo preview');
+  await page.setInputFiles('#radio-audio-files', { name: 'photo.mp3', mimeType: 'image/png', buffer: Buffer.from([0,0,0,0]) });
+  await page.waitForSelector('#workspace-notification:not([hidden])');
+  assert.match(await page.locator('#workspace-notification').innerText(), /not an audio file/i, 'local audio intake accepted an image-typed file');
+  assert.equal(await page.locator('#radio-audio-library audio').count(), 0, 'image-typed file rendered as a local audio track');
+  await page.setInputFiles('#epk-photo-files', { name: 'press.png', mimeType: 'image/png', buffer: Buffer.from([0,0,0,0]) });
+  await page.waitForSelector('#epk-photo-preview img');
+  assert.equal(await page.locator('#epk-photo-preview figure').count(), 1, 'valid EPK photo did not render');
+  await page.setInputFiles('#radio-audio-files', { name: 'track.mp3', mimeType: 'audio/mpeg', buffer: Buffer.from([0,0,0,0]) });
+  await page.waitForSelector('#radio-audio-library audio');
+  assert.equal(await page.locator('#radio-audio-library .local-audio-item').count(), 1, 'valid local audio track did not render');
+  assert.equal(await page.locator('#radio-audio-library img').count(), 0, 'local audio track rendered an <img> instead of an <audio> control');
+  await page.click('#radio-audio-library [data-remove-track="0"]');
+  await page.waitForFunction(()=>document.querySelectorAll('#radio-audio-library .local-audio-item').length===0);
+  assert.equal(await page.locator('#radio-audio-clear').isHidden(), true, 'Clear all local tracks did not hide once the library was emptied by removal');
+  // Regression guard for the [hidden]-vs-.btn{display:inline-flex} cascade bug (an author-origin
+  // display: declaration beats the UA [hidden]{display:none} rule regardless of specificity) --
+  // this exact bug hid Clock's face/personalize toggles and the sitewide ibis widget earlier in
+  // this release; check the real computed style, not just the hidden attribute or a bounding box.
+  assert.equal(await page.locator('#radio-audio-clear').evaluate(el=>getComputedStyle(el).display),'none','#radio-audio-clear[hidden] is not actually computed display:none');
+  await page.click('#epk-photo-preview button');
+  await page.waitForFunction(()=>document.querySelectorAll('#epk-photo-preview figure').length===0);
+});
 
 await scenario('dj-discovery-and-controls', async page=>{
   // Pass 16 DJ Tube consolidation: /dj-tube-prototype/?ftn=1 (the old standalone iframe target)
@@ -217,6 +280,26 @@ await scenario('ftn-tv-on-air', async page=>{
   await page.waitForFunction(()=>{const f=document.querySelector('.tv-player iframe');const s=document.querySelector('#tv-status')?.textContent||'';return (f&&f.src&&/youtube/.test(f.src))||/No embeddable|failed|unavailable|error/i.test(s);},{timeout:45000});
   const src=await page.locator('.tv-player iframe').getAttribute('src');assert(src&&/youtube/.test(src),'FTN TV did not tune a YouTube source');
   assert(await page.locator('.tv-guide__row button').count()>0,'TV tune buttons missing');assert.equal(await page.locator('.tv-parliament-source a[href*="ttparliament.org"]').count(),1,'official Parliament TV source missing');
+  // Founder walkthrough defect #9: the player and the NOW panel disagreed on what was airing,
+  // caused by an earlier, slower discovery response landing after a newer one and overwriting the
+  // UI -- js/tv-guide.js now captures a per-tune token and drops any response that arrives after a
+  // newer tune has already started. Real discovery results are non-deterministic (a live search),
+  // so the race itself is forced deterministically: the first discover() call is made to resolve
+  // AFTER the second one, with distinguishable fake titles, so a real race is guaranteed and the
+  // outcome is checkable.
+  await page.evaluate(()=>{
+    var real=window.FTN.MediaDiscovery.discover, n=0;
+    window.FTN.MediaDiscovery.discover=function(opts,ctrl){
+      n++; var call=n;
+      var fake={results:[{videoId:'racetest'+call,title:'Race Test Result '+call,channel:'FTN Test Fixture',thumbnail:''}]};
+      return new Promise(function(resolve){ setTimeout(function(){ resolve(fake); }, call===1?600:50); });
+    };
+  });
+  const rows=page.locator('.tv-guide__row');
+  await rows.nth(0).locator('[data-tv-tune]').click();
+  await rows.nth(1).locator('[data-tv-tune]').click();
+  await page.waitForTimeout(900);
+  assert.equal(await page.locator('#tv-title').innerText(),'Race Test Result 2','the slower, stale first discovery response overwrote the second (real) tune');
 });
 
 await scenario('face-the-nation-programme-hub', async page=>{
@@ -252,6 +335,38 @@ await scenario('public-truth-language', async page=>{
 await scenario('display-network-studio', async page=>{
   await open(page,'/display-network/');await page.waitForSelector('#dn-add-content',{timeout:10000});
   assert.match(await page.locator('.dn-opening-actions').innerText(),/Host a screen.*verified message/is);await page.fill('#dn-content-title','Flood warning test');await page.fill('#dn-content-message','Avoid the low-lying road until cleared.');await page.click('#dn-add-content');assert.match(await page.locator('#dn-preview').innerText(),/Flood warning test/);assert(await page.locator('.dn-item').count()>0);
+});
+
+await scenario('display-orientation-and-customize', async page=>{
+  // Founder walkthrough defects #3/#4/#5: orientation used to have zero visible effect outside
+  // fullscreen, and Display had no way to choose which modules a specific commercial screen shows
+  // or how densely they're packed. Regression-guard real rendered geometry changing, not just an
+  // aria-pressed flag, plus the Customize module-visibility + density system actually mutating the
+  // DOM and persisting.
+  await open(page,'/display/');
+  await page.waitForSelector('#display-pulse .pulse-card');
+  // Same [hidden]-vs-.btn{display:inline-flex} cascade bug class as radio-workspace-media-guards
+  // -- the rotate-pause toggle must be genuinely invisible (and non-interactive) outside
+  // fullscreen, not merely carrying the hidden attribute while an author display: wins the cascade.
+  assert.equal(await page.locator('#display-rotate-toggle').evaluate(el=>getComputedStyle(el).display),'none','#display-rotate-toggle[hidden] is not actually computed display:none outside fullscreen');
+  await page.click('[data-orientation-option="portrait"]');
+  const portraitCols=await page.locator('.display-pulse').evaluate(el=>getComputedStyle(el).gridTemplateColumns);
+  await page.click('[data-orientation-option="landscape"]');
+  const landscapeCols=await page.locator('.display-pulse').evaluate(el=>getComputedStyle(el).gridTemplateColumns);
+  assert.notEqual(portraitCols,landscapeCols,'Display orientation toggle has no visible effect on rendered geometry');
+  assert.equal(await page.locator('[data-orientation-option="landscape"]').getAttribute('aria-pressed'),'true');
+  await page.click('#display-customize-toggle');
+  await page.waitForSelector('.ftn-sheet.is-open');
+  assert.equal(await page.locator('input[data-module]').count(),6,'Customize must list exactly the six real Display modules');
+  await page.click('[data-preset="newsroom"]');
+  await page.waitForFunction(()=>document.querySelectorAll('.display-module-hidden').length===2);
+  assert.equal(await page.locator('#display-pulse.display-module-hidden').count(),1,'Newsroom preset did not hide National Pulse');
+  await page.click('input[name="display-density"][value="dense"]');
+  await page.waitForFunction(()=>document.body.getAttribute('data-display-density')==='dense');
+  await page.click('[data-preset="general"]');
+  await page.click('input[name="display-density"][value="focus"]');
+  await page.waitForFunction(()=>document.querySelectorAll('.display-module-hidden').length===0 && document.body.getAttribute('data-display-density')==='focus');
+  await page.click('[data-sheet-close]');
 });
 
 await scenario('love-vaulted-outside-public-discovery', async page=>{

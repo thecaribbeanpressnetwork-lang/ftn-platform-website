@@ -3,7 +3,7 @@
 .ecosystem-home .site-header--dark{background:rgba(3,3,4,.96);border-color:rgba(255,255,255,.11);backdrop-filter:blur(18px)}
 .ecosystem-home .site-header__bar{max-width:1440px;padding-block:13px}
 .site-header--dark .site-header__logo svg{display:block;width:122px;height:46px;fill:#fff}
-.site-header--dark .site-nav__trigger--link{color:#ececf0;font-size:11px;font-weight:600;letter-spacing:.12em}
+.site-header--dark .site-nav__trigger--link{color:#ececf0;font-size:var(--text-small-size);font-weight:600;letter-spacing:.06em}
 .site-header--dark .site-nav__trigger--link:hover{background:rgba(255,255,255,.055)}
 .site-header--dark .site-nav__item:last-child .site-nav__trigger--link{color:#ff3340}
 .site-header--dark .nav-toggle{border-color:rgba(255,255,255,.24)}
