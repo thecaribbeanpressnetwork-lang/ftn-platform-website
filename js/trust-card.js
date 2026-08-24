@@ -37,7 +37,8 @@
       .replace(/FTN[ -]Modelled:?/gi, 'FTN calculation:')
       .replace(/FTN[ -]Derived:?/gi, 'FTN calculation:')
       .replace(/FTN[ -]Estimated:?/gi, 'FTN estimate:')
-      .replace(/\billustrative\b/gi, 'reference')
+      .replace(/\billustrat(?:ive|ed|ion)\b/gi, 'reference')
+      .replace(/\bdemonstration\b/gi, 'preview')
       .replace(/\bmodelled\b/gi, 'calculated')
       .replace(/\bderived\b/gi, 'calculated');
   }
@@ -166,13 +167,57 @@
   // own, more prominent FTN.Sheet entry point instead of only this modal's collapsed <details> —
   // one formula, two presentations, never two derivations.
   function mathContentHTML(data) {
-    if (!data.isLiveClock || !data.clock || typeof data.clock.baseValue !== 'number') return '';
-    var rate = data.clock.ratePerSecond || 0;
+    if (data.formula) {
+      return '<p class="trust-card__formula"><strong>' + esc(data.formula) + '</strong></p>' +
+        (data.formulaDefinitions ? '<p>' + esc(data.formulaDefinitions) + '</p>' : '') +
+        (data.formulaSubstitution ? '<p><strong>Current substitution:</strong> ' + esc(data.formulaSubstitution) + '</p>' : '');
+    }
+    if (!data.isLiveClock || !data.clock) {
+      return '<p class="trust-card__formula"><strong>V<sub>display</sub>(t) = V<sub>source</sub>(t)</strong></p>' +
+        '<p>FTN applies no numerical transformation to this value. The displayed figure is the source value at the cited observation time; formatting may change, but magnitude does not.</p>';
+    }
+    var cfg = data.clock;
+    var now = new Date();
+    var anchor = new Date('2026-07-01T00:00:00Z');
+    var elapsedSeconds = Math.max(0, (now.getTime() - anchor.getTime()) / 1000);
+    if (cfg.kind === 'day-counter') {
+      var dayFraction = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) / 86400;
+      var dayValue = (cfg.perYear || 0) / 365.25 * dayFraction;
+      return '<p class="trust-card__formula"><strong>V(t) = round[(A / 365.25) × f<sub>day</sub>(t)]</strong></p>' +
+        '<p>A is the disclosed annual benchmark. f<sub>day</sub>(t) = elapsed seconds today / 86,400.</p>' +
+        '<p><strong>Current substitution:</strong> V(now) = round[(' + Number(cfg.perYear || 0).toLocaleString() + ' / 365.25) × ' + dayFraction.toFixed(6) + '] = ' + Math.round(dayValue).toLocaleString() + '.</p>';
+    }
+    if (cfg.kind === 'fiscal-year-progress') {
+      var startMonth = cfg.fiscalYearStartMonth == null ? 0 : cfg.fiscalYearStartMonth;
+      var year = now.getMonth() >= startMonth ? now.getFullYear() : now.getFullYear() - 1;
+      var start = new Date(year, startMonth, 1);
+      var progress = Math.max(0, Math.min(100, (now.getTime() - start.getTime()) / (365.25 * 86400000) * 100));
+      return '<p class="trust-card__formula"><strong>P(t) = 100 × clamp[(t − t<sub>FY0</sub>) / (365.25 × 86,400,000), 0, 1]</strong></p>' +
+        '<p>t<sub>FY0</sub> is the first instant of the disclosed fiscal year; clamp prevents values below 0% or above 100%.</p>' +
+        '<p><strong>Current substitution:</strong> P(now) = ' + progress.toFixed(2) + '%, displayed at the configured precision.</p>';
+    }
+    if (cfg.kind === 'countdown') {
+      var occurrence = new Date(now.getFullYear(), Number(cfg.month || 1) - 1, Number(cfg.day || 1));
+      if (occurrence < now) occurrence = new Date(now.getFullYear() + 1, Number(cfg.month || 1) - 1, Number(cfg.day || 1));
+      var remaining = Math.max(0, Math.ceil((occurrence.getTime() - now.getTime()) / 86400000));
+      return '<p class="trust-card__formula"><strong>D(t) = max[0, ceil((t<sub>event</sub> − t) / 86,400,000)]</strong></p>' +
+        '<p>The event date is the next disclosed calendar occurrence; ceil counts any partial remaining day as one day.</p>' +
+        '<p><strong>Current substitution:</strong> D(now) = ' + remaining + ' days.</p>';
+    }
+    if (typeof cfg.baseValue !== 'number') {
+      return '<p class="trust-card__formula"><strong>V<sub>display</sub>(t) = F<sub>calendar</sub>(t; parameters)</strong></p>' +
+        '<p>The displayed value is calculated from the disclosed calendar parameters in the methodology above. No additional statistical coefficient is applied.</p>';
+    }
+    var rate = cfg.ratePerSecond || 0;
+    if (cfg.kind === 'population') rate = ((cfg.birthsPerYear || 0) - (cfg.deathsPerYear || 0) + (cfg.netMigrationPerYear || 0)) / (365.25 * 86400);
     var perDay = (rate * 86400);
     var direction = rate >= 0 ? 'increases' : 'decreases';
+    var current = cfg.baseValue + (rate * elapsedSeconds);
     return (
-      '<p>Estimated value = <strong>' + data.clock.baseValue.toLocaleString() + '</strong> (benchmark) ' +
-      (rate >= 0 ? '+ ' : '- ') + Math.abs(rate).toLocaleString() + ' &times; seconds elapsed since the benchmark was set.</p>' +
+      '<p class="trust-card__formula"><strong>V(t) = round<sub>s</sub>[V<sub>0</sub> + r(t − t<sub>0</sub>)]</strong></p>' +
+      '<p><strong>Rate calibration:</strong> r = (V<sub>1</sub> − V<sub>0</sub>) / (t<sub>1</sub> − t<sub>0</sub>). <strong>Calendar position:</strong> p(t) = clamp[(t − t<sub>0</sub>) / (t<sub>1</sub> − t<sub>0</sub>), 0, 1].</p>' +
+      '<p>V<sub>0</sub> = ' + cfg.baseValue.toLocaleString() + '; r = ' + rate.toLocaleString() + ' units/second; t<sub>0</sub> = 1 July 2026 UTC; round<sub>s</sub> applies the display precision.</p>' +
+      '<p><strong>Current substitution:</strong> V(now) = round<sub>s</sub>[' + cfg.baseValue.toLocaleString() + ' ' + (rate >= 0 ? '+ ' : '− ') + Math.abs(rate).toLocaleString() + ' × ' + Math.round(elapsedSeconds).toLocaleString() + '] = ' + current.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '.</p>' +
       '<p>That ' + direction + ' the displayed estimate by about ' + Math.abs(perDay).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' per day. This is an interpolation between the disclosed benchmark and now — not a second, independently measured figure.</p>'
     );
   }

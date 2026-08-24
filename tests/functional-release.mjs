@@ -390,6 +390,7 @@ await scenario('observer-public-trust-score-opens-evidence', async page=>{
   await page.waitForSelector('.indicator-card [data-trust-card]',{state:'visible'});
   const wall=page.locator('#indicator-wall');
   assert.equal(await wall.getByText(/FTN Modelled|FTN Derived|FTN Estimated|Illustrative/i).count(),0,'technical evidence classifications are exposed on the public indicator wall');
+  assert.equal(await page.getByText(/See the Math/i).count(),0,'a redundant See the Math action is exposed outside the Trust Card');
   assert.match(await wall.locator('.trust-badge').first().innerText(),/^Trust Score \d+\/100$/,'public indicator badge does not show a Trust Score');
   await wall.locator('[data-trust-card]').first().click();
   const dialog=page.locator('#trust-card-dialog');
@@ -397,6 +398,8 @@ await scenario('observer-public-trust-score-opens-evidence', async page=>{
   assert.match(await dialog.innerText(),/How this Trust Score is calculated/,'Trust Score explanation is missing from the Trust Card');
   assert.doesNotMatch(await dialog.innerText(),/FTN Modelled|FTN Derived|FTN Estimated|Illustrative/i,'internal data-state language leaked into the visitor-facing Trust Card');
   assert.match(await dialog.innerText(),/Score = identifiable-source base/,'Trust Score traceability formula is missing');
+  await dialog.getByText('See the Math',{exact:true}).click();
+  assert.match(await dialog.innerText(),/Vdisplay\(t\) = Vsource\(t\)|V\(t\) = round|P\(t\) = 100|D\(t\) = max/,'Trust Card does not disclose a calculation formula');
 });
 
 await scenario('display-network-studio', async page=>{

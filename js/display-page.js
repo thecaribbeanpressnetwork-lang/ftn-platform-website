@@ -45,7 +45,6 @@
       ? '<span data-live-clock="' + esc(ind.id) + '">' + esc(ind.value) + '</span>'
       : esc(ind.value);
     var noValue = ind.value === '—' || ind.value === '-';
-    var hasMath = global.FTN.TrustCard && !!global.FTN.TrustCard.mathContentHTML(ind);
     return (
       '<article class="pulse-card ftn-motion-lift' + (noValue ? ' pulse-card--empty' : '') + '">' +
         '<p class="pulse-card__label">' + esc(ind.title) + '</p>' +
@@ -54,36 +53,9 @@
         '<div class="pulse-card__meta">' +
           '<span class="trust-badge ' + badgeClass + '">' + esc(scoreLabel(ind)) + '</span>' +
           '<button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(ind.id) + '">Open Trust Score</button>' +
-          (hasMath ? '<button type="button" class="trust-trigger trust-trigger--on-dark" data-see-math="' + esc(ind.id) + '">See the Math →</button>' : '') +
         '</div>' +
       '</article>'
     );
-  }
-
-  // ---- See the Math (modelled/derived Pulse figures) ----
-  // Reuses FTN.TrustCard's own real clock formula (never re-derives it) but surfaces it in the
-  // shared FTN.Sheet as a dedicated, unmissable entry point instead of a collapsed <details>
-  // buried inside the Trust Card modal -- the Trust Card's own copy stays exactly as-is, this is
-  // an additional, more prominent path to the identical math for Display specifically.
-  function openSeeMath(id) {
-    var ind = global.FTN.getIndicator ? global.FTN.getIndicator(id) : null;
-    var Sheet = global.FTN.Sheet;
-    if (!ind || !Sheet || !global.FTN.TrustCard) return;
-    var content = global.FTN.TrustCard.mathContentHTML(ind);
-    if (!content) return;
-    Sheet.open({
-      id: 'display-math-sheet',
-      labelledBy: 'display-math-title',
-      render: function (panel) {
-        panel.innerHTML =
-          '<button type="button" class="ftn-sheet__close" data-sheet-close aria-label="Close">&times;</button>' +
-          '<p class="display-customize__eyebrow">SEE THE MATH</p>' +
-          '<h2 id="display-math-title" class="display-customize__title">' + esc(ind.title) + '</h2>' +
-          '<div class="display-math">' + content + '</div>' +
-          '<p class="display-math__note">This interpolation is not a second independently measured figure. Full methodology and source: open its Trust Score.</p>';
-        panel.querySelector('[data-sheet-close]').addEventListener('click', function () { Sheet.close(); });
-      }
-    });
   }
 
   function renderPulse() {
@@ -92,9 +64,6 @@
     root.innerHTML = PULSE_IDS.map(function (id) { return pulseCardHTML(global.FTN.getIndicator(id)); }).join('');
     root.querySelectorAll('[data-trust-card]').forEach(function (btn) {
       btn.addEventListener('click', function () { global.FTN.TrustCard.open(btn.getAttribute('data-trust-card')); });
-    });
-    root.querySelectorAll('[data-see-math]').forEach(function (btn) {
-      btn.addEventListener('click', function () { openSeeMath(btn.getAttribute('data-see-math')); });
     });
   }
 

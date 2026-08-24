@@ -677,8 +677,7 @@
       '<p class="observer-now__heading">Correlation engine — rule-based, not live-fitted</p>' +
       '<p class="observer-correlation__explain">' + esc(result.explanation) + '</p>' +
       '<ul class="observer-correlation__list">' + result.chain.map(correlationRow).join('') + '</ul>' +
-      '<p class="observer-correlation__confidence">Chain confidence: <strong>' + esc(result.overallConfidence) + '</strong> — capped by its weakest evidence, not by how many rules reference it.</p>' +
-      '<button type="button" class="btn btn-outline--on-dark btn-sm observer-correlation__math" data-see-math>See the Math →</button>';
+      '<button type="button" class="btn btn-outline--on-dark btn-sm observer-correlation__math" data-correlation-trust>Open Trust Score</button>';
     // Real state-change signal (live rainfall reading resolved -> chain evaluated), not
     // decoration -- reduced-motion users get the class with no animation (see motion-system.css).
     void host.offsetWidth;
@@ -819,8 +818,21 @@
         }
         return;
       }
-      var seeMath = e.target.closest && e.target.closest('[data-see-math]');
-      if (seeMath) { openSeeTheMath(); return; }
+      var correlationTrust = e.target.closest && e.target.closest('[data-correlation-trust]');
+      if (correlationTrust && lastCorrelationResult && global.FTN && global.FTN.TrustCard) {
+        global.FTN.TrustCard.open({
+          title: 'Observer correlation chain',
+          value: lastCorrelationResult.rainfall.mm == null ? 'Source reading unavailable' : lastCorrelationResult.rainfall.mm + ' mm',
+          sourceName: 'Open-Meteo direct fetch',
+          methodology: lastCorrelationResult.explanation,
+          limitations: 'Each link is a documented domain relationship. FTN has not measured whether the current condition produced each downstream effect.',
+          lastUpdated: lastCorrelationResult.generatedAt,
+          formula: 'I₀ = 𝟙[P ≥ Pₜ];  S_chain = min(S₁, S₂, …, Sₙ)',
+          formulaDefinitions: 'P is current precipitation; Pₜ is the trigger threshold; I₀ activates the rule chain; each Sᵢ is one disclosed link score; the chain score is capped by its weakest link.',
+          formulaSubstitution: 'P = ' + (lastCorrelationResult.rainfall.mm == null ? 'unavailable' : lastCorrelationResult.rainfall.mm + ' mm') + '; Pₜ = ' + lastCorrelationResult.rainfall.thresholdMm + ' mm; I₀ = ' + (lastCorrelationResult.rainfall.active ? '1' : '0') + '.'
+        });
+        return;
+      }
       var saveBtn = e.target.closest && e.target.closest('[data-save-toggle]');
       if (saveBtn && global.FTN.Save) {
         var nowSaved = global.FTN.Save.toggle({
