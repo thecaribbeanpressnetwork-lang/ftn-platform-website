@@ -24,6 +24,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Generate build identity (version.json)
+        run: |
+          FULL_SHA="${{ github.sha }}"
+          SHORT_SHA="${FULL_SHA:0:7}"
+          BUILT_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          cat > version.json <<EOF
+          {
+            "product": "FTN Platform",
+            "commit": "${FULL_SHA}",
+            "shortCommit": "${SHORT_SHA}",
+            "builtAt": "${BUILT_AT}",
+            "environment": "production"
+          }
+          EOF
+          cat version.json
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

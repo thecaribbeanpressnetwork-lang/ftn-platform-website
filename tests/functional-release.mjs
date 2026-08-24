@@ -418,6 +418,22 @@ await scenario('god-mode-denied-to-guest', async page=>{await mockGuestAuth(page
 
 await scenario('pwa-private-cache-exclusion', async page=>{await open(page,'/');var manifest=await page.evaluate(()=>fetch('/manifest.webmanifest').then(r=>r.json()));assert(!JSON.stringify(manifest).includes('/god-mode'),'public manifest advertises God Mode');assert(!JSON.stringify(manifest).includes('/love/'),'public manifest advertises vaulted Love');assert(!JSON.stringify(manifest).includes('/health/'),'public manifest advertises vaulted Health');var sw=await page.evaluate(()=>fetch('/service-worker.js').then(r=>r.text()));for(const route of ['god-mode','mission-control','account','love','health','ibis-ai'])assert(sw.includes(route),`service worker private-route exclusion missing: ${route}`);});
 
+await scenario('version-identity-schema', async page=>{
+  // /version.json is generated fresh at deploy time by .github/workflows/static-pages.yml (never
+  // hand-maintained) so the founder can open the URL and know instantly what commit is live. This
+  // test runs against the repo's own dev placeholder (environment:"development") when BASE is a
+  // plain checkout, and the real generated file once BASE is an actual deploy -- it checks the
+  // schema/shape, which is identical either way, not a specific commit or environment value.
+  const r=await page.goto(BASE+'/version.json',{waitUntil:'domcontentloaded',timeout:15000});
+  assert(r&&r.ok(),`/version.json returned ${r?.status()}`);
+  const v=await r.json();
+  assert.equal(v.product,'FTN Platform','version.json product field wrong');
+  assert.match(v.commit,/^[0-9a-f]{40}$/,'version.json commit must be a real 40-char git SHA');
+  assert.match(v.shortCommit,/^[0-9a-f]{7}$/,'version.json shortCommit must be a 7-char git SHA prefix');
+  assert.match(v.builtAt,/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/,'version.json builtAt must be a real UTC ISO timestamp');
+  assert(['development','production'].includes(v.environment),'version.json environment must be development or production');
+});
+
 await scenario('riddim-hub-links', async page=>{
   await open(page,'/riddim/');assert(await page.locator('a[href="/riddim/daw/"]').count()>0,'DAW link missing');assert(await page.locator('a[href="/riddim/dj/"]').count()>0,'DJ link missing');await page.click('#riddim-track-choice');await page.waitForSelector('#riddim-form',{timeout:5000});
 });
