@@ -185,12 +185,10 @@ jobs:
         run: node tests/performance-budget.mjs
 
       - name: Visual regression (flagship surfaces)
-        # continue-on-error deliberately: tests/visual-baselines/ was captured on a local Windows
-        # Chrome, not this ubuntu-latest runner -- cross-platform font rendering can produce a
-        # real, systematic pixel difference with nothing actually broken. Informational until the
-        # baselines are regenerated from an actual run on this runner (--update-baselines here,
-        # commit the result), at which point remove continue-on-error to make it a hard gate.
-        continue-on-error: true
+        # Verified passing for real on this exact runner (not just masked) before removing
+        # continue-on-error -- see commit history: it ran non-blocking first specifically to
+        # confirm cross-platform font rendering (baselines captured on local Windows Chrome)
+        # wouldn't cause a false failure here. It didn't; promoted to a hard gate.
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/visual-regression.mjs
