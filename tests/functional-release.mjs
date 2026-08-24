@@ -358,7 +358,15 @@ await scenario('kaiso-newsroom', async page=>{
 
 await scenario('public-truth-language', async page=>{
   await open(page,'/observatory/');
-  const liveText=await page.locator('main').innerText();assert.doesNotMatch(liveText,/Trinidad & Tobago, live\.|Pause Live Updates|demonstration data|no live external feeds yet/i);assert.match(liveText,/modelled|illustrative/i);
+  // The `assert.match(.../modelled|illustrative/i)` this scenario used to also require here is
+  // gone deliberately, not by accident: founder decision (GOVERNANCE/FTN_Platform_Final_Audit_and_
+  // Repair_Decision_2026-08-24.md §2/§9) is that this classification language does not belong in
+  // public-facing page text at all -- it lives in the gated Trust Card instead. That is already
+  // the assertion the 'observer-public-trust-score-opens-evidence' scenario below makes
+  // (`doesNotMatch(.../illustrative|illustrated|modelled|FTN Derived/i, 'retired confidence-
+  // lowering language remains visible on Observer')`) -- the two assertions were directly
+  // contradictory, and this one was asserting the now-superseded requirement.
+  const liveText=await page.locator('main').innerText();assert.doesNotMatch(liveText,/Trinidad & Tobago, live\.|Pause Live Updates|demonstration data|no live external feeds yet/i);
   await open(page,'/contact/');
   const contactText=await page.locator('main').innerText();assert.doesNotMatch(contactText,/Testing the Community Connect public release|Community Connect Release Feedback/i);assert.doesNotMatch(contactText,/engaged with Mission Control/i);
   await open(page,'/applications/');assert.doesNotMatch(await page.locator('main').innerText(),/Choose your doorway/i);
@@ -392,12 +400,21 @@ await scenario('observer-public-trust-score-opens-evidence', async page=>{
   assert.doesNotMatch(await page.locator('body').innerText(),/illustrative|illustrated|modelled|FTN Derived/i,'retired confidence-lowering language remains visible on Observer');
   assert.equal(await wall.getByText(/FTN Modelled|FTN Derived|FTN Estimated|Illustrative/i).count(),0,'technical evidence classifications are exposed on the public indicator wall');
   assert.equal(await page.getByText(/See the Math/i).count(),0,'a redundant See the Math action is exposed outside the Trust Card');
-  assert.match(await wall.locator('.trust-badge').first().innerText(),/^Trust Score \d+\/100$/,'public indicator badge does not show a Trust Score');
+  // Case-insensitive: css/components/trust-card.css sets text-transform:uppercase on .trust-badge
+  // by real design (premium badge styling), so Playwright's innerText() -- which reflects rendered
+  // text, not source DOM text -- correctly returns "TRUST SCORE n/100". The prior case-sensitive
+  // regex was checking for the source-text case, not the actually-rendered one.
+  assert.match(await wall.locator('.trust-badge').first().innerText(),/^Trust Score \d+\/100$/i,'public indicator badge does not show a Trust Score');
   await wall.locator('[data-trust-card]').first().click();
   const dialog=page.locator('#trust-card-dialog');
   await dialog.waitFor({state:'visible'});
   assert.match(await dialog.innerText(),/How this Trust Score is calculated/,'Trust Score explanation is missing from the Trust Card');
   assert.doesNotMatch(await dialog.innerText(),/FTN Modelled|FTN Derived|FTN Estimated|Illustrative/i,'internal data-state language leaked into the visitor-facing Trust Card');
+  // "How this Trust Score is calculated" is a collapsed <details>/<summary> -- its content is
+  // genuinely not part of innerText() until expanded (same as the "See the Math" <details> two
+  // lines below, which this scenario already clicks open before reading). Pre-existing gap: this
+  // assertion never clicked it open, so it could never have passed.
+  await dialog.getByText('How this Trust Score is calculated',{exact:true}).click();
   assert.match(await dialog.innerText(),/Score = identifiable-source base/,'Trust Score traceability formula is missing');
   await dialog.getByText('See the Math',{exact:true}).click();
   assert.match(await dialog.innerText(),/Vdisplay\(t\) = Vsource\(t\)|V\(t\) = round|P\(t\) = 100|D\(t\) = max/,'Trust Card does not disclose a calculation formula');
@@ -689,7 +706,12 @@ await scenario('display-dense-portrait-fullscreen-no-overlap', async page=>{
   const cards=await page.evaluate(()=>[...document.querySelectorAll('.pulse-card')].map(c=>{
     const b=c.getBoundingClientRect();return{top:b.top,bottom:b.bottom,left:b.left,right:b.right};
   }));
-  assert.equal(cards.length,6,'Display dense pulse row must render all 6 KPI cards');
+  // 5, not 6: FTN-FINAL-001 repair removed 'recorded-murders' from PULSE_IDS (js/display-page.js)
+  // -- its TTPS source publishes no statistical reference date, so it's suppressed from this
+  // current-condition surface until that's resolved. The overlap check below is what this
+  // scenario actually guards; confirmed empirically that 5 cards in the existing dense/portrait
+  // grid still don't overlap, so no CSS change was needed alongside this count update.
+  assert.equal(cards.length,5,'Display dense pulse row must render all 5 KPI cards');
   function intersects(a,b){return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;}
   for(let i=0;i<cards.length;i++) for(let j=i+1;j<cards.length;j++)
     assert(!intersects(cards[i],cards[j]),`Display Dense+Portrait+Fullscreen: pulse-card ${i} overlaps pulse-card ${j}`);
