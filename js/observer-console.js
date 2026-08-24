@@ -362,7 +362,7 @@
       toIndicatorId: null, toLabel: 'Community Connect Reports', toObserverViewId: null,
       direction: 'positive', confidence: 'Low', classification: 'Illustrative',
       methodology: 'Documented pattern — visible disruption (flooding, road closures, outages) typically increases citizen reporting volume in a reporting app.',
-      limitations: 'FTN Observer has no live connection to Community Connect report volume in this pass — this is the documented future integration point, not a live count.',
+      limitations: 'The Observer Console has no live connection to Community Connect report volume in this pass — this is the documented future integration point, not a live count.',
       sampleSize: null, timeCoverage: null, geoCoverage: 'National', strength: null, value: 'rule', units: ''
     },
     {
@@ -398,7 +398,7 @@
     var rainRecord = Prov ? Prov.sourceRecord({
       sourceId: 'open-meteo-precipitation', owner: 'Open-Meteo', sourceClass: 'CORPORATE_STATEMENT',
       url: 'https://open-meteo.com/', retrievedAt: new Date().toISOString(), retrievalMethod: 'DIRECT_FETCH',
-      geographicRelevance: 'Port of Spain', consumingProducts: ['FTN Observer Correlation Engine']
+      geographicRelevance: 'Port of Spain', consumingProducts: ['FTN Live Observer Console Correlation Engine']
     }) : null;
     var confidence = Prov && rainRecord ? Prov.claimConfidence([rainRecord]) : { confidence: 'UNSUPPORTED', ceilingQuality: null, corroboration: 0 };
 
@@ -481,7 +481,7 @@
       retrievedAt: retrievedAt,
       retrievalMethod: retrievalMethodFor(view.embedType),
       geographicRelevance: 'Trinidad and Tobago',
-      consumingProducts: ['FTN Observer']
+      consumingProducts: ['FTN Live']
     });
   }
 

@@ -14,7 +14,7 @@ function aboutTruth(){
     'Community Connect':['Flagship App','Connect. Report. Improve.'],
     'Mission Control':['Working Preview','Evidence, calculated relationships and scenario exploration.'],
     'Face The Nation':['Programme Hub','Interviews, public affairs and national conversation.'],
-    'FTN Observer':['Working Foundation','Investigate current Caribbean satellite imagery, source-backed signals and change radar.'],
+    'FTN Live':['Working Foundation','Real-time Trinidad & Tobago intelligence -- FTN NOW at a glance, the Observer Console for satellite imagery, source-backed signals and change radar.'],
     'FTN Events':['Working MVP','Plan, procure and operate Caribbean events.'],
     'FTN ibis':['Working Foundation','Shared FTN intelligence, analysis, search and useful outputs.'],
     'FTN Riddim':['Working in Phases','Caribbean music tools, FTN DAW and FTN DJ Tube.'],
@@ -35,18 +35,18 @@ function applicationsTruth(){
     'FTN TV':'Turn on the scheduled Caribbean station, see what is on now and tune the guide.',
     'FTN Opportunities':'Search current official Caribbean opportunities, save them and track your application work.',
     'Display Network':'Build, reorder, preview and export approved screen playlists locally.',
-    'FTN Observer':'Investigate current Caribbean satellite imagery, connected sources and a calculated change radar.',
+    'FTN Live':'Real-time Trinidad & Tobago intelligence: FTN NOW at a glance, the Observer Console for satellite imagery, connected sources and a calculated change radar.',
     'FTN Display':'One standardized public screen: the national pulse, FTN TV NOW and a world strip. Open and leave full screen.',
     'FTN Learn':'Find real Caribbean training and courses through FTN Skills and FTN School.'
   };if(copy[name])p.textContent=copy[name];});
 }
-function sitemapTruth(){textReplace(document.body,'National Observatory','FTN Observer');textReplace(document.body,'News & Stories','FTN Kaiso');}
+function sitemapTruth(){textReplace(document.body,'National Observatory','FTN Live');textReplace(document.body,'News & Stories','FTN Kaiso');}
 function insightsTruth(){
   document.querySelectorAll('a[href="/news/"],a[href="/news"]').forEach(function(a){a.href='/kaiso/';if(/news/i.test(a.textContent||''))a.textContent='Open FTN Kaiso';});
   var community=document.querySelector('#community-reports .chart-card');
   if(community)community.innerHTML='<p><strong>Community data stays permission-aware.</strong> Community Connect information is not automatically published into Insights or Mission Control. When FTN presents aggregated community patterns here, the view must identify its source, date, Trust Score and privacy boundary.</p><p class="u-mt-16"><a href="/kaiso/">Open FTN Kaiso for current source discovery and newsroom verification →</a></p>';
   var live=document.querySelector('a.module-card[href="/observatory/"] p');
-  if(live)live.textContent='Current Caribbean satellite imagery, connected public sources and clearly classified national indicator context.';
+  if(live)live.textContent="The Observer Console's full national indicator wall -- search, filter, and every Trust Card, live.";
   var mc=document.querySelector('a.module-card[href="/scenario-workspace/"] p');
   if(mc)mc.textContent='Calculate relationships in loaded indicator histories, inspect evidence and test disclosed illustrative scenarios.';
 }

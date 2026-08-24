@@ -14,7 +14,7 @@ function memberSince(user){var iso=user.created_at;if(!iso)return null;var d=new
 function savedItemsHtml(){var Save=global.FTN.Save,items=Save?Save.list():[],opp=(function(){try{var raw=localStorage.getItem('ftn-opportunities-saved-v3');var v=raw?JSON.parse(raw):[];return Array.isArray(v)?v.length:0;}catch(e){return 0;}})();
   var rows=items.map(function(i){return'<li><span>'+esc(i.title)+'</span>'+(i.url?'<a href="'+esc(i.url)+'" target="_blank" rel="noopener noreferrer">Open →</a>':'')+'</li>';}).join('');
   var oppLine=opp>0?'<p>'+opp+' saved '+(opp===1?'opportunity':'opportunities')+' — <a href="/opportunities/">open FTN Opportunities</a> to manage them.</p>':'';
-  if(!items.length&&!opp)return'<p>Nothing saved yet. Use the ☆ Save control on FTN Observer or FTN Opportunities to build your My FTN list here.</p>';
+  if(!items.length&&!opp)return'<p>Nothing saved yet. Use the ☆ Save control on FTN Live or FTN Opportunities to build your My FTN list here.</p>';
   return(items.length?'<ul class="nexus-list">'+rows+'</ul>':'')+oppLine;
 }
 async function signed(){var user=await global.FTN.Auth.getVerifiedUser();if(!user){guest();return;}

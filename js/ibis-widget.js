@@ -215,7 +215,7 @@
     if (result.needsAuth) {
       text = 'Sign in to your FTN Account to see your saved items — nothing is saved to this browser until then.';
     } else if (!result.items.length) {
-      text = 'You don’t have any saved FTN items yet. Look for the ☆ Save control on pages like FTN Observer.';
+      text = 'You don’t have any saved FTN items yet. Look for the ☆ Save control on pages like FTN Live.';
     } else {
       text = 'Your saved FTN items:\n' + result.items.map(function (i) { return '• ' + i.title; }).join('\n');
     }
