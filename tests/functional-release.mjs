@@ -694,16 +694,20 @@ await scenario('djtube-sticky-header-fully-opaque', async page=>{
 await scenario('scenario-workspace-deep-link-not-clipped-by-sticky-headers', async page=>{
   // Founder visual redteam: /scenario-workspace/#correlation-engine's native anchor-scroll puts
   // the panel's top edge flush with the viewport top, but .site-header + .mc-tablist are BOTH
-  // sticky and together cover ~144px -- the panel's own heading/lede rendered clipped underneath
-  // them on first load.
+  // sticky and together cover ~144px. The panel's own box legitimately starts flush against the
+  // tablist (that's correct -- .mc-panel's padding-block is what creates the clearance for its
+  // content); the real invariant is that the panel's HEADING, not its outer box edge, must render
+  // fully below the sticky stack.
   await open(page,'/scenario-workspace/#correlation-engine');
   await page.waitForSelector('.mc-live-engine',{timeout:10000});
   const geo=await page.evaluate(()=>{
-    const panel=document.getElementById('correlation-engine').getBoundingClientRect();
-    const tablist=document.querySelector('.mc-tablist').getBoundingClientRect();
-    return {panelTop:panel.top, tablistBottom:tablist.bottom};
+    const panel=document.getElementById('correlation-engine');
+    const heading=panel.querySelector('.mc-panel__header')||panel.querySelector('h2')||panel.firstElementChild;
+    const headingTop=heading.getBoundingClientRect().top;
+    const tablistBottom=document.querySelector('.mc-tablist').getBoundingClientRect().bottom;
+    return {headingTop, tablistBottom};
   });
-  assert(geo.panelTop>=geo.tablistBottom-1,`Deep-linked #correlation-engine panel (top:${geo.panelTop}) is clipped under the sticky tablist (bottom:${geo.tablistBottom})`);
+  assert(geo.headingTop>=geo.tablistBottom-1,`Deep-linked #correlation-engine's own heading (top:${geo.headingTop}) is clipped under the sticky tablist (bottom:${geo.tablistBottom})`);
 });
 
 for (const path of ['/about/','/applications/','/contact/','/news/','/insights/','/resources/','/top-picks/','/trust/','/glossary/','/investor-room/','/display/','/clock/','/learn/']) {

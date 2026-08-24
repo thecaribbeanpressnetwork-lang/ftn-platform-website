@@ -103,7 +103,7 @@ body:not(.mc-tabs-active) .mc-tablist {
      browser's native anchor-scroll with this panel's top edge flush against the viewport top --
      but .site-header (57px) + .mc-tablist (another 75px, both sticky) then cover that top edge,
      clipping the panel's own heading/lede underneath them. Found via founder redteam. */
-  scroll-margin-top: 148px;
+  scroll-margin-top: 170px;
   padding-block: var(--space-48);
   border-bottom: 1px solid var(--color-border);
 }
