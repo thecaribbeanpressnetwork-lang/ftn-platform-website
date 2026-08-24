@@ -166,7 +166,7 @@
         +'</aside>'
         +'<button type="button" class="ibis-chat__sidebar-toggle" id="ibis-sidebar-toggle" aria-expanded="false" aria-controls="ibis-chat-sidebar">Menu</button>'
         +'<div class="ibis-chat__main">'
-          +'<header class="ibis-chat__header"><div><span class="workspace-kicker">Ask · Find · Analyze · Create</span><h1>ibis</h1></div><span id="ibis-ai-status"></span></header>'
+          +'<header class="ibis-chat__header"><div><span class="workspace-kicker">Ask · Find · Analyze · Create</span><h2>ibis</h2></div><span id="ibis-ai-status"></span></header>'
           +'<div class="ibis-chat__conversation" id="ibis-conversation" role="log" aria-live="polite">'
             +'<div class="ibis-chat__welcome" id="ibis-chat-welcome"><h2>What do you need done?</h2><p>Ask ibis in plain language — find Caribbean films, analyze what changed, help with a grant, create a visual, route me to the right FTN tool…</p></div>'
           +'</div>'
