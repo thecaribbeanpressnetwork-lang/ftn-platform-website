@@ -386,6 +386,45 @@ await scenario('display-orientation-and-customize', async page=>{
   await page.click('input[name="display-density"][value="focus"]');
   await page.waitForFunction(()=>document.querySelectorAll('.display-module-hidden').length===0 && document.body.getAttribute('data-display-density')==='focus');
   await page.click('[data-sheet-close]');
+  // Redteam state-machine check: an unusual but reasonable order (density set, THEN orientation
+  // changed, THEN fullscreen entered, all while the earlier state is still active) must not
+  // combine into overflow -- each control's effect is independent, not mutually exclusive.
+  await page.click('#display-customize-toggle');
+  await page.waitForSelector('.ftn-sheet.is-open');
+  await page.click('input[name="display-density"][value="dense"]');
+  await page.click('[data-sheet-close]');
+  await page.click('[data-orientation-option="portrait"]');
+  await page.evaluate(()=>document.body.classList.add('display-fullscreen'));
+  await page.waitForTimeout(200);
+  const overflow=await page.evaluate(()=>({x:document.documentElement.scrollWidth-window.innerWidth,y:document.documentElement.scrollHeight-window.innerHeight}));
+  assert(overflow.x<=2&&overflow.y<=2,`Dense + Portrait + Fullscreen combination overflows: ${JSON.stringify(overflow)}`);
+  // Reset back to defaults so this scenario leaves no state behind for others.
+  await page.evaluate(()=>document.body.classList.remove('display-fullscreen'));
+  await page.click('[data-orientation-option="auto"]');
+  await page.click('#display-customize-toggle');
+  await page.waitForSelector('.ftn-sheet.is-open');
+  await page.click('input[name="display-density"][value="focus"]');
+  await page.click('[data-sheet-close]');
+});
+
+await scenario('sheet-rapid-open-close-cleanup', async page=>{
+  // Redteam state-machine check: rapidly opening and Escape-closing the shared FTN.Sheet
+  // shouldn't leak orphaned DOM nodes or leave a stuck "is-open" sheet behind, and it must still
+  // work normally immediately afterward.
+  await open(page,'/display/');
+  await page.waitForSelector('#display-pulse .pulse-card');
+  for (let i=0;i<5;i++){
+    await page.click('#display-customize-toggle');
+    await page.waitForTimeout(80);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(80);
+  }
+  await page.waitForTimeout(400);
+  assert.equal(await page.locator('.ftn-sheet').count(),0,'rapid open/close left orphaned .ftn-sheet DOM nodes');
+  await page.click('#display-customize-toggle');
+  await page.waitForSelector('.ftn-sheet.is-open');
+  assert.equal(await page.locator('input[data-module]').count(),6,'Customize sheet did not render correctly after the rapid open/close stress sequence');
+  await page.click('[data-sheet-close]');
 });
 
 await scenario('love-vaulted-outside-public-discovery', async page=>{
