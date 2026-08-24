@@ -328,6 +328,7 @@
 
   function init() {
     dialog = document.createElement('div');
+    dialog.id = 'trust-card-dialog';
     dialog.className = 'trust-card-dialog';
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('aria-modal', 'true');
