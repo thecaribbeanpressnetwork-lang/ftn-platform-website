@@ -1,0 +1,41 @@
+name: FTN Production Identity Gate
+
+# This repo has two independent deploy pipelines for the same push: GitHub Pages (this repo's own
+# static-pages.yml workflow) and Cloudflare Pages (Cloudflare's GitHub App integration, outside
+# this repo's workflows). The custom production domain (ftnplatform.org) is served by Cloudflare
+# Pages, not the GitHub Pages origin -- a check that only confirms the GitHub Pages origin is
+# correct proves nothing about what the public production domain actually serves. This gate checks
+# the domain founders and users actually hit.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-custom-domain-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Verify ftnplatform.org/version.json reports this commit
+        run: |
+          EXPECTED="${{ github.sha }}"
+          echo "Waiting for https://ftnplatform.org/version.json to report commit $EXPECTED ..."
+          for i in $(seq 1 30); do
+            RESPONSE="$(curl -fsS https://ftnplatform.org/version.json 2>/dev/null || true)"
+            ACTUAL="$(echo "$RESPONSE" | jq -r '.commit // empty' 2>/dev/null || true)"
+            if [ "$ACTUAL" = "$EXPECTED" ]; then
+              echo "Custom domain confirms commit $ACTUAL is live."
+              exit 0
+            fi
+            echo "Attempt $i/30: custom domain reports commit '$ACTUAL', expected '$EXPECTED'. Retrying in 20s..."
+            sleep 20
+          done
+          echo "::error::https://ftnplatform.org/version.json never reported commit $EXPECTED. Last response: $RESPONSE"
+          echo "The custom domain's live Cloudflare Pages deployment does not match what was pushed to main."
+          echo "Check: the Cloudflare Pages deployment for this push, and whether functions/version.json.js"
+          echo "can read CF_PAGES_COMMIT_SHA in this project (Cloudflare dashboard > Pages project > Deployments)."
+          exit 1
