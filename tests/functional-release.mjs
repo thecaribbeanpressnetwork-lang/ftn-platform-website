@@ -172,6 +172,24 @@ await scenario('opportunities-card-title-visible', async page=>{
   assert.notEqual(style.textColor,'rgb(255, 255, 255)','opportunity card title is white text -- invisible against the card\'s white background');
 });
 
+await scenario('invest-hero-has-image-and-fits-first-screen', async page=>{
+  await open(page,'/invest/');
+  await page.waitForSelector('.investin-hero__media img',{state:'visible',timeout:10000});
+  const hero=await page.evaluate(()=>{
+    const section=document.querySelector('.investin-hero');
+    const image=section.querySelector('.investin-hero__media img');
+    return {
+      height:section.getBoundingClientRect().height,
+      viewportHeight:innerHeight,
+      imageWidth:image.naturalWidth,
+      copyAnimation:getComputedStyle(section.querySelector('.investin-hero__copy')).animationName
+    };
+  });
+  assert(hero.imageWidth>0,'Invest-in hero image did not load');
+  assert(hero.height<=hero.viewportHeight*1.08,`Invest-in hero (${hero.height}px) overwhelms the first screen (${hero.viewportHeight}px)`);
+  assert.notEqual(hero.copyAnimation,'none','Invest-in hero has no perceptible page-specific entrance motion');
+});
+
 await scenario('radio-catalog', async page=>{
   await open(page,'/radio/');
   await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>10 || /failed|unavailable|error/i.test(document.querySelector('#ftn-radio-status')?.innerText||''),{timeout:45000});
