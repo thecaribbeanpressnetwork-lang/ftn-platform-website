@@ -45,6 +45,11 @@ assert(!(await submit.isDisabled()),'successful Turnstile callback must enable s
 console.log('TURNSTILE DETERMINISTIC CLIENT CONTRACT PASS');
 for(const [path,formSelector,expected] of [['/screen/','#screen-form',1],['/facethenation/','.ftn-participation-form',3]]){
   await page.goto(BASE+path,{waitUntil:'domcontentloaded',timeout:45000});
+  // #screen-form now renders inside a collapsed native <details> (js/screen-progressive-
+  // disclosure.js keeps discovery above ~7000px of creator tooling) -- open it first, the same
+  // way a real filmmaker would before submitting, rather than asserting on a form Playwright
+  // can't see yet.
+  if(path==='/screen/'){await page.waitForSelector(formSelector,{state:'attached',timeout:10000});await page.locator(formSelector).locator('xpath=ancestor::details[1]/summary').click();}
   await page.waitForSelector(formSelector,{timeout:10000});
   await page.waitForFunction(({selector,count})=>[...document.querySelectorAll(selector)].filter(form=>form.querySelector('input[name="cf-turnstile-response"]')?.value==='FTN_AUTOMATED_TEST_TOKEN').length===count,{selector:formSelector,count:expected},{timeout:12000});
   assert.equal(await page.locator(formSelector+' input[name="cf-turnstile-response"]').count(),expected,`${path} must gate each consequential submission form exactly once`);
