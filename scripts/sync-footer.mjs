@@ -119,16 +119,21 @@ function findBottomDivRange(html) {
   return null;
 }
 
-function applyRegion(html, generated) {
+function applyRegion(html, generated, variant) {
   const startIdx = html.indexOf(MARK_START);
   const endIdx = html.indexOf(MARK_END);
   if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
     return html.slice(0, startIdx) + MARK_START + '\n' + generated + '\n' + MARK_END + html.slice(endIdx + MARK_END.length);
   }
-  // No markers yet: for 'full', wrap the existing <footer class="site-footer">...</footer>.
-  const footerStart = html.indexOf('<footer class="site-footer">');
-  if (footerStart !== -1) {
-    let depth = 0, i = footerStart, closeIdx = -1;
+  // No markers yet. Which existing structure to wrap depends on the variant -- trying the 'full'
+  // whole-<footer> pattern for a 'bottom-only' page (or vice versa) would silently swallow real,
+  // hand-curated content columns that must never be touched. This was a real bug caught during
+  // this pass's own Group 2 dry run (screen/tv/ibis-ai/etc.'s Watch/Creators/Intelligence columns
+  // got replaced instead of preserved) -- fixed here, not worked around.
+  if (variant === 'full') {
+    const footerStart = html.indexOf('<footer class="site-footer">');
+    if (footerStart === -1) throw new Error('full variant: no <footer class="site-footer"> found to wrap.');
+    let depth = 0, closeIdx = -1;
     const tagRe = /<footer\b[^>]*>|<\/footer>/g;
     tagRe.lastIndex = footerStart;
     let m;
@@ -136,16 +141,14 @@ function applyRegion(html, generated) {
       if (m[0] === '</footer>') { depth -= 1; if (depth === 0) { closeIdx = m.index + m[0].length; break; } }
       else depth += 1;
     }
-    if (closeIdx !== -1) {
-      return html.slice(0, footerStart) + MARK_START + '\n' + generated + '\n' + MARK_END + html.slice(closeIdx);
-    }
+    if (closeIdx === -1) throw new Error('full variant: <footer class="site-footer"> never closed.');
+    return html.slice(0, footerStart) + MARK_START + '\n' + generated + '\n' + MARK_END + html.slice(closeIdx);
   }
-  // For 'bottom-only': wrap the existing .site-footer__bottom div, depth-matched.
+  // 'bottom-only': wrap ONLY the existing .site-footer__bottom div, depth-matched, leaving any
+  // .site-footer__top / brand / content columns before it completely untouched.
   const range = findBottomDivRange(html);
-  if (range) {
-    return html.slice(0, range.start) + MARK_START + '\n' + generated + '\n' + MARK_END + html.slice(range.end);
-  }
-  throw new Error('No markers, no <footer class="site-footer">, and no .site-footer__bottom div found -- nowhere to inject.');
+  if (!range) throw new Error('bottom-only variant: no .site-footer__bottom div found to wrap.');
+  return html.slice(0, range.start) + MARK_START + '\n' + generated + '\n' + MARK_END + html.slice(range.end);
 }
 
 function generatedFor(variant, Registry) {
@@ -170,7 +173,7 @@ for (const { file, variant } of targets) {
   const path = resolve(root, file);
   const html = readFileSync(path, 'utf8');
   const generated = generatedFor(variant, Registry);
-  const next = applyRegion(html, generated);
+  const next = applyRegion(html, generated, variant);
   if (next === html) continue;
   changed += 1;
   if (checkOnly) {
