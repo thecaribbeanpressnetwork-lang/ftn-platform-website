@@ -332,6 +332,25 @@ await scenario('public-truth-language', async page=>{
   await open(page,'/applications/');assert.doesNotMatch(await page.locator('main').innerText(),/Choose your doorway/i);
 });
 
+await scenario('observer-hero-clocks-no-clipping', async page=>{
+  // Autonomous QA find: at intermediate widths (~1024-1400px) the "Trust Card" button inside
+  // each .hero-clock card visually escaped its own card into the page background -- caused by
+  // .hero-clock__meta being a non-wrapping flex row under real space pressure once
+  // .observatory-hero__grid splits into a 1.4fr/1fr layout at the same 1024px .hero-clocks
+  // switches to 4 columns. Tests the invariant (every card's action control stays inside its own
+  // card) at the width that actually broke, not a specific pixel snapshot.
+  await open(page,'/observatory/');
+  await page.waitForSelector('.hero-clock .trust-trigger');
+  const escapes=await page.evaluate(()=>Array.from(document.querySelectorAll('.hero-clock')).map(card=>{
+    const c=card.getBoundingClientRect(), t=card.querySelector('.trust-trigger').getBoundingClientRect();
+    return { right: Math.round(t.right-c.right), bottom: Math.round(t.bottom-c.bottom) };
+  }));
+  escapes.forEach((e,i)=>{
+    assert(e.right<=2,`hero-clock card ${i}: Trust Card button escapes its card by ${e.right}px on the right`);
+    assert(e.bottom<=2,`hero-clock card ${i}: Trust Card button escapes its card by ${e.bottom}px on the bottom`);
+  });
+}, {width:1024,height:900});
+
 await scenario('display-network-studio', async page=>{
   await open(page,'/display-network/');await page.waitForSelector('#dn-add-content',{timeout:10000});
   assert.match(await page.locator('.dn-opening-actions').innerText(),/Host a screen.*verified message/is);await page.fill('#dn-content-title','Flood warning test');await page.fill('#dn-content-message','Avoid the low-lying road until cleared.');await page.click('#dn-add-content');assert.match(await page.locator('#dn-preview').innerText(),/Flood warning test/);assert(await page.locator('.dn-item').count()>0);
@@ -377,7 +396,17 @@ await scenario('govern-official-pathways',async page=>{await open(page,'/govern/
 
 await scenario('applications-progressive-directory',async page=>{await open(page,'/applications/');assert(await page.locator('.ftn-directory-card').count()>=20);assert.equal(await page.locator('.ftn-directory-card a[href="/love/"],.ftn-directory-card a[href="/health/"]').count(),0);assert.equal(await page.locator('.ftn-directory-card a[href="/govern/"]').count(),1);assert.equal(await page.locator('main').getByText('Mission Control',{exact:true}).count(),0);assert.doesNotMatch(await page.locator('main').innerText(),/\bBETA\b/);});
 
-await scenario('parliament-source-directory', async page=>{await open(page,'/parliament/');assert.equal(await page.locator('.parl-source-card').count(),27);assert.equal(await page.locator('#parliament-country').inputValue(),'tt');assert.match(await page.locator('#parliament-watch').innerText(),/Public Administration|Trinidad and Tobago/i);await page.selectOption('#parliament-country','bb');assert.match(await page.locator('#parliament-watch').innerText(),/Senate|Barbados/i);});
+await scenario('parliament-source-directory', async page=>{await open(page,'/parliament/');assert.equal(await page.locator('.parl-source-card').count(),27);assert.equal(await page.locator('#parliament-country').inputValue(),'tt');assert.match(await page.locator('#parliament-watch').innerText(),/Public Administration|Trinidad and Tobago/i);await page.selectOption('#parliament-country','bb');assert.match(await page.locator('#parliament-watch').innerText(),/Senate|Barbados/i);
+  // Autonomous QA find: 27 near-identical cards with no way to narrow them down. Filter must
+  // actually hide non-matches (not just visually de-emphasize) and restore on clear.
+  await page.fill('#parliament-catalogue-filter','jamaica');
+  await page.waitForFunction(()=>document.querySelectorAll('.parl-source-card:not([hidden])').length===1);
+  await page.fill('#parliament-catalogue-filter','zzznomatch');
+  await page.waitForFunction(()=>document.querySelectorAll('.parl-source-card:not([hidden])').length===0);
+  assert.equal(await page.locator('#parliament-catalogue-empty').isVisible(),true,'empty-state message did not show for a non-matching filter');
+  await page.fill('#parliament-catalogue-filter','');
+  await page.waitForFunction(()=>document.querySelectorAll('.parl-source-card:not([hidden])').length===27);
+});
 
 await scenario('investin-support-and-learning', async page=>{await open(page,'/invest/');assert.equal(await page.locator('#invest-sources .nexus-card').count(),4);await page.locator('[data-watch]').first().click();assert.match(await page.locator('#invest-watchlist').innerText(),/Ministry|Central Bank|Stock Exchange|Securities/i);assert.equal(await page.locator('a[href^="mailto:"]').count(),0,'dead mailto action remains');assert.match(await page.locator('main').innerText(),/not a bank, broker, financial adviser or public securities offering/i);});
 

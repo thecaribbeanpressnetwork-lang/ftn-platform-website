@@ -186,9 +186,16 @@
   color: var(--color-silver);
 }
 
+/* Autonomous QA find: at intermediate widths (~1024-1400px, where .observatory-hero__grid has
+   already split into a 1.4fr/1fr side-by-side layout but .hero-clocks is still forcing 4 columns
+   into that narrower 1fr column) neither flex child here had min-width:0, so under space pressure
+   the "Trust Card" button didn't shrink -- it visually escaped this card's own box into the page
+   background instead of wrapping. flex-wrap makes this self-healing at any width, not just the
+   specific ones tested, rather than picking another magic breakpoint number. */
 .hero-clock__meta {
   margin-top: var(--space-4);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-12);
