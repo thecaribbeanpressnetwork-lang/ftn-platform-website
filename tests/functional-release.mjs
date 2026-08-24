@@ -158,6 +158,20 @@ await scenario('opportunities-live', async page=>{
   assert(await page.locator('.opp-live-card a[href^="http"]').count()>0);
 });
 
+await scenario('opportunities-card-title-visible', async page=>{
+  // Founder visual redteam: .opp-live-card h3 had no explicit color, so it inherited white from
+  // the page's ambient dark theme while sitting on the card's own white background -- the single
+  // most important field (the opportunity's title) rendered completely invisible, white-on-white.
+  await open(page,'/opportunities/');
+  await page.waitForFunction(()=>document.querySelectorAll('.opp-live-card').length>0,{timeout:45000});
+  const style=await page.evaluate(()=>{
+    const h3=document.querySelector('.opp-live-card h3');
+    const card=document.querySelector('.opp-live-card');
+    return {textColor:getComputedStyle(h3).color, cardBg:getComputedStyle(card).backgroundColor};
+  });
+  assert.notEqual(style.textColor,'rgb(255, 255, 255)','opportunity card title is white text -- invisible against the card\'s white background');
+});
+
 await scenario('radio-catalog', async page=>{
   await open(page,'/radio/');
   await page.waitForFunction(()=>document.querySelectorAll('.ftn-radio-live__track').length>10 || /failed|unavailable|error/i.test(document.querySelector('#ftn-radio-status')?.innerText||''),{timeout:45000});
