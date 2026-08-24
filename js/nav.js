@@ -34,11 +34,17 @@
   // list (an explicit founder-set order, not something the Product Registry encodes) -- the
   // FULL product list still comes from the registry itself, see buildEcosystemMenu() below, so
   // there's exactly one hardcoded list here, not two competing ones.
-  // Ecosystem Simplification pass: FTN Live retired as an independent identity (it is FTN
-  // Observer now -- deep investigation, not ambient viewing) and FTN Now retired outright; both
-  // roles are covered by the new FTN Display. Screen and Radio moved out of the primary row (they
-  // remain one click away in FTN Ecosystem) to make room for FTN Display and FTN Learn, per the
-  // founder's explicit priority order.
+  // FTN Live compatibility migration (2026-08-24 founder decision, BUILD NOW): supersedes the
+  // prior "Ecosystem Simplification pass" note below. FTN Live is the canonical umbrella again --
+  // NOW is its default current-information view, Observer Console its advanced interface, both at
+  // the existing /observatory/ route (no URL change). This primary-row entry is relabeled from
+  // "FTN Observer" to "FTN Live" accordingly; the href is unchanged.
+  // Superseded history: the "Ecosystem Simplification pass" previously retired FTN Live as an
+  // independent identity (it became FTN Observer -- deep investigation, not ambient viewing) and
+  // retired FTN Now outright, with both roles covered by FTN Display. That decision no longer
+  // holds. Screen and Radio moved out of the primary row (they remain one click away in FTN
+  // Ecosystem) to make room for FTN Display and FTN Learn, per the founder's explicit priority
+  // order -- that ordering choice is unaffected by this migration.
   // Founder Walkthrough Repair Pass: wide-viewport headers were revealing all 11 items here
   // simultaneously, which either wrapped the action cluster to a second row (see the
   // .site-header__actions fix elsewhere in this file's CSS) or just read as visually cluttered --
@@ -51,7 +57,7 @@
     ['FTN Platform','/','The FTN Platform home — the Caribbean ecosystem entry point'],
     ['FTN Community Connect','/community-connect/','Report and track local civic issues'],
     ['FTN Display','/display/','One screen. Watch what is happening in Trinidad & Tobago'],
-    ['FTN Observer','/observatory/','Investigate Trinidad & Tobago in depth — indicators and correlations'],
+    ['FTN Live','/observatory/','Real-time Trinidad & Tobago intelligence — NOW at a glance, Observer Console in depth'],
     ['FTN Directory','/applications/','Browse every public FTN product and go directly to its workspace']
   ];
   function escNav(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}

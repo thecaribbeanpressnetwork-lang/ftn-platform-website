@@ -139,9 +139,9 @@ product({
   heroAsset:'/assets/heroes/ftn-screen-film-crew.webp',heroAlt:'A Caribbean film crew working on location above a coastal town',heroFocalDesktop:'66% 50%',heroFocalMobile:'64% 50%',
   dataSources:['authorized public embeds','creator-declared metadata','official festival sources'],accessRules:['guest discovery','creator preparation'],featureFlags:['screen-catalog','festival-package'],relatedProducts:['tv','facethenation'],legalNotices:['Media rights and destination notice'],
   keywords:['film','movie','cinema','documentary','filmmaker','festival','trailer'],capabilities:['film-discovery','authorized-embedded-playback','film-metadata','festival-readiness','festival-matching','export'],
-  purposeStatement:'Editorial/broadcast discovery for Caribbean film and screen work — unrelated to current-conditions intelligence (see Phase 3 responsibility matrix).',
+  purposeStatement:'Editorial/broadcast discovery for Caribbean film and screen work, now also home to Display Mode — unrelated to FTN Live\'s current-conditions intelligence (see Phase 3 responsibility matrix).',
   navPlacement:{primary:false,ecosystemGroup:'media-culture',footer:true},authRequirement:'guest',
-  integrations:[{productId:'tv',kind:'parent'},{productId:'facethenation',kind:'routes-to'}],
+  integrations:[{productId:'tv',kind:'parent'},{productId:'display',kind:'parent'},{productId:'facethenation',kind:'routes-to'}],
   provenanceLevel:'editorial',ownerModules:['screen/index.html','css/components/screen-production.css']
 }),
 product({
@@ -159,37 +159,46 @@ product({
   provenanceLevel:'editorial',ownerModules:['tv/index.html','js/tv-guide.js']
 }),
 product({
-  // Ecosystem Simplification pass: FTN Live retired as an independent identity. Its deep
-  // investigation/indicator/correlation capability IS what "FTN Observer" now means -- the id
-  // stays 'ftn-live' (every relatedProducts reference across this file keys on it) but the public
-  // name/description/role changed to INVESTIGATE, distinct from the new ambient FTN Display.
-  id:'ftn-live',legacyIds:['observatory','ftn-live'],name:'FTN Observer',shortName:'Observer',tagline:'Investigate what is happening in Trinidad and Tobago.',
-  description:'FTN’s deep observation and investigation console: current indicators, scheduled coverage, correlations and explicit source states for people who want to look closely, not glance from across a room.',route:'/observatory/',status:'AVAILABLE',
-  primaryUser:'People investigating current Caribbean conditions in depth',primaryJourney:'Open a current or scheduled signal, inspect its source/time/correlations and follow its accurate next state.',
-  callsToAction:[{label:'Open FTN Observer',route:'/observatory/'}],visualMnemonic:'Caribbean signal constellation',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
-  dataSources:['NOAA satellite products','Open-Meteo','World Bank','FTN public source registry','Trinidad and Tobago Meteorological Service','UWI Seismic Research Centre'],accessRules:['guest'],featureFlags:['live-sources','satellite','observer-console'],relatedProducts:['events','tv','mission-control','display'],
-  legalNotices:['External source availability','Calculated context notice'],keywords:['indicators','data','investigate','satellite','weather','schedule','replay','change','observer','correlation','flood','ferry','airport','vessel','earthquake','air quality','crime','parliament','power outage'],capabilities:['current-satellite-imagery','connected-public-sources','indicator-context','accurate-state','fallback','observer-console','observer-correlation-engine'],
-  // Phase 3 Option A (see GOVERNANCE/FTN_Phase3_...md §3.3): formalizes the Observer/Display split
-  // as-is rather than reviving a "FTN Live" umbrella brand -- that's a separate founder decision
-  // (§3.2 of that document), not inferred here. purposeStatement exists precisely to make this
-  // product's distinct job legible next to Display's, without either page's copy changing.
-  purposeStatement:'Deep-investigation console: current indicators, satellite imagery, correlations and explicit source states, for people looking closely -- distinct from FTN Display\'s glanceable ambient job.',
+  // FTN Live compatibility migration (2026-08-24 founder decision, BUILD NOW -- see
+  // GOVERNANCE/FTN_Phase3_Product_Registry_and_Live_Consolidation_2026-08-24.md §3.2 and
+  // .claude/context/decisions.md): this SUPERSEDES the prior "Ecosystem Simplification pass" that
+  // retired "FTN Live" as an independent identity. FTN Live is now the canonical public umbrella;
+  // "Observer Console" is its advanced/deep-investigation interface, not a competing product; NOW
+  // is its default current-information view. The route stays '/observatory/' deliberately -- no
+  // existing URL, bookmark, inbound link or analytics history breaks. '/live/' is the new
+  // canonical alias (a real redirect stub, see js/redirect-live.js) for anyone/anything that
+  // should now reference FTN Live going forward.
+  id:'ftn-live',legacyIds:['observatory','ftn-live'],name:'FTN Live',shortName:'Live',tagline:'What is happening in Trinidad and Tobago, right now and in depth.',
+  description:'FTN’s real-time and current-conditions intelligence product. FTN NOW is the default glanceable view; the Observer Console is its advanced interface for indicators, correlations, scheduled coverage and explicit source states.',route:'/observatory/',routeAliases:['/live/'],status:'AVAILABLE',
+  primaryUser:'Anyone tracking current Caribbean conditions, from a glance to a deep investigation',primaryJourney:'Open FTN Live for the current-conditions view (NOW), or go deeper into the Observer Console to inspect a signal\'s source/time/correlations and follow its accurate next state.',
+  callsToAction:[{label:'Open FTN Live',route:'/observatory/'}],visualMnemonic:'Caribbean signal constellation',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
+  dataSources:['NOAA satellite products','Open-Meteo','World Bank','FTN public source registry','Trinidad and Tobago Meteorological Service','UWI Seismic Research Centre'],accessRules:['guest'],featureFlags:['live-sources','satellite','observer-console'],relatedProducts:['events','tv','mission-control','screen'],
+  legalNotices:['External source availability','Calculated context notice'],keywords:['live','now','indicators','data','investigate','satellite','weather','schedule','replay','change','observer','correlation','flood','ferry','airport','vessel','earthquake','air quality','crime','parliament','power outage'],capabilities:['now-view','current-satellite-imagery','connected-public-sources','indicator-context','accurate-state','fallback','observer-console','observer-correlation-engine'],
+  purposeStatement:'Canonical real-time/current-conditions intelligence product. NOW is its default glanceable view; Observer Console is its advanced interface -- both are views of FTN Live, not separate products (no separate registry entries for either, by design).',
   navPlacement:{primary:true,ecosystemGroup:'information-intelligence',footer:true},authRequirement:'guest',
-  integrations:[{productId:'display',kind:'produces'},{productId:'community-connect',kind:'consumes'}],
+  integrations:[{productId:'screen',kind:'consumes'},{productId:'community-connect',kind:'consumes'}],
   provenanceLevel:'official',ownerModules:['observatory/index.html','js/observer-console.js','js/observatory.js','js/indicators-data.js']
 }),
 product({
-  id:'display',name:'FTN Display',shortName:'Display',tagline:'Watch what is happening. One screen. No setup.',
-  description:'One standardized public FTN information screen — a compact Trinidad & Tobago national pulse, FTN TV NOW and a world strip, meant to be opened and left full screen. No account, no configuration, no advertising.',route:'/display/',status:'AVAILABLE',
-  primaryUser:'Anyone near a shared screen — a waiting room, office, shop or reception area',primaryJourney:'Open FTN Display, press full screen and leave it running.',
-  callsToAction:[{label:'Open FTN Display',route:'/display/'}],visualMnemonic:'Ambient national pulse screen',panelAsset:'/assets/panels/02-mission-control.png',panelRow:2,accent:'var(--color-red-on-dark)',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
+  // Consolidated into FTN Screen as "Display Mode" per the same 2026-08-24 founder decision
+  // (see comment on the 'ftn-live' entry above). parentProduct:'screen' uses the identical,
+  // already-proven pattern 'tv' has used under 'screen' since before this pass -- productType
+  // becomes 'capability' automatically (see the product() factory), so this stops presenting as
+  // an independent top-level product without deleting anything. Route stays '/display/'
+  // deliberately: this is a real, physically-deployed kiosk/waiting-room screen product --
+  // breaking that URL would break an actual shared screen somewhere, not just a bookmark.
+  id:'display',name:'FTN Screen — Display Mode',shortName:'Display',tagline:'Watch what is happening. One screen. No setup.',parentProduct:'screen',
+  description:'FTN Screen\'s ambient information display mode — a compact Trinidad & Tobago national pulse, FTN TV NOW and a world strip, meant to be opened and left full screen. No account, no configuration, no advertising.',route:'/display/',status:'AVAILABLE',
+  primaryUser:'Anyone near a shared screen — a waiting room, office, shop or reception area',primaryJourney:'Open Display Mode, press full screen and leave it running.',
+  callsToAction:[{label:'Open Display Mode',route:'/display/'}],visualMnemonic:'Ambient national pulse screen',panelAsset:'/assets/panels/02-mission-control.png',panelRow:2,accent:'var(--color-screen)',atmosphere:{accent:'var(--color-red-on-dark)',background:'dark-grid',motionProfile:'constellation',heroStyle:'observatory'},
   dataSources:['FTN Product Registry','FTN public source registry','authorized YouTube discovery'],accessRules:['guest'],featureFlags:['display-pulse','display-tv-now'],relatedProducts:['ftn-live','kaiso','tv','parliament','events','community-connect'],
-  legalNotices:['External source availability','Calculated context notice'],keywords:['screen','ambient','watch','pulse','fullscreen','signage','waiting room','national debt','weather','currency','tv now'],capabilities:['national-pulse','tv-now','world-now','fullscreen','anonymous-presence'],
-  purposeStatement:'Glanceable, no-account, kiosk/full-screen ambient view for a shared physical screen -- a distinct job from Observer\'s console, kept separate under Phase 3 Option A (see governance doc §3.3).',
-  navPlacement:{primary:true,ecosystemGroup:'information-intelligence',footer:true},authRequirement:'none',
+  legalNotices:['External source availability','Calculated context notice'],keywords:['screen','display','display mode','ambient','watch','pulse','fullscreen','signage','waiting room','national debt','weather','currency','tv now'],capabilities:['national-pulse','tv-now','world-now','fullscreen','anonymous-presence'],
+  purposeStatement:'Glanceable, no-account, kiosk/full-screen ambient view for a shared physical screen -- a capability of FTN Screen, not a standalone product.',
+  navPlacement:{primary:false,ecosystemGroup:'media-culture',footer:true},authRequirement:'none',
   // "FTN TV NOW" here is a module name only (js/display-page.js renderTvNow()), not the 'tv'
-  // product and not a real "NOW" view of FTN Live -- see governance doc §3.1. Recorded-murders is
-  // deliberately absent from what this consumes: suppressed from current-condition presentation
+  // product and not FTN Live's "NOW" view -- unrelated namesakes, see governance doc §3.1.
+  // Recorded-murders is deliberately absent from what this consumes: suppressed from
+  // current-condition presentation
   // per the Phase 1 Trust Engine repair (js/display-page.js PULSE_IDS).
   integrations:[{productId:'ftn-live',kind:'consumes'},{productId:'community-connect',kind:'consumes'}],
   provenanceLevel:'ftn-calculated',ownerModules:['display/index.html','js/display-page.js','css/components/display.css']
