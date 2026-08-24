@@ -56,7 +56,12 @@ const groupedIds=ecosystemGroups.flatMap(group=>group.products.map(product=>prod
 for(const id of firstClassDirectoryIds)assert(groupedIds.includes(id),`Active product missing from Product Registry ecosystem groups: ${id}`);
 assert(directorySource.includes('Registry.ecosystemGroups()'),'FTN Directory must consume registry-defined ecosystem groups');
 assert(!directorySource.includes("'mission-control'"),'Mission Control must not be exposed in the FTN Directory');
-for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks','FTN Display','FTN Observer','FTN Learn'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
+for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks','FTN Live','FTN Learn'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
+// FTN Live compatibility migration (2026-08-24 founder decision): 'FTN Display' is deliberately
+// no longer required as an independent canonical name -- it is consolidated into FTN Screen as
+// Display Mode (parentProduct:'screen'), which is why 'FTN Screen' above already covers it.
+assert.equal(products.find(p=>p.id==='display').parentProduct,'screen','FTN Display must be a capability of FTN Screen (Display Mode), not an independent product');
+assert.equal(products.find(p=>p.id==='ftn-live').name,'FTN Live','FTN Live must be the canonical public name at the ftn-live registry id');
 for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(groupedIds.includes(p.id),`${p.name} has no registry group mapping`);
 
 // Sitewide ecosystem-header pass (founder directive): the global nav dropped abstract pillar
@@ -64,9 +69,17 @@ for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(
 // Ecosystem" overflow menu -- every FTN product keeps its FTN prefix in user-facing nav, never
 // abbreviated. See CLAUDE.md and js/nav.js's own PRIMARY_NAV comment for the full record.
 //
-// Ecosystem Simplification pass: FTN Live retired as an independent identity (renamed FTN
-// Observer -- deep investigation, distinct from the new ambient FTN Display) and FTN Now retired
-// outright (superseded by FTN Display). Both old routes redirect rather than 404.
+// FTN Live compatibility migration (2026-08-24 founder decision, BUILD NOW): supersedes the prior
+// "Ecosystem Simplification pass" note below. FTN Live is the canonical public umbrella again --
+// NOW is its default current-information view, Observer Console its advanced interface, both
+// served at the existing /observatory/ route (no URL change, no analytics history lost). FTN
+// Display is consolidated into FTN Screen as Display Mode, still served at /display/.
+//
+// Superseded history: the "Ecosystem Simplification pass" previously retired FTN Live as an
+// independent identity (renamed FTN Observer -- deep investigation, distinct from the then-
+// separate ambient FTN Display) and retired FTN Now outright (superseded by FTN Display). That
+// decision no longer holds; both old routes still redirect rather than 404, just to updated
+// targets (see the _redirects assertions below).
 // Founder Walkthrough Repair Pass (founder directive): 11 permanently-visible primary items read
 // as "microscopic" on wide displays and (at 1920px specifically) forced the header actions
 // cluster to wrap onto a second row. PRIMARY_NAV is now the 5 items the founder named directly;
@@ -75,19 +88,26 @@ for(const p of products.filter(p=>firstClassDirectoryIds.includes(p.id)))assert(
 // asserted as literal nav.js source text. That discoverability requirement is covered by the
 // registry/ecosystem-group assertions above (lines 55-60), not duplicated here.
 const navSource=fs.readFileSync('js/nav.js','utf8');
-for(const name of ['FTN Platform','FTN Community Connect','FTN Display','FTN Observer','FTN Directory','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global primary navigation missing canonical FTN product name: ${name}`);
+for(const name of ['FTN Platform','FTN Community Connect','FTN Display','FTN Live','FTN Directory','FTN Ecosystem'])assert(navSource.includes(`'${name}'`)||navSource.includes(name),`Global primary navigation missing canonical FTN product name: ${name}`);
 assert(navSource.includes('FTN Invest-in'),'Global navigation must use the canonical FTN Invest-in name');
-assert(!navSource.includes("'FTN Live'"),'FTN Live must not appear as an independent product name in global navigation -- it is FTN Observer now');
-assert(!fs.existsSync('now/index.html'),'NOW homepage should be retired, not rebuilt as an independent product page');
-assert(!sitemap.includes('https://ftnplatform.org/now/'),'Retired /now/ must not be advertised in the sitemap');
+// FTN Live compatibility migration (2026-08-24 founder decision): inverts the prior guard, which
+// forbade 'FTN Live' from appearing in navigation. It is required now, not forbidden -- FTN Live
+// is the canonical umbrella product; Observer Console is its advanced interface, not a competing
+// nav entry, so 'FTN Observer' is deliberately no longer required here.
+assert(navSource.includes("'FTN Live'"),'FTN Live must appear as the canonical current-conditions product name in global navigation');
+assert(!fs.existsSync('now/index.html'),'NOW is FTN Live\'s default view at the existing /observatory/ route, not a standalone page -- it should still not exist as its own product page');
+assert(!sitemap.includes('https://ftnplatform.org/now/'),'/now/ is a redirect into FTN Live, not a crawlable page of its own -- must not be advertised in the sitemap');
 assert(sitemap.includes('https://ftnplatform.org/display/'),'FTN Display is absent from the sitemap');
 assert(sitemap.includes('https://ftnplatform.org/learn/'),'FTN Learn is absent from the sitemap');
 const redirectsSource=fs.readFileSync('_redirects','utf8');
-assert(/^\/live\/?\s+\/observatory\/\s+301/m.test(redirectsSource)||redirectsSource.includes('/live/ /observatory/ 301'),'/live/ must redirect to FTN Observer so no external link breaks');
-assert(redirectsSource.includes('/now/ /display/ 301'),'/now/ must redirect to FTN Display so no external link breaks');
+assert(/^\/live\/?\s+\/observatory\/\s+301/m.test(redirectsSource)||redirectsSource.includes('/live/ /observatory/ 301'),'/live/ must redirect to FTN Live\'s real route so no external link breaks');
+// FTN Live compatibility migration (2026-08-24 founder decision): /now/ now redirects into FTN
+// Live (/observatory/), not FTN Display -- NOW is FTN Live's default view, not covered by Display
+// under the new architecture. Retargeting this redirect, not removing it: no external link breaks.
+assert(redirectsSource.includes('/now/ /observatory/ 301'),'/now/ must redirect into FTN Live so no external link breaks');
 assert(!/PRIMARY_NAV[^;]+Mission Control/s.test(navSource),'Mission Control must not enter public navigation');
 assert(navSource.includes('ecosystemGroups()'),'FTN Ecosystem menu must be built from the Product Registry, not a second hardcoded list');
-assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.4\.0'/,'Service-worker cache namespace was not advanced for changed assets');
+assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.4\.1'/,'Service-worker cache namespace was not advanced for changed assets');
 const analyticsSource=fs.readFileSync('js/analytics.js','utf8');
 assert(analyticsSource.includes('6b49afbc-3929-4855-bda8-eff8755f685d'),'Umami website ID is missing');
 assert(analyticsSource.includes("data-exclude-search"),'Analytics must exclude URL search parameters');
@@ -99,7 +119,7 @@ assert(!/email|access_token|user_id|textContent\s*[,)]/.test(analyticsSource),'A
 assert(navSource.includes('/js/analytics.js?v=20260818.3'),'Global navigation must load the current privacy-safe analytics module');
 
 const htmlFiles=[];function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules'].includes(entry.name))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(entry.name.endsWith('.html'))htmlFiles.push(full);}}walk('.');
-for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260824.3'),`${file} uses a stale global navigation asset URL`);}
+for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260824.4'),`${file} uses a stale global navigation asset URL`);}
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of ['product-registry-data','product-registry'])if(html.includes(`/js/${asset}.js`))assert(html.includes(`/js/${asset}.js?v=20260822.1`),`${file} uses a stale ${asset} asset URL`);}
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8'),match=html.match(/<link rel=["']canonical["'] href=["']([^"']+)/i);if(match)assert(/^https:\/\/ftnplatform\.org\//.test(match[1]),`${file} has non-apex canonical ${match[1]}`);}
 for(const file of htmlFiles.filter(file=>!['love/index.html','health/index.html'].includes(file))){
