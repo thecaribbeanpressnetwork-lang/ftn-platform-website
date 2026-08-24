@@ -27,6 +27,16 @@ absent from `js/display-page.js`'s live `PULSE_IDS`, `referenceDate: null` prese
 `indicators-data.js`, zero "for visual effect" occurrences live, ibis chat header is `<h2>` not
 `<h1>` live, zero duplicated "Illustrative illustrative" live, Trust Card dialog `id` present live.
 
+**Update — FTN Live compatibility migration (same day, later, commit `39b9cc2`):** founder approved
+Option B ("phased compatibility migration") for the Phase 3 Live/Observer/NOW/Display decision
+gate. Implemented, tested and verified live — see the dedicated Phase 3 ledger entry below for full
+detail. Production confirmed at `39b9cc2` via `/version.json`
+(`"builtAt":"2026-08-24T22:10:19Z"`), plus direct `curl` checks: `/live/` and `/now/` both 301 to
+`/observatory/`, `/observatory/`'s `<title>` and hero eyebrow show FTN Live/Observer Console
+branding, the registry's `ftn-live` entry is named `'FTN Live'` and `display` is named `'FTN
+Screen — Display Mode'` with `parentProduct:'screen'`, `/display/` still returns 200 OK
+(unbroken), and `js/nav.js`'s live `PRIMARY_NAV` shows the new `'FTN Live'` entry.
+
 **Baseline at pass start:** production `/version.json` reported commit `3efc146` (built
 2026-08-24T13:05:54Z). Local `main` was 16 commits behind origin and was fast-forwarded to match
 before any edit — those 16 commits (crime-intelligence widget, Trust Card traceability work,
@@ -94,8 +104,9 @@ here. Summary:
 | Current-state duplication map (6 sources of product data found, only 2 registry-driven) | Documented. |
 | Product Registry schema extension (additive: `purposeStatement`, `routeAliases`, `navPlacement`, `authRequirement`, `dataProduced`, `integrations`, `provenanceLevel`, `ownerModules`, `analyticsId`) | Deployed and verified live (commit `5cc68fb`); populated for the 4 real registry entries under analysis (`ftn-live`/Observer, `display`, `screen`, `tv`). |
 | `sitemap.xml` converted from hand-maintained to registry-generated (`scripts/generate-sitemap.mjs`) | Deployed and verified live (commit `08042e7`); `--check` mode confirms zero URLs added/removed, ordering only. |
-| Live/Observer/NOW/Display/Screen responsibility matrix | Documented — **flags a direct conflict** between the founder brief's target architecture (revive "FTN Live" as an umbrella, Observer becomes a console within it) and a prior recorded decision in this same codebase ("Ecosystem Simplification pass," `js/product-registry-data.js` + `js/nav.js` comments, `.claude/context/products.md` "Superseded naming" section) that deliberately retired both "FTN Live" and "NOW" as independent identities. **Awaiting founder confirmation before any route/name change** — recommended interim: formalize the current Observer/Display split in the registry (done, above) rather than infer a reversal from the brief alone. |
-| 32-file footer duplication, `PRIMARY_NAV` consolidation, `service-worker.js` private-route consolidation | Mapped and sequenced (governance doc §5), **not started** — each is real duplication but higher blast-radius than this increment; footer alone touches 32 files. |
+| Live/Observer/NOW/Display/Screen responsibility matrix | Documented — flagged a direct conflict between the founder brief's target architecture and the prior "Ecosystem Simplification pass" decision. **Founder reviewed and approved Option B** ("phased compatibility migration") the same day. See the row below for implementation. |
+| **FTN Live compatibility migration (Option B, approved and executed)** | **Deployed and verified live (commit `39b9cc2`).** `ftn-live` renamed to public name "FTN Live" (route unchanged, `/observatory/`, `routeAliases:['/live/']`); NOW and Observer Console confirmed as already-existing views inside `js/observer-console.js` (no new registry entries, no new UI built — only branding connected); `display` given `parentProduct:'screen'` and renamed "FTN Screen — Display Mode" (route unchanged, `/display/`, still 200 OK live). `_redirects`: `/live/` → `/observatory/` unchanged; `/now/` retargeted from `/display/` to `/observatory/`. `nav.js` PRIMARY_NAV relabeled (Display's label deliberately left unchanged for lowest risk to the physically-deployed kiosk product). Sitewide `FTN Observer` → `FTN Live` text consistency pass across ~38 HTML files and 8 JS files (one file deliberately excluded: a `noindex,nofollow` personal portfolio page describing historical work). `tests/product-registry-audit.mjs`'s pre-existing hard guards against this exact migration (dating from the prior decision) inverted in place, documented inline, not weakened. Full local suite re-verified passing after the change (61 functional scenarios + foundation/mobile/all-public-routes/surface-system/performance-budget + static audits). `.claude/context/decisions.md` and `products.md` updated with an explicit "do not reverse accidentally" note for future sessions. Direct production verification: `/live/` and `/now/` both confirmed 301→`/observatory/` via `curl -I`; `/observatory/` title and hero eyebrow show FTN Live/Observer Console branding; registry names confirmed live; `/display/` confirmed still 200 OK. |
+| 32-file footer duplication, `PRIMARY_NAV` full registry-driven consolidation, `service-worker.js` private-route consolidation | Mapped and sequenced (governance doc §5). Footer consolidation **approved by the founder**, explicitly sequenced to begin only after this migration's deployment was verified (now true) — **not yet started this session**, next unit of work. |
 
 ## Phases 4–8
 
