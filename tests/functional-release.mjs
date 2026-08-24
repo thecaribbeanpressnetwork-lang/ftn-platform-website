@@ -511,6 +511,86 @@ await scenario('clock-personalize-share-and-fullscreen', async page=>{
   assert(m.sh-m.ih<=2 && m.sw-m.iw<=2, 'Clock fullscreen does not fit the viewport: '+JSON.stringify(m));
 });
 
+await scenario('clock-fullscreen-composition-invariants', async page=>{
+  // Founder blocker: fullscreen Clock with Radio expanded clipped the clock, overlapped World Now,
+  // and the sitewide FTN ibis floating widget sat on top of the radio controls -- fullscreen is a
+  // DISPLAY MODE where the time must stay dominant and every other layer must adapt around it, not
+  // intrude on it. Regression-guard real rendered geometry (bounding boxes, intersections), not
+  // just an overflow number, and guard the composition survives the full realistic sequence:
+  // enable optional layers, expand radio, enter fullscreen, then exit without losing state.
+  await open(page,'/clock/');
+  await page.waitForSelector('#clock-face-analog');
+  await page.click('#clock-personalize-toggle');
+  await page.waitForSelector('#clock-personalize:not([hidden])');
+  await page.click('#clock-toggle-worldnow');
+  await page.waitForSelector('.clock-worldnow__item');
+  await page.click('#clock-toggle-radio');
+  await page.waitForSelector('.ftn-radio-live',{state:'attached',timeout:10000});
+  await page.click('#clock-radio-indicator');
+  await page.waitForSelector('.ftn-radio-live',{state:'visible',timeout:10000});
+  await page.evaluate(()=>document.body.classList.add('clock-fullscreen'));
+  await page.waitForTimeout(300);
+  const geometry=await page.evaluate(()=>{
+    function rect(el){if(!el)return null;const r=el.getBoundingClientRect();return{top:r.top,left:r.left,right:r.right,bottom:r.bottom};}
+    function intersects(a,b){if(!a||!b)return false;return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;}
+    const face=rect(document.querySelector('.clock-face:not([hidden])'));
+    const radio=rect(document.getElementById('clock-radio'));
+    const worldnow=rect(document.getElementById('clock-worldnow'));
+    const ibisWidget=document.getElementById('ibis-widget-trigger');
+    return{
+      overflowX:document.documentElement.scrollWidth-window.innerWidth,
+      overflowY:document.documentElement.scrollHeight-window.innerHeight,
+      face,
+      faceFullyVisible: face ? (face.top>=-1 && face.left>=-1 && face.right<=window.innerWidth+1 && face.bottom<=window.innerHeight+1) : false,
+      faceRadioIntersect:intersects(face,radio),
+      faceWorldIntersect:intersects(face,worldnow),
+      worldRadioIntersect:intersects(worldnow,radio),
+      ibisWidgetVisible: ibisWidget ? getComputedStyle(ibisWidget).display!=='none' : false,
+    };
+  });
+  assert(geometry.overflowX<=2,'Clock fullscreen has horizontal overflow: '+geometry.overflowX+'px');
+  assert(geometry.overflowY<=2,'Clock fullscreen has vertical overflow: '+geometry.overflowY+'px');
+  assert(geometry.faceFullyVisible,'Clock face is not fully visible inside the fullscreen viewport: '+JSON.stringify(geometry.face));
+  assert(!geometry.faceRadioIntersect,'Clock face intersects the radio card in fullscreen');
+  assert(!geometry.faceWorldIntersect,'Clock face intersects World Now in fullscreen');
+  assert(!geometry.worldRadioIntersect,'World Now intersects the radio card in fullscreen');
+  assert(!geometry.ibisWidgetVisible,'The sitewide FTN ibis widget trigger must not intrude on Clock fullscreen');
+  // Exiting must preserve the radio's expanded state and leave no overflow behind on the normal page.
+  await page.evaluate(()=>document.body.classList.remove('clock-fullscreen'));
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#clock-radio-shell').getAttribute('hidden'),null,'exiting fullscreen collapsed the radio card instead of preserving its state');
+  const afterExitOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
+  assert(afterExitOverflow<=3,'Normal page has horizontal overflow after exiting Clock fullscreen: '+afterExitOverflow+'px');
+});
+
+await scenario('clock-fullscreen-mobile-digital-composition', async page=>{
+  // Same composition invariants at a narrow, short viewport with the digital face active --
+  // the digital time's font-size formula previously used a pure vh-based clamp() that overflowed
+  // horizontally on tall-but-narrow phones (390x844); min(vh,vw) fixed it. Regression-guard that
+  // fix specifically, plus the same intersection/overflow invariants as the desktop scenario.
+  await open(page,'/clock/');
+  await page.waitForSelector('#clock-face-analog');
+  await page.click('#clock-personalize-toggle');
+  await page.waitForSelector('#clock-personalize:not([hidden])');
+  await page.click('[data-clock-style="digital"]');
+  await page.click('#clock-toggle-radio');
+  await page.waitForSelector('.ftn-radio-live',{state:'attached',timeout:10000});
+  await page.click('#clock-radio-indicator');
+  await page.waitForSelector('.ftn-radio-live',{state:'visible',timeout:10000});
+  await page.evaluate(()=>document.body.classList.add('clock-fullscreen'));
+  await page.waitForTimeout(300);
+  const geometry=await page.evaluate(()=>{
+    const r=document.getElementById('clock-face-digital').getBoundingClientRect();
+    return{
+      overflowX:document.documentElement.scrollWidth-window.innerWidth,
+      digitalFace:{top:r.top,left:r.left,right:r.right,bottom:r.bottom},
+      digitalFaceFullyVisible: r.left>=-1 && r.right<=window.innerWidth+1,
+    };
+  });
+  assert(geometry.overflowX<=2,'Clock fullscreen has horizontal overflow at mobile width: '+geometry.overflowX+'px');
+  assert(geometry.digitalFaceFullyVisible,'Digital clock face overflows the mobile viewport width: '+JSON.stringify(geometry.digitalFace));
+}, {width:390,height:844});
+
 for (const path of ['/about/','/applications/','/contact/','/news/','/insights/','/resources/','/top-picks/','/trust/','/glossary/','/investor-room/','/display/','/clock/','/learn/']) {
   await scenario('route-'+path.replaceAll('/','-'), async page=>{await open(page,path);assert(await page.locator('main').count()===1);});
 }

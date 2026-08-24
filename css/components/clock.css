@@ -310,14 +310,24 @@
 .clock-explore a { color: var(--color-silver); font-size: 13px; text-decoration: none; }
 .clock-explore a:hover { color: var(--color-red-on-dark); }
 
-/* ---- Fullscreen: one screen, nothing else ---- */
+/* ---- Fullscreen: a deliberately designed display, not the ordinary page enlarged ----
+   Founder walkthrough: fullscreen previously just clipped page overflow (height:100vh +
+   overflow:hidden) with no actual composition -- the expanded Radio shell (the full discovery/
+   catalogue/schedule/recently-played widget shared with /radio/) rendered at its normal full-page
+   size below the clock, so it clipped, overlapped World Now, and squeezed the clock face itself
+   whenever it was taller than the leftover space. Rebuilt as a genuine 3-row grid (topbar / clock
+   stage / radio) where the clock stage always gets priority and the radio row is capacity-capped,
+   never allowed to grow past a bounded share of the screen regardless of what's inside it. */
 body.clock-fullscreen .site-header,
 body.clock-fullscreen .site-footer,
 body.clock-fullscreen .clock-explore,
 body.clock-fullscreen .clock-topbar__mark,
 body.clock-fullscreen #clock-personalize-toggle,
 body.clock-fullscreen #clock-share,
-body.clock-fullscreen #clock-install {
+body.clock-fullscreen #clock-install,
+body.clock-fullscreen .clock-secondary-actions,
+body.clock-fullscreen #ibis-widget-trigger,
+body.clock-fullscreen #ibis-widget-panel {
   display: none;
 }
 
@@ -329,11 +339,16 @@ body.clock-fullscreen .clock-screen {
   box-sizing: border-box;
   height: 100vh;
   width: 100vw;
-  overflow: hidden;
   padding: 13px 21px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "topbar" "stage" "radio";
+  gap: 8px;
+  overflow: hidden;
 }
 
 body.clock-fullscreen .clock-topbar {
+  grid-area: topbar;
   justify-content: flex-end;
 }
 
@@ -349,6 +364,113 @@ body.clock-fullscreen #clock-fullscreen-toggle:focus-visible {
 }
 
 body.clock-fullscreen .clock-personalize { display: none !important; }
+
+/* Clock stage always wins the height fight: min-height:0 lets it genuinely shrink inside the
+   grid row instead of forcing the row (and the radio row after it) to overflow, and the face
+   sizes below are vh-capped with real headroom under every tested viewport (390x844 through
+   1080x1920) so the clock stays fully visible even with Radio expanded and World Now on. */
+body.clock-fullscreen .clock-stage {
+  grid-area: stage;
+  min-height: 0;
+  gap: 13px;
+  padding: 8px 0;
+}
+
+body.clock-fullscreen .clock-analog-svg {
+  width: min(38vh, 360px, 55vw);
+  height: min(38vh, 360px, 55vw);
+}
+
+/* min(vh, vw) deliberately, not vh alone: a purely height-based formula measured "12:34:56 PM"
+   580px wide at 390px viewport width (real overflow found by the actual test matrix below, not
+   assumed) -- the analog face was already width-safe via its own 55vw cap, digital/minimal
+   weren't. */
+body.clock-fullscreen .clock-digital__time {
+  font-size: clamp(2rem, min(15vh, 13vw), 7rem);
+}
+
+body.clock-fullscreen .clock-minimal__time {
+  font-size: clamp(2.5rem, min(18vh, 20vw), 9rem);
+}
+
+/* World Now lives inside the stage, never the radio row -- structurally impossible for the two
+   to overlap now that they're separate grid rows. flex-wrap already prevents horizontal overflow;
+   the reduced item size here just keeps it visually subordinate to the clock at small heights. */
+body.clock-fullscreen .clock-worldnow {
+  gap: 8px 13px;
+}
+
+body.clock-fullscreen .clock-worldnow__item {
+  padding: 6px 10px;
+}
+
+/* Radio row: capacity-capped regardless of what's inside it (collapsed pill or expanded shell),
+   so it can never push the clock stage below its fair share. */
+body.clock-fullscreen .clock-radio {
+  grid-area: radio;
+  width: min(640px, 92vw);
+  max-height: 32vh;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+body.clock-fullscreen #clock-radio-shell:not([hidden]) {
+  overflow-y: auto;
+  max-height: calc(32vh - 52px);
+}
+
+/* Radio expanded in fullscreen: a compact "Now Playing" card, not the full /radio/ discovery
+   page. Reuses the exact same shared DOM/JS (js/radio-player.js) -- playback state, PLAY/NEXT
+   handlers, everything -- only the presentation changes. High-specificity selectors (body class +
+   #clock-radio-shell id) are required to beat the widget's own <style> tag, which is injected
+   into the document later than this stylesheet and would otherwise win on source order alone. */
+body.clock-fullscreen #clock-radio-shell .ftn-radio-live {
+  display: block;
+  margin-top: 0;
+}
+
+body.clock-fullscreen #clock-radio-shell .ftn-radio-live__catalog,
+body.clock-fullscreen #clock-radio-shell .ftn-radio-schedule,
+body.clock-fullscreen #clock-radio-shell .ftn-radio-recent,
+body.clock-fullscreen #clock-radio-shell > .ftn-radio-live > .ftn-radio-live__status,
+body.clock-fullscreen #clock-radio-shell #ftn-radio-favourite,
+body.clock-fullscreen #clock-radio-shell #ftn-radio-share,
+body.clock-fullscreen #clock-radio-shell .ftn-radio-yt-note {
+  display: none !important;
+}
+
+body.clock-fullscreen #clock-radio-shell .ftn-radio-live__player {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 13px;
+  position: static;
+  border-radius: 13px;
+  padding: 8px;
+}
+
+body.clock-fullscreen #clock-radio-shell .ftn-radio-live__video {
+  width: 96px;
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+}
+
+body.clock-fullscreen #clock-radio-shell .ftn-radio-live__now {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+}
+
+body.clock-fullscreen #clock-radio-shell .ftn-radio-live__now strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.clock-fullscreen #clock-radio-shell .ftn-radio-live__controls {
+  margin-top: 6px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .clock-screen * { transition: none !important; }
