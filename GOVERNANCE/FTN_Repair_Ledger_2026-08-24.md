@@ -82,13 +82,28 @@ that check is `continue-on-error: true` by the workflow's own explicit design (r
 variance — weather, clock digits, satellite imagery — not a fixed-tolerance defect), so it does not
 gate the release. Not investigated further this pass; flagged here rather than silently ignored.
 
-## Phases 3–8
+## Phase 3 — Product Registry and FTN Live consolidation (started 2026-08-24)
 
-Not started this pass. Each covers enough surface (full accessibility sweep, Product Registry
-consolidation, ibis source routing rebuild, a new FTN Statistics product with real source
-adapters, a full per-product completion pass across ~15 products, cross-browser/cross-viewport
-human QA, and revenue-readiness prep) to be its own multi-session body of work — see the audit
-report itself, §18, for the phase-by-phase scope. Recorded here as open, not silently dropped.
+Full analysis, schema proposal, responsibility matrix and decision gate live in
+`GOVERNANCE/FTN_Phase3_Product_Registry_and_Live_Consolidation_2026-08-24.md` — not duplicated
+here. Summary:
+
+| Item | Status |
+|---|---|
+| VERSION.md deployment-path reconciliation (Cloudflare Pages confirmed, GitHub Pages parallel) | Deployed and verified live (commit `cc64fc3`). |
+| Current-state duplication map (6 sources of product data found, only 2 registry-driven) | Documented. |
+| Product Registry schema extension (additive: `purposeStatement`, `routeAliases`, `navPlacement`, `authRequirement`, `dataProduced`, `integrations`, `provenanceLevel`, `ownerModules`, `analyticsId`) | Deployed and verified live (commit `5cc68fb`); populated for the 4 real registry entries under analysis (`ftn-live`/Observer, `display`, `screen`, `tv`). |
+| `sitemap.xml` converted from hand-maintained to registry-generated (`scripts/generate-sitemap.mjs`) | Deployed and verified live (commit `08042e7`); `--check` mode confirms zero URLs added/removed, ordering only. |
+| Live/Observer/NOW/Display/Screen responsibility matrix | Documented — **flags a direct conflict** between the founder brief's target architecture (revive "FTN Live" as an umbrella, Observer becomes a console within it) and a prior recorded decision in this same codebase ("Ecosystem Simplification pass," `js/product-registry-data.js` + `js/nav.js` comments, `.claude/context/products.md` "Superseded naming" section) that deliberately retired both "FTN Live" and "NOW" as independent identities. **Awaiting founder confirmation before any route/name change** — recommended interim: formalize the current Observer/Display split in the registry (done, above) rather than infer a reversal from the brief alone. |
+| 32-file footer duplication, `PRIMARY_NAV` consolidation, `service-worker.js` private-route consolidation | Mapped and sequenced (governance doc §5), **not started** — each is real duplication but higher blast-radius than this increment; footer alone touches 32 files. |
+
+## Phases 4–8
+
+Not started this pass. Each covers enough surface (ibis source routing rebuild, a new FTN
+Statistics product with real source adapters, a full per-product completion pass across ~15
+products, cross-browser/cross-viewport human QA, and revenue-readiness prep) to be its own
+multi-session body of work — see the audit report itself, §18, for the phase-by-phase scope.
+Recorded here as open, not silently dropped.
 
 ## Known blockers for this session
 
