@@ -385,6 +385,20 @@ await scenario('observer-hero-clocks-no-clipping', async page=>{
   assert.equal(await page.locator('#pause-toggle').count(),0,'Observer hero still promotes a control for pausing modelled counters');
 }, {width:1024,height:900});
 
+await scenario('observer-public-trust-score-opens-evidence', async page=>{
+  await open(page,'/observatory/');
+  await page.waitForSelector('.indicator-card [data-trust-card]',{state:'visible'});
+  const wall=page.locator('#indicator-wall');
+  assert.equal(await wall.getByText(/FTN Modelled|FTN Derived|FTN Estimated|Illustrative/i).count(),0,'technical evidence classifications are exposed on the public indicator wall');
+  assert.match(await wall.locator('.trust-badge').first().innerText(),/^Trust Score \d+\/100$/,'public indicator badge does not show a Trust Score');
+  await wall.locator('[data-trust-card]').first().click();
+  const dialog=page.locator('#trust-card-dialog');
+  await dialog.waitFor({state:'visible'});
+  assert.match(await dialog.innerText(),/How this Trust Score is calculated/,'Trust Score explanation is missing from the Trust Card');
+  assert.doesNotMatch(await dialog.innerText(),/FTN Modelled|FTN Derived|FTN Estimated|Illustrative/i,'internal data-state language leaked into the visitor-facing Trust Card');
+  assert.match(await dialog.innerText(),/Score = identifiable-source base/,'Trust Score traceability formula is missing');
+});
+
 await scenario('display-network-studio', async page=>{
   await open(page,'/display-network/');await page.waitForSelector('#dn-add-content',{timeout:10000});
   assert.match(await page.locator('.dn-opening-actions').innerText(),/Host a screen.*verified message/is);await page.fill('#dn-content-title','Flood warning test');await page.fill('#dn-content-message','Avoid the low-lying road until cleared.');await page.click('#dn-add-content');assert.match(await page.locator('#dn-preview').innerText(),/Flood warning test/);assert(await page.locator('.dn-item').count()>0);

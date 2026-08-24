@@ -692,9 +692,9 @@
       '<article class="observer-math__edge">' +
         '<h3>' + esc(edge.title) + '</h3>' +
         '<p class="observer-math__status">Current status: <strong>' + esc(edge.status) + '</strong></p>' +
-        '<p><strong>Methodology:</strong> ' + esc(full.methodology || edge.methodology || '') + '</p>' +
-        (full.limitations ? '<p><strong>Limitations:</strong> ' + esc(full.limitations) + '</p>' : '') +
-        '<p class="observer-math__meta">Classification: ' + esc(full.classification || 'Illustrative') + ' · Geographic coverage: ' + esc(full.geoCoverage || 'National') + '</p>' +
+        '<p><strong>Methodology:</strong> ' + esc(global.FTN && global.FTN.TrustCard ? global.FTN.TrustCard.publicCopy(full.methodology || edge.methodology || '') : (full.methodology || edge.methodology || '')) + '</p>' +
+        (full.limitations ? '<p><strong>Limitations:</strong> ' + esc(global.FTN && global.FTN.TrustCard ? global.FTN.TrustCard.publicCopy(full.limitations) : full.limitations) + '</p>' : '') +
+        '<p class="observer-math__meta">' + esc(global.FTN && global.FTN.TrustCard ? global.FTN.TrustCard.trustScoreLabel(full) : 'Trust details available') + ' · Geographic coverage: ' + esc(full.geoCoverage || 'National') + '</p>' +
       '</article>';
   }
 

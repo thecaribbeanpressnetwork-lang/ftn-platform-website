@@ -395,7 +395,7 @@
     mount.innerHTML = MC.externalFactors.map(function (f) {
       return (
         '<div class="module-card">' +
-          '<span class="module-card__status module-card__status--planned">Illustrative</span>' +
+          '<span class="module-card__status module-card__status--planned">Working preview</span>' +
           '<h3>' + f.title + '</h3>' +
           '<p>' + f.summary + '</p>' +
           '<p class="u-text-sm u-mt-8"><strong>Connects to:</strong> ' + f.connects.join(', ') + '</p>' +

@@ -12,7 +12,7 @@ function globalTruth(){
 function aboutTruth(){
   var map={
     'Community Connect':['Flagship App','Connect. Report. Improve.'],
-    'Mission Control':['Working Illustrative','Evidence, calculated relationships and scenario exploration.'],
+    'Mission Control':['Working Preview','Evidence, calculated relationships and scenario exploration.'],
     'Face The Nation':['Programme Hub','Interviews, public affairs and national conversation.'],
     'FTN Observer':['Working Foundation','Investigate current Caribbean satellite imagery, source-backed signals and change radar.'],
     'FTN Events':['Working MVP','Plan, procure and operate Caribbean events.'],
@@ -44,7 +44,7 @@ function sitemapTruth(){textReplace(document.body,'National Observatory','FTN Ob
 function insightsTruth(){
   document.querySelectorAll('a[href="/news/"],a[href="/news"]').forEach(function(a){a.href='/kaiso/';if(/news/i.test(a.textContent||''))a.textContent='Open FTN Kaiso';});
   var community=document.querySelector('#community-reports .chart-card');
-  if(community)community.innerHTML='<p><strong>Community data stays permission-aware.</strong> Community Connect information is not automatically published into Insights or Mission Control. When FTN presents aggregated community patterns here, the view must identify its source, date, classification and privacy boundary.</p><p class="u-mt-16"><a href="/kaiso/">Open FTN Kaiso for current source discovery and newsroom verification →</a></p>';
+  if(community)community.innerHTML='<p><strong>Community data stays permission-aware.</strong> Community Connect information is not automatically published into Insights or Mission Control. When FTN presents aggregated community patterns here, the view must identify its source, date, Trust Score and privacy boundary.</p><p class="u-mt-16"><a href="/kaiso/">Open FTN Kaiso for current source discovery and newsroom verification →</a></p>';
   var live=document.querySelector('a.module-card[href="/observatory/"] p');
   if(live)live.textContent='Current Caribbean satellite imagery, connected public sources and clearly classified national indicator context.';
   var mc=document.querySelector('a.module-card[href="/scenario-workspace/"] p');

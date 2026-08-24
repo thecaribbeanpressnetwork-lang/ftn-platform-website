@@ -21,7 +21,7 @@
       '<button type="button" class="trust-card__close" data-cp-close aria-label="Close">' +
         '<img src="/assets/icons/icon-close.svg" alt="" width="16" height="16">' +
       '</button>' +
-      '<span class="trust-badge ' + global.FTN.TrustCard.classificationBadgeClass(p.classification) + '">' + p.classification + '</span>' +
+      '<span class="trust-badge ' + global.FTN.TrustCard.trustScoreBadgeClass(p) + '">' + global.FTN.TrustCard.trustScoreLabel(p) + '</span>' +
       '<h2 id="communityProfileTitle" class="trust-card__title">' + p.name + '</h2>' +
       '<p class="trust-card__why">' + p.overview + '</p>' +
       '<dl class="trust-card__fields">' +

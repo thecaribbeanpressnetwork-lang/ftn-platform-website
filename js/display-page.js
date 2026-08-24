@@ -7,6 +7,14 @@
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+  function scoreClass(ind) {
+    return global.FTN.TrustCard ? global.FTN.TrustCard.trustScoreBadgeClass(ind) : '';
+  }
+
+  function scoreLabel(ind) {
+    return global.FTN.TrustCard ? global.FTN.TrustCard.trustScoreLabel(ind) : 'Open Trust Score';
+  }
+
   // ---- Clock + weather brief ----
   function initClock() {
     var clockEl = document.getElementById('display-clock');
@@ -32,7 +40,7 @@
 
   function pulseCardHTML(ind) {
     if (!ind) return '';
-    var badgeClass = global.FTN.TrustCard ? global.FTN.TrustCard.classificationBadgeClass(ind.classification) : '';
+    var badgeClass = scoreClass(ind);
     var valueHTML = ind.isLiveClock
       ? '<span data-live-clock="' + esc(ind.id) + '">' + esc(ind.value) + '</span>'
       : esc(ind.value);
@@ -44,8 +52,8 @@
         '<p class="pulse-card__value">' + valueHTML + (ind.units && !noValue ? ' <span>' + esc(ind.units) + '</span>' : '') + '</p>' +
         (noValue ? '<p class="pulse-card__note">Not yet available — no fabricated figure.</p>' : '') +
         '<div class="pulse-card__meta">' +
-          '<span class="trust-badge ' + badgeClass + '">' + esc(ind.classification) + '</span>' +
-          '<button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(ind.id) + '">Trust Card</button>' +
+          '<span class="trust-badge ' + badgeClass + '">' + esc(scoreLabel(ind)) + '</span>' +
+          '<button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(ind.id) + '">Open Trust Score</button>' +
           (hasMath ? '<button type="button" class="trust-trigger trust-trigger--on-dark" data-see-math="' + esc(ind.id) + '">See the Math →</button>' : '') +
         '</div>' +
       '</article>'
@@ -72,7 +80,7 @@
           '<p class="display-customize__eyebrow">SEE THE MATH</p>' +
           '<h2 id="display-math-title" class="display-customize__title">' + esc(ind.title) + '</h2>' +
           '<div class="display-math">' + content + '</div>' +
-          '<p class="display-math__note">FTN-modelled interpolation, not a second independently measured figure. Full methodology and source: open its Trust Card.</p>';
+          '<p class="display-math__note">This interpolation is not a second independently measured figure. Full methodology and source: open its Trust Score.</p>';
         panel.querySelector('[data-sheet-close]').addEventListener('click', function () { Sheet.close(); });
       }
     });
@@ -100,7 +108,7 @@
   var CONDITION_IDS = ['flood-alerts', 'utility-outages', 'traffic-index'];
 
   function classificationRowHTML(ind) {
-    var badgeClass = global.FTN.TrustCard ? global.FTN.TrustCard.classificationBadgeClass(ind.classification) : '';
+    var badgeClass = scoreClass(ind);
     var noValue = ind.value === '—' || ind.value === '-';
     return (
       '<div class="condition-row' + (noValue ? ' condition-row--empty' : '') + '">' +
@@ -108,8 +116,8 @@
         (noValue
           ? '<span class="condition-row__note">Not yet available</span>'
           : '<strong>' + esc(ind.value) + ' ' + esc(ind.units) + '</strong>') +
-        '<span class="trust-badge ' + badgeClass + '">' + esc(ind.classification) + '</span>' +
-        '<button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(ind.id) + '">Trust Card</button>' +
+        '<span class="trust-badge ' + badgeClass + '">' + esc(scoreLabel(ind)) + '</span>' +
+        '<button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(ind.id) + '">Open Trust Score</button>' +
       '</div>'
     );
   }
@@ -205,11 +213,11 @@
     var root = document.getElementById('display-world-economy');
     if (!root || !global.FTN.getIndicator) return;
     var fx = global.FTN.getIndicator('exchange-rate');
-    var badgeClass = fx && global.FTN.TrustCard ? global.FTN.TrustCard.classificationBadgeClass(fx.classification) : '';
+    var badgeClass = fx ? scoreClass(fx) : '';
     root.innerHTML =
       '<div class="world-economy__row">' +
         '<span>USD/TTD</span><strong>' + (fx ? esc(fx.value) : '—') + '</strong>' +
-        (fx ? '<span class="trust-badge ' + badgeClass + '">' + esc(fx.classification) + '</span><button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(fx.id) + '">Trust Card</button>' : '') +
+        (fx ? '<span class="trust-badge ' + badgeClass + '">' + esc(scoreLabel(fx)) + '</span><button type="button" class="trust-trigger trust-trigger--on-dark" data-trust-card="' + esc(fx.id) + '">Open Trust Score</button>' : '') +
       '</div>' +
       '<div class="world-economy__row world-economy__row--muted"><span>CAD, GBP, EUR</span><strong>Not yet available</strong></div>';
     root.querySelectorAll('[data-trust-card]').forEach(function (btn) {

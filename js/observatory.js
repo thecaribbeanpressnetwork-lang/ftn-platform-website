@@ -4,8 +4,12 @@
 
   // Shared across the platform (js/trust-card.js, js/charts.js) — see
   // CLAUDE.md §7.7 Reality Engine. Do not reintroduce a local copy here.
-  function classificationClass(c) {
-    return global.FTN.TrustCard.classificationBadgeClass(c);
+  function trustScoreClass(ind) {
+    return global.FTN.TrustCard.trustScoreBadgeClass(ind);
+  }
+
+  function trustScoreLabel(ind) {
+    return global.FTN.TrustCard.trustScoreLabel(ind);
   }
 
   function trendGlyph(trend) {
@@ -32,7 +36,7 @@
     return (
       '<article class="indicator-card indicator-card--' + ind.status + '" data-category="' + ind.category + '">' +
         '<div class="indicator-card__top">' +
-          '<span class="trust-badge ' + classificationClass(ind.classification) + '">' + ind.classification + '</span>' +
+          '<span class="trust-badge ' + trustScoreClass(ind) + '">' + trustScoreLabel(ind) + '</span>' +
           (ind.status !== 'normal' ? '<span class="indicator-card__status indicator-card__status--' + ind.status + '">' + ind.status + '</span>' : '') +
         '</div>' +
         '<h3 class="indicator-card__title">' + ind.title + '</h3>' +
@@ -44,7 +48,7 @@
           sourceHTML(ind) +
           '<span class="icon-row">' +
             (ind.communityProfileKey ? '<button type="button" class="trust-trigger" data-community-profile="' + ind.communityProfileKey + '">Profile</button>' : '') +
-            '<button type="button" class="trust-trigger" data-trust-card="' + ind.id + '">Trust Card</button>' +
+            '<button type="button" class="trust-trigger" data-trust-card="' + ind.id + '">Open Trust Score</button>' +
           '</span>' +
         '</div>' +
       '</article>'

@@ -32,6 +32,16 @@
     return lastUpdated + ' (' + age + ')';
   }
 
+  function publicCopy(value) {
+    return String(value == null ? '' : value)
+      .replace(/FTN[ -]Modelled:?/gi, 'FTN calculation:')
+      .replace(/FTN[ -]Derived:?/gi, 'FTN calculation:')
+      .replace(/FTN[ -]Estimated:?/gi, 'FTN estimate:')
+      .replace(/\billustrative\b/gi, 'reference')
+      .replace(/\bmodelled\b/gi, 'calculated')
+      .replace(/\bderived\b/gi, 'calculated');
+  }
+
   function fieldRow(label, value) {
     if (value === undefined || value === null || value === '') return '';
     return '<div class="trust-card__row"><dt>' + label + '</dt><dd>' + value + '</dd></div>';
@@ -65,6 +75,44 @@
     return map[classification] || 'trust-badge--demo';
   }
 
+  // Public-facing Trust Score. This measures traceability and disclosure, not whether FTN can
+  // certify the upstream publisher's collection process. Internal rendering-state labels do not
+  // affect the score and are never exposed to visitors.
+  function trustScore(data) {
+    data = data || {};
+    var base = data.sourceId ? 66 : 36;
+    var sourcePoints = (data.secondarySourceId ? 7 : 0) + (data.comparisonSourceId ? 4 : 0);
+    var methodPoints = data.methodology ? 12 : 0;
+    var limitationPoints = data.limitations ? 4 : 0;
+    var freshnessPoints = 0;
+    if (data.lastUpdated) {
+      var updated = new Date(data.lastUpdated);
+      if (!isNaN(updated.getTime())) {
+        var ageDays = Math.max(0, Math.round((Date.now() - updated.getTime()) / 86400000));
+        freshnessPoints = ageDays <= 31 ? 3 : ageDays <= 183 ? 1 : ageDays > 730 ? -6 : -2;
+      }
+    }
+    return Math.max(0, Math.min(99, Math.round(base + sourcePoints + methodPoints + limitationPoints + freshnessPoints)));
+  }
+
+  function trustScoreLabel(data) {
+    return 'Trust Score ' + trustScore(data) + '/100';
+  }
+
+  function trustScoreBadgeClass(data) {
+    var score = trustScore(data);
+    if (score >= 85) return 'trust-badge--official';
+    if (score >= 70) return 'trust-badge--sourced';
+    if (score >= 50) return 'trust-badge--estimated';
+    return 'trust-badge--demo';
+  }
+
+  function trustScoreDetailsHTML(data) {
+    return '<details class="trust-card__math"><summary>How this Trust Score is calculated</summary>' +
+      '<p><strong>' + trustScoreLabel(data) + '</strong> measures how clearly FTN can trace and explain this figure. It does not certify the upstream publisher\'s collection process.</p>' +
+      '<p>Score = identifiable-source base + source-coverage points + freshness adjustment + calculation-disclosure points + limitation-disclosure points, capped from 0 to 99.</p></details>';
+  }
+
   // "What influences it / what it influences" — Phase 4 Relationship Engine
   // linkage. Only renders for objects with a real indicator id; correlation
   // objects opened directly (Mission Control's Correlation Engine) don't
@@ -83,9 +131,9 @@
       var trigger = otherId
         ? '<button type="button" class="trust-trigger" data-trust-card="' + otherId + '">' + otherLabel + '</button>'
         : '<span>' + otherLabel + '</span>';
-      var evidence = Relationships.evidenceLabel ? Relationships.evidenceLabel(r) : null;
+      var evidence = Relationships.evidenceLabel ? publicCopy(Relationships.evidenceLabel(r)) : null;
       return '<li>' + arrow + ' <strong>' + verb + ':</strong> ' + trigger +
-        ' <span class="trust-card__rel-meta">(' + r.direction + ', ' + r.confidence.toLowerCase() + ' confidence' +
+        ' <span class="trust-card__rel-meta">(' + r.direction +
         (evidence ? ' · ' + evidence : '') + ')</span></li>';
     }).join('');
     var traceBtn = Relationships.traceEffects
@@ -125,7 +173,7 @@
     return (
       '<p>Estimated value = <strong>' + data.clock.baseValue.toLocaleString() + '</strong> (benchmark) ' +
       (rate >= 0 ? '+ ' : '- ') + Math.abs(rate).toLocaleString() + ' &times; seconds elapsed since the benchmark was set.</p>' +
-      '<p>That ' + direction + ' the displayed estimate by about ' + Math.abs(perDay).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' per day. This is an FTN-modelled interpolation between the benchmark and now — not a second, independently measured figure.</p>'
+      '<p>That ' + direction + ' the displayed estimate by about ' + Math.abs(perDay).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' per day. This is an interpolation between the disclosed benchmark and now — not a second, independently measured figure.</p>'
     );
   }
 
@@ -135,19 +183,18 @@
   }
 
   function render(data) {
-    var badgeClass = classificationBadgeClass(data.classification);
+    var badgeClass = trustScoreBadgeClass(data);
     panel.innerHTML =
       '<button type="button" class="trust-card__close" data-trust-close aria-label="Close">' +
         '<img src="/assets/icons/icon-close.svg" alt="" width="16" height="16">' +
       '</button>' +
-      '<span class="trust-badge ' + badgeClass + '">' + (data.classification || 'Illustrative') + '</span>' +
+      '<span class="trust-badge ' + badgeClass + '">' + trustScoreLabel(data) + '</span>' +
       '<h2 id="trustCardTitle" class="trust-card__title">' + data.title + '</h2>' +
       (data.value ? '<p class="trust-card__value">' + data.value + (data.units ? ' <span>' + data.units + '</span>' : '') + '</p>' : '') +
       (data.whyItMatters || WHY_IT_MATTERS[data.category]
-        ? '<p class="trust-card__why">' + (data.whyItMatters || WHY_IT_MATTERS[data.category]) + '</p>' : '') +
+        ? '<p class="trust-card__why">' + publicCopy(data.whyItMatters || WHY_IT_MATTERS[data.category]) + '</p>' : '') +
       '<dl class="trust-card__fields">' +
-        fieldRow('Confidence', data.confidence) +
-        fieldRow('Methodology', data.methodology) +
+        fieldRow('Methodology', publicCopy(data.methodology)) +
         (data.sourceId
           ? sourceLinkRow('Primary source', data.sourceId, 'primary benchmark source')
           : fieldRow('Source', data.sourceName)) +
@@ -158,9 +205,10 @@
         fieldRow('Time coverage', data.timeCoverage) +
         fieldRow('Geographic coverage', data.geoCoverage) +
         fieldRow('Sample size', data.sampleSize) +
-        fieldRow('Limitations', data.limitations) +
-        fieldRow('Contradictory evidence', data.contradictoryEvidence) +
+        fieldRow('Limitations', publicCopy(data.limitations)) +
+        fieldRow('Contradictory evidence', publicCopy(data.contradictoryEvidence)) +
       '</dl>' +
+      trustScoreDetailsHTML(data) +
       seeTheMathHTML(data) +
       relationshipsHTML(data);
   }
@@ -249,5 +297,14 @@
   }
 
   global.FTN = global.FTN || {};
-  global.FTN.TrustCard = { open: open, close: close, classificationBadgeClass: classificationBadgeClass, mathContentHTML: mathContentHTML };
+  global.FTN.TrustCard = {
+    open: open,
+    close: close,
+    classificationBadgeClass: classificationBadgeClass,
+    trustScore: trustScore,
+    trustScoreLabel: trustScoreLabel,
+    trustScoreBadgeClass: trustScoreBadgeClass,
+    publicCopy: publicCopy,
+    mathContentHTML: mathContentHTML
+  };
 })(window);
