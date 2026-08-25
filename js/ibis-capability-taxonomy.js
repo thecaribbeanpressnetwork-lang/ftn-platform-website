@@ -91,6 +91,14 @@
     // following the same "do not register capabilities merely because they've been named" rule
     // already established for CARIBBEAN_LANGUAGE_ID above.
     RESEARCH: ['LIVE_INTELLIGENCE'],
+    // Phase 5B (FTN Statistics ibis querying directive): a single real capability -- deterministic
+    // querying of the shared js/ftn-statistics.js contract -- distinct from ordinary TEXT/RESEARCH,
+    // which answer from model knowledge or live web search rather than a verified internal dataset.
+    // Only registered because a real, working, zero-cost implementation exists
+    // (js/ibis-statistics-capability.js, provider ibis-local-statistics-query), following the same
+    // "do not register capabilities merely because they've been named" rule already established for
+    // CARIBBEAN_LANGUAGE_ID/LIVE_INTELLIGENCE above.
+    STATISTICS: ['STATISTIC_QUERY'],
   };
 
   // Shipped-string -> canonical-equivalent, or null where the shipped string covers ground the

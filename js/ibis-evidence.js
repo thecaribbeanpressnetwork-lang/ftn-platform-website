@@ -54,6 +54,13 @@
     if (Array.isArray(input.routingPath) && input.routingPath.length > 1) return true;
     // Rule 2: capabilities/results that are inherently external-evidence-bearing.
     if (input.capability === 'LIVE_INTELLIGENCE') return true;
+    // Phase 5B: every FTN Statistics answer traces to a real government source -- the founder's
+    // own instruction is a Trust Card for EVERY statistical response, not only when a caller
+    // remembers to pass `sources`. js/ftn-statistics.js's provenanceFor() always stamps
+    // capability:'STATISTIC' (regardless of whether a caller reaches it via ibis or renders it
+    // directly, e.g. js/crime-intelligence.js/js/fx-intelligence.js's own Trust Card triggers), so
+    // this rule covers both paths with one line rather than two.
+    if (input.capability === 'STATISTIC') return true;
     if (Array.isArray(input.sources) && input.sources.length > 0) return true;
     // Rule 3: clearly labelled deterministic tools are evidence-optional by design.
     if (DETERMINISTIC_TOOL_CAPABILITIES.indexOf(input.capability) !== -1) return false;

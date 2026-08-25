@@ -31,6 +31,12 @@ assert.equal(Evidence.isEvidenceRequired({ capability: 'TEXT', routingPath: ['pr
 assert.equal(Evidence.isEvidenceRequired({ capability: 'LIVE_INTELLIGENCE' }), true, 'LIVE_INTELLIGENCE must always require evidence -- current facts/live conditions');
 assert.equal(Evidence.isEvidenceRequired({ capability: 'TEXT', sources: [{ url: 'https://example.com' }] }), true, 'a result carrying real external sources must require evidence regardless of capability');
 assert.equal(Evidence.isEvidenceRequired({ capability: 'TEXT', sources: [] }), false, 'an empty sources array must not force evidence');
+// Phase 5B: STATISTIC must always require evidence, matching the founder's explicit "Trust Card
+// for every statistical response" instruction -- independent of whether a caller also passes
+// `sources` (defense in depth, not redundant: js/ftn-statistics.js's provenanceFor() always stamps
+// this capability regardless of caller).
+assert.equal(Evidence.isEvidenceRequired({ capability: 'STATISTIC' }), true, 'STATISTIC must always require evidence, even with no degradedState/sources/routingPath present');
+assert.equal(Evidence.isEvidenceRequired({ capability: 'STATISTIC', degradedState: 'NO_VERIFIED_VALUE' }), true);
 
 // Rule 3: clearly labelled deterministic tools are evidence-optional by design.
 for (const cap of Evidence.DETERMINISTIC_TOOL_CAPABILITIES) {

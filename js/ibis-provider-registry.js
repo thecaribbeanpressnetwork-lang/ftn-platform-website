@@ -450,6 +450,22 @@ var providers=[
     weightsAvailable:'YES_HUGGING_FACE_BYTEDANCE',sourceAvailable:'YES_GITHUB_BYTEDANCE',selfHostable:true,deploymentMethod:'PYTHON_DIFFUSERS_SELF_HOST_GPU',hardwareRequirements:'GPU_REQUIRED_V1_5_ABOUT_8GB_VRAM_INFERENCE_V1_6_ABOUT_18GB',verificationSource:'https://github.com/bytedance/LatentSync/blob/main/LICENSE; project README for VRAM figures',
     lifecycleState:'LICENSE_VERIFIED',
     note:'Apache 2.0, diffusion-based (Stable-Diffusion-derived) lip-sync at 512px resolution -- the highest visual-quality candidate researched, at a real VRAM cost (v1.5 ~8GB, the newer v1.6 ~18GB) higher than MuseTalk\'s real-time tier but still well below SadTalker\'s unquantified 3D-rendering pipeline. Same hardware blocker as every other entry in this group. The three LIP_SYNC self-host candidates now form a real quality/speed/VRAM spread (MuseTalk: fastest/lowest-VRAM/real-time-capable; LatentSync: highest fidelity; SadTalker: full head-motion via 3DMM) for a founder to choose from once GPU infrastructure is ever budgeted -- not a single arbitrary pick.'
+  },
+  {
+    // Phase 5B (FTN Statistics ibis querying directive): real, deterministic, zero-cost query
+    // engine over the shared js/ftn-statistics.js contract -- see js/ibis-statistics-capability.js.
+    // No language model is ever involved in this capability's data path (the founder's own
+    // instruction: never let a model invent, replace or update a missing observation) -- same
+    // "prefer local/deterministic operations" standard already established for ibis-local-dsp,
+    // ibis-local-project-qc and every other LOCAL_DETERMINISTIC_NO_PROVIDER entry in this registry.
+    id:'ibis-local-statistics-query',name:'ibis local statistics query (client-side, no model)',categories:['text'],capabilities:['STATISTIC_QUERY'],integration:'LOCAL_DETERMINISTIC_NO_PROVIDER',
+    apiStatus:'LIVE',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:false,prepaidRequired:false,enabled:true,costToIbis:'ZERO_COST_TO_IBIS',
+    website:null,apiUrl:null,pricingUrl:null,affiliateProgramUrl:null,
+    commercialUse:'NOT_APPLICABLE_FTN_OWNED_CODE_NO_THIRD_PARTY_MODEL',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-25',
+    userAuthorizationRequired:false,
+    weightsAvailable:'NOT_APPLICABLE_NO_MODEL',sourceAvailable:'YES_FTN_OWNED_js/ibis-statistics-capability.js',selfHostable:true,deploymentMethod:'BROWSER_CLIENT_SIDE_JAVASCRIPT_NO_SERVER',hardwareRequirements:'NONE_RUNS_ANYWHERE_JS_RUNS',verificationSource:'js/ibis-statistics-capability.js and tests/ibis-statistics-capability-audit.mjs (this repository)',
+    lifecycleState:'ELIGIBLE',
+    note:'A bounded, deterministic intent set (latest value, source/methodology, comparison, change, available indicators, why a figure is unavailable) over real Observation objects from js/ftn-statistics.js -- never a free-form query surface, never arbitrary code execution or raw file access. Comparisons and changes require the same indicatorId, unit and source dataset before computing (the crime-statistics safeguard generalized: a partial-year cumulative total is never blended with a full-year historical total just because both share an indicator id). Every successful or degraded answer carries a real provenance envelope via js/ftn-statistics.js\'s provenanceFor(), and js/ibis-evidence.js treats capability \'STATISTIC\' as always-evidence-required.'
   }
 ];
 // Phase 4A additive schema (routing config gap closed): no provider row above declares a

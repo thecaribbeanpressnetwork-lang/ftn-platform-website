@@ -38,6 +38,7 @@
       CaribbeanLanguageId: FTN.CaribbeanLanguageId || null,
       LiveResearch: FTN.LiveResearch || null,
       Auth: FTN.Auth || null,
+      Statistics: FTN.IbisStatistics || null,
     };
   }
 
@@ -221,6 +222,28 @@
       .catch(function () { return { success: false, latencyMs: Date.now() - startedAt, errorType: 'SERVER_ERROR' }; });
   }
 
+  // Phase 5B: STATISTIC_QUERY is deterministic and local (no network call, no model) -- it never
+  // "fails" as a provider the way a real API call can (timeout/network/server error). This
+  // executor therefore always resolves success:true at the transport level; whether the specific
+  // QUESTION could be answered is a data-shape fact carried inside data.success/data.reason (see
+  // js/ibis-statistics-capability.js's own query() return shape), not a routing-level failure --
+  // there is no second provider that would answer the same unanswerable question differently.
+  function callStatisticsQuery(provider, payload) {
+    var reg = registries();
+    if (provider.id !== 'ibis-local-statistics-query' || !reg.Statistics) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var text = payload && payload.text;
+    var catalog = payload && payload.catalog;
+    if (!text || !catalog) return Promise.resolve({ success: false, errorType: 'INVALID_REQUEST' });
+    var startedAt = Date.now();
+    var result;
+    try {
+      result = reg.Statistics.query(text, Object.assign({}, payload.options, { catalog: catalog }));
+    } catch (err) {
+      return Promise.resolve({ success: false, latencyMs: Date.now() - startedAt, errorType: 'SERVER_ERROR', errorDetail: err && err.message });
+    }
+    return Promise.resolve({ success: true, latencyMs: Date.now() - startedAt, data: result });
+  }
+
   function defaultExecutorFor(capability, payload) {
     return function (provider) {
       if (capability === 'TEXT') {
@@ -234,6 +257,7 @@
       if (capability === 'QC' && provider.id === 'ibis-local-project-qc') return callProjectQC(provider, payload);
       if (capability === 'CARIBBEAN_LANGUAGE_ID' && provider.id === 'ibis-local-caribbean-language-id') return callCaribbeanLanguageId(provider, payload);
       if (capability === 'LIVE_INTELLIGENCE' && provider.id === 'ibis-local-live-research') return callLiveResearch(provider, payload);
+      if (capability === 'STATISTIC_QUERY' && provider.id === 'ibis-local-statistics-query') return callStatisticsQuery(provider, payload);
       return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
     };
   }
