@@ -409,3 +409,35 @@ suite. **Final commit `f0876e6`, confirmed live** via `curl https://ftnplatform.
 and direct verification of every changed file's content in production (`js/ibis-provenance.js`
 served correctly; `js/ibis-client.js`/`js/ibis-ai-workspace.js`/`js/ibis-provider-registry.js` all
 carry the real fixes; `service-worker.js` unaffected, as expected).
+
+## Phase 4B — ibis evidence presentation and Trust Card integration (2026-08-25)
+
+Founder-authorized continuation of Phase 4A. Full record (decision matrix, field mapping, what was
+implemented, video-UI disposition, accessibility/security results): **`IBIS-MAP.md`'s own "Phase
+4B" section.**
+
+Reused Phase 4A's registry and `js/ibis-provenance.js` unchanged -- no second provenance model, no
+provider-routing changes. New `js/ibis-evidence.js` decides when a response needs evidence and maps
+the envelope into `js/trust-card.js`'s existing data shape (additively extended, not redesigned);
+the compact trigger reuses `trust-card.css`'s pre-existing `.trust-trigger`/`.trust-trigger--on-dark`
+classes. Wired into `js/ibis-widget.js` and `js/ibis-ai-workspace.js` (Live Intelligence, on-device
+AI, server AI). A real security fix landed alongside it: `js/trust-card.js`'s `title`/`value`/`units`
+were never escaped before (historically safe -- only FTN-authored indicator text ever reached them
+-- but Phase 4B is the first caller that can feed a real external source's own title into `title`),
+fixed for every caller. Also fixed a real latent double-script-load bug in `js/ibis-widget.js`'s own
+loader (would have created a second `#trust-card-dialog` on the 5 pages that already statically load
+`trust-card.js`), found while wiring this in.
+
+Per founder decision, `js/ibis-creative-studio.js`'s public VIDEO mode tab was removed (no
+`VIDEO_GENERATION` provider is enabled anywhere in the registry) -- implementation preserved intact,
+not deleted, documented as "not publicly exposed," not completed functionality. Existing
+`tests/creative-studio-release.mjs` scenario updated (it clicked the now-removed tab) rather than
+weakened.
+
+**Tests:** `tests/ibis-evidence-audit.mjs` (static, decision matrix + field mapping) and
+`tests/ibis-evidence-release.mjs` (real Playwright browser, fixture-based, zero provider cost --
+safe-rendering-of-malicious-fields, keyboard/ARIA, degraded-state-always-shown, mobile/tablet-zoom/
+reduced-motion). Both wired into CI. Full existing suite re-run clean throughout.
+
+**Commits:** (recorded after push, see below.) **Production verification:** (recorded after
+deploy, see below.)

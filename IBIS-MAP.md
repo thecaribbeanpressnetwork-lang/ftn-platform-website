@@ -1863,18 +1863,183 @@ both render correctly.
   schema fields exist and default sensibly; no current row has a documented reason to differ from
   the platform default, so none was given a fabricated one.
 
-### Phase 4B — a decision proposal only, not implemented this pass
+### Phase 4B — decision proposal from Phase 4A, since decided and implemented (2026-08-25)
 
-The public Trust Card/Trust Centre/evidence-presentation layer is a genuinely different surface
-with its own founder-approved design (see `js/trust-card.js`, `/trust/`) — extending or changing it
-is a separate decision, not a natural continuation of this pass's internal-routing scope. Proposed
-bounded scope for a future Phase 4B, **not started**: decide whether/how the new internal
-provenance envelope (`js/ibis-provenance.js`) should ever surface through the existing Trust Card
-component for an ibis-originated claim (e.g. a Live Intelligence result), versus remaining purely
-internal. This needs an explicit founder decision gate before any UI work begins, per this pass's
-own instruction boundary.
+**Superseded by the section immediately below.** Phase 4A proposed this as an undecided question;
+the founder decided it the same day (surface provenance selectively, reuse the existing Trust Card,
+never a large card under casual responses) and it was implemented in the same pass documented in
+`## 0.24 Phase 4B` below. Kept here as the historical record of the original open question, not as
+current status.
 
-## 4. Current provider inventory (every real external AI call in this repo, confirmed by file)
+## 0.24 Phase 4B — ibis evidence presentation and Trust Card integration (2026-08-25)
+
+Founder-authorized continuation of Phase 4A, explicitly scoped to internal-routing-to-public-UI
+integration only — reuses Phase 4A's registry and `js/ibis-provenance.js` unchanged; does not
+create a second provenance model or touch provider routing itself.
+
+### Founder decisions (binding)
+
+1. Surface ibis provenance selectively through the existing FTN Trust Card — never build a
+   competing evidence component.
+2. No large Trust Card under every casual/creative response — compact, collapsed-by-default only.
+3. `ftn-fire-local-procedural` reconciliation (Phase 4A finding H) deferred to a future FTN Riddim/
+   Fire completion pass — dependency recorded, that live feature untouched here.
+4. Any public ibis video-generation control that cannot currently generate video must be removed
+   from public navigation/capability selection, with its implementation preserved privately.
+
+### 1. Evidence-display decision matrix
+
+Implemented in `js/ibis-evidence.js`'s `isEvidenceRequired()`, in this priority order:
+
+| Rule | Condition | Result |
+|---|---|---|
+| 1 (absolute) | `provenance.degradedState` truthy | **Required** — never overridden by capability/topic |
+| 1 (absolute) | more than one provider attempted (`routingPath.length > 1`), even on eventual success | **Required** |
+| 2 | `capability === 'LIVE_INTELLIGENCE'` | **Required** — current facts/live conditions, always |
+| 2 | real external `sources[]` present | **Required** |
+| 3 | capability is a "clearly labelled deterministic tool" (`BPM_DETECTION`, `AUDIO_ANALYSIS`, `INSTRUMENTAL_GENERATION`, `SFX_GENERATION`, `RUNTIME_ESTIMATION`, `QC`, `CARIBBEAN_LANGUAGE_ID`) | Optional (default: no card) |
+| 4 | `capability === 'TEXT'` and the user's own prompt matches a deterministic keyword heuristic (government/civic, statistics, safety/health, financial/legal, current/live, comparison/recommendation) | **Required** |
+| default | none of the above | Optional (default: no card) |
+
+The rule-4 heuristic runs against the **user's own prompt**, never the model's answer (FTN has no
+semantic access to the answer at this layer) — same honesty standard and deterministic-keyword
+style as `js/ibis-live-research.js`'s existing `looksLikeLiveRequest()`. Errs toward showing
+evidence when uncertain, per the founder's "never hide a required disclosure" instruction: a false
+positive here just shows an ignorable trigger; a false negative hides something a user may need.
+
+### 2. Trust Card field mapping to the Phase 4A provenance envelope
+
+`js/ibis-evidence.js`'s `toTrustCardData()` maps `js/ibis-provenance.js` fields into
+`js/trust-card.js`'s existing (additively extended, not redesigned) data shape:
+
+| Provenance envelope field | Trust Card field | Notes |
+|---|---|---|
+| `sourceIdentity` | `title` | Falls back to a generic "How this response was produced" |
+| `publisher` | `publisher` (new) | Plain `fieldRow`, escaped |
+| `sourceUrl` (+ `extra.sources[0]`) | `externalSourceUrl`/`externalSourceLabel` (new) | Real clickable link — only set when a real external source exists |
+| `sourceReferenceDate` | `referenceDate` | Reuses the **existing** `referenceDateRow()` — key present only when there's real source context, so an unknown date honestly renders "not published by the source," never omitted or invented |
+| `sourceRetrievedAt` / `respondedAt` | `lastUpdated` | Reuses the existing "FTN retrieved" vs "Last updated" label distinction already built into `render()` |
+| `retrievalMethod` | `retrievalMethod` (new) | Human-worded (e.g. "A live request made at the time of your question") |
+| `transformation` / `extra.methodology` | `methodology` | Reuses the existing field |
+| `extra.formula`/`formulaDefinitions`/`formulaSubstitution` | same | Reuses the **existing** "See the Math" `<details>` mechanism unchanged — no duplicate external formula link added anywhere |
+| `provider` + `model` | `processing` (new) | Resolves the real vendor name from the provider registry (e.g. `ibis-query-gemini` → "ibis-query (Google Gemini)"), not the raw internal id |
+| `costToIbis` | `costNote` (new) | Translated to plain language (e.g. "Processed locally... no provider was paid"), never the raw internal enum; unrecognized values render as absent, never guessed |
+| `confidenceBasis` | `confidenceBasis` (new) | Renders the literal envelope value, or "Not assessed" for the `NOT_ASSESSED` sentinel — never a fabricated percentage |
+| `degradedState` | `degradedState` (new) | A prominent, non-alarmist notice near the top of the card (new `.trust-card__degraded` style, same amber tone as the existing `trust-badge--estimated`), not buried in the field list |
+| `licensingNote` | `licensingNote` (new) | Plain `fieldRow`, escaped |
+| `extra.limitations` | `limitations` | Reuses the existing field |
+
+**Deliberately never mapped**: `provenance.attempts`, `provenance.routingPath`, `provenance.nodeId`
+— internal retry/routing history, not evidence, per the founder's "do not expose private routing
+details" instruction. `tests/ibis-evidence-audit.mjs` asserts these keys never appear in the
+rendered data object.
+
+### 3. Implemented UI and documentation changes
+
+- **`js/ibis-evidence.js`** (new) — decision matrix + provenance mapper + `mount()`, which creates
+  the compact trigger (reusing `trust-card.css`'s existing `.trust-trigger`/`.trust-trigger--on-dark`
+  classes, already built for exactly this "small inline trigger on an evidence row" purpose — no
+  new trigger styling needed beyond one placement rule in `css/components/ibis-ai.css`) and wires
+  its click to the **existing** `FTN.TrustCard.open()`. Returns `null` (mounts nothing) when
+  evidence isn't required — the founder's "no large card under casual responses" rule enforced
+  structurally, not just by convention.
+- **`js/trust-card.js`** additively extended: the eleven new fields above, all through the existing
+  generic `fieldRow()` mechanism (zero new markup patterns), plus a real security fix — `title`/
+  `value`/`units` were never escaped before (historically safe, since only FTN-authored indicator
+  text ever reached them); Phase 4B is the first caller that can feed real externally-sourced
+  content (a Live Intelligence result's own post title) into `title`, so this shared component now
+  escapes it for every caller, not just the new one.
+- **`js/ibis-widget.js`**: the sitewide floating widget's TEXT response now mounts an evidence
+  trigger via the same shared module. Also fixed a real latent bug found while wiring this in: its
+  own `loadScriptOnce()` checked only a marker attribute, which would have double-loaded
+  `js/trust-card.js` (a second, duplicate `#trust-card-dialog`) on any of the 5 pages that already
+  statically load it — fixed with a src-based check first, the same pattern `js/nav.js`'s
+  `loadOnceBySrc()` already established for this exact class of problem.
+- **`js/ibis-ai-workspace.js`**: Live Intelligence (`renderLiveResearch`), on-device AI (`localAI`)
+  and authenticated server AI (`serverAI`) paths all now build a real provenance envelope (none of
+  the three route through `js/ibis-client.js`'s `request()`, so none had one before) and mount an
+  evidence trigger. Live Intelligence's failure paths also mount a trigger with an honest
+  `degradedState`, per "never hide a degraded state merely because the card would otherwise be
+  optional."
+- **`css/components/trust-card.css`**: one new `.trust-card__degraded` rule (restrained amber tint,
+  reusing the existing `trust-badge--estimated` color, not a new alarm color) and
+  **`css/components/ibis-ai.css`**: one new placement rule for the trigger inside a chat bubble.
+- **`/trust/index.html`**: the existing "AI" card expanded (not a new section — proportionate to
+  what changed) to explain provenance, confidence, source-vs-retrieval date, fallback/degraded
+  disclosure and what's never shown/retained. Review date bumped to 2026-08-25.
+
+### 4. Video-generation UI disposition
+
+Per founder decision 4: `js/ibis-creative-studio.js`'s public mode tablist no longer offers a VIDEO
+option (only IMAGE and AUTO CAMPAIGN remain) — confirmed no `VIDEO_GENERATION` provider is
+`enabled:true` anywhere in the registry (both PixVerse/Kling disabled; every self-host candidate
+hardware-blocked, per Phase 4A's own inventory). `js/ibis-video-decision-gate.js`'s `<script>`/
+`<link>` tags were removed from `ibis-ai/index.html` (the only page that loaded them) since its
+MutationObserver-based injection can now never fire — **the file itself, and the `mode==='video'`
+branch inside `js/ibis-creative-studio.js`'s `steps()`, are both left fully intact**, not deleted,
+for the day a real provider is enabled. Documented in a header comment on
+`js/ibis-creative-studio.js` itself: "a capability NOT PUBLICLY EXPOSED, not completed functionality
+withdrawn." No saved route breaks (no route was removed, only a mode-selector button and one
+script's page-level inclusion); Image mode, Auto Campaign mode and every other ibis capability are
+unaffected — confirmed by the full existing Creative Studio/Fire/DAW/DJ Tube test suite passing
+unchanged.
+
+### 5. Accessibility and security results
+
+- **Keyboard/focus**: the compact trigger is a real `<button>` (native Enter/Space activation, no
+  custom key handling needed); opening the Trust Card moves focus to its close button, `Escape`
+  closes it and returns focus to the trigger that opened it — all pre-existing `js/trust-card.js`
+  behavior, unchanged, now exercised by a new consumer.
+- **Screen reader**: the trigger carries `aria-haspopup="dialog"`; the modal itself already has
+  `role="dialog"`, `aria-modal="true"`, `aria-labelledby="trustCardTitle"` (pre-existing, unchanged).
+- **Safe rendering**: a real Playwright test constructs a provenance envelope with `<img
+  onerror=...>`, an `onmouseover`-injection URL, a `</script>`-breakout publisher string and an
+  `<svg onload=...>` licensing note — confirmed none execute, confirmed the raw markup appears only
+  as HTML-entity-escaped source (never a live element), confirmed no Supabase key or other
+  credential-shaped string ever appears in the rendered card.
+- **Visual states**: mobile (375px), tablet-at-200%-zoom-equivalent (384px effective width — see
+  the test file's own note on why `document.body.style.zoom` was rejected as a measurement
+  artifact, not a real technique), and `prefers-reduced-motion: reduce` all confirmed working with
+  zero horizontal overflow.
+- **No exposed secrets**: confirmed via direct string search of the rendered card's HTML for the
+  Supabase publishable key prefix; confirmed the provenance envelope itself never carries a raw
+  prompt, credential or internal endpoint (Phase 4A's own envelope schema never included those
+  fields to begin with).
+- **Limitation, disclosed not hidden**: this session's tooling has no way to drive a real, visible
+  screen reader (NVDA/JAWS/VoiceOver) — accessibility verification here is real Playwright
+  ARIA-attribute and focus-order assertions, not a human AT session. Same limitation this repo's
+  other governance documents already record.
+
+### 6. Tests
+
+`tests/ibis-evidence-audit.mjs` (new, static/local, no browser/network) — the full decision matrix
+(every rule, both directions), provenance-to-card field mapping (complete, incomplete, unknown
+reference date, degraded fallback, total failure, formula passthrough, cost-class translation), and
+the no-private-routing-details guarantee. `tests/ibis-evidence-release.mjs` (new, real Playwright
+browser, no provider cost — fixture provenance objects passed directly to `FTN.IbisEvidence.mount()`
+in-page) — evidence-required vs evidence-optional rendering, degraded-state-always-shown, safe
+rendering of malicious/malformed fields, keyboard/focus/ARIA, video-mode absence, mobile/tablet-zoom/
+reduced-motion. `tests/creative-studio-release.mjs`'s existing `ibis-provider-transparent-studio`
+scenario updated (it previously clicked the now-removed VIDEO tab) to use IMAGE mode instead, plus
+new assertions that VIDEO is genuinely absent and exactly two modes remain. Both new suites wired
+into `.github/workflows/functional-release.yml`. Full existing suite (ibis-*, ftn-node-registry,
+ftn-source-provenance, functional-release, creative-studio-release) re-run clean throughout — zero
+regressions.
+
+### 7. What this pass explicitly did NOT do (honest gaps, not silent omissions)
+
+- Did not touch provider routing, the eligibility engine or the provenance envelope's own schema —
+  reused Phase 4A's exactly as built.
+- Did not reconcile `ftn-fire-local-procedural` (founder decision 3) — dependency recorded, deferred
+  to a future FTN Riddim/Fire completion pass.
+- Did not build a new video-generation backend, or attempt to make any VIDEO_GENERATION provider
+  eligible — only removed the now-honest public UI gap.
+- Did not verify with a real human screen-reader session (see §5's disclosed limitation).
+- Did not add evidence-trigger wiring to `renderMedia()`/`renderAnalysis()` — `renderAnalysis()`
+  already has its own pre-existing per-indicator Trust Card integration (`TrustCard.trustScoreLabel()`),
+  and `renderMedia()`'s YouTube search results are a different, pre-existing concern outside this
+  pass's scope (ibis's own generated/routed claims, not third-party media search results).
+- Did not touch FTN Statistics or start any new video-generation backend, per explicit instruction.
 
 > **Superseded snapshot (2026-08-20/21), out of date relative to the phase log above by the time of
 > Phase 10-13 — corrected, not deleted, per Phase 4A (2026-08-25) above.** This table predates real

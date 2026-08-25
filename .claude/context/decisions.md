@@ -199,9 +199,19 @@ page's chat path. `js/ibis-provenance.js` is now the one canonical internal prov
 a future caller building its own ad hoc provenance shape instead of using
 `FTN.IbisProvenance.build()` is reintroducing the exact duplication this pass closed.
 
-**If a future session is asked to extend ibis's evidence/source UI:** confirm whether that's this
-Phase 4B (still just a proposal, not decided) or genuinely new scope, and get an explicit decision
-gate before touching the Trust Card/Trust Centre, per this phase's own boundary.
+**Update (2026-08-25): Phase 4B decided and implemented.** The founder decided the open Phase 4B
+question the same day: surface ibis provenance selectively through the existing Trust Card (never
+a competing component), never a large card under casual/creative responses, defer
+`ftn-fire-local-procedural` reconciliation to a future FTN Riddim/Fire pass, and remove the public
+VIDEO_GENERATION UI control since no provider is currently enabled (implementation preserved
+privately, not deleted). Full record: `IBIS-MAP.md`'s "Phase 4B" section.
+
+**Binding going forward:** `js/ibis-evidence.js` is the one canonical evidence-decision-matrix and
+provenance-to-Trust-Card mapper — a future caller adding its own ad hoc "should I show evidence"
+logic or its own field-mapping is reintroducing the exact duplication this pass closed. The VIDEO
+mode tab in `js/ibis-creative-studio.js` must stay absent from the public tablist until a real
+`VIDEO_GENERATION` provider is genuinely `enabled:true` in the registry — re-adding the tab without
+that is reintroducing the "advertises an unavailable capability" defect this pass fixed.
 
 ### Service-worker route policy made registry-driven, explicitly not a security boundary — **Active** (2026-08-24, BUILD NOW)
 
