@@ -24,7 +24,7 @@ function savedItemsHtml(){var Save=global.FTN.Save,items=Save?Save.list():[],opp
   if(!items.length&&!opp)return'<p>Nothing saved yet. Use the ☆ Save control on FTN Live or FTN Opportunities to build your My FTN list here.</p>';
   return(items.length?'<ul class="nexus-list">'+rows+'</ul>':'')+oppLine;
 }
-async function signed(){var user=await global.FTN.Auth.getVerifiedUser();if(!user){guest();return;}
+async function signed(){var user=await global.FTN.Auth.getVerifiedUser();if(!user){guest();return;}if(returnTo==='/mayor-dashboard/'){global.location.replace(returnTo);return;}
   var since=memberSince(user);
   state.innerHTML='<p><strong>Signed in</strong><br><small>'+esc(user.email||'FTN Account')+'</small></p><p><small>Signed in with</small><br>'+esc(authMethodLabel(user))+'</p>'+(since?'<p><small>Member since</small><br>'+esc(since)+'</p>':'')+'<p><small>Email confirmed</small><br>'+esc(user.email_confirmed_at?'Yes':'Not confirmed')+'</p><button class="btn btn-outline" id="account-signout" type="button">Sign out on this device</button>';
   // Identity -> My FTN -> Saved/Recent -> Founder/Membership -> Privacy/Permissions/Data, per
