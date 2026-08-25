@@ -188,6 +188,7 @@
     return loadScriptOnce('/js/ibis-provider-registry.js', 'data-ibis-widget-provider-registry')
       .then(function () { return loadScriptOnce('/js/ibis-eligibility.js', 'data-ibis-widget-eligibility'); })
       .then(function () { return loadScriptOnce('/js/ibis-capability-taxonomy.js', 'data-ibis-widget-taxonomy'); })
+      .then(function () { return loadScriptOnce('/js/ibis-provenance.js', 'data-ibis-widget-provenance'); })
       .then(function () { return loadScriptOnce('/js/ibis-client.js', 'data-ibis-widget-client'); });
   }
   // FTN Account pass: the strongest genuinely available authenticated context today is the

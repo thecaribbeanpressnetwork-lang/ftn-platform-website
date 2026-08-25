@@ -17,6 +17,10 @@
     'ibis-assistant-anthropic': 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant',
     'cloudflare-workers-ai-text': 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-text-cloudflare',
   };
+  // No timeout config exists per-provider in js/ibis-provider-registry.js today (Phase 4A found
+  // this real gap) -- one platform-wide default, matching the one already proven in production at
+  // supabase/functions/ibis-query/index.ts, rather than a fabricated per-provider figure.
+  var DEFAULT_TIMEOUT_MS = 20000;
 
   function registries() {
     var FTN = global.FTN || {};
@@ -25,11 +29,14 @@
       Taxonomy: FTN.CapabilityTaxonomy || null,
       Eligibility: FTN.IbisEligibility || null,
       Providers: FTN.IbisProviders || null,
+      Provenance: FTN.IbisProvenance || null,
       AudioAnalysis: FTN.IbisAudioAnalysis || null,
       RuntimeEstimator: FTN.IbisRuntimeEstimator || null,
       ProjectQC: FTN.IbisProjectQC || null,
       MusicEngine: FTN.IbisMusicEngine || null,
       SfxEngine: FTN.IbisSfxEngine || null,
+      CaribbeanLanguageId: FTN.CaribbeanLanguageId || null,
+      LiveResearch: FTN.LiveResearch || null,
       Auth: FTN.Auth || null,
     };
   }
@@ -52,18 +59,31 @@
     // function correctly -- silently dropping payload.prompt here would send an empty
     // conversation to a real provider once ibis-assistant/ibis-text-cloudflare are deployed.
     var messages = (payload && payload.messages) || (payload && payload.prompt ? [{ role: 'user', content: payload.prompt }] : []);
+    // Real timeout (Phase 4A fix): this fetch previously had no AbortSignal at all, and its
+    // .catch() labeled EVERY rejection -- network failure, CORS, DNS, an actual timeout -- as
+    // 'TIMEOUT', which is an honesty bug in the provenance record itself (errorType must describe
+    // what actually happened, not a guess). A real AbortController now distinguishes an actual
+    // timeout from every other failure, which is instead reported as 'NETWORK_ERROR'.
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timedOut = false;
+    var timer = controller ? setTimeout(function () { timedOut = true; controller.abort(); }, DEFAULT_TIMEOUT_MS) : null;
     return fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json', apikey: PUBLISHABLE_KEY, authorization: 'Bearer ' + PUBLISHABLE_KEY },
       body: JSON.stringify({ messages: messages, products: (payload && payload.products) || [] }),
+      signal: controller ? controller.signal : undefined,
     })
       .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
       .then(function (result) {
+        if (timer) clearTimeout(timer);
         var latencyMs = Date.now() - startedAt;
         if (!result.ok || !result.body || !result.body.answer) return { success: false, latencyMs: latencyMs, errorType: 'SERVER_ERROR' };
         return { success: true, latencyMs: latencyMs, data: { answer: result.body.answer, provider: result.body.provider } };
       })
-      .catch(function () { return { success: false, latencyMs: Date.now() - startedAt, errorType: 'TIMEOUT' }; });
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        return { success: false, latencyMs: Date.now() - startedAt, errorType: timedOut ? 'TIMEOUT' : 'NETWORK_ERROR' };
+      });
   }
 
   // BPM_DETECTION's real executor: no network call at all, just the local DSP module. Requires
@@ -97,9 +117,19 @@
     var prompt = (payload && payload.prompt) || flattenMessages(payload && payload.messages);
     if (!prompt) return Promise.resolve({ success: false, errorType: 'INVALID_REQUEST' });
     var startedAt = Date.now();
-    return reg.Auth.invoke('ibis-query', { country: (payload && payload.country) || 'Caribbean', prompt: prompt })
+    // Phase 4A fix: js/ftn-auth.js's invoke() is a thin pass-through to the Supabase SDK with no
+    // timeout of its own -- a hung request here previously hung this executor indefinitely. A
+    // real timeout race is added here rather than inside invoke() itself, so every OTHER invoke()
+    // caller (unrelated to IBIS) keeps its exact current behavior.
+    var timedOut = {};
+    var timeoutPromise = new Promise(function (resolve) { setTimeout(function () { resolve(timedOut); }, DEFAULT_TIMEOUT_MS); });
+    return Promise.race([
+      reg.Auth.invoke('ibis-query', { country: (payload && payload.country) || 'Caribbean', prompt: prompt }),
+      timeoutPromise,
+    ])
       .then(function (data) {
         var latencyMs = Date.now() - startedAt;
+        if (data === timedOut) return { success: false, latencyMs: latencyMs, errorType: 'TIMEOUT' };
         if (!data || !data.answer) return { success: false, latencyMs: latencyMs, errorType: 'SERVER_ERROR' };
         return { success: true, latencyMs: latencyMs, data: { answer: data.answer, provider: 'ibis-query (Google Gemini)' } };
       })
@@ -166,6 +196,31 @@
     }
   }
 
+  // Phase 4A gap closed: CARIBBEAN_LANGUAGE_ID and LIVE_INTELLIGENCE were both already registered
+  // and enabled:true in js/ibis-provider-registry.js, but had no default executor here -- a
+  // caller using the shared IbisClient.request() path (rather than calling the local module or
+  // IbisEligibility directly, as js/ibis-ai-workspace.js currently does) would get a false
+  // UNSUPPORTED from every attempt despite both capabilities being genuinely eligible.
+  function callCaribbeanLanguageId(provider, payload) {
+    var reg = registries();
+    if (provider.id !== 'ibis-local-caribbean-language-id' || !reg.CaribbeanLanguageId) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var text = payload && payload.text;
+    var startedAt = Date.now();
+    var result = reg.CaribbeanLanguageId.identify(text);
+    return Promise.resolve({ success: true, latencyMs: Date.now() - startedAt, data: result });
+  }
+
+  function callLiveResearch(provider, payload) {
+    var reg = registries();
+    if (provider.id !== 'ibis-local-live-research' || !reg.LiveResearch) return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
+    var query = payload && payload.query;
+    if (!query) return Promise.resolve({ success: false, errorType: 'INVALID_REQUEST' });
+    var startedAt = Date.now();
+    return reg.LiveResearch.research(query)
+      .then(function (result) { return { success: true, latencyMs: Date.now() - startedAt, data: result }; })
+      .catch(function () { return { success: false, latencyMs: Date.now() - startedAt, errorType: 'SERVER_ERROR' }; });
+  }
+
   function defaultExecutorFor(capability, payload) {
     return function (provider) {
       if (capability === 'TEXT') {
@@ -177,6 +232,8 @@
       if (capability === 'SFX_GENERATION' && provider.id === 'ibis-local-sfx-engine') return callSfxEngine(provider, payload);
       if (capability === 'RUNTIME_ESTIMATION' && provider.id === 'ibis-local-script-runtime-estimator') return callRuntimeEstimator(provider, payload);
       if (capability === 'QC' && provider.id === 'ibis-local-project-qc') return callProjectQC(provider, payload);
+      if (capability === 'CARIBBEAN_LANGUAGE_ID' && provider.id === 'ibis-local-caribbean-language-id') return callCaribbeanLanguageId(provider, payload);
+      if (capability === 'LIVE_INTELLIGENCE' && provider.id === 'ibis-local-live-research') return callLiveResearch(provider, payload);
       return Promise.resolve({ success: false, errorType: 'UNSUPPORTED' });
     };
   }
@@ -221,23 +278,25 @@
     var requestedAt = new Date().toISOString();
 
     return reg.Eligibility.attemptInOrder(capability, context, executor).then(function (outcome) {
-      var provenance = {
-        nodeId: nodeId,
-        capability: capability,
-        requestedAt: requestedAt,
-        respondedAt: new Date().toISOString(),
-        attempts: outcome.attempts.map(function (a) { return { providerId: a.providerId, success: a.success, errorType: a.errorType }; }),
+      var attempts = outcome.attempts.map(function (a) { return { providerId: a.providerId, success: a.success, errorType: a.errorType }; });
+      var buildProvenance = function (extra) {
+        var fields = Object.assign({ nodeId: nodeId, capability: capability, requestedAt: requestedAt, respondedAt: new Date().toISOString(), attempts: attempts }, extra || {});
+        return reg.Provenance ? reg.Provenance.build(fields) : fields;
       };
       if (outcome.success) {
         var providerRecord = reg.Providers ? reg.Providers.get(outcome.provider.id) : null;
-        provenance.provider = outcome.provider.id;
-        provenance.costToIbis = providerRecord ? providerRecord.costToIbis : outcome.provider.costToIbis;
+        var provenance = buildProvenance({
+          provider: outcome.provider.id,
+          costToIbis: providerRecord ? providerRecord.costToIbis : outcome.provider.costToIbis,
+          model: (outcome.result && outcome.result.model) || (providerRecord && providerRecord.modelId) || null,
+        });
         return { success: true, blocked: false, result: outcome.result, provenance: provenance };
       }
+      var failureProvenance = buildProvenance({ degradedState: outcome.attempts.length ? 'ALL_PROVIDERS_FAILED' : 'NO_ELIGIBLE_PROVIDER' });
       return blocked(
         outcome.attempts.length ? 'ALL_PROVIDERS_FAILED' : 'NO_ELIGIBLE_PROVIDER',
         outcome.reason || 'No eligible provider for capability ' + capability + '.',
-        { nodeId: nodeId, capability: capability, provenance: provenance }
+        { nodeId: nodeId, capability: capability, provenance: failureProvenance }
       );
     });
   }
