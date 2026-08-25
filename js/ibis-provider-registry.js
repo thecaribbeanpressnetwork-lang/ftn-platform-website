@@ -452,6 +452,23 @@ var providers=[
     note:'Apache 2.0, diffusion-based (Stable-Diffusion-derived) lip-sync at 512px resolution -- the highest visual-quality candidate researched, at a real VRAM cost (v1.5 ~8GB, the newer v1.6 ~18GB) higher than MuseTalk\'s real-time tier but still well below SadTalker\'s unquantified 3D-rendering pipeline. Same hardware blocker as every other entry in this group. The three LIP_SYNC self-host candidates now form a real quality/speed/VRAM spread (MuseTalk: fastest/lowest-VRAM/real-time-capable; LatentSync: highest fidelity; SadTalker: full head-motion via 3DMM) for a founder to choose from once GPU infrastructure is ever budgeted -- not a single arbitrary pick.'
   }
 ];
+// Phase 4A additive schema (routing config gap closed): no provider row above declares a
+// timeout/retry policy or a privacy/attribution classification -- rather than hand-stamping the
+// same value onto 34 object literals, one small default-filling pass runs at read time, here, the
+// single place every accessor already goes through. A future entry that DOES have a real reason
+// to differ (e.g. a slower provider needing a longer timeout) can still set its own value
+// directly on the object literal above; this only fills in what's genuinely unset.
+var DEFAULT_TIMEOUT_MS=20000; // matches the one proven, deployed timeout (supabase/functions/ibis-query)
+function withDefaults(p){
+  return Object.assign({
+    timeoutMs:DEFAULT_TIMEOUT_MS,
+    // Local/deterministic providers never leave the browser and never see the raw prompt/content
+    // leave FTN's control; everything else is a third-party network call and is classified
+    // THIRD_PARTY_NETWORK_CALL by default until a real per-provider review says otherwise.
+    privacyClassification:p.integration==='LOCAL_DETERMINISTIC_NO_PROVIDER'?'LOCAL_NO_EXTERNAL_TRANSMISSION':'THIRD_PARTY_NETWORK_CALL',
+    attributionRequired:p.integration!=='LOCAL_DETERMINISTIC_NO_PROVIDER',
+  },p);
+}
 global.FTN=global.FTN||{};
-global.FTN.IbisProviders={all:function(){return providers.map(function(p){return Object.assign({},p);});},byCategory:function(category){return providers.filter(function(p){return p.categories.indexOf(category)>=0;}).map(function(p){return Object.assign({},p);});},byCapability:function(capability){return providers.filter(function(p){return(p.capabilities||[]).indexOf(capability)>=0;}).map(function(p){return Object.assign({},p);});},get:function(id){var p=providers.filter(function(x){return x.id===id;})[0];return p?Object.assign({},p):null;},verifiedAt:VERIFIED};
+global.FTN.IbisProviders={all:function(){return providers.map(withDefaults);},byCategory:function(category){return providers.filter(function(p){return p.categories.indexOf(category)>=0;}).map(withDefaults);},byCapability:function(capability){return providers.filter(function(p){return(p.capabilities||[]).indexOf(capability)>=0;}).map(withDefaults);},get:function(id){var p=providers.filter(function(x){return x.id===id;})[0];return p?withDefaults(p):null;},verifiedAt:VERIFIED};
 })(window);
