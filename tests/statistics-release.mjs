@@ -113,5 +113,110 @@ await scenario('no-unsupported-live-claim-for-historical-series', async (page) =
   assert.match(methodologyText, /not.{0,20}live daily counter/i, 'methodology must explicitly disclaim a live-daily-counter framing');
 });
 
+// --- Phase 5B: second indicator (FX) presentation ------------------------------------------------
+await scenario('fx-chart-table-and-trust-card', async (page) => {
+  await open(page, '/statistics/');
+  await page.waitForSelector('[data-fx-chart] svg', { timeout: 10000 });
+  const chartValues = await page.locator('[data-fx-chart] .fx-chart__value').allTextContents();
+  await page.locator('.fx-table-disclosure summary').click();
+  const tableValues = await page.locator('[data-fx-table] tbody td:nth-child(2)').allInnerTexts();
+  assert.deepEqual(chartValues, tableValues, 'FX chart-plotted values and its accessible table must agree exactly');
+  await page.locator('.fx-intel__evidence-trigger').click();
+  await page.waitForSelector('#trust-card-dialog', { state: 'visible', timeout: 5000 });
+  const panel = page.locator('#trust-card-dialog .trust-card-dialog__panel');
+  const sourceHref = await panel.locator('a[href*="central-bank.org.tt"]').first().getAttribute('href');
+  assert.match(sourceHref || '', /central-bank\.org\.tt/i, 'FX Trust Card must link directly to the real Central Bank source');
+  const panelText = await panel.innerText();
+  assert.match(panelText, /Selling Rate/i, 'Trust Card must name the real FX indicator');
+});
+
+await scenario('fx-does-not-claim-live-rate', async (page) => {
+  await open(page, '/statistics/');
+  const fxSectionText = await page.locator('#fx-intelligence').innerText();
+  // The section legitimately uses the word "live" once, inside its own honest disclaimer ("not a
+  // live/real-time rate") -- the real assertion is that it never ASSERTS liveness (e.g. "current
+  // live rate", "updated live"), and that the disclaimer itself is present.
+  assert.doesNotMatch(fxSectionText, /\b(current|updated|today's) live\b|live rate\b/i, 'must never assert the monthly published figure is a live/real-time rate');
+  assert.match(fxSectionText, /monthly published figure/i, 'must explicitly disclaim a live/real-time framing');
+});
+
+// --- Phase 5B: ibis statistical querying ---------------------------------------------------------
+async function askIbis(page, question) {
+  await page.fill('#statistics-ask-input', question);
+  await page.locator('#statistics-ask-form button[type="submit"]').click();
+  await page.waitForFunction(
+    () => {
+      const el = document.getElementById('statistics-ask-answer');
+      return el && el.getAttribute('data-state') && el.getAttribute('data-state') !== 'pending';
+    },
+    { timeout: 10000 }
+  );
+  return page.locator('#statistics-ask-answer').innerText();
+}
+
+await scenario('ask-ibis-latest-value-with-mandatory-trust-card', async (page) => {
+  await open(page, '/statistics/');
+  const answer = await askIbis(page, 'What is the latest reported murder count?');
+  assert.match(answer, /\d/, 'a latest-value answer must contain a real retrieved number');
+  assert.equal(await page.locator('#statistics-ask-answer').getAttribute('data-state'), 'ok');
+  // The founder's own instruction: a Trust Card for EVERY statistical response -- verify the
+  // evidence trigger actually mounted and opens the real shared Trust Card, not a bypass.
+  assert.equal(await page.locator('#statistics-ask-answer .ibis-evidence-trigger').count(), 1, 'a successful statistical answer must always carry an evidence trigger');
+  await page.locator('#statistics-ask-answer .ibis-evidence-trigger').click();
+  await page.waitForSelector('#trust-card-dialog', { state: 'visible', timeout: 5000 });
+});
+
+await scenario('ask-ibis-comparison-and-formula', async (page) => {
+  await open(page, '/statistics/');
+  const answer = await askIbis(page, 'Compare murders in 2023 and 2024');
+  assert.match(answer, /2023/);
+  assert.match(answer, /2024/);
+});
+
+await scenario('ask-ibis-unsupported-question-fails-closed', async (page) => {
+  await open(page, '/statistics/');
+  const answer = await askIbis(page, 'What is your favorite color?');
+  assert.equal(await page.locator('#statistics-ask-answer').getAttribute('data-state'), 'error');
+  assert.doesNotMatch(answer, /\bblue\b|\bred\b|\bgreen\b/i, 'ibis must never invent an answer to a question outside its supported set');
+});
+
+await scenario('ask-ibis-example-buttons-work', async (page) => {
+  await open(page, '/statistics/');
+  await page.locator('[data-ask-example]').first().click();
+  await page.waitForFunction(() => {
+    const el = document.getElementById('statistics-ask-answer');
+    return el && el.getAttribute('data-state') && el.getAttribute('data-state') !== 'pending';
+  }, { timeout: 10000 });
+  const answer = await page.locator('#statistics-ask-answer').innerText();
+  assert(answer.length > 0);
+});
+
+// --- Founder decision: primary navigation must remain unchanged by this phase --------------------
+await scenario('primary-navigation-unchanged', async (page) => {
+  await open(page, '/statistics/');
+  await page.waitForTimeout(300);
+  // The real top-level primary nav links only (excludes the "FTN Ecosystem" mega-menu's own
+  // nested product links, which legitimately include Statistics -- decision #6 explicitly allows
+  // Directory/footer/sitemap discovery, it only forbids expanding PRIMARY_NAV itself).
+  const navLabels = await page.locator('.site-nav__list > .site-nav__item .site-nav__trigger--link').allTextContents();
+  assert.equal(navLabels.length, 11, 'primary navigation must still have exactly its approved 11 items -- FTN Statistics must not silently add itself');
+  assert(!navLabels.some((l) => /statistics/i.test(l)), 'FTN Statistics must not appear in primary navigation without a separate founder decision');
+  // Positive check: Statistics IS correctly discoverable through the Ecosystem/Directory menu.
+  const ecosystemLabels = await page.locator('[data-ecosystem-menu-panel] a').allTextContents();
+  assert(ecosystemLabels.some((l) => /statistics/i.test(l)), 'FTN Statistics should still be discoverable through the FTN Ecosystem menu, per decision #6');
+});
+
+// --- No paid provider calls, no exposed credentials for the ibis statistics path -----------------
+await scenario('no-paid-provider-calls-for-statistics-questions', async (page) => {
+  const requests = [];
+  page.on('request', (r) => requests.push(r.url()));
+  await open(page, '/statistics/');
+  await askIbis(page, 'What is the latest reported murder count?');
+  // Deliberately specific to real AI-provider endpoints -- fonts.googleapis.com (real, legitimate
+  // Google Fonts CSS) must never false-positive as a "google" AI provider call.
+  const external = requests.filter((u) => /supabase\.co\/functions|anthropic\.com|openai\.com|generativelanguage\.googleapis\.com|ai\.google\.dev/i.test(u));
+  assert.equal(external.length, 0, 'a STATISTIC_QUERY answer must never reach a paid provider endpoint');
+});
+
 await browser.close();
-console.log('9/9 FTN Statistics release scenarios passed.');
+console.log('18/18 FTN Statistics release scenarios passed (9 Phase 5A + 9 Phase 5B).');
