@@ -1,0 +1,47 @@
+/* FTN Statistics — Central Bank exchange-rate presentation (Phase 5B). Same restrained black/red/
+   white visual grammar as css/components/crime-intelligence.css (this page's own precedent), not a
+   second visual system -- reuses the shared .trust-trigger/.trust-trigger--on-dark classes and the
+   same crime-draw/crime-in keyframes already defined there for the analogous chart-reveal motion. */
+.fx-intel{padding:clamp(48px,8vw,112px) clamp(18px,5vw,72px);background:#050506;color:#fff}
+.fx-intel__shell{position:relative;max-width:1500px;margin:auto;padding:clamp(22px,4vw,56px);overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:32px;background:radial-gradient(circle at 78% 2%,rgba(225,6,19,.18),transparent 34%),linear-gradient(145deg,#111216,#070708 62%)}
+.fx-intel__head{position:relative;display:grid;gap:8px}
+.fx-intel__head span{font-size:.72rem;font-weight:800;letter-spacing:.18em;color:#ff5b65}
+.fx-intel__head h2{margin:.35rem 0;font-size:clamp(2rem,4.4vw,3.6rem);line-height:.98}
+.fx-intel__head p{max-width:60ch;color:#b9bcc4}
+.fx-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:28px 0}
+.fx-kpi{min-width:0;padding:22px;border-radius:22px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1)}
+.fx-kpi--lead{background:linear-gradient(140deg,rgba(225,6,19,.2),rgba(255,255,255,.045))}
+.fx-kpi span,.fx-kpi p{color:#b9bcc4}
+.fx-kpi strong{display:block;margin:.15em 0;font-size:clamp(1.8rem,3.6vw,3rem);line-height:1}
+.fx-measure{display:flex;gap:4px;margin-bottom:14px}
+.fx-measure button{flex:0 0 auto;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:8px 14px;color:#b9bcc4;background:rgba(0,0,0,.3);font-weight:700;cursor:pointer}
+.fx-measure button.is-active{color:#fff;border-color:rgba(225,6,19,.7);background:rgba(225,6,19,.18)}
+.fx-chart{width:100%;overflow:visible}
+.fx-chart text{fill:#8e929d;font-size:13px}
+.fx-chart__value{fill:#fff!important;font-weight:800}
+.fx-chart__line{fill:none;stroke:#f21928;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.fx-chart__dot{fill:#fff;stroke:#e10613;stroke-width:4;opacity:0}
+.fx-intel.is-visible .fx-chart__line{animation:crime-draw 1.5s cubic-bezier(.2,.8,.2,1) forwards}
+.fx-intel.is-visible .fx-chart__dot{animation:crime-in .45s .9s ease forwards}
+.fx-intel footer{display:flex;flex-wrap:wrap;gap:16px;margin-top:22px;color:#9297a2;font-size:.8rem}
+.fx-intel footer a{color:#fff}
+.fx-table-disclosure{margin-top:14px}
+.fx-table-disclosure summary{cursor:pointer;color:#b9bcc4;font-size:.82rem;font-weight:700}
+.fx-table-disclosure summary:hover,.fx-table-disclosure summary:focus-visible{color:#fff}
+.fx-table{width:100%;margin-top:10px;border-collapse:collapse;font-size:.85rem}
+.fx-table-disclosure[open]{overflow-x:auto}
+.fx-table caption{caption-side:top;text-align:left}
+.fx-table th,.fx-table td{padding:8px 10px;text-align:right;border-bottom:1px solid rgba(255,255,255,.1)}
+.fx-table th[scope="row"]{text-align:left;color:#b9bcc4;font-weight:600}
+.fx-table thead th{color:#fff;font-weight:800;border-bottom:1px solid rgba(255,255,255,.22)}
+.fx-intel__evidence-trigger{margin-top:10px}
+@media(max-width:760px){
+  .fx-intel{padding-inline:14px}
+  .fx-intel__shell{padding:22px 16px;border-radius:24px}
+  .fx-kpis{grid-template-columns:1fr}
+  .fx-chart{min-width:620px}
+}
+@media(prefers-reduced-motion:reduce){
+  .fx-chart__line{stroke-dashoffset:0}
+  .fx-chart__dot{opacity:1}
+}

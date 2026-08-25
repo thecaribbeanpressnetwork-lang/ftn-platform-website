@@ -85,6 +85,103 @@ body.statistics-page { background: #050506; color: #fff; }
 
 .statistics-embed { padding-top: 8px; }
 
+.statistics-ask-ibis {
+  padding: clamp(40px, 6vw, 72px) clamp(18px, 5vw, 72px);
+}
+
+.statistics-ask-ibis__inner { max-width: 900px; margin: auto; }
+
+.statistics-ask-ibis h2 {
+  margin: .3rem 0 1rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.statistics-ask-ibis > .statistics-ask-ibis__inner > p {
+  max-width: 62ch;
+  color: #b9bcc4;
+  margin-bottom: 1.4rem;
+}
+
+.statistics-ask-ibis code { color: #ff5b65; font-size: .92em; }
+
+.statistics-ask-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.statistics-ask-form input {
+  flex: 1 1 320px;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .05);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.statistics-ask-form input::placeholder { color: #7d8089; }
+.statistics-ask-form input:focus-visible { outline: 2px solid #e10613; outline-offset: 2px; }
+
+.statistics-ask-form button {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  background: #e10613;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.statistics-ask-form button:hover,
+.statistics-ask-form button:focus-visible { background: #ff5b65; }
+
+.statistics-ask-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: .84rem;
+  color: #8b8e96;
+}
+
+.statistics-ask-examples button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: transparent;
+  color: #cdd0d6;
+  font-size: .82rem;
+  cursor: pointer;
+}
+
+.statistics-ask-examples button:hover,
+.statistics-ask-examples button:focus-visible { border-color: rgba(225, 6, 19, .6); color: #fff; }
+
+.statistics-ask-answer:empty { display: none; }
+
+.statistics-ask-answer {
+  margin-top: 18px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .1);
+  color: #e8e9ec;
+  line-height: 1.5;
+}
+
+.statistics-ask-answer[data-state="error"] {
+  border-color: rgba(225, 6, 19, .45);
+  background: rgba(225, 6, 19, .08);
+}
+
+.statistics-ask-answer p { margin: 0 0 .6rem; }
+.statistics-ask-answer p:last-child { margin-bottom: 0; }
+
 .statistics-connections {
   padding: clamp(40px, 6vw, 80px) clamp(18px, 5vw, 72px) clamp(64px, 8vw, 112px);
 }

@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="/css/components/country-switcher.css">
   <link rel="stylesheet" href="/css/components/trust-card.css">
   <link rel="stylesheet" href="/css/components/crime-intelligence.css?v=20260824.2">
+  <link rel="stylesheet" href="/css/components/fx-intelligence.css">
   <link rel="stylesheet" href="/css/components/statistics-page.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
@@ -101,13 +102,36 @@
       </div>
     </section>
 
-    <div id="crime-intelligence" class="statistics-embed"></div>
+    <div id="crime-intelligence" class="statistics-embed crime-intel" aria-live="polite"></div>
+
+    <div id="fx-intelligence" class="statistics-embed fx-intel" aria-live="polite"></div>
+
+    <section class="statistics-ask-ibis">
+      <div class="container statistics-ask-ibis__inner">
+        <span class="statistics-eyebrow">ASK IBIS ABOUT THIS DATA</span>
+        <h2>Deterministic answers, real evidence.</h2>
+        <p>ibis answers a bounded set of questions about the verified indicators above directly from <code>js/ftn-statistics.js</code> -- no model invents or estimates a value. Every answer carries its own Trust Card.</p>
+        <form id="statistics-ask-form" class="statistics-ask-form">
+          <label class="sr-only" for="statistics-ask-input">Ask ibis about FTN Statistics</label>
+          <input id="statistics-ask-input" type="text" autocomplete="off" placeholder="e.g. What is the latest murder rate? Compare 2023 and 2024. What indicators do you have?" maxlength="300">
+          <button type="submit">Ask</button>
+        </form>
+        <div id="statistics-ask-examples" class="statistics-ask-examples">
+          <span>Try:</span>
+          <button type="button" data-ask-example>What is the latest reported murder count?</button>
+          <button type="button" data-ask-example>What is the source for the murder rate?</button>
+          <button type="button" data-ask-example>Compare murders in 2023 and 2024</button>
+          <button type="button" data-ask-example>What indicators do you have?</button>
+        </div>
+        <div id="statistics-ask-answer" class="statistics-ask-answer" role="status" aria-live="polite"></div>
+      </div>
+    </section>
 
     <section class="statistics-connections">
       <div class="container">
         <span class="statistics-eyebrow">CONNECTED ACROSS FTN</span>
         <h2>The same verified data, everywhere it belongs.</h2>
-        <p>This is not a second, isolated copy of the numbers above -- FTN Live's Observer Console renders the identical <code>data/crime-statistics.json</code> record through the same shared component, and ibis.ai's indicator analysis can be extended to read the same <code>js/ftn-statistics.js</code> contract, so a future question ibis answers about this data carries the same real source, reference date and confidence -- never a re-guessed number.</p>
+        <p>This is not a second, isolated copy of the numbers above -- FTN Live's Observer Console renders the identical <code>data/crime-statistics.json</code> record through the same shared component, and ibis.ai's <code>STATISTIC_QUERY</code> capability reads the same <code>js/ftn-statistics.js</code> contract right on this page, so a question ibis answers about this data carries the same real source, reference date and confidence -- never a re-guessed number.</p>
         <div class="statistics-connections__grid">
           <a class="statistics-connection-card" href="/observatory/#crime-intelligence">
             <strong>FTN Live</strong>
@@ -141,7 +165,17 @@
   <script src="/js/ibis-provenance.js"></script>
   <script src="/js/ftn-statistics.js"></script>
   <script src="/js/ftn-statistics-crime-adapter.js"></script>
+  <script src="/js/ftn-statistics-fx-adapter.js"></script>
+  <script src="/js/ftn-statistics-chart.js"></script>
   <script src="/js/trust-card.js"></script>
-  <script src="/js/crime-intelligence.js?v=20260825.1"></script>
+  <script src="/js/crime-intelligence.js?v=20260825.2"></script>
+  <script src="/js/fx-intelligence.js"></script>
+  <script src="/js/ibis-provider-registry.js"></script>
+  <script src="/js/ibis-eligibility.js"></script>
+  <script src="/js/ibis-capability-taxonomy.js"></script>
+  <script src="/js/ibis-client.js"></script>
+  <script src="/js/ibis-evidence.js"></script>
+  <script src="/js/ibis-statistics-capability.js"></script>
+  <script src="/js/statistics-ask-ibis.js"></script>
 </body>
 </html>

@@ -232,6 +232,65 @@
     appendMessage('assistant', text);
     history.push({ role: 'assistant', content: text });
   }
+  // Phase 5B: same lazy-load-then-check-then-route pattern as trySavedItemsRoute() above -- only
+  // this widget's message text decides whether to attempt the route, never a page context (the
+  // widget is genuinely sitewide, so a visitor can ask ibis a real FTN Statistics question from any
+  // page, not only /statistics/). Routes through the real js/ibis-client.js STATISTIC_QUERY
+  // capability (same canonical router every other capability uses here), never a direct call to
+  // js/ibis-statistics-capability.js that would bypass eligibility/provenance.
+  var statisticsCatalogPromise = null;
+  function ensureStatisticsFabric() {
+    return loadScriptOnce('/js/ftn-statistics.js', 'data-ibis-widget-statistics')
+      .then(function () { return loadScriptOnce('/js/ftn-statistics-crime-adapter.js', 'data-ibis-widget-statistics-crime'); })
+      .then(function () { return loadScriptOnce('/js/ftn-statistics-fx-adapter.js', 'data-ibis-widget-statistics-fx'); })
+      .then(function () { return loadScriptOnce('/js/ibis-statistics-capability.js', 'data-ibis-widget-statistics-capability'); });
+  }
+  function loadStatisticsCatalog() {
+    if (statisticsCatalogPromise) return statisticsCatalogPromise;
+    statisticsCatalogPromise = Promise.all([
+      fetch('/data/crime-statistics.json').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+      fetch('/data/fx-usd-ttd.json').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+    ]).then(function (results) {
+      return global.FTN.IbisStatistics.buildCatalog({ crime: results[0], fx: results[1] });
+    });
+    return statisticsCatalogPromise;
+  }
+  function tryStatisticsRoute(text) {
+    return ensureStatisticsFabric().then(function () {
+      if (!global.FTN || !global.FTN.IbisStatistics) return null;
+      return loadStatisticsCatalog().then(function (catalog) {
+        // A confident pre-check before spending a real routed call: either a real indicator
+        // keyword is present, or the question is explicitly asking what indicators exist at all.
+        // Anything else silently falls through to the widget's ordinary product-match/TEXT path --
+        // this route must never claim an ordinary chat message as a statistics question.
+        var indicatorMatch = global.FTN.IbisStatistics.matchIndicator(catalog, text);
+        var listIntent = global.FTN.IbisStatistics.classifyIntent(text) === 'LIST_INDICATORS';
+        if (!indicatorMatch && !listIntent) return null;
+        return ensureIbisClient().then(function () {
+          if (!global.FTN.IbisClient) return null;
+          return global.FTN.IbisClient.request({
+            capability: 'STATISTIC_QUERY',
+            context: { authenticated: false },
+            payload: { text: text, catalog: catalog },
+          });
+        });
+      });
+    }).catch(function () { return null; });
+  }
+  function appendStatisticsAnswer(outcome) {
+    // outcome.result is the js/ibis-statistics-capability.js query() result directly -- see
+    // js/statistics-ask-ibis.js's identical note for why there is no extra `.data` layer here.
+    var data = outcome && outcome.result;
+    var text = (data && data.success && data.answer) || (data && data.reason) || (outcome && outcome.reason) || "ibis couldn't answer that from FTN Statistics' verified data right now.";
+    var bubble = appendMessage('assistant', text);
+    history.push({ role: 'assistant', content: text });
+    if (global.FTN && global.FTN.IbisEvidence && data) {
+      var provenance = data.provenance || {};
+      var sources = data.source ? [{ url: data.source.url, title: data.source.name }] : [];
+      global.FTN.IbisEvidence.mount(bubble, provenance, { title: data.indicatorName, sources: sources, formula: data.calculation ? data.calculation.formula : (data.formula || null) });
+    }
+  }
+
   // A confident match requires at least one of the query's real words to be a product's own
   // registered keyword (not just an incidental word overlap in its name/tagline/description) --
   // the same bar js/intent-router.js already documents as its honest-match standard.
@@ -351,14 +410,17 @@
     trySavedItemsRoute(text)
       .then(function (savedResult) {
         if (savedResult) { appendSavedItemsAnswer(savedResult); return null; }
-        return ensureIntentRouter().then(function () {
-          var matches = tryDeterministicRoute(text);
-          if (matches) {
-            var summary = appendRouteSuggestion(matches);
-            history.push({ role: 'assistant', content: 'Suggested: ' + summary });
-            return null;
-          }
-          return callAssistant();
+        return tryStatisticsRoute(text).then(function (statsOutcome) {
+          if (statsOutcome) { appendStatisticsAnswer(statsOutcome); return null; }
+          return ensureIntentRouter().then(function () {
+            var matches = tryDeterministicRoute(text);
+            if (matches) {
+              var summary = appendRouteSuggestion(matches);
+              history.push({ role: 'assistant', content: 'Suggested: ' + summary });
+              return null;
+            }
+            return callAssistant();
+          });
         });
       })
       .catch(function () {
