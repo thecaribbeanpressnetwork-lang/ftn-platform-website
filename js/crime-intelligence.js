@@ -9,7 +9,7 @@
   var CRIME_GLOW_DEFS = '<defs><filter id="crimeGlow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
   function lineChart(rows,unit) {
     var chartRows=rows.map(function(r){return {label:String(r.year),value:r.reported};});
-    return global.FTN.StatisticsChart.lineChart(chartRows,{ariaLabel:unit+' by year, 2015 to 2024',chartClass:'crime-chart',defs:CRIME_GLOW_DEFS,maxFractionDigits:1});
+    return global.FTN.StatisticsChart.lineChart(chartRows,{ariaLabel:unit+' by year, 2015 to 2024',chartClass:'crime-chart',defs:CRIME_GLOW_DEFS,maxFractionDigits:1,yPadding:30});
   }
   function seriesRows(series,mode){return series[mode==='rate'?'rates':'values'].map(function(value,i){return {year:2015+i,reported:value};});}
   // Phase 5A: a real, accessible tabular alternative to the SVG chart -- collapsed by default

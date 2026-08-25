@@ -28,14 +28,11 @@
         url: 'https://www.central-bank.org.tt/exchange-rates-monthly/',
         documentId: 'cbtt-exchange-rates-monthly',
         accessMethod: 'PUBLIC_HTML_STATIC_TABLE',
-        // Verified 2026-08-25: no published data-reuse/licensing terms were found. The Bank's own
-        // Disclaimer page addresses liability only ("makes no warranty... nor assumes any legal
-        // liability... for the accuracy, timeliness, completeness...") and is silent on copying,
-        // redistributing or citing published data; a standard "All Rights Reserved" copyright
-        // notice applies sitewide. Same posture already accepted for the TTPS crime source (see
-        // the source map and .claude/context/decisions.md) -- FTN cites the published rate with
-        // attribution and a direct link; it does not redistribute the underlying table.
-        licensingNote: 'No published data-reuse/licensing terms found (the Disclaimer page addresses liability only). Standard all-rights-reserved copyright notice applies. FTN cites the published rate with attribution and a direct link; it does not redistribute the underlying table.',
+        // Verified 2026-08-25 against the Bank's actual Copyright Notice, not only its Disclaimer.
+        // The notice authorizes attributed reproduction and addresses redistribution/private or
+        // commercial use, while making that permission revocable. FTN preserves the published
+        // figures unaltered, prominently attributes the Bank, and links to the official source.
+        licensingNote: 'The Central Bank Copyright Notice permits attributed reproduction and requires source acknowledgement for redistribution, private or commercial use; permission is revocable. FTN preserves the published figures unaltered, attributes the Central Bank and links to the official source (https://www.central-bank.org.tt/copyright-notice/).',
       }),
     };
   }
@@ -76,13 +73,13 @@
     rows.forEach(function (row) {
       observations.push(Stats.observation({
         indicatorId: 'fx-usd-buying-rate', value: row.usdBuying, unit: 'TTD per USD',
-        referencePeriod: row.period, publicationDate: null,
+        referencePeriod: row.period, sourceReferenceDate: row.period, publicationDate: null,
         retrievedAt: raw.source && raw.source.retrieved, sourceId: 'tt-cbtt-fx-monthly',
         revisionStatus: 'FINAL', confidenceBasis: 'Official central bank, monthly compiled rate',
       }));
       observations.push(Stats.observation({
         indicatorId: 'fx-usd-selling-rate', value: row.usdSelling, unit: 'TTD per USD',
-        referencePeriod: row.period, publicationDate: null,
+        referencePeriod: row.period, sourceReferenceDate: row.period, publicationDate: null,
         retrievedAt: raw.source && raw.source.retrieved, sourceId: 'tt-cbtt-fx-monthly',
         revisionStatus: 'FINAL', confidenceBasis: 'Official central bank, monthly compiled rate',
       }));

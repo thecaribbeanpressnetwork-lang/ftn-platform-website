@@ -107,6 +107,14 @@ jobs:
       - name: Audit Phase 4B ibis evidence decision matrix and provenance mapping
         run: node tests/ibis-evidence-audit.mjs
 
+      - name: Audit FTN Statistics schema and official-source adapters
+        run: |
+          node tests/ftn-statistics-schema-audit.mjs
+          node tests/fx-source-adapter-audit.mjs
+
+      - name: Audit deterministic ibis statistical querying
+        run: node tests/ibis-statistics-capability-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
@@ -157,6 +165,11 @@ jobs:
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/ibis-evidence-release.mjs
+
+      - name: Verify FTN Statistics presentation and ibis querying
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/statistics-release.mjs
 
       - name: Verify Turnstile safe readiness
         env:

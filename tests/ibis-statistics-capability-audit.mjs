@@ -38,8 +38,15 @@ assert.deepEqual(IbisStatistics.classifyIntent('unrelated nonsense text'), null,
   assert.equal(r.fact.indicatorId, 'crime-murders-reported');
   assert.equal(r.fact.value, crime.current.reported, 'the retrieved value must be the REAL stored observation, not a re-derived or re-typed number');
   assert(r.provenance && r.provenance.sourceUrl, 'a successful answer must carry a real provenance envelope with a source URL');
-  assert.notEqual(r.provenance.sourceReferenceDate, r.provenance.sourceRetrievedAt === undefined, 'sanity: fields exist independently'); // structural smoke check
-  assert('sourceReferenceDate' in r.provenance && 'sourceRetrievedAt' in r.provenance, 'source reference date and FTN retrieval date must be two DISTINCT, independently-visible fields');
+  assert.equal(r.provenance.sourceReferenceDate, null, 'TTPS does not publish an as-at date for the cumulative current figure');
+  assert(r.provenance.sourceRetrievedAt, 'FTN retrieval date must remain independently visible when the source reference date is unknown');
+}
+{
+  const r = IbisStatistics.query('What is the latest USD selling rate?', { catalog });
+  const latest = fx.monthly[fx.monthly.length - 1];
+  assert.equal(r.provenance.sourceReferenceDate, latest.period, 'FX evidence must expose the source\'s monthly reference period, not null or FTN\'s retrieval date');
+  assert.equal(r.fact.sourceReferenceDate, latest.period);
+  assert.match(r.answer, new RegExp('reference period as ' + latest.period));
 }
 
 // --- 3. Source / methodology -------------------------------------------------------------------
@@ -90,6 +97,11 @@ assert.deepEqual(IbisStatistics.classifyIntent('unrelated nonsense text'), null,
   assert.equal(r.errorType, 'NO_OBSERVATION_FOR_PERIOD');
 }
 {
+  const r = IbisStatistics.query('Compare murders in 2024', { catalog });
+  assert.equal(r.success, false, 'a named single period must not silently compare two different periods');
+  assert.equal(r.errorType, 'NEED_TWO_PERIODS');
+}
+{
   // Forcing two observations of different units/sources via a synthetic catalog: comparing the
   // crime current-year cumulative (partial year, TTPS) against a historical full-year (CSO) total
   // must be rejected even though both carry the same indicatorId -- the crime-statistics safeguard.
@@ -118,10 +130,11 @@ assert.deepEqual(IbisStatistics.classifyIntent('unrelated nonsense text'), null,
   assert.equal(r.errorType, 'NO_OBSERVATION_FOR_PERIOD', 'a period with zero observations must fail closed, not be silently treated as zero or omitted');
 }
 {
-  // The real current-year TTPS observation has publicationDate: null (source publishes no
-  // reference date) -- the answer must say so honestly rather than implying currency.
+  // The real current-year TTPS observation has sourceReferenceDate: null (source publishes no
+  // as-at date) -- the answer must say so honestly rather than implying currency. publicationDate
+  // is a separate concept and must not be substituted for it.
   const r = IbisStatistics.query('What is the latest reported murder count?', { catalog });
-  assert.equal(r.fact.publicationDate, null);
+  assert.equal(r.fact.sourceReferenceDate, null);
   assert.match(r.answer, /does not publish a statistical reference date|source publishes this as of/, 'the answer must explicitly address whether the source publishes a reference date');
 }
 
@@ -143,6 +156,10 @@ assert.deepEqual(IbisStatistics.classifyIntent('unrelated nonsense text'), null,
 }
 
 // --- 8. Provenance propagation + mandatory-evidence wiring ---------------------------------------
+{
+  const r = IbisStatistics.query('what indicators do you have?', { catalog });
+  assert.equal(r.provenance.capability, 'STATISTIC', 'indicator-list responses also require the mandatory statistical Trust Card');
+}
 {
   const r = IbisStatistics.query('What is the latest reported murder count?', { catalog });
   assert(r.provenance.capability === 'STATISTIC', 'provenance must carry the STATISTIC capability tag js/ibis-evidence.js keys its always-required rule on');

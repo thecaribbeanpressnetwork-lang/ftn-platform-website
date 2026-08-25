@@ -5,44 +5,9 @@
 // fetchAndParse() contract.
 import assert from 'node:assert/strict';
 import { fetchAndParse, todayInTimezone } from '../scripts/lib/statistics-source-adapter.mjs';
+import { parseMonthlyFx } from '../scripts/lib/cbtt-fx-parser.mjs';
 
 const ROW_ID_PREFIX = 'table_107_row_';
-
-function parsePeriod(ddmmyyyy) {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(ddmmyyyy);
-  return m ? `${m[3]}-${m[2]}` : null;
-}
-
-// The real parse() function, copied verbatim from scripts/update-fx-rate.mjs so this test
-// exercises the exact production logic, not a simplified stand-in.
-function parseMonthlyFx(html) {
-  const headerRe = /origHeader&quot;:&quot;([^&]*)&quot;/g;
-  const headers = [];
-  let hm;
-  while ((hm = headerRe.exec(html))) headers.push(hm[1]);
-  const expectedStart = ['Date', 'BBD Buying Rate', 'BBD Selling Rate'];
-  if (expectedStart.some((h, i) => headers[i] !== h)) {
-    throw new Error('Central Bank monthly exchange-rate table column layout changed');
-  }
-  const usdBuyIdx = headers.indexOf('USD Buying Rate');
-  const usdSellIdx = headers.indexOf('USD Selling Rate');
-  if (usdBuyIdx === -1 || usdSellIdx === -1) throw new Error('USD columns were not found in the Central Bank monthly table');
-
-  const rowRe = new RegExp(`<tr id="${ROW_ID_PREFIX}\\d+"[^>]*>([\\s\\S]*?)<\\/tr>`, 'g');
-  const out = [];
-  let rm;
-  while ((rm = rowRe.exec(html))) {
-    const cells = [...rm[1].matchAll(/<td[^>]*>([^<]*)<\/td>/g)].map((c) => c[1]);
-    const period = parsePeriod(cells[0]);
-    const buying = Number(cells[usdBuyIdx]);
-    const selling = Number(cells[usdSellIdx]);
-    if (!period || !Number.isFinite(buying) || !Number.isFinite(selling)) continue;
-    if (buying === 0 && selling === 0) continue;
-    out.push({ period, usdBuying: buying, usdSelling: selling });
-  }
-  if (!out.length) throw new Error('No real Central Bank USD exchange-rate rows were found');
-  return out;
-}
 
 // A realistic fixture matching the REAL page's structure: a 21-column header config (Date + 10
 // currency pairs, USD at columns 17/18) plus a placeholder current-month row and one real row.

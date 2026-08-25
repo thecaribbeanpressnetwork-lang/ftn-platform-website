@@ -80,6 +80,7 @@
       value: null,
       unit: null,
       referencePeriod: null, // the period the SOURCE says this value covers -- never FTN's retrieval date
+      sourceReferenceDate: null, // the source's own dated/as-at period; null when the publisher does not state one
       publicationDate: null, // when the SOURCE published this value -- null (not omitted) when the source doesn't state one
       retrievedAt: null, // FTN's own retrieval timestamp -- always distinct from referencePeriod/publicationDate
       sourceId: null,
@@ -114,7 +115,7 @@
       sourceUrl: source ? source.url : null,
       publisher: source ? source.publisher : null,
       sourceRetrievedAt: obs.retrievedAt,
-      sourceReferenceDate: obs.publicationDate,
+      sourceReferenceDate: obs.sourceReferenceDate,
       retrievalMethod: source ? source.accessMethod : null,
       confidenceBasis: obs.confidenceBasis,
       licensingNote: source ? source.licensingNote : null,

@@ -19,12 +19,20 @@
     });
   }
 
-  // rows: [{label, value}] (>=2 rows). opts: {ariaLabel, chartClass, defs, maxFractionDigits}.
+  // rows: [{label, value}] (>=2 rows). opts: {ariaLabel, chartClass, defs, maxFractionDigits,
+  // yPadding}. yPadding is an absolute amount below the series minimum. When omitted, derive a
+  // small data-relative margin so narrow-range series (such as monthly FX) remain legible rather
+  // than inheriting a crime-count scale.
   function lineChart(rows, opts) {
     opts = opts || {};
     var w = 900, h = 330, p = 48;
     var values = rows.map(function (r) { return r.value; });
-    var max = Math.max.apply(null, values), min = Math.min.apply(null, values) - 30;
+    var max = Math.max.apply(null, values), rawMin = Math.min.apply(null, values);
+    var range = max - rawMin;
+    var padding = opts.yPadding != null
+      ? opts.yPadding
+      : Math.max(range * 0.15, Math.abs(max) * 0.001, 0.0001);
+    var min = rawMin - padding;
     var x = function (i) { return p + i * (w - p * 2) / (rows.length - 1); };
     var y = function (v) { return h - p - (v - min) / (max - min) * (h - p * 2); };
     var points = rows.map(function (r, i) { return x(i) + ',' + y(r.value); }).join(' ');

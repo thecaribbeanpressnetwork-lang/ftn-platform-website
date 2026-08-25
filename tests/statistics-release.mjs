@@ -118,6 +118,8 @@ await scenario('fx-chart-table-and-trust-card', async (page) => {
   await open(page, '/statistics/');
   await page.waitForSelector('[data-fx-chart] svg', { timeout: 10000 });
   const chartValues = await page.locator('[data-fx-chart] .fx-chart__value').allTextContents();
+  const chartY = await page.locator('[data-fx-chart] .fx-chart__dot').evaluateAll((dots) => dots.map((dot) => Number(dot.getAttribute('cy'))));
+  assert(Math.max(...chartY) - Math.min(...chartY) > 30, 'the narrow-range FX series must use a meaningful data-relative vertical scale');
   await page.locator('.fx-table-disclosure summary').click();
   const tableValues = await page.locator('[data-fx-table] tbody td:nth-child(2)').allInnerTexts();
   assert.deepEqual(chartValues, tableValues, 'FX chart-plotted values and its accessible table must agree exactly');
@@ -128,7 +130,21 @@ await scenario('fx-chart-table-and-trust-card', async (page) => {
   assert.match(sourceHref || '', /central-bank\.org\.tt/i, 'FX Trust Card must link directly to the real Central Bank source');
   const panelText = await panel.innerText();
   assert.match(panelText, /Selling Rate/i, 'Trust Card must name the real FX indicator');
+  assert.match(panelText, /Statistical reference date/i, 'Trust Card must expose the source reference period separately');
+  assert.doesNotMatch(panelText, /Statistical reference date\s*Not published by source/i, 'the Central Bank monthly period must not be discarded as unknown');
 });
+
+await scenario('fx-mobile-chart-is-scrollable-not-clipped', async (page) => {
+  await open(page, '/statistics/');
+  await page.waitForSelector('[data-fx-chart] svg');
+  const layout = await page.locator('[data-fx-chart]').evaluate((el) => ({
+    clientWidth: el.clientWidth,
+    scrollWidth: el.scrollWidth,
+    overflowX: getComputedStyle(el).overflowX,
+  }));
+  assert(layout.scrollWidth > layout.clientWidth, 'the full labelled FX chart should remain available by horizontal scrolling on mobile');
+  assert.match(layout.overflowX, /auto|scroll/, 'the mobile chart container must expose horizontal scrolling');
+}, { width: 375, height: 812 });
 
 await scenario('fx-does-not-claim-live-rate', async (page) => {
   await open(page, '/statistics/');
@@ -191,6 +207,19 @@ await scenario('ask-ibis-example-buttons-work', async (page) => {
   assert(answer.length > 0);
 });
 
+await scenario('ask-ibis-indicator-list-also-has-mandatory-trust-card', async (page) => {
+  await open(page, '/statistics/');
+  await askIbis(page, 'What indicators do you have?');
+  assert.equal(await page.locator('#statistics-ask-answer .ibis-evidence-trigger').count(), 1, 'every successful statistical response, including the catalog list, must carry evidence');
+});
+
+await scenario('ask-ibis-single-period-comparison-fails-closed', async (page) => {
+  await open(page, '/statistics/');
+  const answer = await askIbis(page, 'Compare murders in 2024');
+  assert.equal(await page.locator('#statistics-ask-answer').getAttribute('data-state'), 'error');
+  assert.match(answer, /name two compatible periods/i);
+});
+
 // --- Founder decision: primary navigation must remain unchanged by this phase --------------------
 await scenario('primary-navigation-unchanged', async (page) => {
   await open(page, '/statistics/');
@@ -219,4 +248,4 @@ await scenario('no-paid-provider-calls-for-statistics-questions', async (page) =
 });
 
 await browser.close();
-console.log('18/18 FTN Statistics release scenarios passed (9 Phase 5A + 9 Phase 5B).');
+console.log('21/21 FTN Statistics release scenarios passed (9 Phase 5A + 12 Phase 5B verification scenarios).');

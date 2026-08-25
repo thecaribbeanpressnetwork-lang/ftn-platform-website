@@ -17,6 +17,7 @@
 .fx-measure button{flex:0 0 auto;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:8px 14px;color:#b9bcc4;background:rgba(0,0,0,.3);font-weight:700;cursor:pointer}
 .fx-measure button.is-active{color:#fff;border-color:rgba(225,6,19,.7);background:rgba(225,6,19,.18)}
 .fx-chart{width:100%;overflow:visible}
+.fx-intel [data-fx-chart]{overflow-x:auto;overscroll-behavior-inline:contain}
 .fx-chart text{fill:#8e929d;font-size:13px}
 .fx-chart__value{fill:#fff!important;font-weight:800}
 .fx-chart__line{fill:none;stroke:#f21928;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}

@@ -33,6 +33,7 @@ function loadContext(extraFiles) {
   const bare = Stats.observation({ indicatorId: 'x' });
   assert.equal(bare.confidenceBasis, 'NOT_ASSESSED', 'confidenceBasis must default to the explicit NOT_ASSESSED sentinel, never fabricated');
   assert.equal(bare.suppressionReason, null);
+  assert.equal(bare.sourceReferenceDate, null, 'sourceReferenceDate must default to null, never to FTN\'s retrieval date');
   assert.equal(bare.publicationDate, null, 'publicationDate must default to null (genuinely unknown), never a guessed date');
 }
 
@@ -51,7 +52,7 @@ function loadContext(extraFiles) {
   const withIbis = loadContext(['js/ibis-provenance.js']).window.FTN;
   const withoutIbis = loadContext().window.FTN;
   const source = withIbis.Statistics.sourceDataset({ id: 's', name: 'Test Source', publisher: 'Test Publisher', url: 'https://example.com', accessMethod: 'PUBLIC_CSV_DOWNLOAD', licensingNote: 'Cited with attribution' });
-  const obs = withIbis.Statistics.observation({ indicatorId: 'x', retrievedAt: '2026-08-25', publicationDate: '2024', confidenceBasis: 'Official agency' });
+  const obs = withIbis.Statistics.observation({ indicatorId: 'x', retrievedAt: '2026-08-25', sourceReferenceDate: '2024', publicationDate: '2025-01-31', confidenceBasis: 'Official agency' });
   const withProv = withIbis.Statistics.provenanceFor(obs, source);
   const withoutProv = withoutIbis.Statistics.provenanceFor(obs, source);
   for (const field of ['sourceIdentity', 'sourceUrl', 'publisher', 'sourceRetrievedAt', 'sourceReferenceDate', 'retrievalMethod', 'confidenceBasis', 'licensingNote', 'degradedState']) {
@@ -99,6 +100,7 @@ function loadContext(extraFiles) {
   // Current TTPS observation: real value, explicit source-date-unknown handling.
   const current = built.observations.find((o) => o.sourceId === 'tt-ttps-crime-current');
   assert.equal(current.value, raw.current.reported);
+  assert.equal(current.sourceReferenceDate, null, 'TTPS publishes no statistical as-at date; FTN retrieval must not be substituted');
   assert.equal(current.publicationDate, null, 'TTPS publishes no statistical reference date for the current total -- must be explicit null, not fabricated');
   assert.equal(current.retrievedAt, raw.current.asOf);
   assert.equal(current.revisionStatus, 'PROVISIONAL');
@@ -133,7 +135,7 @@ function loadContext(extraFiles) {
 
   assert(built.sources.cbtt, 'must produce the Central Bank source dataset');
   assert.equal(built.sources.cbtt.url, raw.source.url);
-  assert.match(built.sources.cbtt.licensingNote, /no published data-reuse/i, 'real licensing finding must be present, not fabricated as cleared');
+  assert.match(built.sources.cbtt.licensingNote, /Copyright Notice permits attributed reproduction/i, 'the real Central Bank Copyright Notice must be represented accurately');
 
   const buying = built.observations.filter((o) => o.indicatorId === 'fx-usd-buying-rate');
   const selling = built.observations.filter((o) => o.indicatorId === 'fx-usd-selling-rate');
@@ -142,7 +144,8 @@ function loadContext(extraFiles) {
   const latestRow = raw.monthly[raw.monthly.length - 1];
   const latestObs = selling.find((o) => o.referencePeriod === latestRow.period);
   assert.equal(latestObs.value, latestRow.usdSelling, 'the observation value must be the real published rate, unchanged');
-  assert.equal(latestObs.publicationDate, null, 'the Bank does not publish an explicit statistical reference date for this figure -- must be explicit null');
+  assert.equal(latestObs.sourceReferenceDate, latestRow.period, 'the source-published monthly reference period must reach provenance independently of retrieval date');
+  assert.equal(latestObs.publicationDate, null, 'the monthly table does not publish a separate publication date for each row -- must be explicit null');
 
   // Real derived calculation: month-over-month change, a genuinely different shape than crime's
   // cross-sectional per-100,000 rate (a same-indicator adjacent-period comparison instead).
