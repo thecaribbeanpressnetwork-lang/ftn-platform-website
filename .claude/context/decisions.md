@@ -275,14 +275,13 @@ should follow the same pattern (attribution + direct link, no dataset-file redis
 than re-deciding this per indicator — and should update the source map, not just the code, if the
 licensing picture changes.
 
-**Extended 2026-08-25 (Phase 5B, same session):** this decision now also covers the Central Bank of
-Trinidad and Tobago's monthly exchange-rate table — same finding (no published reuse terms, a
-standard liability-only disclaimer), same bounded cite-and-link position, no new reasoning required.
-See the source map's §8 for the candidate-selection record (and a real, documented technical
-finding: the Bank's DAILY exchange-rate page was evaluated and rejected as a source this pass — its
-rows load through a nonce-gated wpDataTables AJAX endpoint that a real attempt this pass could not
-reliably reproduce; the MONTHLY page was used instead, confirmed genuinely static and reliably
-parseable).
+**Central Bank correction — 2026-08-25:** do not apply the unresolved CSO/TTPS licensing finding to
+the Central Bank. Independent verification found the Bank's separate Copyright Notice at
+`https://www.central-bank.org.tt/copyright-notice/`. It permits attributed reproduction in
+unaltered form and addresses redistribution/private or commercial use, while making permission
+revocable. FTN may retain and present the published exchange-rate observations with prominent
+Central Bank attribution and a direct source link. See the source map's §8. The technical decision
+to use the static MONTHLY page rather than the nonce-gated DAILY page remains unchanged.
 
 ### ibis STATISTIC_QUERY is deliberately model-free — **Active** (2026-08-25, Phase 5B)
 

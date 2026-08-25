@@ -619,3 +619,31 @@ deployed provider registry carries `ibis-local-statistics-query`. Beyond static 
 Card, real ibis Q&A with a mandatory Trust Card, the fail-closed unsupported-question path,
 unchanged primary navigation, and no paid-provider network calls all verified against production
 itself, not just the local build.
+
+### Independent Phase 5B verification corrections — 2026-08-25
+
+Fresh review after the initial close-out found and corrected four bounded defects without changing
+the Phase 5B architecture:
+
+- The observation schema now carries `sourceReferenceDate` separately from both
+  `referencePeriod` and `publicationDate`. Central Bank monthly observations propagate their real
+  `YYYY-MM` source period into ibis provenance and Trust Cards; the TTPS current-year count keeps
+  this field null because TTPS publishes no statistical "as at" date. FTN retrieval dates are never
+  substituted.
+- A comparison/change question naming exactly one period now fails closed with
+  `NEED_TWO_PERIODS` instead of silently comparing the two latest observations.
+- Indicator-list answers now carry `capability:'STATISTIC'` provenance, so the "Trust Card for every
+  successful statistical response" rule also covers that path.
+- The Central Bank Copyright Notice was found and read directly. It permits attributed,
+  unaltered reproduction and addresses redistribution/private or commercial use, with revocable
+  permission. The earlier "no published reuse terms" statement was corrected in code and
+  governance records.
+
+The production parser was also extracted to `scripts/lib/cbtt-fx-parser.mjs`, so the fixture test
+imports the real parser instead of maintaining a copy. The FX chart now uses a meaningful
+data-relative vertical scale for its narrow range, while crime retains its prior explicit scale;
+on mobile, the 24-month plot scrolls rather than clipping.
+
+All three Phase 5B static suites and `tests/statistics-release.mjs` are now explicit steps in the
+functional release workflow. They previously existed but were not invoked by CI, so their
+regressions were testable locally yet not release-gated.
