@@ -137,6 +137,23 @@ all-public-routes [known /facethenation quirk only], mobile-release, surface-sys
 this cycle], creative-studio-release, founder-access-release, turnstile-release) — all pass after
 the one real fix.
 
+## Cycle 6 (2026-08-25) — concurrent-session merge + production verification
+
+A push conflict revealed another session had independently pushed 3 real commits on top of the same
+`eb51ab2` base (`cf73620`, `1b3f3c2`, `b476a88`) — genuine Phase 5B verification corrections: a
+`sourceReferenceDate` provenance field, a stricter `NEED_TWO_PERIODS` fail-closed rule (replacing
+this pass's looser "default to two most recent" choice), a real Central Bank Copyright Notice
+correction (their own direct reading superseded this pass's earlier "no published reuse terms"
+claim — a genuine truthfulness fix, not a stylistic one), an FX chart x-axis label-collision fix
+found via a real screenshot, and wiring the Statistics test suites into CI. Merged via `git merge`
+(one real conflict, in this ledger's own append point, resolved by keeping both entries in
+sequence) — never force-pushed, both bodies of work preserved. Full static + Playwright suite
+re-run clean on the merged tree, then re-verified a third time directly against production
+(`075f1d0`): all 21 `statistics-release.mjs` scenarios pass live, including the other session's 3
+new ones.
+
+**Status: merge complete, both sessions' work verified live in production together.**
+
 ## Next executable task
 
 None independently executable without Supabase credentials. All five brief priorities have been
