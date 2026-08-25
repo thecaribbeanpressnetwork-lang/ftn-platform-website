@@ -52,6 +52,7 @@ engines in [intelligence.md](intelligence.md).
 | `account` | FTN Account | `/account/` | AVAILABLE | PUBLIC | — |
 | `health` | FTN Health | `/health/` | **VAULTED** | **PRIVATE** | — |
 | `top-picks` | FTN Picks | `/top-picks/` | AVAILABLE | PUBLIC | `invest` |
+| `statistics` | FTN Statistics | `/statistics/` | AVAILABLE | PUBLIC | — |
 
 `legacyIds` exist for two entries — `ftn-live` also answers to `observatory`, `dj-tube` also
 answers to `ftn-dj` — keep both when grepping for references.
@@ -59,7 +60,7 @@ answers to `ftn-dj` — keep both when grepping for references.
 ## Ecosystem groups (registry `ECOSYSTEM_GROUPS`)
 
 - **Civic & public life** — `community-connect`, `govern`, `parliament`, `facethenation`
-- **Information & intelligence** — `ftn-live`, `kaiso`, `ibis-ai`, `scenario-workspace`
+- **Information & intelligence** — `ftn-live`, `kaiso`, `ibis-ai`, `scenario-workspace`, `statistics`
 - **Media & culture** — `radio`, `screen`, `tv`, `display`
 - **Music & creation** — `riddim`, `ftn-fire`, `dj-tube`, `daw`, `epk`
 - **Opportunities & business** — `opportunities`, `learn`, `invest`, `top-picks`
@@ -71,6 +72,24 @@ Every public product is branded `FTN <Name>` (FTN Riddim, FTN Kaiso, FTN Radio, 
 Live, FTN Learn, FTN Govern, FTN Parliament, FTN Account, FTN Invest-in, FTN Picks, FTN Trust
 Centre, FTN Nexus Command) — do not invent a product name that skips the `FTN` prefix, and do not
 rename an existing one without a registry change plus a decisions.md entry.
+
+## FTN Statistics — shared official-data foundation (Phase 5A, 2026-08-25)
+
+`statistics` (`/statistics/`) is the shared, source-verified statistics foundation — not a second
+isolated indicator product. The contract (`js/ftn-statistics.js`) and its first source adapter
+(`js/ftn-statistics-crime-adapter.js`) are meant to be extended by other consumers (FTN Live,
+ibis.ai, FTN Govern, FTN Parliament, Community Connect), not duplicated per-product. First vertical
+slice: real CSO/TTPS crime data, reusing the pre-existing `data/crime-statistics.json` pipeline and
+`js/crime-intelligence.js` renderer (also embedded at `/observatory/#crime-intelligence` — one
+renderer, two mount points, not two implementations). Full source inventory, licensing reasoning and
+access-method documentation: `GOVERNANCE/FTN_Statistics_Source_Map_2026-08-25.md`.
+
+**Do not add a second statistics data model.** Before wiring a new "current conditions" number into
+any product, check whether it belongs in `js/ftn-statistics.js`'s indicator/observation/source
+contract first — this is exactly the kind of duplication `platform's own "build once, reuse
+everywhere" principle (CLAUDE.md §3) exists to prevent, and this phase's own starting inventory
+found real prior duplication risk in `js/indicators-data.js`'s 56 `Illustrative` (placeholder, not
+real) indicators.
 
 ## Not yet in the registry
 

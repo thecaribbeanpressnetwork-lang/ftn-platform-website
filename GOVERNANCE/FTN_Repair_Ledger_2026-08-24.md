@@ -449,3 +449,73 @@ carries the new field renderers and the `esc(data.title)` security fix; `js/ibis
 zero occurrences of `data-studio-mode="video"`; `/ibis-ai/`'s served HTML no longer references
 `ibis-video-decision-gate`; `/trust/` shows the updated 2026-08-25 review date. `/ibis-ai/` itself
 returns `200`.
+
+## Phase 5A — FTN Statistics shared data foundation and first verified vertical slice (2026-08-25)
+
+Founder-authorized. Full detail (existing-statistics duplication inventory, official-source access
+attempts and outcomes, cross-validation method, licensing reasoning): **`GOVERNANCE/FTN_Statistics_
+Source_Map_2026-08-25.md`.** Founder decision recorded separately: `.claude/context/decisions.md`'s
+"FTN Statistics: cite-and-link, don't redistribute" entry.
+
+**Key finding that reshaped the plan:** the existing "Indicator Engine" (`js/indicators-data.js`,
+60 indicators) has 56 explicitly self-labeled `Illustrative` (placeholder, not real) entries, plus
+three `referenceDate: null` debt indicators (honestly flagged, out of scope this pass). Exactly one
+— `recorded-murders` — is already backed by a real, live, already-automated pipeline
+(`data/crime-statistics.json` + `scripts/update-ttps-crime.mjs` + its daily GitHub Action). Phase 5A
+therefore built the shared schema/adapter layer as a thin wrapper around that real pipeline, rather
+than a second one — "build once, reuse everywhere" applied to an asset found mid-inventory.
+
+**Shared contract:** `js/ftn-statistics.js` — five kept-separate layers (indicator definitions,
+source datasets, observations, derived calculations, presentation config), enum-validated,
+fail-closed on an unrecognized topic/geoLevel/frequency/revisionStatus/suppressionReason.
+`provenanceFor()` bridges directly into Phase 4A's `js/ibis-provenance.js` envelope (same field
+names, with a compatible fallback shape if that module isn't loaded) — no competing evidence model,
+per the phase brief's explicit instruction.
+
+**First adapter:** `js/ftn-statistics-crime-adapter.js` transforms the real `data/crime-statistics.
+json` into two indicators (`crime-murders-reported`, `crime-murder-rate-per-100k`, the latter
+carrying its real `formula`) and two distinct `sourceDataset` objects (CSO historical, TTPS
+current), each with an honestly-worded `licensingNote`. Write-side: `scripts/lib/statistics-source-
+adapter.mjs` (`fetchAndParse` — fails closed on a non-OK response or a parse-function throw, which
+is how source-structure-change detection works; `todayInTimezone`), and `scripts/update-ttps-crime.
+mjs` refactored onto it (verified byte-identical data values before/after the refactor; ran for
+real during this session, legitimately updating `data/crime-statistics.json` with a fresh
+2026-08-24 TTPS figure — 120 reported, 13 detected — left in place, not reverted).
+
+**Renderer enhanced in place, not duplicated:** `js/crime-intelligence.js` (the pre-existing
+component, already live at `/observatory/#crime-intelligence`) gained an accessible `<details>`-
+collapsed data table (`<caption>`, `scope="col"`/`scope="row"` headers) and a real Trust Card
+trigger built from the new schema/adapter — both benefit the already-live Observer Console page,
+not just the new one. The new `/statistics/` page mounts the identical component at the same
+`id="crime-intelligence"` auto-init convention — zero duplicate fetch/render code.
+
+**New public page:** `/statistics/` — dark, premium black/red/white, registered in the Product
+Registry as `statistics` (`AVAILABLE`, `information-intelligence` ecosystem group, footer-linked),
+wired into `data/nav-config.mjs`-driven nav/footer sync and `scripts/generate-sitemap.mjs`.
+
+**Tests:** `tests/ftn-statistics-schema-audit.mjs` (enum validation, defaults, no presentation
+fields in raw observations, provenance alignment with/without `ibis-provenance.js`, full real
+adapter transform against the live data file including the unavailable-state path) and `tests/
+statistics-source-adapter-audit.mjs` (fixture-based, zero real network calls: fail-closed on
+non-OK/changed-structure/missing-category/non-finite values) — both new, both passing. `tests/
+statistics-release.mjs` (new, 9 Playwright scenarios against the real rendered page: chart/table
+numeric agreement, accessible-table semantics, real Trust Card provenance including the live
+`ttps.gov.tt` source link, keyboard access to the evidence trigger and table disclosure, reduced
+motion, mobile/tablet/200%-zoom-equivalent layout, and an explicit no-live-claim check scoped to
+the crime section itself). `tests/product-registry-audit.mjs` extended with FTN Statistics
+registry/ecosystem-group/sitemap/footer/ownerModule assertions. `tests/functional-release.mjs` and
+`tests/foundation-release.mjs` had their hardcoded `.ecosystem-product-link` count corrected from
+23 to 24 (a real, deliberate addition, not weakened) and a pre-existing stale assertion
+(`/facethenation` missing its trailing slash — masked in production by Cloudflare's own 308
+redirect, confirmed via direct `curl`, but not replicated by the local static test server) fixed to
+match the convention every other route call in that file already uses. Full existing static/
+Playwright suite re-run clean throughout, including `csp-source-audit`, `asset-manifest-audit`,
+`nav-registry-audit`, `service-worker-policy-audit`, `service-worker-lifecycle`, `ibis-evidence-
+release`.
+
+**Not done this phase, by design:** the deferred FTN Fire reconciliation (still pending, recorded
+here again for the later Riddim/Fire completion pass); broad dataset expansion beyond the one crime
+vertical slice; any change to `js/indicators-data.js`'s 56 illustrative placeholders; the
+`route:'/facethenation'` missing-trailing-slash inconsistency in `js/product-registry-data.js`
+itself (discovered this pass, confirmed non-breaking in production, left as a documented finding
+rather than an in-scope fix — see the Phase 5A close-out report for the full note).

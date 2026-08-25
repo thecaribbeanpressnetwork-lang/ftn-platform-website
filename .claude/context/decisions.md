@@ -250,6 +250,31 @@ generated rather than hand-drifted.
 protected:** it is not — check the actual server-side authorization (Supabase RLS/RPC/Edge
 Function) for that route instead.
 
+### FTN Statistics: cite-and-link, don't redistribute, for CSO/TTPS crime data — **Active** (2026-08-25)
+
+**Decision:** neither the Central Statistical Office (`cso.gov.tt`, blocked from this environment by
+Cloudflare WAF — confirmed `403` via two independent access methods) nor the Trinidad and Tobago
+Police Service (`ttps.gov.tt`, accessible, no published terms of use — footer link is a dead `#`
+anchor) publishes an unambiguous machine-readable reuse license for their crime statistics. Rather
+than escalate and block the phase, the following bounded position was taken, reasoned from FTN
+Govern/Parliament's already-approved "independent gateway, source clearly attributed, never claims
+ownership" pattern: FTN **cites and displays** real published figures with prominent attribution, a
+direct source link, and a visible publication/retrieval date (citing published facts with
+attribution is standard, lawful civic-journalism practice — facts are not copyrightable); FTN does
+**not** bulk-redistribute, host, or resell the underlying raw dataset files.
+
+**Why this is recorded as a decision, not just an implementation note:** the licensing ambiguity is
+real and unresolved, not fully cleared. If CSO access is ever restored, its actual terms-of-use text
+should be read in full and this position re-confirmed or revised — until then, this is the standing
+rule for any FTN Statistics indicator sourced from these two publishers. Full reasoning, the
+specific access attempts made, and the cross-validation performed on the resulting figures:
+`GOVERNANCE/FTN_Statistics_Source_Map_2026-08-25.md`.
+
+**How to apply:** a future session extending FTN Statistics to a new CSO/TTPS-sourced indicator
+should follow the same pattern (attribution + direct link, no dataset-file redistribution) rather
+than re-deciding this per indicator — and should update the source map, not just the code, if the
+licensing picture changes.
+
 ---
 
 ## Still-open conflicts (do not silently resolve)
