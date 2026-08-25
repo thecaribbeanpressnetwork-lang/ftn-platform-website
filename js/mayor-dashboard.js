@@ -9,7 +9,7 @@ function list(id,items,render,empty){$(id).innerHTML=(items||[]).map(function(x)
 function num(v){return Number(v||0).toLocaleString();}
 async function national(){
  if(state.national)return state.national;
- var r=await Promise.all([fetch('/data/crime-statistics.json'),fetch('/data/fx-usd-ttd.json')]);
+ var r=await Promise.all([fetch('/data/crime-statistics.json',{cache:'no-cache'}),fetch('/data/fx-usd-ttd.json',{cache:'no-cache'})]);
  if(!r[0].ok||!r[1].ok)throw new Error('National source snapshot could not be read.');
  var crime=await r[0].json(),fx=await r[1].json(),annual=crime.annual||[],latest=annual[annual.length-1]||{},month=(fx.monthly||[]).slice(-1)[0]||{};
  return state.national={crime:crime,fx:fx,latestHistorical:latest,latestFx:month};
@@ -31,13 +31,13 @@ function render(d,n){
  renderNational(n);
 }
 async function refresh(){
- var status=$('mayorStatus');status.textContent='Refreshing the selected community picture…';
+ var status=$('mayorStatus');status.textContent='Refreshing the selected community picture…';$('mayorMetrics').setAttribute('aria-busy','true');
  var from=$('mayorFrom').value,to=$('mayorTo').value,community=$('mayorCommunity').value||null;
  try{
-  var res=await fetch(URL+'/rest/v1/rpc/mayor_dashboard_summary',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+state.session.access_token,'Content-Type':'application/json'},body:JSON.stringify({p_from:new Date(from).toISOString(),p_to:new Date(to).toISOString(),p_community:community})});
+  var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},12000);var res;try{res=await fetch(URL+'/rest/v1/rpc/mayor_dashboard_summary',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+state.session.access_token,'Content-Type':'application/json'},body:JSON.stringify({p_from:new Date(from).toISOString(),p_to:new Date(to).toISOString(),p_community:community}),signal:controller.signal});}finally{clearTimeout(timer);}
   if(!res.ok)throw new Error('Protected community summary was not returned.');
-  var data=await res.json();state.summary=Array.isArray(data)?data[0]:data;render(state.summary,await national());status.textContent='Community picture updated.';
- }catch(e){status.textContent='Secure refresh needs attention. Please try again.';}
+  var data=await res.json();state.summary=Array.isArray(data)?data[0]:data;render(state.summary,await national());$('mayorMetrics').setAttribute('aria-busy','false');status.textContent='Community picture updated.';
+ }catch(e){$('mayorMetrics').setAttribute('aria-busy','false');status.textContent='The community picture did not finish loading. Select Refresh community picture to try again.';}
 }
 function brief(){
  if(!state.summary)return refresh().then(brief);
