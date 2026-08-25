@@ -389,3 +389,23 @@ Recorded here as open, not silently dropped.
   around by verifying the actual deployed artifact directly (`curl` against `ftnplatform.org`)
   instead of trusting the dashboard read — a stronger form of evidence anyway per this repo's own
   release rule ("the verified production response" is the final evidence, not a status badge).
+
+## Phase 4A — ibis source and provider routing consolidation (2026-08-25)
+
+A separate, founder-authorized continuation beyond this ledger's original Phase 0-3 scope,
+recorded here as a pointer rather than duplicated in full: **`IBIS-MAP.md`'s own "Phase 4A" section
+is the authoritative record** (inventory, claims-vs-implementation gap map, what was implemented,
+what was explicitly not done, and Phase 4B's deferred decision proposal).
+
+Headline finding: `js/ibis-ai-workspace.js`'s `serverAI()` — the main `/ibis-ai/` page's real text-
+chat path — called `supabase/functions/ibis-query` directly, bypassing the provider registry's
+`enabled`/eligibility gate entirely. Fixed, plus five other real gaps (two missing default
+executors, an error-type mislabeling bug, four Edge Functions with no timeout, a Gemini API key
+traveling in a URL query parameter, and one unlabeled deterministic-vs-generated UI branch). Six
+commits (`20b4ddb`..`f0876e6`), one new module (`js/ibis-provenance.js`, the shared internal
+provenance envelope), one new test file (`tests/ibis-routing-consolidation-audit.mjs`, wired into
+CI), zero regressions across the full existing `ibis-*`/`ftn-node-registry`/`ftn-source-provenance`
+suite. **Final commit `f0876e6`, confirmed live** via `curl https://ftnplatform.org/version.json`
+and direct verification of every changed file's content in production (`js/ibis-provenance.js`
+served correctly; `js/ibis-client.js`/`js/ibis-ai-workspace.js`/`js/ibis-provider-registry.js` all
+carry the real fixes; `service-worker.js` unaffected, as expected).
