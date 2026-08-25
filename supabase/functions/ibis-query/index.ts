@@ -82,9 +82,14 @@ Deno.serve(async (request) => {
     // Bounded timeout so a slow/hung Gemini call can never hold this request open
     // indefinitely -- the client-side fallback chain (js/ibis-ai-workspace.js serverAI)
     // depends on this route actually returning, not hanging forever.
-    const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
+    // Phase 4A security fix: the API key previously traveled as a `?key=` URL query parameter,
+    // which real-world request logging/proxies/error trackers can capture in plaintext even
+    // though the key itself always came from an env var, never a literal. Google's Generative
+    // Language API documents `x-goog-api-key` as the header alternative -- same key, same
+    // permissions, just not embedded in the URL.
+    const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: instruction }] },
         contents: [{ role: "user", parts: [{ text: prompt }] }],

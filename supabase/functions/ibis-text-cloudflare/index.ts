@@ -95,6 +95,8 @@ Deno.serve(async (request) => {
           ...turns.map((t) => ({ role: t.role, content: t.content })),
         ],
       }),
+      // Phase 4A fix: bounded timeout, same pattern already proven in ibis-query.
+      signal: AbortSignal.timeout(20_000),
     });
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok || data?.success === false) {

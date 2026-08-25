@@ -77,6 +77,8 @@ Deno.serve(async (request) => {
         "authorization": `Bearer ${apiToken}`,
       },
       body: JSON.stringify({ prompt }),
+      // Phase 4A fix: bounded timeout, same pattern already proven in ibis-query.
+      signal: AbortSignal.timeout(20_000),
     });
 
     const contentType = upstream.headers.get("content-type") || "";

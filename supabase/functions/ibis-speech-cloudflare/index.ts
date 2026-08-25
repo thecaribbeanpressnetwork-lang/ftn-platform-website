@@ -79,6 +79,8 @@ Deno.serve(async (request) => {
         method: "POST",
         headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
         body: JSON.stringify({ audio }),
+        // Phase 4A fix: bounded timeout, same pattern already proven in ibis-query.
+        signal: AbortSignal.timeout(20_000),
       });
       const data = await upstream.json().catch(() => ({}));
       if (!upstream.ok || data?.success === false) {
@@ -105,6 +107,8 @@ Deno.serve(async (request) => {
       method: "POST",
       headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
       body: JSON.stringify({ text, speaker: "luna", encoding: "mp3" }),
+      // Phase 4A fix: bounded timeout, same pattern already proven in ibis-query.
+      signal: AbortSignal.timeout(20_000),
     });
     if (!upstream.ok) {
       const errText = await upstream.text().catch(() => "");

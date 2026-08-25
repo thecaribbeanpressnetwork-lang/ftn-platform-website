@@ -101,6 +101,9 @@ Deno.serve(async (request) => {
         system: buildSystemPrompt(payload.products),
         messages: turns.map((t) => ({ role: t.role, content: t.content })),
       }),
+      // Phase 4A fix: bounded timeout so a slow/hung Anthropic call can never hold this request
+      // open indefinitely -- same pattern already proven in supabase/functions/ibis-query.
+      signal: AbortSignal.timeout(20_000),
     });
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
