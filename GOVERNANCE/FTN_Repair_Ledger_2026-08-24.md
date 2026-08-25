@@ -603,3 +603,19 @@ unverified, per founder decision #3); FTN Fire reconciliation (still deferred); 
 expansion beyond the one new second indicator; a third indicator; debt-to-GDP (explicitly rejected
 again without new investigation, per the brief's own instruction not to revisit it without a
 defensible new source).
+
+**Commits:** `0aba2dc`..`a443a36` (6 commits: shared chart extraction + a real Phase 5A defect fix,
+FX adapter + real data + weekly cron, ibis STATISTIC_QUERY capability, FX/ask-ibis UI wiring,
+release tests, docs).
+
+**Direct production verification** (commit `a443a36`, confirmed live via
+`curl https://ftnplatform.org/version.json`): `/statistics/` returns `200`; every new JS/CSS asset
+(`js/ibis-statistics-capability.js`, `js/ftn-statistics-fx-adapter.js`, `js/ftn-statistics-chart.js`,
+`js/fx-intelligence.js`, `js/statistics-ask-ibis.js`, `css/components/fx-intelligence.css`, and the
+ibis fabric files) serves `200`; `data/fx-usd-ttd.json` serves the real 427-month series; the
+deployed provider registry carries `ibis-local-statistics-query`. Beyond static checks, the full
+`tests/statistics-release.mjs` suite (18 scenarios) was re-run with
+`FTN_TEST_BASE=https://ftnplatform.org` directly against the live site -- FX chart/table/Trust
+Card, real ibis Q&A with a mandatory Trust Card, the fail-closed unsupported-question path,
+unchanged primary navigation, and no paid-provider network calls all verified against production
+itself, not just the local build.
