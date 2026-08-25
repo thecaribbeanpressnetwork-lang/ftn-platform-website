@@ -139,6 +139,21 @@ body.trust-card-open {
   margin-bottom: var(--space-16);
 }
 
+/* Degraded/incomplete/fallback provenance state (Phase 4B, ibis evidence integration) -- same
+   restrained tint-box shape as .trust-card__why, using the existing "estimated" amber already in
+   this file's own trust-badge palette (line ~67) rather than a new alarm color. Informational, not
+   an error banner -- "this response used a fallback route" is a fact to disclose, not a warning to
+   escalate. */
+.trust-card__degraded {
+  font-size: var(--text-small-size);
+  color: #7A4300;
+  background: #FEF3E2;
+  border-left: 3px solid #B45309;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-8);
+  margin-bottom: var(--space-16);
+}
+
 .trust-card__fields {
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-16);

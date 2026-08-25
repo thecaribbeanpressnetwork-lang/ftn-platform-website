@@ -186,6 +186,26 @@
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+  // Phase 4B additive fields (ibis evidence integration, js/ibis-evidence.js) -- a small, generic
+  // superset the existing indicator-driven cards never populate, so nothing here changes their
+  // rendering. Every value here can originate from content FTN does not control (e.g. a Live
+  // Intelligence source's title, pulled from a real public post) -- unlike sourceLinkRow() above
+  // (whose values only ever come from the internal, FTN-authored Source Registry), these are
+  // explicitly escaped before reaching the DOM.
+  function externalSourceRow(data) {
+    if (!data.externalSourceUrl) return '';
+    var label = data.externalSourceLabel || data.externalSourceUrl;
+    return fieldRow('Source', '<a href="' + esc(data.externalSourceUrl) + '" target="_blank" rel="noopener noreferrer">' + esc(label) + '</a>');
+  }
+
+  // A prominent, non-alarmist notice for a degraded/incomplete/fallback response state -- placed
+  // near the top of the card (alongside "why it matters"), not buried in the field list, per the
+  // instruction to make this state visually clear without alarmist language.
+  function degradedNoticeHTML(data) {
+    if (!data.degradedState) return '';
+    return '<p class="trust-card__degraded">' + esc(data.degradedState) + '</p>';
+  }
+
   // "See the Math" — only ever rendered when a real formula exists (data.clock, the same
   // config js/live-clocks.js already computes from). Reads the indicator's own real baseValue/
   // ratePerSecond rather than re-deriving or inventing a formula, so this can never drift from
@@ -261,25 +281,37 @@
         '<img src="/assets/icons/icon-close.svg" alt="" width="16" height="16">' +
       '</button>' +
       '<span class="trust-badge ' + badgeClass + '">' + trustScoreLabel(data) + '</span>' +
-      '<h2 id="trustCardTitle" class="trust-card__title">' + data.title + '</h2>' +
-      (data.value ? '<p class="trust-card__value">' + data.value + (data.units ? ' <span>' + data.units + '</span>' : '') + '</p>' : '') +
+      // esc() here specifically: title/value/units were historically always FTN-authored indicator
+      // text (safe by construction), but Phase 4B's ibis evidence integration can feed a real
+      // external source's own title into `title` (e.g. a Live Intelligence result) -- genuinely
+      // untrusted content this shared component must now defend against for every caller, not just
+      // the ones that happened to be safe before.
+      '<h2 id="trustCardTitle" class="trust-card__title">' + esc(data.title) + '</h2>' +
+      (data.value ? '<p class="trust-card__value">' + esc(data.value) + (data.units ? ' <span>' + esc(data.units) + '</span>' : '') + '</p>' : '') +
       (data.whyItMatters || WHY_IT_MATTERS[data.category]
         ? '<p class="trust-card__why">' + publicCopy(data.whyItMatters || WHY_IT_MATTERS[data.category]) + '</p>' : '') +
+      degradedNoticeHTML(data) +
       '<dl class="trust-card__fields">' +
         fieldRow('Methodology', publicCopy(data.methodology)) +
         (data.sourceId
           ? sourceLinkRow('Primary source', data.sourceId, 'primary benchmark source')
-          : fieldRow('Source', data.sourceName)) +
+          : (data.externalSourceUrl ? externalSourceRow(data) : fieldRow('Source', esc(data.sourceName)))) +
         (data.secondarySourceId ? sourceLinkRow('Secondary source', data.secondarySourceId, null) : '') +
         (data.comparisonSourceId ? sourceLinkRow('Comparison source', data.comparisonSourceId, 'comparison, not primary') : '') +
+        fieldRow('Publisher', esc(data.publisher)) +
         fieldRow('Update frequency', data.updateFrequency) +
         referenceDateRow(data) +
         fieldRow(data.referenceDate !== undefined ? 'FTN retrieved' : 'Last updated', freshness(data.lastUpdated)) +
+        fieldRow('Retrieval method', esc(data.retrievalMethod)) +
         fieldRow('Time coverage', data.timeCoverage) +
         fieldRow('Geographic coverage', data.geoCoverage) +
         fieldRow('Sample size', data.sampleSize) +
+        fieldRow('Processing', esc(data.processing)) +
+        fieldRow('Cost', esc(data.costNote)) +
+        fieldRow('Confidence basis', esc(data.confidenceBasis)) +
         fieldRow('Limitations', publicCopy(data.limitations)) +
         fieldRow('Contradictory evidence', publicCopy(data.contradictoryEvidence)) +
+        fieldRow('Licensing / reuse', esc(data.licensingNote)) +
       '</dl>' +
       trustScoreDetailsHTML(data) +
       seeTheMathHTML(data) +
