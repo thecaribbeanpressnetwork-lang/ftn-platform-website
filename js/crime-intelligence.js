@@ -2,14 +2,14 @@
   'use strict';
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
   var pct = function (a,b) { return b ? (a / b * 100).toFixed(1) : '0.0'; };
+  // Phase 5B: thin wrappers over the shared js/ftn-statistics-chart.js primitives (extracted from
+  // this file's own original implementation) -- same CSS classes, same glow filter, same aria-label
+  // and table caption wording, so this component's rendered output and existing tests/CSS are
+  // unaffected; js/fx-intelligence.js reuses the same shared module instead of a second copy.
+  var CRIME_GLOW_DEFS = '<defs><filter id="crimeGlow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
   function lineChart(rows,unit) {
-    var w=900,h=330,p=48,max=Math.max.apply(null,rows.map(function(x){return x.reported;})),min=Math.min.apply(null,rows.map(function(x){return x.reported;}))-30;
-    var x=function(i){return p+i*(w-p*2)/(rows.length-1);},y=function(v){return h-p-(v-min)/(max-min)*(h-p*2);};
-    var points=rows.map(function(r,i){return x(i)+','+y(r.reported);}).join(' ');
-    return '<svg class="crime-chart" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(unit)+' by year, 2015 to 2024">'+
-      '<defs><filter id="crimeGlow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
-      '<polyline class="crime-chart__line" points="'+points+'" pathLength="1"/>'+
-      rows.map(function(r,i){return '<g><circle class="crime-chart__dot" cx="'+x(i)+'" cy="'+y(r.reported)+'" r="5"/><text x="'+x(i)+'" y="'+(h-16)+'" text-anchor="middle">'+r.year+'</text><text class="crime-chart__value" x="'+x(i)+'" y="'+(y(r.reported)-14)+'" text-anchor="middle">'+Number(r.reported).toLocaleString(undefined,{maximumFractionDigits:1})+'</text></g>';}).join('')+'</svg>';
+    var chartRows=rows.map(function(r){return {label:String(r.year),value:r.reported};});
+    return global.FTN.StatisticsChart.lineChart(chartRows,{ariaLabel:unit+' by year, 2015 to 2024',chartClass:'crime-chart',defs:CRIME_GLOW_DEFS,maxFractionDigits:1});
   }
   function seriesRows(series,mode){return series[mode==='rate'?'rates':'values'].map(function(value,i){return {year:2015+i,reported:value};});}
   // Phase 5A: a real, accessible tabular alternative to the SVG chart -- collapsed by default
@@ -17,10 +17,8 @@
   // uses elsewhere), not a decorative repeat of the chart's own labels.
   function tableHTML(rows,series,mode){
     var unit=mode==='rate'?'per 100,000':'reported count';
-    return '<details class="crime-table-disclosure"><summary>View '+esc(series.label)+' as a table</summary>'+
-      '<table class="crime-table"><caption class="sr-only">'+esc(series.label)+' — '+esc(unit)+' by year, 2015 to 2024</caption>'+
-      '<thead><tr><th scope="col">Year</th><th scope="col">'+esc(unit)+'</th></tr></thead>'+
-      '<tbody>'+rows.map(function(r){return '<tr><th scope="row">'+r.year+'</th><td>'+Number(r.reported).toLocaleString(undefined,{maximumFractionDigits:1})+'</td></tr>';}).join('')+'</tbody></table></details>';
+    var chartRows=rows.map(function(r){return {label:String(r.year),value:r.reported};});
+    return global.FTN.StatisticsChart.tableHTML(chartRows,{unit:unit,caption:series.label+' — '+unit+' by year, 2015 to 2024',summary:'View '+series.label+' as a table',rowHeaderLabel:'Year',tableClass:'crime-table',disclosureClass:'crime-table-disclosure',maxFractionDigits:1});
   }
   // Phase 5A: real Trust Card wiring via the shared js/ftn-statistics.js contract + the
   // js/ftn-statistics-crime-adapter.js transform of this exact data -- not a second, ad hoc
