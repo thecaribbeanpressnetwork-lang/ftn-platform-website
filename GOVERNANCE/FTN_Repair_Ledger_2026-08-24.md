@@ -439,5 +439,13 @@ weakened.
 safe-rendering-of-malicious-fields, keyboard/ARIA, degraded-state-always-shown, mobile/tablet-zoom/
 reduced-motion). Both wired into CI. Full existing suite re-run clean throughout.
 
-**Commits:** (recorded after push, see below.) **Production verification:** (recorded after
-deploy, see below.)
+**Commits:** `f19a3f1`..`eaec3c8` (6 commits: trust-card fields+XSS fix, shared evidence module,
+widget/workspace wiring, video-UI removal, tests+CI, docs).
+
+**Direct production verification** (commit `eaec3c8`, confirmed live via
+`curl https://ftnplatform.org/version.json`): `js/ibis-evidence.js` serves `200`; `js/trust-card.js`
+carries the new field renderers and the `esc(data.title)` security fix; `js/ibis-widget.js` and
+`js/ibis-ai-workspace.js` both carry the evidence-mounting wiring; `js/ibis-creative-studio.js` has
+zero occurrences of `data-studio-mode="video"`; `/ibis-ai/`'s served HTML no longer references
+`ibis-video-decision-gate`; `/trust/` shows the updated 2026-08-25 review date. `/ibis-ai/` itself
+returns `200`.
