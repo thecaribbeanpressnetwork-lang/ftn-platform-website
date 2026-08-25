@@ -26,6 +26,18 @@ LIP_SYNC generation are researched but still blocked on hardware/licensing as of
 compose the user-facing workspace. Cost/provider transparency is a stated design goal — the registry
 entry's `legalNotices` include "Provider transfer and cost notice."
 
+**Phase 4A (2026-08-25) source/provider routing consolidation** — full inventory, claims-vs-
+implementation gap map and fixes in `IBIS-MAP.md`'s own Phase 4A section. Headline finding: the
+main `/ibis-ai/` page's text-chat path (`js/ibis-ai-workspace.js`'s `serverAI()`) called
+`supabase/functions/ibis-query` directly, bypassing `js/ibis-eligibility.js`/the provider registry
+entirely — the registry's enable/disable switch did not actually gate it. Fixed (now checks
+eligibility first). Also added: `js/ibis-provenance.js` (one canonical internal provenance
+envelope, superset of `js/ibis-client.js`'s prior inline shape — internal data contract only, not
+surfaced in any UI by this pass), two missing default executors (`CARIBBEAN_LANGUAGE_ID`,
+`LIVE_INTELLIGENCE`), real timeouts on every Edge Function and client-side network call, and a
+`TIMEOUT` vs `NETWORK_ERROR` error-labeling fix. Trust Card/Trust Centre/evidence-presentation UI
+was explicitly out of scope — see IBIS-MAP.md's "Phase 4B" note for the deferred decision proposal.
+
 **Intent Router** (`js/intent-router.js`) does real, transparent, keyword-based matching against the
 Product Registry — never an LLM call for this specific routing decision. Extended with a
 `scopeProductId` ranking parameter so per-page search (Learn, Opportunities, Screen, Riddim, the

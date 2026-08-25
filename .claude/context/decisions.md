@@ -185,6 +185,24 @@ Phase 3 nav-consolidation entry for the full before/after verification.
 **If a future session finds header overflow at 1240-1600px again:** that means the CSS above
 regressed, not that the item count needs cutting again — fix the CSS, don't re-litigate the list.
 
+### Phase 4A — ibis source/provider routing consolidation — **Active** (2026-08-25)
+
+Founder-authorized, scoped explicitly to internal ibis routing/provenance — not the Trust Card,
+Trust Centre or any public evidence-presentation UI (that stays a separate, undecided Phase 4B).
+Full inventory, gap map and implementation record: `IBIS-MAP.md`'s "Phase 4A" section (inserted
+before that document's own now-superseded §4/§9, which are marked in place, not deleted).
+
+**Binding going forward:** `js/ibis-ai-workspace.js`'s `serverAI()` must keep checking
+`FTN.IbisEligibility` before calling `supabase/functions/ibis-query` — this closed a real control-
+bypass where the provider registry's `enabled` flag did not actually gate the main `/ibis-ai/`
+page's chat path. `js/ibis-provenance.js` is now the one canonical internal provenance envelope;
+a future caller building its own ad hoc provenance shape instead of using
+`FTN.IbisProvenance.build()` is reintroducing the exact duplication this pass closed.
+
+**If a future session is asked to extend ibis's evidence/source UI:** confirm whether that's this
+Phase 4B (still just a proposal, not decided) or genuinely new scope, and get an explicit decision
+gate before touching the Trust Card/Trust Centre, per this phase's own boundary.
+
 ### Service-worker route policy made registry-driven, explicitly not a security boundary — **Active** (2026-08-24, BUILD NOW)
 
 **Current, binding decision:** `service-worker.js`'s `PRIVATE`/`NEVER` route-exclusion regexes are

@@ -1664,7 +1664,225 @@ match carries a real, checkable source URL. Wired into `.github/workflows/functi
 as a new CI step. `tests/ibis-eligibility-audit.mjs` extended with real `ELIGIBLE` assertions for
 the new provider. Full local suite re-run clean.
 
+## 0.23 Phase 4A — ibis source and provider routing consolidation (2026-08-25)
+
+Founder-authorized pass, scoped explicitly to internal routing/provenance, explicitly excluding
+the public Trust Card/Trust Centre/evidence-presentation UI (that is Phase 4B, a decision proposal
+only, not implemented this pass — see the end of this section).
+
+### Inventory method
+
+Every ibis execution path was traced from user action to displayed response via parallel research
+across three clusters: (1) the core routing engine (`js/ibis-capability-taxonomy.js`,
+`js/ibis-provider-registry.js`, `js/ibis-client.js`, `js/ftn-node-registry.js`,
+`js/ibis-eligibility.js`, `js/ibis-query-bootstrap.js`, `js/ibis-video-decision-gate.js`); (2) the
+server-side layer (all six `supabase/functions/ibis-*` Edge Functions, `js/ftn-source-provenance.js`,
+`js/ftn-auth.js`'s `invoke()` helper); (3) every `tests/ibis-*-audit.mjs` file's real-vs-mocked
+execution mode; (4) the full UI/consumer layer (`js/ibis-widget.js`, `js/ibis-ai-workspace.js`,
+`js/ibis-creative-studio.js`, `js/ibis-visual-state.js`, `js/ibis-project-graph.js`,
+`js/intent-router.js`, and every local-capability implementation file). Full findings recorded in
+this session's transcript; this section is the durable summary and gap map.
+
+### 1. Information sources vs. inference providers — kept structurally distinct, per instruction
+
+**Information sources** (content/data, not inference):
+- Product Registry `dataSources` claims (per-product, `js/product-registry-data.js`).
+- Live Intelligence: real, live `fetch()` calls to Hacker News/Algolia and public GitHub search
+  (`js/ibis-live-research.js`) — no auth, no server, genuinely current.
+- `js/ftn-source-provenance.js` — grades the credibility of an EXTERNAL source (a webpage, a
+  filing, a social post), not an inference provider. Consumed only by `js/ibis-live-research.js`
+  and (per a grep-confirmed but not content-verified reference) `js/observer-console.js`. This is
+  a different vocabulary from an AI provider's provenance — see the new envelope below for how the
+  two now coexist without being conflated.
+- Internal FTN data (indicators, relationship registry) via `FTN.indicators`/`FTN.MediaDiscovery`.
+- The Caribbean Language ID lexicon — a small, cited (2 Wikipedia URLs), FTN-authored reference
+  list, not a third-party source.
+
+**Inference providers**: 34 total in `js/ibis-provider-registry.js`. Only 8 `enabled:true` — 7
+local-deterministic (zero network, zero cost: `ibis-local-dsp`, `ibis-local-caribbean-language-id`,
+`ibis-local-script-runtime-estimator`, `ibis-local-live-research`, `ibis-local-project-qc`,
+`ibis-local-music-engine`, `ibis-local-sfx-engine`) plus exactly one real, live, network-calling
+provider (`ibis-query-gemini`, `PAID_BY_IBIS_PRE_EXISTING`). Everything else (image, video, most
+TTS, most alternate music providers) is honestly `enabled:false`, pending secrets, licensing or a
+budgeted infrastructure decision the registry's own notes already document in detail — re-confirmed
+accurate, not re-litigated, by this pass.
+
+### 2. Claims-vs-implementation gap map — what was found, in order of severity
+
+**A. A real control-bypass: the registry's enable/disable switch did not gate the main chat path.**
+`js/ibis-ai-workspace.js`'s `serverAI()` — the primary `/ibis-ai/` page's actual text-chat path —
+called `supabase/functions/ibis-query` directly via `FTN.Auth.invoke()`, with **no** check against
+`js/ibis-eligibility.js` or the provider registry at all. `ibis-query-gemini` is registered and
+`enabled:true` today, so this call currently succeeds when it "should" — but a founder disabling
+that provider in the registry to stop spend would **not** have stopped this call path, because it
+never consulted the registry in the first place. This is the single highest-severity finding: an
+undocumented, ungated third route to a paid provider, alongside the two the fabric already knows
+about (`js/ibis-widget.js`'s fully-fabric-routed path, and `js/ibis-creative-studio.js`'s
+partially-fabric-routed path via `IbisEligibility` directly). **Fixed** — see §3.
+
+**B. Missing default executors for two enabled, eligible capabilities.**
+`CARIBBEAN_LANGUAGE_ID` and `LIVE_INTELLIGENCE` are both registered and `enabled:true`, but
+`js/ibis-client.js`'s `defaultExecutorFor()` had no case for either — a caller using the shared
+`IbisClient.request()` path (rather than calling the local module or `IbisEligibility` directly, as
+`js/ibis-ai-workspace.js` currently does for both) would get a false `UNSUPPORTED` from every
+attempt despite both capabilities being genuinely eligible. **Fixed** — see §3.
+
+**C. An honesty bug in error labeling.** `js/ibis-client.js`'s `callTextProvider` had no
+`AbortSignal`/timeout at all, and its `.catch()` labeled **every** fetch rejection — network
+failure, CORS, DNS, an actual hang — as `errorType: 'TIMEOUT'`. A provenance record's `errorType`
+must describe what actually happened, not a guess; this misrepresented every non-timeout failure.
+**Fixed** — see §3.
+
+**D. No timeout on four of five Edge Functions.** Only `supabase/functions/ibis-query` had a real
+`AbortSignal.timeout(20_000)`; `ibis-assistant`, `ibis-text-cloudflare`, `ibis-image-cloudflare` and
+`ibis-speech-cloudflare` (both its transcribe and speak calls) had none — a hung upstream call could
+hold each open indefinitely. **Fixed** — see §3.
+
+**E. A real, minor security-hygiene gap.** `supabase/functions/ibis-query` passed the Gemini API
+key as a `?key=` URL query parameter rather than a header — the key itself always came from an env
+var (never hardcoded), but URL query parameters are more exposed to logging/proxy capture than
+headers. Google's own API documents `x-goog-api-key` as the header alternative. **Fixed** — see §3.
+
+**F. Decorative UI presenting an unreachable capability as closer to working than it is.**
+`js/ibis-video-decision-gate.js` renders a full duration/resolution/sound/provider/credit-cap form
+for VIDEO_GENERATION with a hardcoded PixVerse/Kling provider dropdown; both are `enabled:false`
+and the "Generate" button is itself hardcoded `disabled`. No real harm (the gate is honest that
+"no prompt was transferred and no credits were reserved"), but the UI's mere existence and polish
+could read as "almost working" to a user who doesn't read source. **Not changed this pass** — the
+gate is already honest at the point of action (disabled button, explicit no-transfer copy); judged
+not a defect requiring correction under the "preserve existing working features" instruction, and
+reshaping the Creative Studio form is adjacent to, not required by, source/provider routing. Flagged
+here for a founder call, not silently left undocumented.
+
+**G. Deterministic content not visibly distinguished from generated content.**
+`js/ibis-ai-workspace.js`'s `createVisual()` output, when inserted into the chat UI, carried **no**
+`workspace-kicker` label — unlike every other response branch in the same file (`On-device AI`,
+`Authenticated server AI · [provider]`, `Live Intelligence · ...`, `FTN deterministic router`), all
+of which are clearly labeled. A user could reasonably mistake the canvas-drawn template graphic for
+an AI-generated image. `js/ibis-creative-studio.js` already labels the same underlying function's
+handoff correctly ("Use ibis on-device visual draft") — the chat-embedded version was the one gap.
+**Fixed** — see §3.
+
+**H. `ftn-fire-local-procedural` (a real, live, production feature at `/riddim/fire/`) remains
+unregistered as an eligible IBIS provider** (`enabled:false`, per its own note, because it has not
+been extracted into a portable adapter). This means FTN Fire and IBIS's own
+`INSTRUMENTAL_GENERATION` (via `ibis-local-music-engine`) are two independent, non-unified
+implementations of overlapping capability. **Not changed this pass** — extracting Fire into a
+shared adapter is real, non-trivial work on a live production feature, explicitly out of scope for
+"the smallest strong registry-compatible foundation." Recorded as an open architectural
+duplication, not silently accepted.
+
+**I. This document's own §4 and §9 (below) had gone stale.** They were written before Phase 10-13
+(real Cloudflare deployment, real image generation, real speech deployment, the Caribbean
+capability) and still claimed "no provider anywhere in this repo is currently both enabled and
+live" and "no implementation was started" — both false as of this pass. Marked superseded in place
+below, not deleted, with a pointer to the live registry as the actual current-state source — the
+exact "documentation contradicts implementation" class of defect this pass was asked to find,
+found in its own governing document.
+
+### 3. What was implemented — the smallest registry-compatible foundation, not a rebuild
+
+- **`js/ibis-provenance.js`** (new) — one canonical, additive internal provenance envelope
+  (`FTN.IbisProvenance.build(fields)`). Strict superset of `js/ibis-client.js`'s existing tested
+  shape (`nodeId`/`capability`/`requestedAt`/`respondedAt`/`attempts`/`provider`/`costToIbis`
+  unchanged) plus the full requested schema: `sourceIdentity`, `sourceUrl`, `publisher`,
+  `sourceRetrievedAt`, `sourceReferenceDate`, `retrievalMethod`, `model`, `routingPath` (derived
+  from `attempts`), `transformation`, `confidenceBasis` (defaults to the explicit `'NOT_ASSESSED'`
+  sentinel), `licensingNote`, `degradedState`. Every field defaults to an explicit `null`/
+  `'NOT_ASSESSED'` rather than a fabricated value. `js/ibis-client.js`'s `request()` now builds its
+  provenance through this shared builder (falls back to the old inline shape if the new script
+  isn't loaded, so nothing breaks for a caller that hasn't picked up the new script tag yet).
+  Internal data contract only — nothing here is rendered to a user by this pass.
+- **Control-bypass closed**: `js/ibis-ai-workspace.js`'s `serverAI()` now calls
+  `FTN.IbisEligibility.evaluate('ibis-query-gemini','TEXT',{authenticated:true})` before invoking
+  `ibis-query`, and fails closed (same honest "temporarily unavailable" message it already used for
+  a timeout) if the module can't load or the provider isn't genuinely `ELIGIBLE`. The registry's
+  `enabled` flag now actually governs this call path.
+- **Two missing default executors added** to `js/ibis-client.js`: `CARIBBEAN_LANGUAGE_ID` (routes
+  to `ibis-local-caribbean-language-id`) and `LIVE_INTELLIGENCE` (routes to
+  `ibis-local-live-research`), mirroring the existing five executor mappings exactly.
+- **`TIMEOUT` vs `NETWORK_ERROR` distinguished**: `callTextProvider` now uses a real
+  `AbortController` with a 20s bound (the one platform-wide default, matching the value already
+  proven in production at `ibis-query`, not a fabricated per-provider figure) and reports
+  `'TIMEOUT'` only for an actual abort, `'NETWORK_ERROR'` for everything else. `callGeminiQuery`
+  (which calls through `ftn-auth.js`'s `invoke()`, which has no timeout of its own) now races
+  against the same 20s bound via `Promise.race`.
+- **Timeouts added** to all five previously-unbounded Edge Function fetch calls (`ibis-assistant`,
+  `ibis-text-cloudflare`, `ibis-image-cloudflare`, `ibis-speech-cloudflare`'s transcribe and speak
+  calls), each `AbortSignal.timeout(20_000)`, identical to `ibis-query`'s own proven pattern.
+- **Gemini API key moved from URL query parameter to the `x-goog-api-key` header** in
+  `supabase/functions/ibis-query/index.ts`.
+- **Chat-embedded canvas visual now labeled**: `js/ibis-ai-workspace.js`'s `createVisual()` output
+  gets `<span class="workspace-kicker">On-device visual draft — not an AI-generated image</span>`,
+  matching every sibling response branch's labeling pattern.
+- **Registry schema extended, without touching 34 data rows**: `js/ibis-provider-registry.js`'s
+  four accessor functions (`all`/`byCategory`/`byCapability`/`get`) now fill in
+  `timeoutMs` (defaults to the same 20s platform default), `privacyClassification`
+  (`LOCAL_NO_EXTERNAL_TRANSMISSION` for `LOCAL_DETERMINISTIC_NO_PROVIDER` integrations,
+  `THIRD_PARTY_NETWORK_CALL` otherwise) and `attributionRequired` (false for local, true for
+  network) at read time via one small `withDefaults()` pass — a real provider row can still declare
+  its own explicit value that wins over the default, but none currently needs to differ.
+
+### 4. Tests
+
+`tests/ibis-routing-consolidation-audit.mjs` (new): provenance schema (empty-input defaults,
+populated pass-through, `routingPath` derivation), the two new default executors (Caribbean
+Language ID executed for real end-to-end; Live Intelligence's network-calling module stubbed, same
+substitution pattern `tests/ibis-eligibility-audit.mjs` already established, to keep CI free of
+real network dependencies per the founder's explicit instruction), the `TIMEOUT`/`NETWORK_ERROR`
+source-content fix (verified via static assertion, since both guest TEXT providers are honestly
+`enabled:false` today with no live path to exercise), `serverAI()`'s eligibility gate (source-order
+assertion: the eligibility check must appear textually before the `ibis-query` invoke call), all
+five Edge Function timeout additions, the Gemini key header migration, and the registry's new
+additive defaults. Wired into `.github/workflows/functional-release.yml`. Full existing
+`tests/ibis-*-audit.mjs`/`tests/ftn-node-registry-audit.mjs`/`tests/ftn-source-provenance-audit.mjs`
+suite re-run clean (zero regressions) after every change. `tests/functional-release.mjs`'s
+`ibis-visual-and-handoff` scenario (real browser, real `/ibis-ai/` page interaction) re-verified
+passing, confirming the new `createVisual()` label and the unaffected guest-mode `serverAI()` path
+both render correctly.
+
+### 5. What this pass explicitly did NOT do (honest gaps, not silent omissions)
+
+- Did not touch the Trust Card, Trust Centre, or any public evidence-presentation UI — explicitly
+  out of scope this pass (see Phase 4B proposal below).
+- Did not extract `ftn-fire-local-procedural` into a portable, registry-eligible adapter (finding H
+  above) — real, non-trivial work on a live feature, not attempted without a separate scoping pass.
+- Did not remove or redesign `js/ibis-video-decision-gate.js`'s decorative-but-honest VIDEO UI
+  (finding F above) — flagged for a founder call, not unilaterally changed.
+- Did not verify Supabase Row Level Security policies for any table `ibis-creative-control` or
+  other functions touch — authenticated Supabase MCP access remains unavailable this pass, same
+  limitation recorded throughout this repository's other governance documents.
+- Did not independently verify what `js/observer-console.js` does with `FTN.SourceProvenance` — a
+  grep confirmed the reference exists; the file's content was not read this pass.
+- Did not attempt real end-to-end verification of `ibis-query-gemini`'s live behavior (requires a
+  real authenticated Supabase session and a real `GEMINI_API_KEY`, neither available to this
+  session's tooling) — verified structurally (registry state, eligibility gate, executor wiring)
+  and via the existing code-reviewed pattern `IBIS-MAP.md §0.13` already established for this exact
+  provider, not re-litigated.
+- Did not add per-provider timeout/privacy overrides to any of the 34 registry rows — the new
+  schema fields exist and default sensibly; no current row has a documented reason to differ from
+  the platform default, so none was given a fabricated one.
+
+### Phase 4B — a decision proposal only, not implemented this pass
+
+The public Trust Card/Trust Centre/evidence-presentation layer is a genuinely different surface
+with its own founder-approved design (see `js/trust-card.js`, `/trust/`) — extending or changing it
+is a separate decision, not a natural continuation of this pass's internal-routing scope. Proposed
+bounded scope for a future Phase 4B, **not started**: decide whether/how the new internal
+provenance envelope (`js/ibis-provenance.js`) should ever surface through the existing Trust Card
+component for an ibis-originated claim (e.g. a Live Intelligence result), versus remaining purely
+internal. This needs an explicit founder decision gate before any UI work begins, per this pass's
+own instruction boundary.
+
 ## 4. Current provider inventory (every real external AI call in this repo, confirmed by file)
+
+> **Superseded snapshot (2026-08-20/21), out of date relative to the phase log above by the time of
+> Phase 10-13 — corrected, not deleted, per Phase 4A (2026-08-25) above.** This table predates real
+> Cloudflare image/speech deployment and the Caribbean capability, and its "no provider anywhere in
+> this repo is currently both enabled and live" claim in §9 below is no longer accurate. For the
+> real, current provider state, read `js/ibis-provider-registry.js` directly (34 providers, 8
+> `enabled:true` as of Phase 4A) or `js/ibis-provider-registry.js`'s own `verifiedAt` field — not
+> this table.
 
 | Function/file | Provider | Auth required | Status |
 |---|---|---|---|
@@ -1719,12 +1937,16 @@ Three buckets exist, **all `public:false`**: `ftn-private-audio` (Fire/stem outp
 
 ## 9. What this means for next steps
 
+> **Superseded (2026-08-25) — see Phase 4A above.** "No implementation was started" and the
+> implied provider/routing state below predate Phases 4-13, all of which shipped real code. Kept
+> for historical record of this document's original scoping decision, not as current status.
+
 The existing codebase already reflects the *spirit* of both briefs — verified-evidence-only,
 fail-closed economics, no fabricated success states, real (not simulated) routing where routing
 exists at all. The gap isn't philosophy, it's scale: everything above §8 is genuinely new
 infrastructure, and several pieces (self-hosted GPU inference, a Node orchestration layer, Creole
 NLP research) don't have an obvious home in this repo's current architecture.
 
-**No implementation was started.** Per your direction, this document is the deliverable for this
-pass. The next real decision is picking one concrete, scoped increment — not attempting the full
-scope of either brief at once.
+**No implementation was started [at the time this section was originally written].** Per your
+direction, this document is the deliverable for this pass. The next real decision is picking one
+concrete, scoped increment — not attempting the full scope of either brief at once.
