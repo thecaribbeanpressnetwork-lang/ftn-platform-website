@@ -619,3 +619,24 @@ deployed provider registry carries `ibis-local-statistics-query`. Beyond static 
 Card, real ibis Q&A with a mandatory Trust Card, the fail-closed unsupported-question path,
 unchanged primary navigation, and no paid-provider network calls all verified against production
 itself, not just the local build.
+
+## FTN Final Production Completion Pass (2026-08-25)
+
+Founder-authorized. Full detail, cycle-by-cycle: `GOVERNANCE/FTN_Completion_Ledger_2026-08-25.md`
+(the durable checkpoint this pass introduces, for a future session to resume without chat history).
+Summary: Fire, the Riddim ecosystem (DJ Tube/DAW/Radio/EPK), and Govern/Parliament were all
+inspected via real end-to-end browser verification (not just route checks) and found already
+FUNCTIONAL -- no code changes required. A whole-platform sweep (41 public routes × 2 viewports, 82
+page-loads) found zero real production defects; every flag raised was triaged and confirmed a false
+positive, expected test-environment noise (Cloudflare Turnstile telemetry under headless
+automation), or the same pre-existing `/facethenation` trailing-slash quirk already documented and
+deferred in Phase 5A/5B. One real, separate bug was found via the full regression re-run: a third
+stale hardcoded `.ecosystem-product-link` count (`23`) in `tests/surface-system-release.mjs`,
+missed when the other two occurrences were fixed in Phase 5A -- corrected to `24`.
+
+**Confirmed external blocker:** Supabase RLS/policy verification (Priority 3) could not be
+performed -- no CLI, MCP tool, or environment credentials available in this session. Not guessed,
+not claimed. Community Connect statistics integration correctly stays deferred as a consequence.
+
+**Commit:** `dfb3205` (test fix + new completion ledger). Full regression suite (28 static/unit
+files + 11 Playwright release suites) re-run clean.
