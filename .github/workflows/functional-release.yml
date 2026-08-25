@@ -104,6 +104,9 @@ jobs:
       - name: Audit Phase 4A ibis routing consolidation (provenance schema, executors, eligibility gate, timeouts)
         run: node tests/ibis-routing-consolidation-audit.mjs
 
+      - name: Audit Phase 4B ibis evidence decision matrix and provenance mapping
+        run: node tests/ibis-evidence-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
@@ -149,6 +152,11 @@ jobs:
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/creative-studio-release.mjs
+
+      - name: Verify Phase 4B ibis evidence disclosure (Trust Card integration, accessibility, safe rendering)
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/ibis-evidence-release.mjs
 
       - name: Verify Turnstile safe readiness
         env:

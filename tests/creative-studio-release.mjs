@@ -12,8 +12,12 @@ await scenario('ibis-provider-transparent-studio',async page=>{
   await open(page,'/ibis-ai/');await page.waitForSelector('#ibis-creative-studio');
   assert.match(await page.locator('#ibis-creative-studio').innerText(),/No surprise API bills/i);
   assert(await page.locator('.ibis-provider').count()>=2);
-  await page.locator('[data-studio-mode="video"]').click();
-  await page.fill('[name="goal"]','A 15-second Caribbean food brand launch video');
+  // Phase 4B: VIDEO_GENERATION has no enabled provider anywhere in js/ibis-provider-registry.js
+  // (PixVerse/Kling both disabled, every self-host candidate hardware-blocked) -- the VIDEO tab is
+  // deliberately absent from public capability selection now, not just disabled after selection.
+  assert.equal(await page.locator('[data-studio-mode="video"]').count(),0,'VIDEO mode must not be publicly selectable while no VIDEO_GENERATION provider is enabled');
+  assert.equal(await page.locator('[data-studio-mode]').count(),2,'Only IMAGE and AUTO CAMPAIGN modes should remain publicly selectable');
+  await page.fill('[name="goal"]','A 15-second Caribbean food brand launch visual');
   await page.fill('[name="audience"]','Caribbean diaspora customers');
   await page.locator('#ibis-studio-form').evaluate(form=>form.requestSubmit());
   assert.match(await page.locator('#ibis-studio-output').innerText(),/PLANNED, NOT GENERATED/i);
