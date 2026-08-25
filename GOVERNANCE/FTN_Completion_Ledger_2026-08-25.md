@@ -198,3 +198,84 @@ sweep, Govern/Parliament link reachability).
 - `tests/surface-system-release.mjs` — real count fix (23 → 24).
 - `GOVERNANCE/FTN_Completion_Ledger_2026-08-25.md` — this file (new).
 - `GOVERNANCE/FTN_Repair_Ledger_2026-08-24.md` — pending append (see next commit).
+
+## Cycle 7 (2026-08-25) — Priority 3 resolved: Supabase RLS/authorization/storage-policy audit
+
+Read-only project-scoped MCP access was connected mid-pass. Full audit performed directly against
+the live database (`list_tables`, `get_advisors`, direct `pg_policies`/`pg_proc`/`information_schema`/
+`aclexplode` queries, `storage.buckets`/`storage.objects` policies, `list_extensions`,
+`list_migrations`) -- no row content beyond schema/policy/count metadata was read; no personal
+records were queried.
+
+**Real finding #1 (fixed via migration, additive only):** `public.issues` has had Row Level
+Security enabled with **zero SELECT policy** since its creation. Postgres RLS denies every row for
+a command with no matching policy -- confirmed live via `pg_policies` (only an INSERT and a
+JWT-role UPDATE policy exist). `20260812130000_enforce_community_public_view_boundaries.sql`
+correctly redacted column-level access and built `public.issues_public` (a `security_invoker`
+view) on top, but a `security_invoker` view runs under the *caller's* RLS -- with no SELECT policy
+on the base table, that view (and its two dependent count views) has been returning zero rows to
+every anon/authenticated caller since that migration deployed. Not a data-exposure risk (fails
+closed) but a real authorization-boundary gap that silently breaks Community Connect's own public
+transparency view (a separate application/repository; this repo owns the shared migration history
+for these tables, established by that same prior migration). Fixed by
+`supabase/migrations/20260825120000_restore_public_issues_read_policy.sql` -- strictly additive
+(one `CREATE POLICY`, idempotent, no `REVOKE`/`DROP`), covered by 4 new assertions in
+`tests/backend-source-audit.mjs`. **Not yet applied to the live database** -- the connection used
+for this audit is read-only by explicit instruction; the migration file is the deliverable for the
+founder's own reviewed deploy process.
+
+**Real finding #2 (documented, not changed):** the same table's "Admin update issues" policy
+checks `auth.jwt() ->> 'role' = 'admin'`. Confirmed via `pg_proc` that this project has no custom
+access-token hook, so the top-level `role` JWT claim is always the Postgres role name
+(`authenticated`/`anon`/`service_role`) and can never equal `'admin'` -- this policy has always
+been unreachable. Confirmed harmless: `supabase/functions/ftn-owner-control/index.ts` performs the
+real admin/founder authorization correctly, via its own service-role client checking
+`public.ftn_operator_roles` server-side, never trusting a client JWT claim. Left in place
+(removing a dead, fail-closed policy has no security benefit); documented in the new migration's
+own comments so a future session doesn't mistake it for the real mechanism.
+
+**Confirmed correct, no action needed:**
+- All other tables with real user data (`dj_creators`, `dj_videos`, `dj_video_likes`,
+  `dj_video_views`, `fdm_dj_profiles`, `ftn_user_preferences`) have textbook-correct
+  `auth.uid() = user_id` self-ownership policies -- no cross-user read/write path found.
+- 16 founder/admin/control-plane tables (`ftn_operator_roles`, `ftn_founder_identities`,
+  `ftn_founder_devices`, `ftn_owner_access_audit`, `ftn_control_state`, `ftn_control_journal`,
+  `ftn_platform_transactions`, `ftn_product_controls`, `ftn_feature_controls`,
+  `ftn_source_controls`, `ftn_external_link_health`, `ftn_integration_readiness`,
+  `ftn_deployment_health`, `ftn_founder_actions`, `ftn_user_access_grants`,
+  `ftn_account_requests`) correctly have RLS enabled with zero policies -- deny-all to
+  anon/authenticated by design (`get_advisors` flags this as informational, not a defect); real
+  access is exclusively via `ftn-owner-control`'s/`ftn-account-control`'s service-role clients.
+  `ftn_account_requests` and `ftn_founder_identities`/`ftn_founder_devices` carry explicit
+  table comments confirming this is deliberate.
+- The one storage bucket (`ftn-releases`, public-read, APK/binary MIME types only) has zero
+  `storage.objects` policies -- confirmed intentional via
+  `20260818173000_revoke_anonymous_release_uploads.sql`, which explicitly dropped the temporary
+  upload policies that once existed ("browser roles must never publish signed builds"). Public
+  readability of a public bucket does not depend on RLS.
+- No privileged/service-role credential ever appears in client-side code (repeat-confirmed; also
+  covered by the existing `backend-source-audit.mjs` secret-format sweep).
+- Account deletion (`ftn-account-control`) is a real, honest, service-role-backed request-based
+  flow (`ftn_account_requests` insert + `deletion_pending_at` timestamp), not a fake button.
+- `list_extensions` shows only standard, expected extensions active (`pgcrypto`, `supabase_vault`,
+  `pg_stat_statements`, `uuid-ossp`, `plpgsql`) -- no risky extension (`http`, `dblink`, `pg_net`)
+  installed.
+
+**Blocker (not fixable via migration, requires founder Dashboard access):** `get_advisors` flags
+`auth_leaked_password_protection` as disabled (WARN level) -- Supabase Auth's HaveIBeenPwned
+compromised-password check. This is an Auth-provider *configuration* toggle (Dashboard →
+Authentication → Policies, or the Management API), not a database object; no tool available in
+this session can change it, and it is out of scope for a SQL migration.
+
+**Secondary, non-security observation:** `list_migrations` (deployed history) does not fully match
+this repo's local `supabase/migrations/` file list -- several local files have no matching deployed
+version entry, and several deployed entries carry different timestamps than their same-named local
+file. Verified this does NOT affect the audit's own findings (all RLS/policy conclusions above were
+checked against the live database directly, not inferred from migration files). Flagged for the
+founder to reconcile; not attempted here -- editing migration history tracking is a separate,
+higher-risk operation outside this audit's scope.
+
+**Status: Priority 3 — RESOLVED (from EXTERNALLY BLOCKED to audited).** One real fix delivered as
+a rollback-capable migration (not yet applied to production, per explicit instruction). One
+informational finding documented. One Auth-config item requires founder Dashboard action. One
+migration-history hygiene item flagged for founder reconciliation.

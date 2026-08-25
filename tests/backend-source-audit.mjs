@@ -40,6 +40,7 @@ for (const migration of [
   'supabase/migrations/20260812120000_founder_device_authorization.sql',
   'supabase/migrations/20260812123000_founder_action_register.sql',
   'supabase/migrations/20260812130000_enforce_community_public_view_boundaries.sql',
+  'supabase/migrations/20260825120000_restore_public_issues_read_policy.sql',
 ]) {
   assert(fs.existsSync(migration),`Missing FTN-owned applied migration record: ${migration}`);
 }
@@ -127,6 +128,16 @@ const communityViewBoundary=fs.readFileSync('supabase/migrations/20260812130000_
 for(const view of ['issues_public','issue_confirmation_counts','issue_verification_counts'])assert.match(communityViewBoundary,new RegExp(`view public\\.${view} with \\(security_invoker = true\\)`,'i'),`${view} must run with caller permissions`);
 assert.match(communityViewBoundary,/null::text as photo_data_url/i,'Community public view must redact legacy embedded evidence');
 assert.match(communityViewBoundary,/'\{\}'::jsonb as metadata/i,'Community public view must redact raw report metadata');
+
+// 2026-08-25 read-only Supabase security audit: 20260812130000 revoked broad SELECT on
+// public.issues and built a redacted view on top, but never added the RLS row-policy that view
+// needs to actually return rows -- verified live against the deployed project (pg_policies showed
+// zero SELECT policy on public.issues). This migration restores it, additively only.
+const issuesReadFix=fs.readFileSync('supabase/migrations/20260825120000_restore_public_issues_read_policy.sql','utf8');
+assert.match(issuesReadFix,/create policy "Public read redacted issues" on public\.issues/i,'Must restore the missing RLS SELECT policy on public.issues');
+assert.match(issuesReadFix,/to anon, authenticated/i,'The restored read policy must cover both guest and signed-in callers, matching the redacted column grant it pairs with');
+assert.match(issuesReadFix,/not exists \(\s*select 1 from pg_policies/i,'The fix must be idempotent -- never create a duplicate SELECT policy on repeated apply');
+assert.doesNotMatch(issuesReadFix,/^\s*revoke\s|drop policy "Public insert issues"|drop policy "Admin update issues"/im,'This corrective migration must be strictly additive -- it must never revoke the existing insert/admin policies or any grant');
 
 const love = fs.readFileSync('supabase/functions/ftn-love-control/index.ts','utf8');
 assert.match(love,/adult\(/,'FTN Love must retain a server-side adult gate');

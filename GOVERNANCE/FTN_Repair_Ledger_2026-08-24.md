@@ -676,3 +676,31 @@ integration.
 
 **Commit:** `dfb3205` (test fix + new completion ledger). Full regression suite (28 static/unit
 files + 11 Playwright release suites) re-run clean.
+
+## Supabase RLS/authorization/storage-policy audit (2026-08-25) — Priority 3 resolved
+
+Founder-authorized, read-only project-scoped Supabase MCP access. Full detail:
+`GOVERNANCE/FTN_Completion_Ledger_2026-08-25.md` Cycle 7. One real authorization-boundary gap
+found and fixed as an additive-only migration: `public.issues` has had RLS enabled with zero
+SELECT policy since creation, meaning `public.issues_public` (a `security_invoker` view a prior
+migration built specifically to serve a redacted public read) has been returning zero rows to
+every caller -- confirmed live via `pg_policies`, not inferred. Fixed by
+`supabase/migrations/20260825120000_restore_public_issues_read_policy.sql` (one `CREATE POLICY`,
+idempotent, no revocation of anything), covered by 4 new assertions in
+`tests/backend-source-audit.mjs`. **Not applied to the live database** -- the audit connection was
+read-only by explicit instruction; applying it is the founder's own reviewed deploy step.
+
+A second finding (the table's pre-existing "Admin update issues" policy checks a JWT claim this
+project's auth flow never sets, making it permanently unreachable) was confirmed harmless -- the
+real admin path already goes through `ftn-owner-control`'s service-role client checking
+`ftn_operator_roles` server-side -- and left in place, documented rather than changed.
+
+Everything else audited (self-ownership RLS on `dj_creators`/`dj_videos`/`fdm_dj_profiles`/
+`ftn_user_preferences`, the 16 founder/admin deny-all control-plane tables, the one public storage
+bucket's intentionally-empty write policies, service-role credential handling, account deletion)
+confirmed correct, no action needed. One Auth-config item (leaked-password protection disabled)
+flagged as a founder Dashboard action, not fixable via migration. One migration-history hygiene
+observation (local files vs. deployed history don't fully match) flagged for founder reconciliation,
+not attempted here.
+
+**Commit:** pending (this entry + the migration + the test are committed together next).

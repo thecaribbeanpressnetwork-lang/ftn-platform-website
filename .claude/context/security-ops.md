@@ -46,9 +46,20 @@ from both lists is not "unprotected" as a result, and a route present in either 
 "protected" as a result — a client can bypass the service worker entirely. Real authorization is
 always server-side: Supabase Row Level Security, RPC/Edge Function checks, and (for
 `god-mode`/`mission-control`) their own session verification, same as the `/account/` invariant
-above. This repo cannot independently verify Supabase RLS policies without authenticated Supabase
-MCP access (see "Known blockers" in the repair ledger) — the route-policy consolidation does not
-claim to prove or substitute for that.
+above. The route-policy consolidation does not claim to prove or substitute for that.
+
+**A real, read-only Supabase RLS/authorization/storage-policy audit was performed 2026-08-25**
+(`GOVERNANCE/FTN_Completion_Ledger_2026-08-25.md`, Cycle 7) once authenticated project-scoped
+Supabase MCP access became available — the "cannot independently verify without access" state this
+note used to describe is resolved for that pass. Findings: one real authorization-boundary gap (a
+missing RLS SELECT policy on `public.issues` silently broke Community Connect's own redacted
+public view; fixed additively via `supabase/migrations/20260825120000_restore_public_issues_read_
+policy.sql`, not yet applied to production — that's the founder's own reviewed deploy step), one
+harmless dead policy documented, everything else (self-ownership policies, the 16 founder/admin
+deny-all control-plane tables, the one storage bucket, service-role credential handling, account
+deletion) confirmed correct. A future session should re-run that audit's queries rather than assume
+this note's old blocked state — Supabase access is per-session, not permanent, so it may or may not
+be available again without being reconnected.
 
 ## CI / release gates
 
