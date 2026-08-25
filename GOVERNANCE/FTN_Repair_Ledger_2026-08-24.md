@@ -519,3 +519,18 @@ vertical slice; any change to `js/indicators-data.js`'s 56 illustrative placehol
 `route:'/facethenation'` missing-trailing-slash inconsistency in `js/product-registry-data.js`
 itself (discovered this pass, confirmed non-breaking in production, left as a documented finding
 rather than an in-scope fix — see the Phase 5A close-out report for the full note).
+
+**Commits:** `3255863`..`e1a0848` (6 commits: schema+adapter, crime-intelligence.js enhancement,
+Product Registry entry, new page+nav/footer/sitemap sync, tests, docs).
+
+**Direct production verification** (commit `e1a0848`, confirmed live via
+`curl https://ftnplatform.org/version.json`): `/statistics/` returns `200`; the new
+`js/ftn-statistics.js`, `js/ftn-statistics-crime-adapter.js` and `css/components/statistics-page.css`
+all serve `200`; the live adapter file carries the real `https://ttps.gov.tt/statistics/comparative/
+?year=2026` source URL; the Product Registry serves the `statistics` entry; `/observatory/` carries
+the same new script wiring, confirming the shared-component benefit reached the pre-existing page
+too; `sitemap.xml` includes `/statistics/`. Beyond static checks, the full `tests/
+statistics-release.mjs` suite (9 scenarios) was re-run with `FTN_TEST_BASE=https://ftnplatform.org`
+against the live site itself — chart/table numeric agreement, real Trust Card provenance (the live
+`ttps.gov.tt` link), keyboard access, reduced motion, and mobile/tablet/zoom layout all passed
+against production, not just the local build.
