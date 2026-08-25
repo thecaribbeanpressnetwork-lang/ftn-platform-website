@@ -61,6 +61,21 @@ deletion) confirmed correct. A future session should re-run that audit's queries
 this note's old blocked state — Supabase access is per-session, not permanent, so it may or may not
 be available again without being reconnected.
 
+**2026-08-25 follow-up pass (no live Supabase MCP access that time — static SQL analysis + real web
+verification only):** the 20260825120000 fix above was itself found to have a real, concrete gap —
+restoring the row policy also re-activated a pre-existing (since 20260810) base-table column grant
+of RAW, full-precision `latitude, longitude` on `public.issues`, bypassing `issues_public`'s own
+3-decimal rounding entirely for anyone using the public anon key directly. Fixed via a second
+migration, `20260825130000_restrict_issues_raw_coordinate_grant.sql` (revokes the raw columns, adds
+a `security definer` function returning only the rounded value, rebuilds the view to use it) — see
+`GOVERNANCE/FTN_Completion_Ledger_2026-08-25.md` Cycle 9 for the full reasoning and
+`tests/supabase-issues-security-audit.mjs` for the static verification. Same pass also fixed a real
+deployment-artifact exposure (internal files served in full on both Cloudflare Pages and GitHub
+Pages — Cycle 10) and worked out FTN's actual free-tier auth-hardening position: leaked-password
+protection is genuinely Pro-only (verified), but moot anyway since `js/ftn-auth.js` never uses
+password sign-in — the real fix is confirming the Email+Password provider is disabled at the
+Supabase Dashboard, not approximating a password-strength check FTN doesn't need.
+
 ## CI / release gates
 
 Three workflows: `functional-release.yml` (the release gate — runs the `tests/*.mjs` audits),

@@ -323,3 +323,153 @@ inspecting the raw response headers directly, then following the redirect and co
 body is genuinely the "Page Not Found" 404 page, for all four previously-exposed URLs (the new
 migration, an old migration, and two GOVERNANCE files). No real file content is served at any
 `/supabase/*` or `/GOVERNANCE/*` URL any more.
+
+## Cycle 9 (2026-08-25) — real finding: the restored issues policy re-exposed raw coordinates
+
+Founder asked this session (no live Supabase MCP access this time -- static SQL analysis + real web
+verification only, honestly disclosed) to re-verify `20260825120000_restore_public_issues_read_
+policy.sql` cannot reveal reporter identity, contact details, precise private location, evidence
+metadata, or non-public statuses before it's applied.
+
+**Verified safe by tracing the actual column-level GRANT statements across every migration that
+touches `public.issues`** (not just reading the new migration's own comment): `reporter_name`,
+`reporter_contact`, `photo_data_url` and `metadata` are consistently absent from every GRANT since
+20260810130000 -- confirmed correct, matches the migration's own claim.
+
+**Real gap found, not previously caught:** the SAME column grant already includes RAW, full-
+precision `latitude, longitude` directly on the BASE TABLE `public.issues`. Before 20260825120000,
+this was harmless by accident -- RLS denied every row with zero SELECT policies, so the column
+grant was unreachable regardless of its own content. Restoring the row policy (necessary --
+`issues_public`'s `security_invoker` view cannot return a row without it) makes that accident stop
+protecting anything: any caller holding the public anon key (by design public, not a secret) can
+now query `public.issues` directly via PostgREST -- `select latitude,longitude from issues` --
+bypassing `issues_public`'s own deliberate `round(..., 3)` privacy generalization entirely. For a
+citizen safety-report table, an exact coordinate can be materially more identifying than a
+~110m-generalized one. This is exactly the "precise private location" exposure the founder asked to
+rule out -- found, not ruled out, on first read of the migration alone; only surfaced by tracing the
+column grant back through the migration history.
+
+**Fixed via a second, additive migration** (`20260825130000_restrict_issues_raw_coordinate_grant.
+sql`, not yet applied to production -- same reviewed-founder-deploy-step discipline as the first):
+revokes `latitude, longitude` from the direct base-table grant; adds a narrow `security definer`
+function `issue_public_coordinates(uuid)` returning ONLY the rounded value for one issue id, nothing
+else; rebuilds `issues_public` to source coordinates from that function instead of reading the
+base table's own (now-revoked) columns. Every other already-granted column is untouched. Real
+rollback SQL for BOTH the new migration and the original 20260825120000 fix now exist as reviewed
+files in a new `supabase/rollbacks/` directory (deliberately NOT inside `supabase/migrations/`, so
+`supabase db push`'s migration scanner can never auto-apply a rollback -- verified by
+`tests/supabase-issues-security-audit.mjs`).
+
+**Not independently verifiable this pass, disclosed honestly rather than glossed over:** whether
+`public.issues.status`/`lifecycle_status` contain any internal-only value that should not be
+publicly visible. The row policy (`using (true)`) makes every row visible regardless of status
+value; `public.issues`'s own `CREATE TABLE` is not present in this repo's migration history (created
+outside it, likely via Community Connect's own separate repository or directly in the Dashboard),
+so its real status enum could not be read from the repo alone, and no live database connection was
+available to query `select distinct status, lifecycle_status from issues` directly. **This is the
+one open item before either migration should be considered fully verified safe** -- a founder or a
+future session with live Supabase access should run that query (or check Community Connect's own
+schema source) before applying, or immediately after, as a real post-deploy check.
+
+**Tests:** `tests/supabase-issues-security-audit.mjs` (new, static SQL analysis only, explicitly
+labelled as such in its own header and console output) -- verifies both migrations never touch the
+four sensitive columns, the coordinate fix never reads a raw lat/long column anywhere in the
+rebuilt view or function, both migrations contain zero destructive statements, and both rollback
+files exist outside `supabase/migrations/`. `tests/backend-source-audit.mjs` extended with the new
+migration file's existence check.
+
+**Status: Priority 3 continued — one real privacy gap found and fixed as a reviewed, rollback-
+capable migration, not yet applied to production (founder's own deploy step, see the Dashboard
+action below). One item requires live database access to fully close out.**
+
+## Cycle 10 (2026-08-25) — deployment-artifact allowlist (defense in depth beyond Cycle 8's fix)
+
+Founder asked for Cycle 8's `_redirects` fix to be hardened further: a true build-time exclusion or
+allowlist, covering both Cloudflare Pages and GitHub Pages, tested against case variants and
+encoded paths, preserving the existing `_redirects` rules as defense in depth (not replaced).
+
+**Real, independent second finding, not covered by Cycle 8's fix at all:** `.github/workflows/
+static-pages.yml` uploads `path: .` -- the entire repository, completely unfiltered -- to GitHub
+Pages on every push to `main`. GitHub Pages has no `_redirects`-equivalent runtime layer, so Cycle
+8's fix (a Cloudflare-Pages-specific mechanism) provides this second deployment target zero
+protection. Confirmed this is a real, currently-configured GitHub Actions workflow (not
+speculative) by reading it directly. **GitHub Pages' actual current public reachability could not
+be independently confirmed from this session** -- network egress to `*.github.io` is blocked in
+this sandbox (confirmed via a known-good control probe, `pages.github.com`, which also returned no
+response -- a sandbox network restriction, not evidence the site itself is down). The founder
+should independently confirm whether GitHub Pages was ever actually enabled for this repository.
+
+**Fixed, two layers:**
+1. **Cloudflare Pages (primary, request-time):** new `functions/_middleware.js`. This repo already
+   proved Cloudflare Pages Functions run ahead of static-asset serving on this exact project
+   (`functions/version.json.js`'s own header comment, describing the same precedence this fix now
+   relies on) -- no build step exists for this repo at all (confirmed by that same file: "no build
+   command is configured, matching this repo's 'no build step' doctrine"), so a request-time
+   Function is the correct substitute for a build-time exclusion that has nothing to build against.
+   Blocks `supabase/`, `GOVERNANCE/`, `tests/`, `scripts/`, `.claude/`, `.github/`, every internal
+   top-level engineering doc (`CLAUDE.md` itself, `IBIS-MAP.md`, etc.), plus two further real
+   findings from tracing the actual deployed file tree: `00_Phase1_Discovery/` and
+   `dj-tube-prototype/` (a superseded, unlinked legacy prototype -- confirmed via grep that zero
+   real pages link to it; the canonical DJ Tube product is `/riddim/dj/`), `docs/`, and
+   `FTN_Master_Asset_Library_v1.0/` (CLAUDE.md's own standing rule: "reference boards -- never
+   linked live" -- was, in fact, live). Every excluded path was verified to have zero inbound links
+   from any shipped HTML/JS before being added, so the block cannot silently break a real route.
+2. **GitHub Pages (build-time):** the workflow now `rsync`-excludes the identical path list into a
+   staging directory before `upload-pages-artifact` -- a true build-time exclusion, the closest
+   GitHub Pages equivalent since it has no request-time layer of its own.
+3. **`_redirects` (Cycle 8's fix, preserved):** left in place and its own comment updated to note
+   the Function as the new primary layer -- not removed, exactly as instructed ("preserve the
+   working block as defense in depth").
+
+**Real verification, not assumed:** the middleware was tested two ways. (1) A Node.js harness
+directly invoking the real exported `onRequest(context)` function with a fake Cloudflare-shaped
+context -- 21 blocked-path cases (including 3 case variants, a single-percent-encoded path, a
+double-percent-encoded path decoded through 2 real iterations by hand-traced logic then confirmed
+by execution, and a malformed-escape-sequence fail-closed case) and 12 real-public-route cases that
+must never be blocked, all passing. (2) A REAL local Cloudflare Workers runtime via `wrangler pages
+dev` -- confirmed the exact same 200/404 results against actual HTTP requests, not just the Node.js
+simulation. (A transient "Workers runtime crashed unexpectedly" was hit twice during this local
+verification and root-caused by disabling the middleware and reproducing a clean run without it --
+confirmed to be local wrangler dev-server flakiness unrelated to the middleware's own code, since a
+clean restart with the middleware present then passed all 8 real HTTP checks correctly and
+consistently.)
+
+**Tests:** `tests/deployment-artifact-audit.mjs` (new) -- keeps `functions/_middleware.js`'s
+denylist and the GitHub Pages workflow's exclusion list from drifting apart (the exact failure mode
+Cycle 8 itself was: one layer fixed, a second, real gap left silently open), and exercises the real
+middleware function against every blocked case and public-route case above.
+
+**Status: found a second, independent real exposure (GitHub Pages, completely unprotected) beyond
+what Cycle 8 already fixed. Both deployment targets now have a real, tested block. Pending: commit,
+push, deploy, and direct production verification (below).**
+
+## Cycle 11 (2026-08-25) — free-tier auth hardening (no Supabase Pro)
+
+Founder asked for the strongest free Supabase Auth protections available, explicitly ruling out
+Pro-only leaked-password protection. Verified via a real web search (not assumed) that leaked-
+password protection genuinely is Pro-and-above only on Supabase as of this pass.
+
+**The actually-correct, codebase-specific free fix, not generic advice:** read `js/ftn-auth.js`
+directly -- FTN Account's real sign-in surface is `auth.signInWithOtp` (magic-link/OTP email) and
+`auth.signInWithOAuth` only; a sitewide grep confirms zero use of `auth.signInWithPassword` or any
+password-collecting sign-up form anywhere in this repo. Leaked-password protection exists to guard
+a password-acceptance path FTN's own app never exposes. The real, zero-cost, zero-code-change
+mitigation: confirm the Email+Password provider is **disabled** in Supabase Dashboard →
+Authentication → Providers (Supabase's own GoTrue API accepts whatever providers are enabled
+regardless of what the app's UI calls -- an unused-by-the-UI path is not the same as a disabled
+one). This has zero functional impact on any real FTN Account flow.
+
+**A second real finding, correctly NOT actioned this pass:** Supabase Auth's native CAPTCHA/bot-
+abuse protection supports Cloudflare Turnstile directly, and FTN already has a live Turnstile
+integration (the `/contact/` form) whose keys could in principle protect the OTP endpoint too, at
+zero new cost. Checked whether this is safe to simply enable: it is not. `js/ftn-auth.js`'s
+`signInWithEmail()` calls `c.auth.signInWithOtp(...)` with no `options.captchaToken` at all --
+enabling the Dashboard toggle today would make every real sign-in attempt fail immediately, a real
+interaction confirmed by reading the actual call, not a theoretical caveat. Flagged as a real,
+concrete next security task (add a Turnstile widget to `/account/`'s sign-in form, wire its token
+through `signInWithOtp`'s `options.captchaToken`, then enable the toggle) -- not attempted this pass
+per "no speculative redesign" and the real risk of breaking sign-in by sequencing it wrong.
+
+**Status: two real, codebase-specific findings delivered (one immediately actionable at zero cost
+and zero risk, one correctly deferred with the exact reason and the exact next step). No Supabase
+Pro recommended, as instructed.**
