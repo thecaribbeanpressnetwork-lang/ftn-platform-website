@@ -340,6 +340,21 @@ to `ftn-public-v2.4.2`. Both new suites wired into
 `/facethenation` artifact, unrelated, documented in the Part 1 entry above and re-verified live in
 production once deployed).
 
+**Direct production verification** (commit `27f0a59`, deployed and confirmed live via
+`curl https://ftnplatform.org/version.json`): `curl https://ftnplatform.org/service-worker.js`
+confirmed the deployed file matches exactly — `VERSION='ftn-public-v2.4.2'`,
+`PRIVATE=/^\/(account|health|ibis-ai|love|mission-control)(\/|$)/`,
+`NEVER=/^\/(api|auth|community-connect\/app|god-mode)(\/|$)/`, and the "not an authorization
+boundary" documentation present. `curl -I https://ftnplatform.org/facethenation` returned a real
+`308` (Cloudflare's clean-URL handling), confirming the local-test-server 404 noted above was never
+a real defect. Every public route checked (`/`, `/kaiso/`, `/tv/`, `/parliament/`, `/riddim/`,
+`/observatory/`, `/display/`) returned `200`. Every account/admin/private route checked (`/account/`,
+`/ibis-ai/`, `/love/`, `/health/`, `/god-mode/`) returned `200` and remains fully reachable — the SW
+policy controls local caching only, never route accessibility, exactly as documented; `/mission-control/`
+returned `302` (pre-existing redirect behavior, unrelated to and unchanged by this pass). Confirmed
+`display` does not appear anywhere in the deployed `service-worker.js` — the FTN Display
+classification bug caught during development did not ship.
+
 ## Phases 4–8
 
 Not started this pass. Each covers enough surface (ibis source routing rebuild, a new FTN
