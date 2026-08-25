@@ -1,19 +1,24 @@
 (function(){
 'use strict';
 var URL='https://jshmidfpqrajxtukzges.supabase.co', KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
-var state={session:null,summary:null,national:null};
+var state={session:null,summary:null,national:null,nationalPromise:null};
+var CACHE_KEY='ftn.mayor.summary.v1',CACHE_MAX_AGE=15*60*1000;
 var $=function(id){return document.getElementById(id);};
 var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});};
 var iso=function(days){return new Date(Date.now()+days*86400000).toISOString().slice(0,10);};
 function list(id,items,render,empty){$(id).innerHTML=(items||[]).map(function(x){return '<li>'+render(x)+'</li>';}).join('')||'<li>'+esc(empty)+'</li>';}
 function num(v){return Number(v||0).toLocaleString();}
-async function national(){
- if(state.national)return state.national;
- var r=await Promise.all([fetch('/data/crime-statistics.json',{cache:'no-cache'}),fetch('/data/fx-usd-ttd.json',{cache:'no-cache'})]);
- if(!r[0].ok||!r[1].ok)throw new Error('National source snapshot could not be read.');
- var crime=await r[0].json(),fx=await r[1].json(),annual=crime.annual||[],latest=annual[annual.length-1]||{},month=(fx.monthly||[]).slice(-1)[0]||{};
- return state.national={crime:crime,fx:fx,latestHistorical:latest,latestFx:month};
+function national(){
+ if(state.national)return Promise.resolve(state.national);
+ if(state.nationalPromise)return state.nationalPromise;
+ state.nationalPromise=Promise.all([fetch('/data/crime-statistics.json',{cache:'no-cache'}),fetch('/data/fx-usd-ttd.json',{cache:'no-cache'})]).then(function(r){
+  if(!r[0].ok||!r[1].ok)throw new Error('National source snapshot could not be read.');
+  return Promise.all([r[0].json(),r[1].json()]);
+ }).then(function(rows){var crime=rows[0],fx=rows[1],annual=crime.annual||[],latest=annual[annual.length-1]||{},month=(fx.monthly||[]).slice(-1)[0]||{};state.national={crime:crime,fx:fx,latestHistorical:latest,latestFx:month};return state.national;});
+ return state.nationalPromise;
 }
+function cacheSummary(data){try{sessionStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),data:data}));}catch(e){}}
+function cachedSummary(){try{var raw=JSON.parse(sessionStorage.getItem(CACHE_KEY)||'null');return raw&&raw.data&&Date.now()-raw.savedAt<CACHE_MAX_AGE?raw.data:null;}catch(e){return null;}}
 function renderNational(n){
  var c=n.crime, h=n.latestHistorical, f=n.latestFx, current=c.current||{};
  $('mayorNational').innerHTML='<p><strong>'+num(current.reported)+' reported murders</strong><br><small>TTPS current-year cumulative figure; retrieved '+esc(current.asOf||'not stated')+'.</small><br><a href="'+esc(current.sourceUrl||'https://ttps.gov.tt/')+'" target="_blank" rel="noopener">Open TTPS source</a></p>'+
@@ -31,12 +36,12 @@ function render(d,n){
  renderNational(n);
 }
 async function refresh(){
- var status=$('mayorStatus');status.textContent='Refreshing the selected community picture…';$('mayorMetrics').setAttribute('aria-busy','true');
+ var status=$('mayorStatus');status.textContent=state.summary?'Updating the community picture…':'Refreshing the selected community picture…';$('mayorMetrics').setAttribute('aria-busy','true');var nationalData=national();
  var from=$('mayorFrom').value,to=$('mayorTo').value,community=$('mayorCommunity').value||null;
  try{
   var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},12000);var res;try{res=await fetch(URL+'/rest/v1/rpc/mayor_dashboard_summary',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+state.session.access_token,'Content-Type':'application/json'},body:JSON.stringify({p_from:new Date(from).toISOString(),p_to:new Date(to).toISOString(),p_community:community}),signal:controller.signal});}finally{clearTimeout(timer);}
   if(!res.ok)throw new Error('Protected community summary was not returned.');
-  var data=await res.json();state.summary=Array.isArray(data)?data[0]:data;render(state.summary,await national());$('mayorMetrics').setAttribute('aria-busy','false');status.textContent='Community picture updated.';
+  var data=await res.json();state.summary=Array.isArray(data)?data[0]:data;cacheSummary(state.summary);render(state.summary,await nationalData);$('mayorMetrics').setAttribute('aria-busy','false');status.textContent='Community picture updated.';
  }catch(e){$('mayorMetrics').setAttribute('aria-busy','false');status.textContent='The community picture did not finish loading. Select Refresh community picture to try again.';}
 }
 function brief(){
@@ -51,7 +56,7 @@ async function boot(){
  $('mayorSignIn').addEventListener('click',function(){$('mayorLoginStatus').textContent='Opening secure FTN sign-in…';window.FTN.Auth.signInWithGoogle('/mayor-dashboard/').catch(function(){$('mayorLoginStatus').textContent='Secure sign-in could not be started.';});});
  $('mayorRefresh').addEventListener('click',refresh);$('mayorBrief').addEventListener('click',brief);$('mayorPrint').addEventListener('click',function(){window.print();});
  try{await window.FTN.Auth.completeAuthRedirect();state.session=await window.FTN.Auth.getSession();}catch(e){}
- if(state.session){$('mayorLogin').hidden=true;$('mayorWorkspace').hidden=false;refresh();}
+ if(state.session){$('mayorLogin').hidden=true;$('mayorWorkspace').hidden=false;var cached=cachedSummary();if(cached){state.summary=cached;try{render(cached,await national());$('mayorMetrics').setAttribute('aria-busy','false');$('mayorStatus').textContent='Showing the last loaded community picture while it updates.';}catch(e){}}refresh();}
 }
 document.addEventListener('DOMContentLoaded',boot);
 })();
