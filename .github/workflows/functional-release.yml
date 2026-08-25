@@ -101,6 +101,9 @@ jobs:
       - name: Audit IBIS Live Intelligence (deterministic intent detection + query stripping)
         run: node tests/ibis-live-research-audit.mjs
 
+      - name: Audit Phase 4A ibis routing consolidation (provenance schema, executors, eligibility gate, timeouts)
+        run: node tests/ibis-routing-consolidation-audit.mjs
+
       - name: Install Playwright
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
