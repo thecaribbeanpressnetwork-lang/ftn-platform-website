@@ -185,6 +185,43 @@ Phase 3 nav-consolidation entry for the full before/after verification.
 **If a future session finds header overflow at 1240-1600px again:** that means the CSS above
 regressed, not that the item count needs cutting again — fix the CSS, don't re-litigate the list.
 
+### Service-worker route policy made registry-driven, explicitly not a security boundary — **Active** (2026-08-24, BUILD NOW)
+
+**Current, binding decision:** `service-worker.js`'s `PRIVATE`/`NEVER` route-exclusion regexes are
+generated, not hand-maintained, from two sources: `js/product-registry-data.js`'s own
+`publicVisibility`/`status`/`authRequirement` fields (for registered products — `account`,
+`ibis-ai`, `love`, `health`, `mission-control`), and `data/route-policy.mjs` (for non-product
+routes that were never candidates for a Product Registry entry — `god-mode` has no
+primaryJourney/dataSources/etc by design; `/community-connect/app` is the mount point for the
+separate Community Connect application this repo does not own or modify; `/auth` and `/api` are
+infrastructure, not products). `scripts/sync-service-worker.mjs` resolves both and writes the
+literal regexes into `service-worker.js` between `FTN:SW-POLICY:START/END` markers.
+`tests/service-worker-policy-audit.mjs` fails CI if they drift.
+
+**Every existing exclusion was preserved** — `god-mode` moved from the `PRIVATE` regex to `NEVER`
+(it was never a registered product, so it belongs in the non-product source now), which changes
+nothing observable since both regexes are checked identically in the fetch handler. No route was
+removed; classification of all nine original entries is recorded in the repair ledger.
+
+**A real classification bug was caught while building this, not shipped:** the first cut of the
+registry-derived filter treated any `authRequirement !== 'guest'` as cache-unsafe, which would have
+incorrectly swept FTN Display (`authRequirement:'none'` — fully public, no account at all, *more*
+open than `'guest'`, not less) into the private-cache exclusion. Fixed with an explicit allowlist
+(`CACHE_UNSAFE_AUTH_REQUIREMENTS = ['mixed','authenticated','private']`) instead of a blocklist of
+just `'guest'`, and a permanent regression test (`tests/service-worker-policy-audit.mjs`) asserting
+`display` is never excluded.
+
+**Explicitly and permanently documented, not a one-time note:** this is a caching policy, not an
+authorization boundary. See `.claude/context/security-ops.md`'s new "Service worker & caching"
+section and `service-worker.js`'s own top comment. Supabase RLS policies remain unverified from
+this repo (no authenticated Supabase MCP access) — this consolidation does not claim to prove or
+improve server-side authorization, only to keep the cache-exclusion list itself accurate and
+generated rather than hand-drifted.
+
+**If a future session is tempted to treat a route's presence in `PRIVATE`/`NEVER` as proof it is
+protected:** it is not — check the actual server-side authorization (Supabase RLS/RPC/Edge
+Function) for that route instead.
+
 ---
 
 ## Still-open conflicts (do not silently resolve)

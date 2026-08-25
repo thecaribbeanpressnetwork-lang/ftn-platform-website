@@ -257,6 +257,89 @@ both CI steps alongside the new nav audit.
 **CI/CD housekeeping:** `js/nav.js?v=` bumped to `20260824.5` across all 45 referencing HTML files
 (cache-busting for the changed file).
 
+### Phase 3 — service-worker route-policy consolidation (2026-08-24, continued)
+
+**Classification of every route in the pre-existing `PRIVATE`/`NEVER` regexes** (`god-mode`,
+`mission-control`, `account`, `love`, `health`, `ibis-ai`, `community-connect/app`, `auth`, `api`,
+plus the separately-checked `/functions/v1/`), against the six categories the founder specified:
+
+| Route | Category | Why |
+|---|---|---|
+| `mission-control` | 1. Registered FTN product | `status:'PRIVATE'`, `publicVisibility:false` |
+| `love` | 1. Registered FTN product | `status:'VAULTED'`, `publicVisibility:false` |
+| `health` | 1. Registered FTN product | `status:'VAULTED'`, `publicVisibility:false` |
+| `account` | 1 and 2 (both) | Registered, `status:'AVAILABLE'`/public — but excluded because it renders authenticated, per-user content once signed in (new `authRequirement:'mixed'`) |
+| `ibis-ai` | 1 and 2 (both) | Registered, `status:'AVAILABLE'`/public — excluded for the same reason (`authRequirement:'mixed'`; existing `analyticsClassification:'private-content-no-replay'` and a "Private conversation boundary" legal notice already said as much) |
+| `auth` | 2. Account/authentication route | Supabase Auth redirect/callback flow, not a page |
+| `god-mode` | 3. Administrative/founder-only capability | Deliberately has no Product Registry entry |
+| *(none found)* | 4. Obsolete alias | Every existing entry was inspected; none were dead. Recorded as an explicit empty list in `data/route-policy.mjs`, not silently omitted |
+| `api` | 5. Caching-only exclusion | Reserved namespace, no product/account/admin meaning of its own |
+| `/functions/v1/` | 5. Caching-only exclusion | Supabase Edge Function calls; enforced by its own existing line (a contains-match, not prefix-anchored like the rest), documented but not folded into the generated regex |
+| `community-connect/app` | 6. Other non-product application route | Mount point for the separate, protected Community Connect application — this repo never modifies its source (CLAUDE.md) |
+
+**Resulting ownership model:** `js/product-registry-data.js` is authoritative for registered
+products (category 1, and the auth-driven half of `account`/`ibis-ai`'s exclusion via the new
+`authRequirement` field). `data/route-policy.mjs` is the new, small canonical source for
+categories 2/3/4/5/6 — deliberately *not* folded into the Product Registry, since forcing
+`god-mode` or the Community Connect app mount point to look like a product would misrepresent both
+(per the founder's own instruction not to force non-product routes into the registry just to
+remove a duplicated regex). `scripts/sync-service-worker.mjs` is the single point that resolves
+both into `service-worker.js`'s generated `PRIVATE`/`NEVER` regexes.
+
+**Every existing exclusion preserved, nothing removed:** the resulting `PRIVATE`/`NEVER` sets
+together are byte-for-byte the same nine routes as before, just correctly re-sorted between the two
+regexes (`god-mode` moved from `PRIVATE` to `NEVER` since it was never a registered product) — a
+purely organizational change with zero behavioral difference, since both regexes are checked with
+identical `||` logic in the fetch handler.
+
+**A real classification bug was caught while building the generator, before it was ever synced or
+committed:** the first version of the registry-derived filter treated any product with
+`authRequirement !== 'guest'` as needing cache exclusion. Running it produced `PRIVATE=[account,
+display, health, ibis-ai, love, mission-control]` — `display` (FTN Screen's Display Mode,
+`authRequirement:'none'`, genuinely the most open access level on the platform: no account, no
+configuration, nothing to protect) would have been silently swept into the private-cache exclusion
+alongside actually-private routes. Root-caused (a blocklist of just `'guest'` doesn't distinguish
+"more open than guest" from "less open than guest") and fixed with an explicit allowlist
+(`CACHE_UNSAFE_AUTH_REQUIREMENTS = ['mixed','authenticated','private']`), re-verified via
+`node scripts/sync-service-worker.mjs` producing the correct five-route `PRIVATE` set, and a
+permanent regression assertion added to `tests/service-worker-policy-audit.mjs`.
+
+**Documented explicitly, in multiple durable places, that this is not a security boundary** — not
+a one-line caveat: `service-worker.js`'s own top comment, `data/route-policy.mjs`'s top comment,
+`.claude/context/security-ops.md`'s new "Service worker & caching" section, and this ledger. Real
+authorization remains server-side only (Supabase RLS/RPC/Edge Function checks); Supabase RLS
+policies themselves remain unverified from this repo (no authenticated Supabase MCP access this
+pass, same limitation recorded under "Known blockers" below) — this pass does not claim to have
+proven or improved that, only to have made the cache-exclusion list itself accurate and generated.
+
+**Cache version upgrade handled safely:** `VERSION` bumped `ftn-public-v2.4.1` → `ftn-public-v2.4.2`
+(the file's own existing convention: bump on every content change so a returning browser doesn't
+keep serving an obsolete cached shell). The `activate` handler's existing old-cache deletion,
+`skipWaiting()`, and `clients.claim()` logic was left untouched and is now under a permanent
+regression assertion (`tests/service-worker-lifecycle.mjs`) rather than only informally trusted.
+
+**Tests:** `tests/service-worker-policy-audit.mjs` (new, static) — drift check via
+`scripts/sync-service-worker.mjs --check`, independent re-derivation of every registry product
+needing exclusion, the FTN Display regression guard above, spot-checks that genuinely public
+products (`kaiso`, `tv`, `parliament`, `riddim`, `ftn-live`) are never excluded, presence of the
+"not a security boundary" documentation, and that the fetch handler still consults both regexes.
+`tests/service-worker-lifecycle.mjs` (new, behavioral, real registered service worker via
+Playwright) — first visit reaches `activated`; repeat visit writes the shell into the cache;
+offline loading works for both a previously-visited route and an unvisited route (via the
+`/offline/` fallback); all six private routes are confirmed absent from every cache after being
+visited; three public routes are confirmed present; a nested path under `/community-connect/app`
+inherits the exclusion (not just the exact prefix); `/live/`/`/now/`/`/observatory/` are confirmed
+never excluded (the actual 301 redirect is a Cloudflare Pages edge behavior neither this local
+harness nor CI's identical `python3 -m http.server` can exercise — verified directly against
+production instead, see below); and the version-upgrade cache-cleanup/`skipWaiting`/`clients.claim`
+logic is confirmed present. `tests/product-registry-audit.mjs`'s exact-`VERSION` assertion updated
+to `ftn-public-v2.4.2`. Both new suites wired into
+`.github/workflows/functional-release.yml`. Full local run after all fixes: `product-registry-audit`,
+`nav-registry-audit`, `service-worker-policy-audit`, `backend-source-audit`, `csp-source-audit`,
+`service-worker-lifecycle` (9/9), `functional-release` (61/62 — the one pre-existing local-server
+`/facethenation` artifact, unrelated, documented in the Part 1 entry above and re-verified live in
+production once deployed).
+
 ## Phases 4–8
 
 Not started this pass. Each covers enough surface (ibis source routing rebuild, a new FTN
