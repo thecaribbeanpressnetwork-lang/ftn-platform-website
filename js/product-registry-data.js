@@ -330,6 +330,23 @@ product({
   legalNotices:['No medical service','Governance review required before release','No health-data collection'],analyticsClassification:'restricted-sensitive-no-replay',keywords:['health','wellbeing','future'],capabilities:[]
 }),
 product({
+  // Phase 5A (2026-08-25): the shared, source-verified official-statistics foundation --
+  // registered here, not built as a second isolated product with its own data model.
+  // `dataSources`/`consumingProducts`-equivalent linkage lives in js/ftn-statistics.js's own
+  // indicatorDefinition() shape (`consumingProducts`), not duplicated as a second list here.
+  id:'statistics',name:'FTN Statistics',shortName:'Statistics',tagline:'Real numbers. Real sources. Every time.',
+  description:'FTN’s shared, source-verified official-data foundation for Trinidad and Tobago — one place a government statistic is checked, dated and attributed once, then reused by FTN Live, ibis.ai and the rest of the platform instead of copied and re-guessed.',route:'/statistics/',status:'AVAILABLE',
+  primaryUser:'Residents, researchers, institutions and other FTN products needing a verified official figure',primaryJourney:'Open a verified indicator, inspect its real source/reference date/methodology via its Trust Card, and follow the link to the official publisher.',
+  callsToAction:[{label:'Open FTN Statistics',route:'/statistics/'}],visualMnemonic:'Verified data ledger',accent:'var(--color-red)',atmosphere:{accent:'var(--color-red)',background:'dark-minimal',motionProfile:'none',heroStyle:'editorial'},
+  dataSources:['Trinidad and Tobago Police Service — Statistical Reports Collection','Central Statistical Office — Crime Statistics'],accessRules:['guest'],featureFlags:['statistics-crime-vertical-slice'],relatedProducts:['ftn-live','ibis-ai','govern','parliament','community-connect'],
+  legalNotices:['Official source attribution notice','Not a redistribution of the underlying government dataset'],
+  keywords:['statistics','data','crime','murder','official','CSO','TTPS','indicator','verified','source'],capabilities:['verified-official-indicator','source-attribution','trust-card-evidence','accessible-data-table'],
+  purposeStatement:'The shared statistical data foundation meant to serve FTN Live, ibis.ai, FTN Screen, FTN Govern, FTN Parliament and Community Connect alike — not a second, isolated statistics product. First vertical slice: verified CSO/TTPS crime data (see GOVERNANCE/FTN_Statistics_Source_Map_2026-08-25.md).',
+  navPlacement:{primary:false,ecosystemGroup:'information-intelligence',footer:true},authRequirement:'guest',
+  integrations:[{productId:'ftn-live',kind:'shares-data-with'},{productId:'ibis-ai',kind:'shares-data-with'}],
+  provenanceLevel:'official',ownerModules:['statistics/index.html','js/ftn-statistics.js','js/ftn-statistics-crime-adapter.js','js/crime-intelligence.js','data/crime-statistics.json']
+}),
+product({
   id:'top-picks',name:'FTN Picks',shortName:'Picks',tagline:'Useful tools. Caribbean context.',
   description:'FTN Invest-in’s supporting recommendation capability with free-first guidance and explicit affiliate, support and editorial relationship labels.',route:'/top-picks/',status:'AVAILABLE',parentProduct:'invest',principal:false,
   primaryUser:'Creators and small Caribbean teams',primaryJourney:'Compare a disclosed recommendation and continue to the provider independently.',callsToAction:[{label:'Browse FTN Picks',route:'/top-picks/'}],visualMnemonic:'Curated tool marker',
@@ -338,7 +355,7 @@ product({
 ];
 var ECOSYSTEM_GROUPS=[
   {id:'civic-public-life',title:'Civic & public life',description:'Participate, find official paths and follow the public record.',productIds:['community-connect','govern','parliament','facethenation']},
-  {id:'information-intelligence',title:'Information & intelligence',description:'Watch what is happening, investigate it in depth, and get source-backed reporting and Caribbean-first assistance.',productIds:['display','ftn-live','kaiso','ibis-ai','scenario-workspace']},
+  {id:'information-intelligence',title:'Information & intelligence',description:'Watch what is happening, investigate it in depth, and get source-backed reporting and Caribbean-first assistance.',productIds:['display','ftn-live','kaiso','ibis-ai','scenario-workspace','statistics']},
   {id:'media-culture',title:'Media & culture',description:'Watch, listen and discover Caribbean stories through permitted sources.',productIds:['radio','screen','tv']},
   {id:'music-creation',title:'Music & creation',description:'Move from a music idea to rights-aware preparation, production and performance.',productIds:['riddim','ftn-fire','dj-tube','daw','epk']},
   {id:'opportunities-business',title:'Opportunities & business',description:'Find verified paths to work, funding, partnerships, training and useful tools.',productIds:['opportunities','learn','invest','top-picks']},
