@@ -20,6 +20,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { loadRegistry as loadRegistryShared } from './lib/registry-loader.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const { BRAND, BOTTOM_LINKS, FULL_COLUMNS, PAGES } = await import(pathToFileURL(resolve(root, 'data/footer-config.mjs')));
@@ -29,15 +30,6 @@ const MARK_END = '<!-- FTN:FOOTER:END -->';
 
 function esc(v) {
   return String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
-function loadRegistry() {
-  const fakeWindow = {};
-  const dataSrc = readFileSync(resolve(root, 'js/product-registry-data.js'), 'utf8');
-  const apiSrc = readFileSync(resolve(root, 'js/product-registry.js'), 'utf8');
-  const fn = new Function('window', dataSrc + '\n' + apiSrc);
-  fn(fakeWindow);
-  return fakeWindow.FTN.ProductRegistry;
 }
 
 function resolveLink(entry, Registry) {
@@ -155,7 +147,7 @@ function generatedFor(variant, Registry) {
   return variant === 'full' ? fullFooterHtml(Registry) : bottomBarHtml(Registry);
 }
 
-const Registry = loadRegistry();
+const Registry = loadRegistryShared(root);
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
 const groupArg = args.find((a) => a.startsWith('--group='));

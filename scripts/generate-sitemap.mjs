@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { loadRegistry as loadRegistryShared } from './lib/registry-loader.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -41,21 +42,8 @@ const UTILITY_PAGES = [
   '/legal/responsible-ai/',
 ];
 
-function loadRegistry() {
-  // js/product-registry-data.js and js/product-registry.js are written as browser IIFEs
-  // (`(function(global){...})(window)`), not ES modules — loading them under Node the same way
-  // the site's own tests/backend-source-audit.mjs-style scripts do, via a minimal `window` shim,
-  // rather than forking the source into a second module-shaped copy.
-  const fakeWindow = {};
-  const dataSrc = readFileSync(resolve(root, 'js/product-registry-data.js'), 'utf8');
-  const apiSrc = readFileSync(resolve(root, 'js/product-registry.js'), 'utf8');
-  const fn = new Function('window', dataSrc + '\n' + apiSrc);
-  fn(fakeWindow);
-  return fakeWindow.FTN.ProductRegistry;
-}
-
 function buildUrlList() {
-  const Registry = loadRegistry();
+  const Registry = loadRegistryShared(root);
   // Fragment routes (e.g. '/radio/#ftn-epk') are the same crawlable document as their base path —
   // an XML sitemap should list the document once, not once per in-page anchor.
   const productRoutes = Registry.sitemapProducts()

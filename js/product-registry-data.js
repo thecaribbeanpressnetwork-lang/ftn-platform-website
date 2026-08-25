@@ -62,7 +62,8 @@ product({
   description:'One connected Caribbean ecosystem for civic action, trusted information, media, creation, opportunity and business.',route:'/',status:'LIVE',
   primaryJourney:'Describe a goal, discover the right FTN product and continue without forced sign-in.',callsToAction:[{label:'Find a product',route:'/#find-your-path'},{label:'Open FTN Directory',route:'/applications/'}],
   visualMnemonic:'Connected Caribbean signal field',dataSources:['FTN Product Registry','verified public FTN records'],relatedProducts:['community-connect','ibis-ai','opportunities'],
-  keywords:['Caribbean','platform','ecosystem','discover','search','operating system'],capabilities:['product-discovery','public-search','country-preference','pwa-install','return-to-task']
+  keywords:['Caribbean','platform','ecosystem','discover','search','operating system'],capabilities:['product-discovery','public-search','country-preference','pwa-install','return-to-task'],
+  navPlacement:{primary:true,ecosystemGroup:null,footer:true}
 }),
 product({
   id:'community-connect',name:'FTN Community Connect',shortName:'Community Connect',tagline:'Connect. Report. Improve.',
@@ -72,7 +73,8 @@ product({
   panelAsset:'/assets/panels/01-community-connect.png',panelRow:1,accent:'var(--color-red)',atmosphere:{accent:'var(--color-red)',background:'photo',motionProfile:'none',heroStyle:'photo-real'},
   dataSources:['Community Connect protected application','approved public aggregate records'],accessRules:['guest landing','separate protected application account'],featureFlags:['community-connect-handoff'],
   relatedProducts:['parliament','facethenation'],legalNotices:['Evidence and consent notice','Community guidelines','Privacy policy'],analyticsClassification:'civic-sensitive-no-replay',
-  keywords:['report','issue','pothole','community','neighbourhood','infrastructure','complaint'],capabilities:['verified-release-handoff','reporting-handoff','public-boundary-notice']
+  keywords:['report','issue','pothole','community','neighbourhood','infrastructure','complaint'],capabilities:['verified-release-handoff','reporting-handoff','public-boundary-notice'],
+  navPlacement:{primary:true,ecosystemGroup:'civic-public-life',footer:true}
 }),
 product({
   id:'mission-control',name:'Mission Control',shortName:'Mission Control',tagline:'Private institutional operations.',productType:'private infrastructure',visibility:'PRIVATE',
@@ -113,7 +115,8 @@ product({
   primaryUser:'Residents, researchers and public-affairs audiences',primaryJourney:'Search a record category, open the official source, save/share it or report a broken source.',
   callsToAction:[{label:'Find a public record',route:'/parliament/#records'}],visualMnemonic:'Civic columns and source seal',dataSources:['Parliament of Trinidad and Tobago official website'],
   accessRules:['guest directory'],featureFlags:['parliament-directory'],relatedProducts:['facethenation','community-connect','mission-control'],legalNotices:['Independent non-official service','Source and correction notice'],
-  keywords:['parliament','representative','constituency','bill','sitting','debate','committee','public record'],capabilities:['official-source-directory','search','filter','save','share','broken-source-report']
+  keywords:['parliament','representative','constituency','bill','sitting','debate','committee','public record'],capabilities:['official-source-directory','search','filter','save','share','broken-source-report'],
+  navPlacement:{primary:true,ecosystemGroup:'civic-public-life',footer:true}
 }),
 product({
   id:'facethenation',name:'FTN Face The Nation',shortName:'Face The Nation',tagline:'Every Voice. Every Constituency. Every Truth.',
@@ -151,7 +154,7 @@ product({
   dataSources:['FTN schedule data','authorized YouTube embeds'],accessRules:['guest viewing'],featureFlags:['tv-guide'],relatedProducts:['screen','facethenation','ftn-live','display'],legalNotices:['Programme rights and source notice'],
   keywords:['television','tv','channel','schedule','guide','watch','programme','replay'],capabilities:['current-programme-resolution','authorized-playback','schedule','tune','failure-state'],
   purposeStatement:'Scheduled/on-demand programme guide, a capability of FTN Screen — not a current-conditions or Live product.',
-  navPlacement:{primary:false,ecosystemGroup:'media-culture',footer:true},authRequirement:'guest',
+  navPlacement:{primary:true,ecosystemGroup:'media-culture',footer:true},authRequirement:'guest',
   // Not claiming a direct integration with 'display': FTN Display's "TV NOW" module and this
   // product both independently call the same shared js/ftn-media-discovery.js capability -- they
   // don't consume each other's output, so a product-to-product edge here would overclaim.
@@ -226,7 +229,8 @@ product({
   callsToAction:[{label:'Open the music hub',route:'/riddim/'}],visualMnemonic:'Layered riddim waveform',panelAsset:'/assets/panels/06-ftn-riddim.png',panelRow:2,accent:'var(--color-riddim)',atmosphere:{accent:'var(--color-riddim)',background:'dark-studio',motionProfile:'waveform',heroStyle:'studio'},
   heroAsset:'/assets/heroes/ftn-riddim-studio.webp',heroAlt:'Caribbean musicians and engineers recording together in a professional studio',heroFocalDesktop:'64% 50%',heroFocalMobile:'66% 50%',
   dataSources:['user-owned local audio','creator metadata','authorized public sources','on-device Fire synthesis'],accessRules:['guest local projects'],featureFlags:['riddim-hub','ftn-fire'],relatedProducts:['ftn-fire','daw','dj-tube','kaiso','radio'],legalNotices:['Music ownership and licence declaration'],
-  keywords:['music','artist','producer','release','track','beat','riddim','fire','rights','daw','dj','kaiso'],capabilities:['track-intake','rights-metadata','instrumental-draft','local-media','creative-handoff','export']
+  keywords:['music','artist','producer','release','track','beat','riddim','fire','rights','daw','dj','kaiso'],capabilities:['track-intake','rights-metadata','instrumental-draft','local-media','creative-handoff','export'],
+  navPlacement:{primary:true,ecosystemGroup:'music-creation',footer:true}
 }),
 product({
   id:'ftn-fire',name:'FTN Fire',shortName:'Fire',tagline:'Caribbean riddims. Instrumentals only.',
@@ -243,7 +247,8 @@ product({
   callsToAction:[{label:'Explore Kaiso sources',route:'/kaiso/'}],visualMnemonic:'Editorial rhythm lines',panelAsset:'/assets/panels/07-ftn-kaiso.png',panelRow:2,accent:'var(--color-kaiso)',atmosphere:{accent:'var(--color-kaiso)',background:'dark-editorial',motionProfile:'none',heroStyle:'newsroom'},
   heroAsset:'/assets/heroes/ftn-kaiso-newsroom.webp',heroAlt:'Caribbean editors reviewing printed stories in a working newsroom',heroFocalDesktop:'67% 50%',heroFocalMobile:'68% 50%',
   dataSources:['Trinidad and Tobago Guardian','Trinidad Express','CARICOM official releases','original international publisher links','user-submitted lead drafts'],accessRules:['guest discovery','consented submission'],featureFlags:['kaiso-source-radar'],relatedProducts:['ftn-live','parliament','facethenation','display'],legalNotices:['Editorial verification and correction notice'],
-  keywords:['kaiso','news','current affairs','Caribbean','Trinidad and Tobago','reporting','headlines','source'],capabilities:['current-source-radar','regional-context','original-publisher-links','story-lead-desk','verification-state']
+  keywords:['kaiso','news','current affairs','Caribbean','Trinidad and Tobago','reporting','headlines','source'],capabilities:['current-source-radar','regional-context','original-publisher-links','story-lead-desk','verification-state'],
+  navPlacement:{primary:true,ecosystemGroup:'information-intelligence',footer:true}
 }),
 product({
   id:'dj-tube',legacyIds:['ftn-dj'],name:'FTN DJ Tube',shortName:'DJ Tube',tagline:'Prepare and perform with audio you have the right to use.',
@@ -296,7 +301,8 @@ product({
   description:'The FTN partnership, sponsorship and investment-conversation surface, with a separate directory of official Trinidad and Tobago financial-information sources.',route:'/invest/',status:'AVAILABLE',
   primaryUser:'Potential partners, sponsors, institutions and aligned investors',primaryJourney:'Understand the FTN partnership opportunity, choose a conversation type and submit through the verified FTN contact path.',
   callsToAction:[{label:'Explore FTN partnerships',route:'/invest/'},{label:'Request a conversation',route:'/contact/?subject=FTN%20partnership'}],visualMnemonic:'Verified growth ledger',dataSources:['FTN-owned partnership information','Ministry of Finance','Central Bank of Trinidad and Tobago','Trinidad and Tobago Stock Exchange'],accessRules:['guest partnership information','verified FTN contact path'],featureFlags:['invest-partnerships','official-financial-sources'],relatedProducts:['opportunities','top-picks'],
-  legalNotices:['No public investment solicitation','No financial advice','No trades or custody','External sources remain source-owned'],keywords:['partner','sponsor','invest','institution','business','Caribbean infrastructure'],capabilities:['partnership-brief','sponsorship-path','official-financial-source-directory','contact-handoff']
+  legalNotices:['No public investment solicitation','No financial advice','No trades or custody','External sources remain source-owned'],keywords:['partner','sponsor','invest','institution','business','Caribbean infrastructure'],capabilities:['partnership-brief','sponsorship-path','official-financial-source-directory','contact-handoff'],
+  navPlacement:{primary:true,ecosystemGroup:'opportunities-business',footer:true}
 }),
 product({
   id:'account',name:'FTN Account',shortName:'Account',tagline:'One account. Clear permissions. Your control.',
