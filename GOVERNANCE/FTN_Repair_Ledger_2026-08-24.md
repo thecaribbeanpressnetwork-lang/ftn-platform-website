@@ -534,3 +534,72 @@ statistics-release.mjs` suite (9 scenarios) was re-run with `FTN_TEST_BASE=https
 against the live site itself — chart/table numeric agreement, real Trust Card provenance (the live
 `ttps.gov.tt` link), keyboard access, reduced motion, and mobile/tablet/zoom layout all passed
 against production, not just the local build.
+
+## Phase 5B — ibis statistical querying and second-indicator generalization (2026-08-25)
+
+Founder-authorized. Verified production baseline `64da938`. Full detail: `IBIS-MAP.md`'s "Phase 5B"
+section, `GOVERNANCE/FTN_Statistics_Source_Map_2026-08-25.md` §7–9 (ibis capability + second-
+indicator candidate comparison), and `.claude/context/decisions.md`'s two new Phase 5B entries.
+
+**Part 1 — a real, deterministic ibis capability.** `js/ibis-statistics-capability.js` adds
+`STATISTIC_QUERY`, routed through the existing Phase 4A fabric (provider registry, capability
+taxonomy, eligibility, client), never a bypass. Deliberately calls no language model at all — the
+only registered provider is a zero-cost `LOCAL_DETERMINISTIC_NO_PROVIDER` entry, which is how
+"never let a model invent a missing observation" is guaranteed structurally rather than by
+instruction. Bounded intent set (latest value, source/methodology, comparison, change, available
+indicators, why unavailable), all failing closed on an unrecognized question, indicator, or
+incompatible comparison — including a genuinely ambiguous cross-indicator request ("compare the
+murder rate and the exchange rate"), caught and rejected rather than silently answered wrong.
+`js/ibis-evidence.js` gained an always-required Trust Card rule for `capability === 'STATISTIC'`.
+Reachable from a new "Ask ibis about this data" panel on `/statistics/` (`js/statistics-ask-ibis.js`)
+and from the sitewide `js/ibis-widget.js` floating assistant on any page (a new
+`tryStatisticsRoute()`, same lazy-load pattern as the existing `trySavedItemsRoute()`).
+
+**A real bug found and fixed while wiring this, not shipped:** the first cut of both new UI callers
+read `outcome.result.data` from `IbisClient.request()`'s response, but `js/ibis-eligibility.js`'s
+`attemptInOrder()` already unwraps the executor's own `data` field into `.result` directly — the
+correct read is `outcome.result` with no extra `.data` layer (confirmed by tracing the exact field
+names through `ibis-eligibility.js` line 155 and every existing working caller, e.g.
+`js/ibis-widget.js`'s own `callAssistant()` already reads `outcome.result.answer` directly). Caught
+via a real, reproducible browser test before this shipped, not assumed correct from the executor
+contract alone.
+
+**Part 2 — second indicator, proving the schema generalizes.** Central Bank of Trinidad and Tobago
+TT$/US$ exchange rate (`js/ftn-statistics-fx-adapter.js`), MONTHLY frequency and a currency-rate
+unit — deliberately different from crime's ANNUAL/count-and-rate shape. The Bank's DAILY
+exchange-rate page was investigated and rejected as a source this pass (a real attempt against its
+nonce-gated wpDataTables AJAX endpoint returned an empty body; reverse-engineering the real contract
+further was judged disproportionate) in favor of the Bank's MONTHLY page, confirmed genuinely
+static and reliably parseable. `scripts/update-fx-rate.mjs` ran for real: 427 real monthly
+observations, January 1991 – July 2026, now in `data/fx-usd-ttd.json`, refreshed weekly via
+`.github/workflows/update-fx-rate.yml`. `js/fx-intelligence.js` renders it (chart/table/Trust Card,
+month-over-month derived change) via a new shared `js/ftn-statistics-chart.js` module, extracted
+from `js/crime-intelligence.js`'s own rendering code rather than duplicated -- a real Phase 5A
+defect was found and fixed during that extraction: the `/statistics/` page's crime host div was
+missing the `crime-intel` CSS class its own animation rules require, leaving chart data-point dots
+permanently invisible there for visitors without a reduced-motion preference.
+
+**Tests:** `tests/ibis-statistics-capability-audit.mjs` (new — intent routing, deterministic
+retrieval, valid/incompatible comparisons including the cross-indicator-ambiguity case,
+missing/unknown/stale data, total-catalog-failure, provenance propagation, and prompt-override-
+injection resistance, verified against the real live data). `tests/fx-source-adapter-audit.mjs`
+(new, fixture-based, zero network calls). A new §7/§8 in `tests/ftn-statistics-schema-audit.mjs`
+(the real FX adapter transform). `tests/ibis-evidence-audit.mjs` extended with the new
+always-required-for-STATISTIC assertions. `tests/statistics-release.mjs` gained 9 new Playwright
+scenarios (FX presentation, ask-ibis flow including a fail-closed unsupported-question check,
+unchanged primary navigation -- 11 items, Statistics correctly absent from PRIMARY_NAV but present
+in the Ecosystem menu per founder decision #6 -- and confirmation no paid provider endpoint is ever
+reached for a statistics question). Full existing static/Playwright suite re-run clean, including
+`ibis-eligibility-audit`, `ibis-client-audit`, `ibis-routing-consolidation-audit`,
+`functional-release` (61 scenarios), `foundation-release`, `service-worker-lifecycle`, and
+`visual-regression` (two pre-existing, unrelated mobile-viewport failures found and traced to live
+clock/counter time-drift between baseline capture and now on `/observatory/` and `/parliament/`
+respectively -- confirmed not caused by this phase's changes, `/parliament/` was not touched at all
+this pass; not fixed, out of scope).
+
+**Not done this phase, by design:** Community Connect statistics integration (Supabase RLS
+unverified, per founder decision #3); FTN Fire reconciliation (still deferred); the harmless
+`/facethenation` trailing-slash quirk (explicitly out of scope, decision #5); broad indicator
+expansion beyond the one new second indicator; a third indicator; debt-to-GDP (explicitly rejected
+again without new investigation, per the brief's own instruction not to revisit it without a
+defensible new source).

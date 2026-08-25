@@ -275,6 +275,35 @@ should follow the same pattern (attribution + direct link, no dataset-file redis
 than re-deciding this per indicator — and should update the source map, not just the code, if the
 licensing picture changes.
 
+**Extended 2026-08-25 (Phase 5B, same session):** this decision now also covers the Central Bank of
+Trinidad and Tobago's monthly exchange-rate table — same finding (no published reuse terms, a
+standard liability-only disclaimer), same bounded cite-and-link position, no new reasoning required.
+See the source map's §8 for the candidate-selection record (and a real, documented technical
+finding: the Bank's DAILY exchange-rate page was evaluated and rejected as a source this pass — its
+rows load through a nonce-gated wpDataTables AJAX endpoint that a real attempt this pass could not
+reliably reproduce; the MONTHLY page was used instead, confirmed genuinely static and reliably
+parseable).
+
+### ibis STATISTIC_QUERY is deliberately model-free — **Active** (2026-08-25, Phase 5B)
+
+**Decision:** `js/ibis-statistics-capability.js`'s query engine never calls a language model. Every
+answer is retrieved directly from a real `js/ftn-statistics.js` Observation, and every
+comparison/change is computed by a fixed, auditable formula. No provider capable of generating
+free-form text is registered for the `STATISTIC_QUERY` capability — the only enabled provider is
+`ibis-local-statistics-query`, a zero-cost, `LOCAL_DETERMINISTIC_NO_PROVIDER` entry.
+
+**Why this is recorded as a decision, not just an implementation detail:** the founder's own
+instruction was "never permit a language model to invent, replace or update a missing observation."
+The simplest, most durable way to guarantee that is structural, not procedural — there is no model
+in the data path to do the inventing. A future session must not "improve" this capability by adding
+a TEXT-provider fallback for unanswered questions without treating that as a new decision requiring
+the same scrutiny (it would reintroduce exactly the risk this decision exists to close).
+
+**How to apply:** if a future phase wants narrative interpretation layered on top of a statistic
+(e.g. "explain what this trend might mean"), that must be built as a clearly-separated, clearly-
+labelled second step that still displays the deterministic fact/formula independently and
+unmodified — never a replacement for this capability's own deterministic answer path.
+
 ---
 
 ## Still-open conflicts (do not silently resolve)

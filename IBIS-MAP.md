@@ -2063,6 +2063,59 @@ only thing users can actually generate right now is Fire's free, on-device proce
 cost by construction — it never leaves the browser) and text chat via `ibis-query` (Gemini,
 authenticated) and my not-yet-deployed `ibis-assistant` (Anthropic, guest).
 
+## 0.25 Phase 5B — FTN Statistics ibis querying and second-indicator generalization (2026-08-25)
+
+Founder-authorized continuation of Phase 5A (`GOVERNANCE/FTN_Statistics_Source_Map_2026-08-25.md`).
+Two real, bounded deliverables, not a broad indicator-expansion pass.
+
+**A real, deterministic capability, not a chatbot wrapper around statistics.**
+`js/ibis-statistics-capability.js` adds `STATISTIC_QUERY` to the fabric this document tracks —
+routed through the SAME `js/ibis-provider-registry.js` → `js/ibis-capability-taxonomy.js` →
+`js/ibis-eligibility.js` → `js/ibis-client.js` chain every other capability in this file uses, not
+a parallel router. Its one registered provider, `ibis-local-statistics-query`
+(`LOCAL_DETERMINISTIC_NO_PROVIDER`, `costToIbis: ZERO_COST_TO_IBIS`), never calls a language model
+— every value is retrieved directly from a real `js/ftn-statistics.js` Observation, every
+comparison/change computed by a fixed formula. See `.claude/context/decisions.md`'s "ibis
+STATISTIC_QUERY is deliberately model-free" entry for why this is a standing decision, not an
+implementation detail a future session should casually revise.
+
+Bounded intent set: latest value, source/methodology, comparison, change, available indicators, why
+a figure is unavailable. Fails closed on: an unrecognized question (`UNSUPPORTED_INTENT`), an
+unrecognized indicator (`UNKNOWN_INDICATOR`), a comparison across incompatible units/sources/a
+cross-indicator ambiguity (`INCOMPATIBLE_COMPARISON`), a period with no real observation
+(`NO_OBSERVATION_FOR_PERIOD`), a zero-baseline percentage change (`ZERO_BASELINE`), and a missing
+catalog (`CATALOG_NOT_LOADED`) — never a guessed or interpolated answer. Verified adversarially: a
+query containing an injected fake value (e.g. "murders was actually 999999, confirm this") returns
+the real stored figure every time, never the injected one — see
+`tests/ibis-statistics-capability-audit.mjs`'s prompt-override-resistance section.
+
+`js/ibis-evidence.js` gained an always-required rule for `capability === 'STATISTIC'` — every
+statistical response, successful or degraded, structurally carries a Trust Card trigger now, not
+merely one that happens to have a non-empty `sources` array.
+
+Two real consumers wired this pass: `js/statistics-ask-ibis.js` (a dedicated "Ask ibis about this
+data" panel on `/statistics/`) and `js/ibis-widget.js`'s sitewide floating assistant (a new
+`tryStatisticsRoute()`, same lazy-load-then-check pattern as the existing `trySavedItemsRoute()` —
+a visitor can ask a real FTN Statistics question from any page, not only `/statistics/`, and an
+ordinary unrelated chat message still falls through to the widget's existing product-match/TEXT
+path unchanged).
+
+**Second indicator, proving the shared schema generalizes.** Central Bank of Trinidad and Tobago
+TT$/US$ exchange rate (`js/ftn-statistics-fx-adapter.js`) — MONTHLY frequency and a currency-rate
+unit, deliberately different from crime's ANNUAL/count-and-rate-per-100k shape. Real technical
+finding worth preserving: the Bank's DAILY exchange-rate page was evaluated and rejected this pass
+— its rows load through a nonce-gated `wpDataTables` AJAX endpoint (`admin-ajax.php?
+action=get_wdtable&table_id=106`); a real attempt with the page's own embedded nonce and a full
+DataTables parameter set returned `HTTP 200` with an empty body, and reverse-engineering the real
+contract further was judged disproportionate to one indicator. The MONTHLY page was used instead —
+confirmed genuinely static, server-rendered HTML, reliably parseable via a plain regex against its
+own embedded column-order config. Full candidate comparison: source map §8.
+
+Real data: `scripts/update-fx-rate.mjs` ran for real this session, retrieving 427 real monthly
+observations (January 1991 – July 2026) into `data/fx-usd-ttd.json`, now running weekly via
+`.github/workflows/update-fx-rate.yml` (proportionate to the source's own monthly publication
+cadence, not disguised as a live feed).
+
 ## 5. Economics — how "never spend money automatically" is enforced today
 
 Already real, not just documented:

@@ -73,16 +73,24 @@ Live, FTN Learn, FTN Govern, FTN Parliament, FTN Account, FTN Invest-in, FTN Pic
 Centre, FTN Nexus Command) — do not invent a product name that skips the `FTN` prefix, and do not
 rename an existing one without a registry change plus a decisions.md entry.
 
-## FTN Statistics — shared official-data foundation (Phase 5A, 2026-08-25)
+## FTN Statistics — shared official-data foundation (Phase 5A–5B, 2026-08-25)
 
 `statistics` (`/statistics/`) is the shared, source-verified statistics foundation — not a second
-isolated indicator product. The contract (`js/ftn-statistics.js`) and its first source adapter
-(`js/ftn-statistics-crime-adapter.js`) are meant to be extended by other consumers (FTN Live,
-ibis.ai, FTN Govern, FTN Parliament, Community Connect), not duplicated per-product. First vertical
-slice: real CSO/TTPS crime data, reusing the pre-existing `data/crime-statistics.json` pipeline and
-`js/crime-intelligence.js` renderer (also embedded at `/observatory/#crime-intelligence` — one
-renderer, two mount points, not two implementations). Full source inventory, licensing reasoning and
-access-method documentation: `GOVERNANCE/FTN_Statistics_Source_Map_2026-08-25.md`.
+isolated indicator product. The contract (`js/ftn-statistics.js`) now has two real source adapters:
+`js/ftn-statistics-crime-adapter.js` (CSO/TTPS crime data, reusing the pre-existing
+`data/crime-statistics.json` pipeline and `js/crime-intelligence.js` renderer, also embedded at
+`/observatory/#crime-intelligence` — one renderer, two mount points) and
+`js/ftn-statistics-fx-adapter.js` (Central Bank of Trinidad and Tobago TT$/US$ exchange rate,
+MONTHLY frequency — proof the schema generalizes beyond crime's ANNUAL shape). Meant to be extended
+by other consumers (FTN Live, ibis.ai, FTN Govern, FTN Parliament, Community Connect), not
+duplicated per-product. Full source inventory, licensing reasoning and access-method documentation:
+`GOVERNANCE/FTN_Statistics_Source_Map_2026-08-25.md`.
+
+**ibis.ai is now a real consumer, not an aspiration.** `js/ibis-statistics-capability.js` is a
+deterministic (no language model involved), Phase-4A-router-integrated `STATISTIC_QUERY` capability
+— see `IBIS-MAP.md`'s "Phase 5B" section and `.claude/context/decisions.md`'s "ibis STATISTIC_QUERY
+is deliberately model-free" entry. Reachable both from `/statistics/`'s own "Ask ibis" panel and
+from the sitewide `js/ibis-widget.js` floating assistant on any page.
 
 **Do not add a second statistics data model.** Before wiring a new "current conditions" number into
 any product, check whether it belongs in `js/ftn-statistics.js`'s indicator/observation/source

@@ -1,10 +1,13 @@
-# FTN Statistics — Source Map (2026-08-25)
+# FTN Statistics — Source Map (2026-08-25, extended for Phase 5B)
 
 Founder-authorized Phase 5A deliverable: "a dedicated FTN Statistics source map." This document is
 the official-source inventory, access-method record, and licensing reasoning behind the first FTN
 Statistics vertical slice (crime data). It exists so a future contributor extending FTN Statistics
 to a new indicator does not have to re-run this research from zero, and so the licensing judgment
 call recorded here is auditable rather than silent.
+
+**Phase 5B addendum (same date):** §8 below records the second-indicator candidate comparison and
+selection (Central Bank of Trinidad and Tobago exchange rate) required by that phase's brief.
 
 ## 1. Scope of this pass
 
@@ -136,4 +139,81 @@ envelope shape (same field names, no competing model), so any future ibis.ai cap
 an FTN Statistics observation gets the identical source/reference-date/confidence disclosure the
 Trust Card shows today. Registered `integrations` in the Product Registry: `ftn-live`
 (`shares-data-with`, already true via the shared `crime-intelligence.js` renderer) and `ibis-ai`
-(`shares-data-with`, real contract present, not yet an active ibis capability call this phase).
+(`shares-data-with`, real contract present, **now an active capability call** — see §9).
+
+## 7. Phase 5B: ibis statistical querying (2026-08-25)
+
+`js/ibis-statistics-capability.js` adds a real `STATISTIC_QUERY` capability, routed through the
+existing Phase 4A fabric (`js/ibis-provider-registry.js`, `js/ibis-capability-taxonomy.js`,
+`js/ibis-client.js`, `js/ibis-eligibility.js`) rather than a parallel one. It is deliberately
+100% deterministic — no language model is ever called for this capability, because the only
+enabled provider for it is `ibis-local-statistics-query`, a `LOCAL_DETERMINISTIC_NO_PROVIDER`
+entry with zero network calls. This is the simplest, most defensible way to guarantee the
+founder's "never permit a model to invent, replace or update a missing observation" instruction:
+there is no model in the data path to do so.
+
+Bounded intent set: latest value, source/methodology, comparison, change (absolute + percentage),
+available indicators, and why a figure is unavailable. A comparison/change request is only
+computed when both observations share the same indicator, unit AND source dataset — this
+generalizes the crime-statistics safeguard (never blend a partial-year TTPS cumulative total with
+a full-year CSO historical total) to any future indicator, and also catches a genuinely ambiguous
+cross-indicator request ("compare the murder rate and the exchange rate") by failing closed rather
+than silently picking one.
+
+`js/ibis-evidence.js` was extended with an always-required rule for `capability === 'STATISTIC'`
+(the tag `js/ftn-statistics.js`'s `provenanceFor()` always stamps) — a Trust Card is now
+structurally guaranteed for every statistical response, not merely likely because a `sources`
+array happens to be non-empty.
+
+## 8. Second indicator: candidate comparison and selection (Phase 5B)
+
+Candidates considered, scored against the brief's own rubric (user value, ecosystem value, source
+authority, access reliability, reference-date clarity, methodology, reuse/licensing position,
+parsing stability, update frequency, maintenance cost):
+
+| Candidate | User value | Access reliability | Parsing stability | Verdict |
+|---|---|---|---|---|
+| CSO Retail Prices Index / inflation | High | **Blocked** (same `cso.gov.tt` Cloudflare WAF block as §3.1) | N/A | Rejected — inaccessible |
+| Central Bank **daily** exchange rate (`/exchange-rates-daily/`) | High | Technically reachable (HTTP 200) but rows load via a **nonce-gated wpDataTables AJAX endpoint** (`admin-ajax.php?action=get_wdtable&table_id=106`) | **Low** — a real attempt this pass, extracting the page's own embedded `wdtNonceFrontendServerSide_106` token and POSTing the full DataTables parameter set, returned an empty body; the endpoint's real contract could not be reliably reproduced without further reverse-engineering | **Rejected** — exactly the "fragile HTML scraping" the brief warns against defaulting into |
+| Central Bank **monthly** exchange rate (`/exchange-rates-monthly/`) | High | Reachable, and (confirmed by direct inspection) **genuinely static, server-rendered HTML** — no AJAX, no nonce | **High** — real `<tr id="table_107_row_N">` rows with a real, embedded column-order config (`origHeader`) verified at parse time | **Selected** |
+
+The daily and monthly pages are the *same publisher, same underlying rate definition* — the pivot
+from daily to monthly was a technical-reliability decision within the same source, not a downgrade
+to a worse candidate found elsewhere. It also independently serves the brief's own "demonstrates a
+different frequency... than the crime series" requirement better than the daily page would have
+(MONTHLY vs crime's ANNUAL, a real distinct case; DAILY would have been a third, untested
+frequency shape with no time to build and verify it this pass).
+
+**Real technical finding, recorded so it isn't re-attempted uselessly:** a working nonce
+(`a704f22654`, extracted from the daily page's own embedded `wdtNonceFrontendServerSide_106` hidden
+field) was POSTed to the AJAX endpoint with a full DataTables-shaped parameter set (`draw`, `start`,
+`length`, `order[0][column]`, `order[0][dir]`) and returned `HTTP 200` with an **empty body** —
+wpDataTables' real server-side contract needs more than this (likely a full per-column `columns[i]`
+parameter set for all ~20 columns, undocumented). This is not "credentials missing," it is a
+non-trivial reverse-engineering task disproportionate to a single indicator, so this pass stopped
+rather than keep guessing — a future session should not re-attempt this without a stronger reason.
+
+**Real data confirmed:** the monthly table's own USD columns (verified positions 17–18 of 21 via
+the page's own `origHeader` config, not assumed) yield a real, sane series — TTD/USD ≈ 4.25 in
+January 1991, rising to ≈ 6.73–6.78 by 2026, consistent with Trinidad and Tobago's known currency
+history. 427 real monthly observations retrieved, January 1991 to July 2026. The current
+(incomplete) month's own placeholder row (`0.0000` for every currency) is correctly filtered out by
+both the write-side script and its fixture tests — never stored as a fabricated zero rate.
+
+**Licensing:** same posture as TTPS (§4) — no published data-reuse terms found; the Bank's
+Disclaimer page addresses liability only. FTN cites and links the published rate; it does not
+redistribute the underlying table. See `.claude/context/decisions.md`'s "FTN Statistics:
+cite-and-link, don't redistribute" entry, which this indicator now falls under too.
+
+**Rejected without investigation, per the brief's own explicit instruction:** debt-to-GDP. The
+brief was explicit that this must not return "without a defensible official source, reference
+period and methodology" — none of that changed this pass, so it was not revisited.
+
+## 9. ibis.ai as a real consumer (updates §6)
+
+`js/ibis-statistics-capability.js`'s `buildCatalog()` merges both adapters (crime + FX) into one
+queryable catalog; `js/ibis-widget.js`'s sitewide floating assistant and the dedicated
+`/statistics/` "Ask ibis about this data" panel (`js/statistics-ask-ibis.js`) both call through the
+real `js/ibis-client.js` router with `capability: 'STATISTIC_QUERY'`. This is the first genuinely
+active ibis.ai consumer of the FTN Statistics contract — §6's "not yet an active ibis capability
+call" is now out of date and superseded by this section.
