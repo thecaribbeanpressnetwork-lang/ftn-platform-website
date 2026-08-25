@@ -119,4 +119,50 @@ function loadContext(extraFiles) {
   assert.equal(current.confidenceBasis, 'NOT_ASSESSED');
 }
 
+// --- 7. FX adapter (Phase 5B): real transform of the actual live data/fx-usd-ttd.json -- the
+// second indicator, proving the shared schema generalizes beyond crime's ANNUAL/count pattern to a
+// MONTHLY currency-rate series with a real month-over-month derived calculation. ---
+{
+  const context = loadContext(['js/ibis-provenance.js', 'js/ftn-statistics-fx-adapter.js']);
+  const raw = JSON.parse(fs.readFileSync('data/fx-usd-ttd.json', 'utf8'));
+  const built = context.window.FTN.StatisticsFxAdapter.buildObservations(raw);
+
+  assert.equal(built.indicatorDefinitions.length, 2, 'must define exactly the two FX indicators (buying + selling)');
+  assert(built.indicatorDefinitions.every((d) => d.frequency === 'MONTHLY'), 'FX indicators must be MONTHLY -- a genuinely different frequency than crime\'s ANNUAL series');
+  assert(built.indicatorDefinitions.every((d) => d.unit === 'TTD per USD'));
+
+  assert(built.sources.cbtt, 'must produce the Central Bank source dataset');
+  assert.equal(built.sources.cbtt.url, raw.source.url);
+  assert.match(built.sources.cbtt.licensingNote, /no published data-reuse/i, 'real licensing finding must be present, not fabricated as cleared');
+
+  const buying = built.observations.filter((o) => o.indicatorId === 'fx-usd-buying-rate');
+  const selling = built.observations.filter((o) => o.indicatorId === 'fx-usd-selling-rate');
+  assert.equal(buying.length, raw.monthly.length, 'must produce one buying-rate observation per real monthly row, not fabricated');
+  assert.equal(selling.length, raw.monthly.length);
+  const latestRow = raw.monthly[raw.monthly.length - 1];
+  const latestObs = selling.find((o) => o.referencePeriod === latestRow.period);
+  assert.equal(latestObs.value, latestRow.usdSelling, 'the observation value must be the real published rate, unchanged');
+  assert.equal(latestObs.publicationDate, null, 'the Bank does not publish an explicit statistical reference date for this figure -- must be explicit null');
+
+  // Real derived calculation: month-over-month change, a genuinely different shape than crime's
+  // cross-sectional per-100,000 rate (a same-indicator adjacent-period comparison instead).
+  assert.equal(built.derivedCalculations.length, 1);
+  const mom = built.derivedCalculations[0];
+  assert.match(mom.formula, /previous month/i);
+  assert.equal(mom.inputs.length, 2, 'a derived value must name its real inputs');
+  const prevRow = raw.monthly[raw.monthly.length - 2];
+  const expectedAbsolute = Number((latestRow.usdSelling - prevRow.usdSelling).toFixed(4));
+  assert.equal(mom.computedValue.absolute, expectedAbsolute, 'the month-over-month change must match a manual recomputation from the real two most recent rows');
+}
+
+// --- 8. FX unavailable state: an adapter fed zero real rows must produce zero observations and ---
+// zero derived calculations, never a fabricated placeholder.
+{
+  const context = loadContext(['js/ibis-provenance.js', 'js/ftn-statistics-fx-adapter.js']);
+  const built = context.window.FTN.StatisticsFxAdapter.buildObservations({ source: { retrieved: '2026-08-25' }, monthly: [] });
+  assert.equal(built.observations.length, 0);
+  assert.equal(built.derivedCalculations.length, 0, 'fewer than two real rows must never produce a fabricated derived change');
+}
+
 console.log('Phase 5A FTN Statistics: schema validation, provenance alignment with js/ibis-provenance.js, and the real crime adapter transform (historical, current, and unavailable-state paths) all verified against the live data/crime-statistics.json.');
+console.log('Phase 5B FTN Statistics: the real Central Bank FX adapter transform (MONTHLY frequency, currency-rate unit, month-over-month derived calculation, and zero-row unavailable state) verified against the live data/fx-usd-ttd.json.');
