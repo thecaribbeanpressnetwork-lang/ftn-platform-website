@@ -67,5 +67,31 @@ await scenario('auth-callback-code-is-exchanged-and-return-preserved',{body:{all
   assert.equal(await page.locator('a').filter({hasText:'Continue task'}).getAttribute('href'),'/god-mode/');
 });
 
+// 2026-08-25: real Turnstile-token threading through js/account.js -> js/ftn-auth.js's
+// signInWithEmail -> the auth client's signInWithOtp call. Fakes window.supabase.createClient
+// (same established pattern as this file's other scenarios) so the assertion is on the actual
+// arguments FTN's own code passes, not a live network request's wire format -- sufficient to prove
+// the real client-side wiring is correct; not yet enabled server-side (see the ledger).
+{
+  const context=await browser.newContext({viewport:{width:1280,height:900}});
+  let capturedOtpCall=null;
+  await context.route(AUTH_SCRIPT,route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.supabase={createClient:function(){return{auth:{getUser:async()=>({data:{user:null},error:null}),getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:function(){return{data:{subscription:{unsubscribe:function(){}}}}},signOut:async()=>({error:null}),signInWithOtp:async function(args){window.__ftnOtpCall=args;return{data:{},error:null}}}}}};`}));
+  await context.route('**/config/public-runtime.json',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({schemaVersion:1,turnstileSiteKey:'1x00000000000000000000AA'})}));
+  await context.route('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit',route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.turnstile={render:function(m,o){setTimeout(function(){o.callback('FTN_TEST_TURNSTILE_TOKEN')},0)}};`}));
+  const page=await context.newPage();
+  try{
+    await open(page,'/account/');
+    await page.waitForFunction(()=>document.querySelector('#account-email-form [name="cf-turnstile-response"]')?.value==='FTN_TEST_TURNSTILE_TOKEN');
+    await page.fill('#account-email','release@example.com');
+    await page.locator('#account-email-form').evaluate(f=>f.requestSubmit());
+    await page.waitForFunction(()=>!!window.__ftnOtpCall);
+    capturedOtpCall=await page.evaluate(()=>window.__ftnOtpCall);
+    console.log('FOUNDER ACCESS PASS turnstile-token-reaches-signinwithotp');
+  } finally { await context.close(); }
+  assert.equal(capturedOtpCall.email,'release@example.com');
+  assert.equal(capturedOtpCall.options.captchaToken,'FTN_TEST_TURNSTILE_TOKEN','the real Turnstile token captured by the widget must reach signInWithOtp\'s options.captchaToken');
+  assert.equal(capturedOtpCall.options.shouldCreateUser,true,'existing sign-up behavior must be unchanged by adding captcha support');
+}
+
 await browser.close();
-console.log('6/6 founder identity/device and auth-callback client-state scenarios passed; server enforcement is audited separately.');
+console.log('7/7 founder identity/device, auth-callback client-state, and Turnstile-token scenarios passed; server enforcement is audited separately.');

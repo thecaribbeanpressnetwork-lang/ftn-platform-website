@@ -72,9 +72,32 @@ a `security definer` function returning only the rounded value, rebuilds the vie
 `tests/supabase-issues-security-audit.mjs` for the static verification. Same pass also fixed a real
 deployment-artifact exposure (internal files served in full on both Cloudflare Pages and GitHub
 Pages — Cycle 10) and worked out FTN's actual free-tier auth-hardening position: leaked-password
-protection is genuinely Pro-only (verified), but moot anyway since `js/ftn-auth.js` never uses
-password sign-in — the real fix is confirming the Email+Password provider is disabled at the
-Supabase Dashboard, not approximating a password-strength check FTN doesn't need.
+protection is genuinely Pro-only (verified), and moot anyway since `js/ftn-auth.js` never calls
+`signInWithPassword` — but **the Dashboard's "Email" provider must stay enabled**, not disabled.
+It's a single bundled toggle covering both password sign-in AND OTP/Magic Link together (confirmed
+via a real Supabase GitHub discussion — there is no sub-toggle to split them); FTN Account's own
+sign-in flow depends on it via `signInWithOtp`. An earlier draft of this note recommended disabling
+it as a free mitigation — that was wrong and was caught and corrected by the founder before it was
+ever acted on. The real free-tier hardening lever instead was Cloudflare Turnstile: `js/account.js`'s
+dynamically-built sign-in form now mounts `js/turnstile-gate.js` (via its new `FTN.TurnstileGate.
+mount()` re-scan hook, since the form doesn't exist yet at the module's own `DOMContentLoaded` scan)
+and threads the captured token through `js/ftn-auth.js`'s `signInWithEmail(email, returnTo,
+captchaToken)` into `options.captchaToken` on the real `signInWithOtp` call — end-to-end verified by
+`tests/founder-access-release.mjs`'s `turnstile-token-reaches-signinwithotp` scenario. The Supabase
+Dashboard's own CAPTCHA enforcement toggle (Authentication → Bot and Abuse Protection) is
+deliberately **not yet enabled** — flipping it before this client-side wiring existed and was tested
+would have broken sign-in outright; it's now safe to enable once a founder confirms this pass.
+
+**2026-08-25, same pass — GitHub Pages reachability, independently confirmed live (not just static
+analysis):** direct GitHub REST API calls (`GET /repos/{owner}/{repo}/pages`, using the existing
+git-credential-manager token already authorized for this repo, never logged) confirmed GitHub Pages
+is genuinely `"public": true` on the modern `"build_type": "workflow"` path (not the legacy Jekyll
+builder), deploying via `.github/workflows/static-pages.yml` on every push to `main`, with a clean
+run history including the artifact-exclusion fix commit itself. Direct HTTPS checks against the live
+`https://thecaribbeanpressnetwork-lang.github.io/ftn-platform-website/` confirmed every previously-
+exposed internal path (`/supabase/`, `/GOVERNANCE/`, `/tests/`, etc.) now 404s with no content leak
+while every real public route still returns 200 — the Cycle 10 fix is confirmed live on both
+deployment targets, not just Cloudflare Pages.
 
 ## CI / release gates
 

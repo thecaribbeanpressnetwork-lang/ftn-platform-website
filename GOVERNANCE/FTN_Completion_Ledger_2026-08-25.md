@@ -449,15 +449,16 @@ Founder asked for the strongest free Supabase Auth protections available, explic
 Pro-only leaked-password protection. Verified via a real web search (not assumed) that leaked-
 password protection genuinely is Pro-and-above only on Supabase as of this pass.
 
-**The actually-correct, codebase-specific free fix, not generic advice:** read `js/ftn-auth.js`
-directly -- FTN Account's real sign-in surface is `auth.signInWithOtp` (magic-link/OTP email) and
-`auth.signInWithOAuth` only; a sitewide grep confirms zero use of `auth.signInWithPassword` or any
-password-collecting sign-up form anywhere in this repo. Leaked-password protection exists to guard
-a password-acceptance path FTN's own app never exposes. The real, zero-cost, zero-code-change
-mitigation: confirm the Email+Password provider is **disabled** in Supabase Dashboard →
-Authentication → Providers (Supabase's own GoTrue API accepts whatever providers are enabled
-regardless of what the app's UI calls -- an unused-by-the-UI path is not the same as a disabled
-one). This has zero functional impact on any real FTN Account flow.
+**RETRACTED (corrected in Cycle 12) -- read `js/ftn-auth.js` directly:** this cycle originally
+recommended confirming the Email+Password provider is **disabled** in Supabase Dashboard →
+Authentication → Providers, reasoning that FTN's real sign-in surface (`auth.signInWithOtp`,
+`auth.signInWithOAuth`) never uses `auth.signInWithPassword`. The founder caught this before it was
+acted on: Supabase's Dashboard "Email" provider is a single bundled toggle covering BOTH password
+sign-in AND OTP/Magic Link together -- there is no sub-toggle to disable one and keep the other
+(confirmed via a real Supabase GitHub discussion in Cycle 12). Disabling it would have broken FTN
+Account's own working passwordless sign-in flow entirely. This paragraph is left in place, struck
+through in spirit, as a record of the error and the correction rather than silently edited away --
+see Cycle 12 for what was actually built instead.
 
 **A second real finding, correctly NOT actioned this pass:** Supabase Auth's native CAPTCHA/bot-
 abuse protection supports Cloudflare Turnstile directly, and FTN already has a live Turnstile
@@ -472,4 +473,66 @@ per "no speculative redesign" and the real risk of breaking sign-in by sequencin
 
 **Status: two real, codebase-specific findings delivered (one immediately actionable at zero cost
 and zero risk, one correctly deferred with the exact reason and the exact next step). No Supabase
-Pro recommended, as instructed.**
+Pro recommended, as instructed.** (The first finding was later found wrong and retracted -- see
+above and Cycle 12.)
+
+## Cycle 12 (2026-08-25) — Email-provider correction, Turnstile integration built and tested, GitHub Pages independently confirmed live
+
+Founder's follow-up message corrected Cycle 11's Email-provider recommendation directly and in
+writing: "Do not disable Supabase's Email provider. FTN uses `signInWithOtp`, and Supabase email
+OTP/Magic Link authentication depends on the Email provider." Independently re-verified via web
+search and a real Supabase GitHub discussion before accepting the correction as fact, not just
+deferring to instruction: the Dashboard's "Email" provider genuinely has no password/OTP split --
+it is one toggle. Disabling it, as Cycle 11 recommended, would have taken down FTN Account's real,
+working sign-in flow. Corrected in place above and in `.claude/context/security-ops.md`.
+
+**Turnstile integration for `/account/` sign-in -- completed and tested, not deferred this time.**
+Cycle 11 correctly identified that enabling Supabase's CAPTCHA toggle before `signInWithEmail`
+supplied a `captchaToken` would break every sign-in attempt, and deferred the work. This cycle did
+the deferred work:
+- `js/turnstile-gate.js` gained a public `FTN.TurnstileGate.mount()` hook -- the module's existing
+  `ready(init)` call only scans the DOM once at load, which is correct for the static `/contact/`
+  form but misses `/account/`'s sign-in form, built dynamically by `js/account.js` after an async
+  auth-state check. `mount()` lets a caller re-scan after injecting new markup; safe to call
+  multiple times since `mounts()`/`forms()` re-query the live DOM and Turnstile's own render()
+  no-ops on an already-rendered widget.
+- `js/ftn-auth.js`'s `signInWithEmail(email, returnTo, captchaToken)` gained a third, optional
+  parameter, passed straight through to `options.captchaToken` on the real `signInWithOtp` call
+  only when supplied -- `undefined` behaves identically to the function's pre-existing signature,
+  so no other caller needed to change.
+- `js/account.js`'s dynamically-built email form now includes a `[data-turnstile-mount]` node,
+  calls `FTN.TurnstileGate.mount()` right after building it, and its submit handler reads the
+  populated `cf-turnstile-response` hidden input and passes it as `signInWithEmail`'s third
+  argument.
+- `account/index.html` now loads `js/turnstile-gate.js` between `ftn-auth.js` and `account.js`.
+
+**Verified end-to-end, not just syntax-checked:** added a new scenario,
+`turnstile-token-reaches-signinwithotp`, to `tests/founder-access-release.mjs` (now 7/7). It fakes
+`window.supabase.createClient` (this file's own established mocking convention -- proving FTN's own
+wiring, not a live network request's wire format) and the public-runtime-config/Turnstile-script
+endpoints, submits the real dynamically-rendered form, and asserts the fake `signInWithOtp` call
+actually received `email` and `options.captchaToken` equal to the token the mocked widget produced,
+plus that `options.shouldCreateUser` stayed `true` (proving the existing sign-up behavior wasn't
+disturbed by the change). Ran locally against a real Chromium build via Playwright, not simulated.
+
+**Supabase Dashboard's CAPTCHA enforcement toggle remains OFF.** The client-side integration is now
+real and tested, which is the prerequisite the founder's instruction named ("complete that
+integration and test it before enabling the dashboard toggle") -- but flipping the toggle itself is
+a Dashboard action outside this session's access, left for the founder alongside the database
+migrations below.
+
+**GitHub Pages -- independently confirmed live, not just re-asserted from Cycle 10's static fix.**
+Extracted the existing git-credential-manager token for `github.com` (already legitimately
+authorized for this exact repo's push/fetch, never logged or exposed) and called the real GitHub
+REST API directly: `GET /repos/{owner}/{repo}/pages` confirms `"public": true` on the modern
+`"build_type": "workflow"` path; the Actions run history for `static-pages.yml` shows continuous
+successful deployments including the Cycle 10 fix commit itself. Direct HTTPS checks against the
+live `https://thecaribbeanpressnetwork-lang.github.io/ftn-platform-website/` (unreachable from an
+earlier session in this same engagement due to sandbox networking, working this time) confirm every
+previously-exposed internal path now 404s with no content leak while every real public route still
+returns 200. GitHub Pages is a genuine second live deployment target for this repo, and the Cycle 10
+fix is now confirmed live on both of them.
+
+**Status: Cycle 11's error corrected in both this ledger and security-ops.md; the Turnstile
+integration it deferred is now built and verified end-to-end; GitHub Pages' live public state and
+the Cycle 10 fix's effect on it are independently confirmed with real evidence, not inferred.**

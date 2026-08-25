@@ -27,7 +27,14 @@ function rememberReturn(value){var safe=safeReturn(value);try{sessionStorage.set
 async function getSession(){var c=await client();var result=await c.auth.getSession();if(result.error)throw result.error;return result.data.session||null;}
 async function getAccessToken(){var session=await getSession();return session&&session.access_token||null;}
 async function getVerifiedUser(){var c=await client();var result=await c.auth.getUser();if(result.error){if(/session.*missing/i.test(result.error.message||''))return null;throw result.error;}return result.data.user||null;}
-async function signInWithEmail(email,returnTo){var c=await client();var target=rememberReturn(returnTo||returnPath());var redirect=location.origin+'/account/?return='+encodeURIComponent(target);var result=await c.auth.signInWithOtp({email:String(email||'').trim(),options:{emailRedirectTo:redirect,shouldCreateUser:true}});if(result.error)throw result.error;return result.data;}
+// captchaToken (2026-08-25): optional, passed straight through to Supabase's own captchaToken
+// option -- undefined when Turnstile isn't mounted/configured on the calling page, which Supabase
+// treats as "no token supplied," identical to this function's pre-existing behavior. This lets
+// js/account.js opt in once Cloudflare Turnstile protection is enabled for this project's Email
+// provider (Dashboard -> Authentication -> Bot and Abuse Protection) without another caller of
+// this function needing to change -- see js/account.js's own comment for why that toggle is not
+// enabled yet.
+async function signInWithEmail(email,returnTo,captchaToken){var c=await client();var target=rememberReturn(returnTo||returnPath());var redirect=location.origin+'/account/?return='+encodeURIComponent(target);var options={emailRedirectTo:redirect,shouldCreateUser:true};if(captchaToken)options.captchaToken=captchaToken;var result=await c.auth.signInWithOtp({email:String(email||'').trim(),options:options});if(result.error)throw result.error;return result.data;}
 // Google OAuth uses the same FTN Account callback page as email links. The
 // Supabase client exchanges the returned authorization code there, so neither
 // Google credentials nor privileged Supabase keys are exposed in the browser.
