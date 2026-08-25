@@ -36,6 +36,12 @@
      clearance from the nav beside it so it never feels crowded. Only applied at >=1440px,
      the same budget-conscious threshold used for the container gutter increase, so it
      doesn't compete with the documented 1024px nav-wrap limitation. */
+  /* Phase 3 nav consolidation: pinned to its own content size so the primary nav (the one
+     element in this row explicitly designed to absorb a space deficit -- see .site-nav) is the
+     only thing that ever shrinks. Without this, flexbox's default shrink distribution let the
+     logo and the header actions (search/sign-in/menu-toggle) get squeezed toward zero width
+     before nav gave up any space, which is backwards -- those controls must never disappear. */
+  flex-shrink: 0;
 }
 
 @media (min-width: 1440px) {
@@ -55,12 +61,31 @@
 /* Desktop nav — hidden below tablet, shown at laptop+ */
 .site-nav {
   display: none;
+  min-width: 0;
+}
+
+.site-nav__item--ecosystem {
+  /* Sits outside the scrollable .site-nav__list (see js/nav.js) -- must never shrink or scroll
+     away itself, it's the one thing in this row that's always reachable. */
+  flex-shrink: 0;
 }
 
 .site-nav__list {
   display: flex;
   align-items: stretch;
   gap: var(--space-4);
+  /* Phase 3 nav consolidation: the primary row holds 11 real items again (was cut to 5 -- see the
+     removed comment this replaces, and js/nav.js's own PRIMARY_NAV comment). min-width:0 lets this
+     flex item shrink below its content's intrinsic width instead of forcing the header bar to
+     overflow into the logo/actions cluster; overflow-x:auto turns the excess into a horizontal
+     scroll strip instead of a second header row (which is the exact layout the prior pass
+     rejected) or silently dropped items. The FTN Ecosystem trigger is deliberately NOT inside this
+     list (see js/nav.js) so its mega-dropdown is never clipped by this element's own scroll box. */
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
 }
 
 .site-nav__item {
@@ -237,6 +262,9 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--space-12);
+  /* Phase 3 nav consolidation: see .site-header__logo's flex-shrink:0 comment -- same reasoning,
+     search/sign-in/menu-toggle must never be squeezed toward zero width by the primary nav. */
+  flex-shrink: 0;
 }
 
 /* Mobile menu toggle — visible below laptop breakpoint */
@@ -419,7 +447,13 @@
 
 @media (min-width: 1240px) {
   .site-nav {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    /* Takes exactly the space logo/actions don't need, down to 0 if truly squeezed -- the
+       .site-nav__list child (not this element) is what actually scrolls the overflow, see above. */
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .nav-toggle,
@@ -428,11 +462,11 @@
   }
 }
 
-/* Founder Walkthrough Repair Pass: this band used to also drop the nav font to 11px to fit 11
-   primary items -- with PRIMARY_NAV cut to 5 (see nav.js), that's no longer necessary and 11px
-   primary navigation is exactly the "microscopic" usability complaint being fixed. Kept the
-   spacing/logo trims, which are still reasonable at this width; dropped the font-size and padding
-   shrink so the nav stays at its normal, readable size. */
+/* Phase 3 nav consolidation (2026-08-24 founder decision): restores the 11-item primary structure
+   at every width down to 1240px. Font size is deliberately left at its normal, readable size here
+   (not shrunk to fit, which is what previously read as "microscopic") -- the tight 1240-1439px
+   band still trims non-nav chrome (logo/actions spacing, the country-switcher label) to give the
+   now horizontally-scrollable .site-nav__list as much room as possible before it needs to scroll. */
 @media (min-width:1240px) and (max-width:1439px){.site-header__bar{gap:8px}.site-header__logo{max-width:170px}.site-header__actions{gap:7px}.country-switcher-trigger__label{display:none}}
 
 /* Pass 16 UX Guardian: authenticated-identity chip (FTN Rule 4). Replaces the plain
