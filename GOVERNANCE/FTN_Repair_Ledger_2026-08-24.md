@@ -642,7 +642,9 @@ the Phase 5B architecture:
 The production parser was also extracted to `scripts/lib/cbtt-fx-parser.mjs`, so the fixture test
 imports the real parser instead of maintaining a copy. The FX chart now uses a meaningful
 data-relative vertical scale for its narrow range, while crime retains its prior explicit scale;
-on mobile, the 24-month plot scrolls rather than clipping.
+on mobile, the 24-month plot scrolls rather than clipping. A visible production screenshot also
+caught all 24 monthly x-axis labels colliding; the chart now displays a bounded label interval while
+its accessible table retains every observation.
 
 All three Phase 5B static suites and `tests/statistics-release.mjs` are now explicit steps in the
 functional release workflow. They previously existed but were not invoked by CI, so their

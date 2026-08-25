@@ -118,6 +118,8 @@ await scenario('fx-chart-table-and-trust-card', async (page) => {
   await open(page, '/statistics/');
   await page.waitForSelector('[data-fx-chart] svg', { timeout: 10000 });
   const chartValues = await page.locator('[data-fx-chart] .fx-chart__value').allTextContents();
+  const visiblePeriodLabels = await page.locator('[data-fx-chart] svg > g > text:not(.fx-chart__value)').count();
+  assert(visiblePeriodLabels < chartValues.length, 'the 24-month chart must thin visual x-axis labels instead of overlapping them');
   const chartY = await page.locator('[data-fx-chart] .fx-chart__dot').evaluateAll((dots) => dots.map((dot) => Number(dot.getAttribute('cy'))));
   assert(Math.max(...chartY) - Math.min(...chartY) > 30, 'the narrow-range FX series must use a meaningful data-relative vertical scale');
   await page.locator('.fx-table-disclosure summary').click();

@@ -19,7 +19,7 @@
   function chart(rows, measure) {
     return global.FTN.StatisticsChart.lineChart(rows, {
       ariaLabel: 'TT$/US$ ' + measure + ' rate, last ' + rows.length + ' months',
-      chartClass: 'fx-chart', maxFractionDigits: 4,
+      chartClass: 'fx-chart', maxFractionDigits: 4, labelEvery: 3,
     });
   }
   function table(rows, measure) {
