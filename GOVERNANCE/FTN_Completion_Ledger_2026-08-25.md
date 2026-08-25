@@ -316,3 +316,10 @@ way from a static-site access log it doesn't have.
 
 **Status: found, fixed, deployed, verified live. This is the single highest-severity finding of
 the entire Supabase/production-completion audit.**
+
+**Production verification detail (commit `77dab98`):** Cloudflare actually resolves the `200`
+rewrite as a real `308 Permanent Redirect` to `/404` (not an in-place content swap) -- confirmed by
+inspecting the raw response headers directly, then following the redirect and confirming the final
+body is genuinely the "Page Not Found" 404 page, for all four previously-exposed URLs (the new
+migration, an old migration, and two GOVERNANCE files). No real file content is served at any
+`/supabase/*` or `/GOVERNANCE/*` URL any more.
