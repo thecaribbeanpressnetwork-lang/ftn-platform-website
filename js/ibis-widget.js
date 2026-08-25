@@ -160,6 +160,13 @@
   function loadScriptOnce(src, marker) {
     return new Promise(function (resolve) {
       if (document.querySelector('script[' + marker + ']')) { waitFor(function () { return true; }, resolve); return; }
+      // Phase 4B: js/trust-card.js already ships as a static <script> tag on several pages
+      // (Observatory and others) -- those tags never carry this widget's own marker attribute, so
+      // the marker-only check above would miss them and load a second, duplicate copy (a second
+      // #trust-card-dialog in the DOM, a real bug). Checking by src first, same pattern
+      // js/nav.js's loadOnceBySrc() already established for this exact class of problem.
+      var base = src.split('?')[0];
+      if (document.querySelector('script[src^="' + base + '"]')) { waitFor(function () { return true; }, resolve); return; }
       var s = document.createElement('script');
       s.src = src; s.async = false; s.setAttribute(marker, 'true');
       s.onload = resolve; s.onerror = resolve;
@@ -189,7 +196,9 @@
       .then(function () { return loadScriptOnce('/js/ibis-eligibility.js', 'data-ibis-widget-eligibility'); })
       .then(function () { return loadScriptOnce('/js/ibis-capability-taxonomy.js', 'data-ibis-widget-taxonomy'); })
       .then(function () { return loadScriptOnce('/js/ibis-provenance.js', 'data-ibis-widget-provenance'); })
-      .then(function () { return loadScriptOnce('/js/ibis-client.js', 'data-ibis-widget-client'); });
+      .then(function () { return loadScriptOnce('/js/ibis-client.js', 'data-ibis-widget-client'); })
+      .then(function () { return loadScriptOnce('/js/ibis-evidence.js', 'data-ibis-widget-evidence'); })
+      .then(function () { return loadScriptOnce('/js/trust-card.js', 'data-ibis-widget-trust-card'); });
   }
   // FTN Account pass: the strongest genuinely available authenticated context today is the
   // user's own browser-local FTN.Save list. Answered entirely client-side -- explicit
@@ -300,8 +309,16 @@
       }).then(function (outcome) {
         removeThinking();
         if (outcome.success) {
-          appendMessage('assistant', outcome.result.answer);
+          var bubble = appendMessage('assistant', outcome.result.answer);
           history.push({ role: 'assistant', content: outcome.result.answer });
+          // Phase 4B: compact, collapsed-by-default evidence trigger -- only actually renders
+          // when js/ibis-evidence.js's decision matrix says this response needs one (a factual/
+          // civic/safety/financial/legal-flavored question, a degraded/fallback route, or real
+          // external sources), never for an ordinary casual answer.
+          if (global.FTN && global.FTN.IbisEvidence) {
+            var lastUser = history.filter(function (m) { return m.role === 'user'; }).pop();
+            global.FTN.IbisEvidence.mount(bubble, outcome.provenance, { prompt: lastUser && lastUser.content });
+          }
           return;
         }
         // Honest per-situation messaging instead of a generic network-failure message: no

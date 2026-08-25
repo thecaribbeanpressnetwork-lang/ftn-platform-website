@@ -45,6 +45,18 @@
     if(!global.FTN||!global.FTN.IbisEligibility)await loadScript('/js/ibis-eligibility.js');
     if(!global.FTN||!global.FTN.LiveResearch)await loadScript('/js/ibis-live-research.js');
   }
+  // Phase 4B: the shared provenance envelope + evidence decision matrix + Trust Card, loaded once,
+  // reused by both the Live Intelligence and TEXT (serverAI/localAI) render paths below.
+  async function ensureEvidence(){
+    if(!global.FTN||!global.FTN.IbisProvenance)await loadScript('/js/ibis-provenance.js');
+    if(!global.FTN||!global.FTN.IbisEvidence)await loadScript('/js/ibis-evidence.js');
+    // trust-card.js is already a static <script> tag on several pages (e.g. Observatory) -- guard
+    // by src, not just a marker, so this never loads a second, duplicate #trust-card-dialog. Same
+    // fix js/ibis-widget.js's own loadScriptOnce() needed for the identical reason.
+    if(!global.FTN||!global.FTN.TrustCard){
+      if(!document.querySelector('script[src^="/js/trust-card.js"]'))await loadScript('/js/trust-card.js');
+    }
+  }
   var SOURCE_CLASS_LABEL={COMMUNITY_DISCUSSION:'Community discussion',REPUTABLE_JOURNALISM:'Journalism',OFFICIAL_GOVERNMENT:'Official government',ACADEMIC:'Academic',PRIMARY_EVIDENCE:'Primary evidence',CORPORATE_STATEMENT:'Corporate statement',CREATOR_SOCIAL:'Creator/social',PERSONAL_COMMENTARY:'Personal commentary',MARKETING_ADVOCACY:'Marketing/advocacy',LEGISLATION_PUBLIC_RECORD:'Legislation/public record',UNKNOWN:'Unknown'};
   function sourceCardHTML(source){
     return '<a class="ibis-live-source" href="'+esc(source.url||'#')+'" target="_blank" rel="noopener noreferrer">'
@@ -58,8 +70,10 @@
   // model reasoning. Routed through the existing eligibility/provider engine, not a bypass.
   async function renderLiveResearch(query,out){
     await ensureLiveResearch();
+    await ensureEvidence();
     if(!global.FTN.IbisEligibility||!global.FTN.LiveResearch){
       out.innerHTML='<span class="workspace-kicker">Live Intelligence unavailable</span><p>The live-research module could not load in this browser. Falling back to ibis\'s ordinary answer.</p>';
+      mountEvidence(out,{capability:'LIVE_INTELLIGENCE',degradedState:'NO_ELIGIBLE_PROVIDER'},{prompt:query});
       return false;
     }
     var attempt=await global.FTN.IbisEligibility.attemptInOrder('LIVE_INTELLIGENCE',{authenticated:false},async function(provider){
@@ -71,8 +85,13 @@
         return {success:false,latencyMs:Date.now()-startedAt,errorType:'SERVER_ERROR'};
       }
     });
+    // Real provenance envelope for this path -- renderLiveResearch calls IbisEligibility directly
+    // (see the header comment above), not js/ibis-client.js's request(), so no envelope exists
+    // unless built here. Deliberately omits attempt.attempts/routingPath from what's exposed --
+    // internal retry history, not evidence -- see js/ibis-evidence.js's own header comment.
     if(!attempt.success){
       out.innerHTML='<span class="workspace-kicker">Live Intelligence unavailable</span><p>'+esc(attempt.reason||'No current-source research route is eligible right now.')+'</p>';
+      mountEvidence(out,{capability:'LIVE_INTELLIGENCE',degradedState:attempt.attempts&&attempt.attempts.length?'ALL_PROVIDERS_FAILED':'NO_ELIGIBLE_PROVIDER'},{prompt:query});
       return false;
     }
     var data=attempt.result;
@@ -81,7 +100,21 @@
       +'<p>'+esc(data.synthesis)+'</p>'
       +sourcesHTML
       +'<p class="workspace-muted">Retrieved '+esc(new Date(data.retrievedAt).toLocaleString())+' · claim confidence: <strong>'+esc(data.claimConfidence.confidence)+'</strong> ('+esc(data.claimConfidence.corroboration)+' independent source(s)) · '+esc(data.sourceCredibilityNote)+'</p>';
+    var firstSource=data.sources[0];
+    var provenance=global.FTN.IbisProvenance?global.FTN.IbisProvenance.build({
+      capability:'LIVE_INTELLIGENCE',provider:attempt.provider&&attempt.provider.id,
+      sourceIdentity:firstSource&&(firstSource.title||firstSource.platform),
+      sourceUrl:firstSource&&firstSource.url,publisher:firstSource&&firstSource.platform,
+      sourceRetrievedAt:data.retrievedAt,retrievalMethod:'LIVE_API_FETCH',
+      confidenceBasis:data.claimConfidence&&data.claimConfidence.confidence,
+      costToIbis:'ZERO_COST_TO_IBIS',
+    }):{capability:'LIVE_INTELLIGENCE'};
+    mountEvidence(out,provenance,{prompt:query,sources:data.sources,limitations:data.sourceCredibilityNote});
     return true;
+  }
+  // Small wrapper: never lets a missing/failed-to-load evidence module break the response itself.
+  function mountEvidence(out,provenance,extra){
+    try{ if(global.FTN&&global.FTN.IbisEvidence)global.FTN.IbisEvidence.mount(out,provenance,extra); }catch(e){}
   }
   // Returns just the matched term tokens (e.g. ['lime','bacchanal']), not a pre-built sentence --
   // the server (supabase/functions/ibis-query) re-validates each token against its own copy of
@@ -292,6 +325,12 @@
         var answer=await localAI(q);
         if(answer){
           out.innerHTML='<span class="workspace-kicker">On-device AI</span><p>'+esc(answer).replace(/\n/g,'<br>')+'</p><hr>'+routeResults(q);
+          // Phase 4B: on-device inference never leaves the browser and calls no FTN provider at
+          // all -- a synthetic envelope built here (localAI() doesn't route through IbisClient,
+          // same reasoning as the Live Intelligence path above), only ever shown when the
+          // decision matrix judges the TOPIC (not the capability) evidence-worthy.
+          await ensureEvidence();
+          mountEvidence(out,{capability:'TEXT',provider:'On-device browser AI',costToIbis:'ZERO_COST_TO_IBIS',confidenceBasis:'NOT_ASSESSED'},{prompt:q});
           setStatus('idle');
           scrollToEnd();
           return;
@@ -300,6 +339,9 @@
         var server=await serverAI(q);
         if(server.available){
           out.innerHTML='<span class="workspace-kicker">Authenticated server AI · '+esc(server.provider)+'</span><p>'+esc(server.answer).replace(/\n/g,'<br>')+'</p><p class="workspace-muted">Model: '+esc(server.model||'configured server model')+' · Generated '+esc(server.generatedAt)+'</p><hr>'+routeResults(q);
+          await ensureEvidence();
+          var textProviderRecord=global.FTN.IbisProviders&&global.FTN.IbisProviders.get('ibis-query-gemini');
+          mountEvidence(out,{capability:'TEXT',provider:'ibis-query-gemini',model:server.model,sourceRetrievedAt:server.generatedAt,costToIbis:textProviderRecord?textProviderRecord.costToIbis:null,confidenceBasis:'NOT_ASSESSED'},{prompt:q});
         }else{
           out.innerHTML='<span class="workspace-kicker">FTN deterministic router</span><p>'+esc(server.reason)+'</p>'+(server.guest?'<p><a href="/account/?return=%2Fibis-ai%2F">Sign in for the protected server AI route</a>. Your prompt has not been sent to that provider.</p>':'<p>No server answer was claimed. Your deterministic FTN routes remain available.</p>')+routeResults(q);
         }

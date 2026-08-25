@@ -69,6 +69,11 @@
 .ibis-media-grid strong,.ibis-media-grid span{display:block;padding:7px 8px 0;font-size:11px}
 .ibis-media-grid span{padding-top:3px;padding-bottom:8px;color:#9da4ae;font-size:9px}
 
+/* Phase 4B: compact, collapsed-by-default evidence trigger (js/ibis-evidence.js). Reuses
+   trust-card.css's existing .trust-trigger/.trust-trigger--on-dark classes -- only this small
+   placement rule is new. */
+.ibis-msg__bubble--ibis .ibis-evidence-trigger{display:inline-block;margin-top:10px}
+
 .ibis-visual-result{display:grid;gap:12px}
 .ibis-visual-result img{width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.15)}
 .ibis-visual-result>div{display:flex;gap:8px;flex-wrap:wrap}
