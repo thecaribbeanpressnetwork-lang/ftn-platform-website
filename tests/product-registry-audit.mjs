@@ -111,7 +111,7 @@ assert(/^\/live\/?\s+\/observatory\/\s+301/m.test(redirectsSource)||redirectsSou
 assert(redirectsSource.includes('/now/ /observatory/ 301'),'/now/ must redirect into FTN Live so no external link breaks');
 assert(!/PRIMARY_NAV[^;]+Mission Control/s.test(navSource),'Mission Control must not enter public navigation');
 assert(navSource.includes('ecosystemGroups()'),'FTN Ecosystem menu must be built from the Product Registry, not a second hardcoded list');
-assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.4\.1'/,'Service-worker cache namespace was not advanced for changed assets');
+assert.match(fs.readFileSync('service-worker.js','utf8'),/VERSION='ftn-public-v2\.4\.2'/,'Service-worker cache namespace was not advanced for changed assets');
 const analyticsSource=fs.readFileSync('js/analytics.js','utf8');
 assert(analyticsSource.includes('6b49afbc-3929-4855-bda8-eff8755f685d'),'Umami website ID is missing');
 assert(analyticsSource.includes("data-exclude-search"),'Analytics must exclude URL search parameters');
