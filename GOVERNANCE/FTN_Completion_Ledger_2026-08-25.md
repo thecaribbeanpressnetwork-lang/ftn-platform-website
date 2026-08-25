@@ -279,3 +279,40 @@ higher-risk operation outside this audit's scope.
 a rollback-capable migration (not yet applied to production, per explicit instruction). One
 informational finding documented. One Auth-config item requires founder Dashboard action. One
 migration-history hygiene item flagged for founder reconciliation.
+
+## Cycle 8 (2026-08-25) — critical finding: internal files were publicly served, sitewide, since creation
+
+While confirming my own new migration file wasn't publicly reachable (a routine sanity check), found
+it WAS -- `https://ftnplatform.org/supabase/migrations/...` returned the real file content, `HTTP
+200`. Checked whether this was new (caused by my own change) or pre-existing: `supabase/functions/
+ftn-owner-control/index.ts` (the FOUNDER CONTROL-PLANE Edge Function's real source) and `GOVERNANCE/
+FTN_Repair_Ledger_2026-08-24.md` were ALSO both served in full at `200`. **Pre-existing, sitewide,
+since these files were first added** -- not something this pass introduced.
+
+**Root cause:** `_redirects` used `/supabase/* /404.html 404` and `/GOVERNANCE/* /404.html 404`.
+Verified via Cloudflare's own Pages redirects documentation: status code `404` is explicitly NOT a
+supported redirect/rewrite status on Cloudflare Pages (only 3xx redirects and a `200` rewrite are
+functional) -- Cloudflare Pages serves an existing static asset BEFORE evaluating an
+unsupported-status `_redirects` rule, the exact opposite of this repo's own prior comment ("Cloudflare
+Pages evaluates these rules before serving the static file tree"), which was itself wrong. **This
+means these two block rules have never actually worked in production**, for as long as they've
+existed. `tests/backend-source-audit.mjs` only ever asserted the rule TEXT was present in `_redirects`
+-- it never checked that production actually enforced it, so this shipped silently.
+
+**Fixed:** both rules changed to status `200` (a genuine, documented Cloudflare Pages rewrite --
+masks the real file's content at its original URL). `tests/backend-source-audit.mjs` updated: now
+asserts the OLD non-functional `404` pattern is ABSENT and the new `200` pattern is present.
+Pushed, deployed, and **directly re-verified in production after deploy** (not assumed): both a
+migration file and the Edge Function source now return the `/404.html` page's content at their
+original URLs, confirmed by fetching them post-deploy.
+
+**Why this matters beyond this one fix:** every internal governance document (repair ledgers,
+completion ledgers, architecture-decision records -- including this very file's own security
+findings) and every Edge Function's real source code has been publicly fetchable this whole time.
+Edge Function source contains no credentials (confirmed by the existing secret-format sweep) but
+does reveal internal logic/table names/authorization flow -- information-disclosure, not a
+credential leak. No evidence this was exploited; not something this session can determine either
+way from a static-site access log it doesn't have.
+
+**Status: found, fixed, deployed, verified live. This is the single highest-severity finding of
+the entire Supabase/production-completion audit.**

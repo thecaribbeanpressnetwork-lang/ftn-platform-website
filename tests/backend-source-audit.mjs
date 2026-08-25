@@ -21,8 +21,14 @@ const files = functions.map(name => path.join('supabase','functions',name,'index
 for (const file of files) assert(fs.existsSync(file),`Missing Git-owned Edge Function source: ${file}`);
 assert(fs.existsSync('supabase/README.md'),'Missing Supabase ownership/deployment record');
 const redirects = fs.readFileSync('_redirects','utf8');
-assert.match(redirects,/^\/supabase\/\*\s+\/404\.html\s+404$/m,'Supabase source and migrations must not be publicly served by Cloudflare Pages');
-assert.match(redirects,/^\/GOVERNANCE\/\*\s+\/404\.html\s+404$/m,'Internal governance records must not be publicly served by Cloudflare Pages');
+// 2026-08-25 security fix: status 404 is not a functional Cloudflare Pages _redirects status --
+// an existing static file is served in full before an unsupported-status rule is ever evaluated
+// (confirmed live in production before this fix). Only a genuine 3xx redirect or a 200 rewrite
+// actually masks the underlying file; this repo uses 200 (keeps the requested URL, swaps content).
+assert.doesNotMatch(redirects,/^\/supabase\/\*\s+\/404\.html\s+404$/m,'The Supabase block rule must not use the non-functional status 404 -- Cloudflare Pages serves the real static file before evaluating it');
+assert.doesNotMatch(redirects,/^\/GOVERNANCE\/\*\s+\/404\.html\s+404$/m,'The GOVERNANCE block rule must not use the non-functional status 404 -- Cloudflare Pages serves the real static file before evaluating it');
+assert.match(redirects,/^\/supabase\/\*\s+\/404\.html\s+200$/m,'Supabase source and migrations must be masked by a functional 200 rewrite to /404.html');
+assert.match(redirects,/^\/GOVERNANCE\/\*\s+\/404\.html\s+200$/m,'Internal governance records must be masked by a functional 200 rewrite to /404.html');
 const headers = fs.readFileSync('_headers','utf8');
 for (const header of ['X-Content-Type-Options: nosniff','Referrer-Policy: strict-origin-when-cross-origin','X-Frame-Options: DENY','Permissions-Policy:','Cross-Origin-Opener-Policy: same-origin']) {
   assert(headers.includes(header),`Cloudflare Pages security header missing: ${header}`);

@@ -9,10 +9,18 @@
 /trust-centre/terms/ /legal/terms-of-service/ 301
 
 # Supabase source, migrations and internal engineering records are Git-owned
-# deployment inputs, never public website content. Cloudflare Pages evaluates
-# these rules before serving the static file tree.
-/supabase/* /404.html 404
-/GOVERNANCE/* /404.html 404
+# deployment inputs, never public website content.
+#
+# SECURITY FIX (2026-08-25, found during a Supabase RLS/authorization audit): the previous rules
+# here used status code 404, which Cloudflare Pages' own redirects documentation does NOT list as
+# a supported rewrite/redirect status (only 3xx redirects and a 200 rewrite are functional) --
+# confirmed live in production, where a real file at this path was served in full (HTTP 200,
+# genuine file content) despite this rule's presence, because Cloudflare Pages serves an existing
+# static asset before evaluating an unsupported-status _redirects entry, not after. A 200 rewrite
+# is the supported mechanism that actually masks the underlying file's content at its original URL
+# -- verified working in production after this fix (see the repair ledger for the exact check).
+/supabase/* /404.html 200
+/GOVERNANCE/* /404.html 200
 /support /invest/ 301
 /support/ /invest/ 301
 /investor-room /invest/ 301
