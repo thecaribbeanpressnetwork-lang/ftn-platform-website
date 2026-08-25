@@ -2,7 +2,8 @@
 'use strict';
 var URL='https://jshmidfpqrajxtukzges.supabase.co', KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
 var state={session:null,summary:null,national:null,nationalPromise:null};
-var CACHE_KEY='ftn.mayor.summary.v1',CACHE_MAX_AGE=15*60*1000;
+var CACHE_KEY='ftn.mayor.summary.v2',CACHE_MAX_AGE=15*60*1000;
+function cacheKey(){return CACHE_KEY+':'+((state.session&&state.session.user&&state.session.user.id)||'anonymous');}
 var $=function(id){return document.getElementById(id);};
 var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});};
 var iso=function(days){return new Date(Date.now()+days*86400000).toISOString().slice(0,10);};
@@ -17,10 +18,12 @@ function national(){
  }).then(function(rows){var crime=rows[0],fx=rows[1],annual=crime.annual||[],latest=annual[annual.length-1]||{},month=(fx.monthly||[]).slice(-1)[0]||{};state.national={crime:crime,fx:fx,latestHistorical:latest,latestFx:month};return state.national;});
  return state.nationalPromise;
 }
-function cacheSummary(data){try{sessionStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),data:data}));}catch(e){}}
-function cachedSummary(){try{var raw=JSON.parse(sessionStorage.getItem(CACHE_KEY)||'null');return raw&&raw.data&&Date.now()-raw.savedAt<CACHE_MAX_AGE?raw.data:null;}catch(e){return null;}}
+function cacheSummary(data){try{sessionStorage.setItem(cacheKey(),JSON.stringify({savedAt:Date.now(),data:data}));}catch(e){}}
+function cachedSummary(){try{var raw=JSON.parse(sessionStorage.getItem(cacheKey())||'null');return raw&&raw.data&&Date.now()-raw.savedAt<CACHE_MAX_AGE?raw.data:null;}catch(e){return null;}}
 function renderNational(n){
  var c=n.crime, h=n.latestHistorical, f=n.latestFx, current=c.current||{};
+ var cards=[['TTPS reported murders',num(current.reported),'Current-year cumulative · retrieved '+(current.asOf||'not stated')],['CSO reported murders',num(h.reported),'Historical annual '+(h.year||'not stated')+' · retrieved '+((c.source||{}).retrieved||'not stated')],['TT$/US$ selling rate','TT$ '+Number(f.usdSelling||0).toFixed(4),'Central Bank monthly '+(f.period||'not stated')+' · retrieved '+((n.fx.source||{}).retrieved||'not stated')]];
+ $('mayorNationalMetrics').innerHTML=cards.map(function(x){return '<article class="mayor-card"><strong>'+esc(x[1])+'</strong><span>'+esc(x[0])+'<small>'+esc(x[2])+'</small></span></article>';}).join('');$('mayorNationalMetrics').setAttribute('aria-busy','false');
  $('mayorNational').innerHTML='<p><strong>'+num(current.reported)+' reported murders</strong><br><small>TTPS current-year cumulative figure; retrieved '+esc(current.asOf||'not stated')+'.</small><br><a href="'+esc(current.sourceUrl||'https://ttps.gov.tt/')+'" target="_blank" rel="noopener">Open TTPS source</a></p>'+
  '<p><strong>'+num(h.reported)+' reported murders in '+esc(h.year)+'</strong><br><small>CSO historical national series; reference year '+esc(h.year)+', retrieved '+esc((c.source||{}).retrieved||'not stated')+'.</small><br><a href="'+esc((c.source||{}).url||'https://cso.gov.tt/')+'" target="_blank" rel="noopener">Open CSO source</a></p>'+
  '<p><strong>TT$ '+Number(f.usdSelling||0).toFixed(4)+' per US$</strong><br><small>Central Bank monthly selling rate; reference month '+esc(f.period||'not stated')+', retrieved '+esc((n.fx.source||{}).retrieved||'not stated')+'.</small><br><a href="'+esc((n.fx.source||{}).url||'https://www.central-bank.org.tt/exchange-rates-monthly/')+'" target="_blank" rel="noopener">Open Central Bank source</a></p>'+
@@ -56,7 +59,7 @@ async function boot(){
  $('mayorSignIn').addEventListener('click',function(){$('mayorLoginStatus').textContent='Opening secure FTN sign-in…';window.FTN.Auth.signInWithGoogle('/mayor-dashboard/').catch(function(){$('mayorLoginStatus').textContent='Secure sign-in could not be started.';});});
  $('mayorRefresh').addEventListener('click',refresh);$('mayorBrief').addEventListener('click',brief);$('mayorPrint').addEventListener('click',function(){window.print();});
  try{await window.FTN.Auth.completeAuthRedirect();state.session=await window.FTN.Auth.getSession();}catch(e){}
- if(state.session){$('mayorLogin').hidden=true;$('mayorWorkspace').hidden=false;var cached=cachedSummary();if(cached){state.summary=cached;try{render(cached,await national());$('mayorMetrics').setAttribute('aria-busy','false');$('mayorStatus').textContent='Showing the last loaded community picture while it updates.';}catch(e){}}refresh();}
+ if(state.session){$('mayorLogin').hidden=true;$('mayorWorkspace').hidden=false;national().then(renderNational).catch(function(){$('mayorNationalMetrics').setAttribute('aria-busy','false');});var cached=cachedSummary();if(cached){state.summary=cached;try{render(cached,await national());$('mayorMetrics').setAttribute('aria-busy','false');$('mayorStatus').textContent='Showing the last loaded community picture while it updates.';}catch(e){}}refresh();}
 }
 document.addEventListener('DOMContentLoaded',boot);
 })();
