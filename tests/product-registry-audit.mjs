@@ -131,5 +131,15 @@ for(const file of htmlFiles.filter(file=>!['love/index.html','health/index.html'
   assert(!/href=["']\/(?:love|health)\//i.test(html),`${file} advertises a vaulted product`);
 }
 
+// Phase 5A (2026-08-25): FTN Statistics registry + sitemap integration.
+const statistics=products.find(p=>p.id==='statistics');
+assert(statistics,'FTN Statistics product missing from the registry');
+assert.equal(statistics.route,'/statistics/');assert.equal(statistics.status,'AVAILABLE');
+assert(ecosystemGroups.some(group=>group.id==='information-intelligence'&&group.products.some(p=>p.id==='statistics')),'FTN Statistics must be grouped under information-intelligence');
+assert(sitemap.includes('https://ftnplatform.org/statistics/'),'FTN Statistics is absent from the sitemap');
+for(const module of statistics.ownerModules)assert(fs.existsSync(module),`FTN Statistics ownerModule does not exist on disk: ${module}`);
+assert(fs.readFileSync('data/footer-config.mjs','utf8').includes("registry: 'statistics'"),'FTN Statistics is missing from the shared footer config');
+
 console.log(`${required.length}/${required.length} required FTN products are present with complete registry metadata.`);
 console.log('Vaulted products are excluded from public discovery; FTN Fire remains nested under Riddim; private routes are excluded from sitemap and manifest.');
+console.log('FTN Statistics is registered, grouped, sitemapped and footer-linked.');
