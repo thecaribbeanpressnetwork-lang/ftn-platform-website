@@ -43,10 +43,47 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Stage a public-only deployment artifact
+        # Security fix (2026-08-25, Supabase audit follow-up): this step previously uploaded
+        # `path: .` -- the entire checked-out repository, completely unfiltered, including
+        # supabase/ (schema, migrations, Edge Function source), GOVERNANCE/, tests/, scripts/,
+        # and every internal top-level engineering doc (CLAUDE.md itself, IBIS-MAP.md, etc). This
+        # is a true build-time exclusion (the excluded paths never enter the uploaded artifact at
+        # all), the GitHub Pages equivalent of the Cloudflare Pages fix in functions/_middleware.js
+        # -- GitHub Pages has no request-time Functions layer of its own, so exclusion must happen
+        # before upload. Keep this list in sync with functions/_middleware.js's BLOCKED_PREFIXES;
+        # tests/deployment-artifact-audit.mjs fails CI if the two ever drift apart.
+        run: |
+          mkdir -p /tmp/pages-artifact
+          rsync -a . /tmp/pages-artifact/ \
+            --exclude='.git' \
+            --exclude='supabase' \
+            --exclude='GOVERNANCE' \
+            --exclude='tests' \
+            --exclude='scripts' \
+            --exclude='.claude' \
+            --exclude='.github' \
+            --exclude='00_Phase1_Discovery' \
+            --exclude='dj-tube-prototype' \
+            --exclude='docs' \
+            --exclude='FTN_Master_Asset_Library_v1.0' \
+            --exclude='CLAUDE.md' \
+            --exclude='IBIS-MAP.md' \
+            --exclude='FTN-NODES.md' \
+            --exclude='CARIBBEAN-LEDGER.md' \
+            --exclude='SCOUT-INTELLIGENCE-LEDGER.md' \
+            --exclude='ANALYTICS_STANDARD.md' \
+            --exclude='VERSION.md' \
+            --exclude='design-qa.md' \
+            --exclude='.mcp.json' \
+            --exclude='RELEASE_NOTES_*.md'
+          # version.json was already written into the repo root by the "Generate build identity"
+          # step above, so it is already included by this rsync -- no separate copy needed.
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: /tmp/pages-artifact
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -19,6 +19,13 @@
 # static asset before evaluating an unsupported-status _redirects entry, not after. A 200 rewrite
 # is the supported mechanism that actually masks the underlying file's content at its original URL
 # -- verified working in production after this fix (see the repair ledger for the exact check).
+#
+# DEFENSE IN DEPTH (2026-08-25, same audit, follow-up pass): functions/_middleware.js is now the
+# PRIMARY block for these paths (and a broader set of internal artifacts -- see its own header) --
+# Cloudflare Pages Functions run ahead of both _redirects and static-asset serving on this project,
+# and the Function normalizes case/percent-encoding itself rather than relying on _redirects' glob
+# matching. These two rules are kept as a second, independent layer, not removed -- if the Function
+# were ever accidentally removed or misconfigured, this layer still masks the two paths it covers.
 /supabase/* /404.html 200
 /GOVERNANCE/* /404.html 200
 /support /invest/ 301
