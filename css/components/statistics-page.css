@@ -1,0 +1,140 @@
+/* FTN Statistics — page-specific chrome (Phase 5A). Restrained premium black, red/white emphasis,
+   reusing the same aesthetic language crime-intelligence.css already established (this page's own
+   centerpiece) rather than inventing a second visual system. */
+
+body.statistics-page { background: #050506; color: #fff; }
+
+.statistics-eyebrow {
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #ff5b65;
+}
+
+.statistics-hero {
+  padding: clamp(56px, 9vw, 128px) clamp(18px, 5vw, 72px) clamp(32px, 5vw, 56px);
+}
+
+.statistics-hero__inner { max-width: 900px; }
+
+.statistics-hero h1 {
+  margin: .35rem 0 1rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  line-height: .98;
+  letter-spacing: -.02em;
+}
+
+.statistics-hero__lede {
+  max-width: 68ch;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  color: #b9bcc4;
+}
+
+.statistics-methodology {
+  padding: 0 clamp(18px, 5vw, 72px) clamp(40px, 6vw, 72px);
+}
+
+.statistics-methodology__grid {
+  max-width: 1500px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+
+.statistics-methodology h2 {
+  margin: .3rem 0 1rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.statistics-methodology p {
+  color: #cdd0d6;
+  max-width: 62ch;
+  margin-bottom: 1rem;
+}
+
+.statistics-methodology__card {
+  padding: clamp(20px, 3vw, 28px);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .1);
+}
+
+.statistics-methodology__card h3 {
+  margin: 0 0 .8rem;
+  font-size: 1.1rem;
+}
+
+.statistics-methodology__card ul {
+  display: grid;
+  gap: .8rem;
+  color: #b9bcc4;
+  font-size: .92rem;
+}
+
+.statistics-methodology__card li::before {
+  content: "— ";
+  color: #e10613;
+}
+
+.statistics-embed { padding-top: 8px; }
+
+.statistics-connections {
+  padding: clamp(40px, 6vw, 80px) clamp(18px, 5vw, 72px) clamp(64px, 8vw, 112px);
+}
+
+.statistics-connections .container { max-width: 1500px; }
+
+.statistics-connections h2 {
+  margin: .3rem 0 1rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.statistics-connections > .container > p {
+  max-width: 72ch;
+  color: #b9bcc4;
+  margin-bottom: 1.6rem;
+}
+
+.statistics-connections code {
+  color: #ff5b65;
+  font-size: .92em;
+}
+
+.statistics-connections__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.statistics-connection-card {
+  display: block;
+  padding: 22px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .1);
+  color: #fff;
+  text-decoration: none;
+}
+
+.statistics-connection-card:hover,
+.statistics-connection-card:focus-visible {
+  border-color: rgba(225, 6, 19, .6);
+  background: rgba(225, 6, 19, .08);
+}
+
+.statistics-connection-card strong { display: block; margin-bottom: 6px; }
+.statistics-connection-card span { color: #b9bcc4; font-size: .88rem; }
+
+@media (max-width: 820px) {
+  .statistics-methodology__grid { grid-template-columns: 1fr; }
+  .statistics-connections__grid { grid-template-columns: 1fr; }
+}

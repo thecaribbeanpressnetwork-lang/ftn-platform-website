@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data Retention Policy — FTN Platform</title>
-  <meta name="description" content="How long the FTN Platform website retains information, and how that differs from separate FTN products.">
-  <link rel="canonical" href="https://ftnplatform.org/legal/data-retention/">
+  <title>FTN Statistics | Verified Official Trinidad and Tobago Data</title>
+  <meta name="description" content="FTN Statistics is FTN's shared, source-verified official-data foundation for Trinidad and Tobago -- real government figures, real sources, real reference dates, built to serve FTN Live, ibis.ai and the rest of the platform without duplicating the work.">
+  <link rel="canonical" href="https://ftnplatform.org/statistics/">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/ftn-shortcut-mark.svg?v=20260811.2">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/ftn-shortcut-mark-32.png?v=20260811.2">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/ftn-shortcut-mark-180.png?v=20260811.2">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="FTN Platform">
-  <meta property="og:title" content="Data Retention Policy — FTN Platform">
-  <meta property="og:description" content="How long the FTN Platform website retains information, and how that differs from separate FTN products.">
-  <meta property="og:url" content="https://ftnplatform.org/legal/data-retention/">
+  <meta property="og:title" content="FTN Statistics | Verified Official Trinidad and Tobago Data">
+  <meta property="og:description" content="Real official Trinidad and Tobago statistics, with the source, reference date and methodology always shown -- the shared data foundation behind FTN Live, ibis.ai and more.">
+  <meta property="og:url" content="https://ftnplatform.org/statistics/">
   <meta property="og:image" content="https://ftnplatform.org/assets/social/og-ftn-platform.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="FTN Platform — The Caribbean Operating System">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Data Retention Policy — FTN Platform">
-  <meta name="twitter:description" content="How long the FTN Platform website retains information, and how that differs from separate FTN products.">
+  <meta name="twitter:title" content="FTN Statistics | Verified Official Trinidad and Tobago Data">
+  <meta name="twitter:description" content="Real official Trinidad and Tobago statistics, with the source, reference date and methodology always shown.">
   <meta name="twitter:image" content="https://ftnplatform.org/assets/social/og-ftn-platform.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,30 +27,22 @@
   <link rel="stylesheet" href="/css/components/buttons.css">
   <link rel="stylesheet" href="/css/components/nav.css">
   <link rel="stylesheet" href="/css/components/footer.css">
-  <link rel="stylesheet" href="/css/components/blocks.css">
-  <link rel="stylesheet" href="/css/components/content-sections.css">
-  <link rel="stylesheet" href="/css/components/heritage-layer.css">
   <link rel="stylesheet" href="/css/components/country-switcher.css">
-  <link rel="stylesheet" href="/css/components/accordion.css">
-  <link rel="stylesheet" href="/css/components/form.css">
-  <link rel="stylesheet" href="/css/components/legal.css">
   <link rel="stylesheet" href="/css/components/trust-card.css">
-  <link rel="stylesheet" href="/css/components/charts.css">
-  <link rel="stylesheet" href="/css/components/observatory.css">
-  <link rel="stylesheet" href="/css/components/mission-control-demo.css">
-  <link rel="stylesheet" href="/css/components/presentation-control.css">
+  <link rel="stylesheet" href="/css/components/crime-intelligence.css?v=20260824.2">
+  <link rel="stylesheet" href="/css/components/statistics-page.css">
   <link rel="stylesheet" href="/css/utilities.css">
 </head>
-<body>
+<body class="statistics-page">
   <a class="skip-link" href="#main">Skip to main content</a>
 
-  <header class="site-header">
+  <header class="site-header site-header--dark">
     <div class="container site-header__bar">
       <a class="site-header__logo" href="/" aria-label="FTN Platform home">
         <svg viewBox="0 0 220 64" role="img" aria-labelledby="headerLogoTitle" class="logo-mark">
           <title id="headerLogoTitle">FTN Platform</title>
-          <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#0B0B0B">F<tspan class="logo-mark__t">T</tspan>N</text>
-          <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#0B0B0B">PLATFORM</text>
+          <text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1">F<tspan class="logo-mark__t">T</tspan>N</text>
+          <text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4">PLATFORM</text>
         </svg>
       </a>
 
@@ -59,11 +51,10 @@
       </nav>
 
       <div class="site-header__actions">
-        <button type="button" class="country-switcher-trigger" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span class="country-switcher-trigger__pin" aria-hidden="true"></span><span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></button>
-        <!-- Sign In: routes to Community Connect's launch flow today, the only FTN product with
-             real user accounts. data-sign-in-entry marks this as the future unified FTN
-             Account/SSO integration point -- swap the href when a real identity service exists,
-             no nav restructure needed. -->
+        <button type="button" class="country-switcher-trigger" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country">
+          <span class="country-switcher-trigger__pin" aria-hidden="true"></span>
+          <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span>
+        </button>
         <a class="btn btn-primary btn-sm" href="/account/" data-sign-in-entry>Sign In</a>
         <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle menu">
           <img class="icon-menu" src="/assets/icons/icon-menu.svg" alt="" width="20" height="20">
@@ -77,141 +68,59 @@
         <div class="mobile-nav__links"><!-- FTN:NAV:START (generated by scripts/sync-nav.mjs -- do not hand-edit this region, edit data/nav-config.mjs instead) --><a href="/" class="mobile-nav__link--top" title="The Caribbean Operating System." aria-label="FTN Platform — The Caribbean Operating System.">FTN Platform</a><a href="/community-connect/" class="mobile-nav__link--top" title="Connect. Report. Improve." aria-label="FTN Community Connect — Connect. Report. Improve.">FTN Community Connect</a><a href="/observatory/" class="mobile-nav__link--top" title="What is happening in Trinidad and Tobago, right now and in depth." aria-label="FTN Live — What is happening in Trinidad and Tobago, right now and in depth.">FTN Live</a><a href="/parliament/" class="mobile-nav__link--top" title="Public records. Clear sources. Civic context." aria-label="FTN Parliament — Public records. Clear sources. Civic context.">FTN Parliament</a><a href="/tv/" class="mobile-nav__link--top" title="Caribbean Television, Programmed with Purpose." aria-label="FTN TV — Caribbean Television, Programmed with Purpose.">FTN TV</a><a href="/kaiso/" class="mobile-nav__link--top" title="Caribbean reporting with the source in view." aria-label="FTN Kaiso — Caribbean reporting with the source in view.">FTN Kaiso</a><a href="/riddim/" class="mobile-nav__link--top" title="Powering Caribbean Music." aria-label="FTN Riddim — Powering Caribbean Music.">FTN Riddim</a><a href="/invest/" class="mobile-nav__link--top" title="Partner with Caribbean-owned digital infrastructure." aria-label="FTN Invest-in — Partner with Caribbean-owned digital infrastructure.">FTN Invest-in</a><a href="/applications/" class="mobile-nav__link--top" title="Browse every public FTN product and go directly to its workspace" aria-label="FTN Directory — Browse every public FTN product and go directly to its workspace">FTN Directory</a><a href="/about/" class="mobile-nav__link--top" title="Who FTN is and how the platform works" aria-label="About FTN — Who FTN is and how the platform works">About FTN</a><a href="/contact/" class="mobile-nav__link--top" title="Reach the FTN team" aria-label="Contact — Reach the FTN team">Contact</a><!-- FTN:NAV:END --></div>
       </div>
       <div class="mobile-nav__actions">
-        <button type="button" class="mobile-nav__country-switcher" data-country-trigger aria-haspopup="dialog" aria-label="Choose your country"><span><span class="country-switcher-trigger__pin" aria-hidden="true"></span> <span class="country-switcher-trigger__label" data-country-label>Trinidad &amp; Tobago</span></span><span aria-hidden="true">&rsaquo;</span></button>
         <a class="btn btn-primary" href="/account/" data-sign-in-entry>Sign In</a>
       </div>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="page-hero">
-      <div class="heritage-layer heritage-layer--legal" aria-hidden="true">
-        <svg viewBox="0 0 1400 400" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <!-- Guilloché engraving -- the fine interwoven line work used on currency and
-               institutional seals to signal something official and hard to counterfeit. -->
-          <g stroke="currentColor" stroke-width="0.5" transform="translate(1100,200)">
-            <circle r="110" transform="translate(35,0)" />
-            <circle r="110" transform="translate(24.7,24.7)" />
-            <circle r="110" transform="translate(0,35)" />
-            <circle r="110" transform="translate(-24.7,24.7)" />
-            <circle r="110" transform="translate(-35,0)" />
-            <circle r="110" transform="translate(-24.7,-24.7)" />
-            <circle r="110" transform="translate(0,-35)" />
-            <circle r="110" transform="translate(24.7,-24.7)" />
-          </g>
-          <g stroke="currentColor" stroke-width="1" transform="translate(1100,200)">
-            <circle r="150" />
-            <circle r="8" fill="currentColor" stroke="none" />
-          </g>
-        </svg>
-      </div>
-      <div class="container">
-        <span class="page-hero__eyebrow">Legal</span>
-        <h1 class="page-hero__title">Data Retention</h1>
+    <section class="statistics-hero">
+      <div class="container statistics-hero__inner">
+        <span class="statistics-eyebrow">FTN STATISTICS · VERIFIED OFFICIAL DATA</span>
+        <h1>Real numbers. Real sources. Every time.</h1>
+        <p class="statistics-hero__lede">FTN Statistics is the shared, source-verified data foundation behind FTN Live, ibis.ai and the rest of the platform -- one place where a Trinidad and Tobago official statistic is checked, dated and attributed once, then reused everywhere it belongs, instead of copied and re-guessed on every page.</p>
       </div>
     </section>
-    <section class="section">
+
+    <section class="statistics-methodology">
+      <div class="container statistics-methodology__grid">
+        <div>
+          <span class="statistics-eyebrow">HOW THIS WORKS</span>
+          <h2>Verified, not duplicated.</h2>
+          <p>Every figure below is sourced from a real, named, linked Trinidad and Tobago government publisher -- the Trinidad and Tobago Police Service's own published Statistical Reports Collection for the current year, and the Central Statistical Office's compiled historical workbook for 2015–2024. FTN does not estimate, interpolate or manufacture a number where a verified one is not available -- when a source doesn't publish a reference date, FTN says so explicitly rather than implying the figure is current.</p>
+          <p>"Reported" means reported to police -- it is not the same thing as confirmed, prosecuted, or the full, true extent of an issue. Historical and current-year figures use different source publications and are always shown as two distinct series, never blended into one continuous "current" line.</p>
+        </div>
+        <div class="statistics-methodology__card">
+          <h3>What FTN Statistics is not</h3>
+          <ul>
+            <li>Not a Community Connect civic-report count -- those are FTN's own collected reports, a separate, differently-labelled layer with its own confidence, never combined with official government figures here.</li>
+            <li>Not a live daily counter -- a historical annual total is never presented as today's condition, and a current-year cumulative total is never described as "as of right now" beyond FTN's own last verified check.</li>
+            <li>Not a redistribution of the underlying government dataset file -- FTN cites and links the real published figures; it does not host or resell the source's own compiled workbook.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div id="crime-intelligence" class="statistics-embed"></div>
+
+    <section class="statistics-connections">
       <div class="container">
-        <p class="legal-meta">Effective date: July 12, 2026 &middot; Operator: RealityArtTV Media, operating the FTN Platform &middot; Governing jurisdiction: Republic of Trinidad and Tobago</p>
-        <nav class="legal-index" aria-label="Sections on this page" data-reveal>
-          <a href="#purpose">Purpose</a>
-          <a href="#current-website-data">Current Website Data</a>
-          <a href="#local-device-preferences">Local Device Preferences</a>
-          <a href="#hosting-and-infrastructure-records">Hosting and Infrastructure Records</a>
-          <a href="#third-party-resources">Third-Party Resources</a>
-          <a href="#retention-principles">Retention Principles</a>
-          <a href="#separate-ftn-products">Separate FTN Products</a>
-          <a href="#legal-preservation">Legal Preservation</a>
-          <a href="#review">Review</a>
-          <a href="#contact">Contact</a>
-        </nav>
-        <div class="legal-doc">
-        <h2 id="purpose">Purpose</h2>
-        <p>This policy explains how the public FTN Platform website currently retains information.</p>
-        <p>It applies only to ftnplatform.org and not to separate FTN applications or enterprise systems.</p>
-
-        <h2 id="current-website-data">Current Website Data</h2>
-        <p>The current platform separates these data classes:</p>
-        <ul>
-          <li>Supabase Auth account and session records;</li>
-          <li>protected FTN contact/creator transaction records;</li>
-          <li>browser-local preferences, drafts, saved sources and project recipes;</li>
-          <li>Community Connect records in its separate protected application boundary;</li>
-          <li>hosting, security and Cloudflare delivery/analytics records controlled through infrastructure configuration.</li>
-        </ul>
-        <p>FTN does not collect a data class merely for future use. A form must state whether it is browser-local or submitted, why contact data is needed and whether a successful server transaction was created.</p>
-
-        <h2 id="local-device-preferences">Local Device Preferences</h2>
-        <p>Interface preferences stored through local storage remain on the visitor&rsquo;s device until:</p>
-        <ul>
-          <li>the visitor clears them;</li>
-          <li>the browser removes them;</li>
-          <li>the website changes or retires the relevant storage key.</li>
-        </ul>
-        <p>Browser-local data is not a cloud backup and remains until the visitor clears it, the browser removes it or the relevant FTN feature removes/exports it. Authenticated products may separately sync an explicitly chosen record under Row Level Security.</p>
-
-        <h2 id="hosting-and-infrastructure-records">Hosting and Infrastructure Records</h2>
-        <p>The website&rsquo;s hosting, domain, security or delivery providers may retain ordinary technical records such as:</p>
-        <ul>
-          <li>IP addresses;</li>
-          <li>request timestamps;</li>
-          <li>browser or device information;</li>
-          <li>security events;</li>
-          <li>error logs;</li>
-          <li>network request details.</li>
-        </ul>
-        <p>Those records are controlled through the relevant infrastructure accounts and provider arrangements rather than the website&rsquo;s client-side application code.</p>
-        <p>Where FTN can configure retention, it should retain such records only for legitimate security, operational, legal or diagnostic purposes.</p>
-
-        <h2 id="third-party-resources">Third-Party Resources</h2>
-        <p>Third-party providers such as font or hosting providers may retain request information according to their own policies.</p>
-        <p>FTN does not control every aspect of third-party retention.</p>
-
-        <h2 id="retention-principles">Retention Principles</h2>
-        <p>When FTN begins centrally retaining information, it will apply the following principles:</p>
-        <ul>
-          <li>collect only what is reasonably necessary;</li>
-          <li>define the reason for retention;</li>
-          <li>restrict access;</li>
-          <li>protect information appropriately;</li>
-          <li>retain information only for legitimate operational, historical, contractual or legal purposes;</li>
-          <li>review retention periods;</li>
-          <li>securely delete or anonymise information when continued retention is no longer justified;</li>
-          <li>preserve information where required by valid legal process.</li>
-        </ul>
-
-        <h2 id="separate-ftn-products">Separate FTN Products</h2>
-        <p>Community Connect and other operational FTN products will require separate retention schedules before processing public submissions.</p>
-        <p>Those schedules must address, where applicable:</p>
-        <ul>
-          <li>reports;</li>
-          <li>photographs;</li>
-          <li>GPS information;</li>
-          <li>contact details;</li>
-          <li>moderation records;</li>
-          <li>audit trails;</li>
-          <li>backups;</li>
-          <li>account information;</li>
-          <li>government or enterprise records;</li>
-          <li>legal preservation requirements.</li>
-        </ul>
-        <p>This website policy must not be interpreted as the retention policy for those separate products.</p>
-
-        <h2 id="legal-preservation">Legal Preservation</h2>
-        <p>FTN may preserve relevant information where reasonably necessary to:</p>
-        <ul>
-          <li>comply with a lawful obligation;</li>
-          <li>respond to litigation or anticipated litigation;</li>
-          <li>investigate security incidents;</li>
-          <li>enforce contractual or legal rights;</li>
-          <li>protect users, the public or the platform.</li>
-        </ul>
-
-        <h2 id="review">Review</h2>
-        <p>This Data Retention Policy must be reviewed whenever the website begins collecting or centrally storing new categories of information.</p>
-
-        <h2 id="contact">Contact</h2>
-        <p>Questions about this Data Retention Policy may be submitted through the <a href="/contact/#general">General Enquiries pathway</a> on the FTN Contact page.</p>
+        <span class="statistics-eyebrow">CONNECTED ACROSS FTN</span>
+        <h2>The same verified data, everywhere it belongs.</h2>
+        <p>This is not a second, isolated copy of the numbers above -- FTN Live's Observer Console renders the identical <code>data/crime-statistics.json</code> record through the same shared component, and ibis.ai's indicator analysis can be extended to read the same <code>js/ftn-statistics.js</code> contract, so a future question ibis answers about this data carries the same real source, reference date and confidence -- never a re-guessed number.</p>
+        <div class="statistics-connections__grid">
+          <a class="statistics-connection-card" href="/observatory/#crime-intelligence">
+            <strong>FTN Live</strong>
+            <span>Observer Console shows this exact series alongside live weather, transport and civic signals.</span>
+          </a>
+          <a class="statistics-connection-card" href="/ibis-ai/">
+            <strong>ibis.ai</strong>
+            <span>Ask ibis about Trinidad and Tobago indicators -- the same shared registry, the same honest sourcing standard.</span>
+          </a>
+          <a class="statistics-connection-card" href="/trust/">
+            <strong>FTN Trust Centre</strong>
+            <span>What FTN provenance records, and what it deliberately does not disclose or retain.</span>
+          </a>
         </div>
       </div>
     </section>
@@ -227,7 +136,12 @@
   <script src="/js/country.js"></script>
   <script src="/js/nav.js?v=20260824.5"></script>
   <script src="/js/country-switcher.js"></script>
-  <script src="/js/reveal.js"></script>
-  <script src="/js/presentation-control.js"></script>
+  <script src="/js/product-registry-data.js?v=20260822.1"></script>
+  <script src="/js/product-registry.js?v=20260822.1"></script>
+  <script src="/js/ibis-provenance.js"></script>
+  <script src="/js/ftn-statistics.js"></script>
+  <script src="/js/ftn-statistics-crime-adapter.js"></script>
+  <script src="/js/trust-card.js"></script>
+  <script src="/js/crime-intelligence.js?v=20260825.1"></script>
 </body>
 </html>

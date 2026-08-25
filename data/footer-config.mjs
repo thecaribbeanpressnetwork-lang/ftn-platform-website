@@ -59,6 +59,7 @@ export const FULL_COLUMNS = [
       // 2026-08-24 FTN Live decision), the same as 'tv' -- neither sub-mode gets its own footer
       // link, consistent with each other; FTN Screen's own link covers both.
       { registry: 'scenario-workspace' },
+      { registry: 'statistics' },
       { registry: 'events' },
       { registry: 'facethenation' },
       { registry: 'ibis-ai' },
@@ -101,7 +102,7 @@ export const PAGES = {
     'legal/privacy-policy/index.html', 'legal/responsible-ai/index.html',
     'legal/terms-of-service/index.html', 'love/index.html', 'observatory/index.html',
     'parliament/index.html', 'resources/index.html', 'scenario-workspace/index.html',
-    'sitemap/index.html', 'trust/index.html',
+    'sitemap/index.html', 'statistics/index.html', 'trust/index.html',
   ],
   'bottom-only': [
     'clock/index.html', 'display/index.html', 'display-network/index.html', 'events/index.html',

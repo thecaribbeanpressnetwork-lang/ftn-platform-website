@@ -41,7 +41,8 @@ const PAGES = [
   'legal/privacy-policy/index.html', 'legal/responsible-ai/index.html', 'legal/terms-of-service/index.html',
   'love/index.html', 'observatory/index.html', 'opportunities/index.html', 'parliament/index.html',
   'radio/index.html', 'resources/index.html', 'riddim/index.html', 'scenario-workspace/index.html',
-  'screen/index.html', 'sitemap/index.html', 'top-picks/index.html', 'trust/index.html', 'tv/index.html',
+  'screen/index.html', 'sitemap/index.html', 'statistics/index.html', 'top-picks/index.html',
+  'trust/index.html', 'tv/index.html',
 ];
 
 function esc(v) {
