@@ -171,6 +171,92 @@ founder's own instruction ("this is structural consolidation, not a redesign") a
 attempted. `PRIMARY_NAV`/`service-worker.js` consolidation (§5.2/§5.3 of the governance doc) remain
 open, lower-priority items.
 
+### Phase 3 — PRIMARY_NAV consolidation (2026-08-24, continued)
+
+**Founder decision:** restore the 11-item approved primary structure (FTN Platform, FTN Community
+Connect, FTN Live, FTN Parliament, FTN TV, FTN Kaiso, FTN Riddim, FTN Invest-in, FTN Directory,
+About FTN, Contact), make it registry-driven while keeping deliberate editorial control (not every
+product auto-placed), and keep desktop/mobile/no-JS navigation derived from one canonical source.
+Full record: `.claude/context/decisions.md`'s "Primary navigation restored..." entry.
+
+**What was actually duplicated/stale before this pass, confirmed by inspection, not assumed:**
+`js/nav.js`'s `PRIMARY_NAV` (JS-rendered, 5 items post-"Founder Walkthrough Repair Pass") and each
+page's static/no-JS `<ul class="site-nav__list">` + `<div class="mobile-nav__links">` markup (hand-
+typed per page, never kept in sync with the JS version) had drifted into **three different navs**:
+most pages' static markup showed a stale "Home / About FTN / News / Partners (`/contact/
+#commercial`) / FTN Invest-in / Contact" list — no FTN Directory link at all — while `index.html`'s
+own static markup showed yet a different stale 6-item set. A no-JS visitor saw neither the current
+JS nav nor a consistent set of links depending on which page they landed on first.
+
+**Architecture (mirrors the footer consolidation pattern):** `data/nav-config.mjs` is the one
+ordered, curated list — registry-id references for real products, literals for the three non-
+product structural entries. `js/product-registry-data.js` gained `navPlacement.primary:true` on
+the 8 referenced products (`platform-home`, `community-connect`, `ftn-live`, `parliament`, `tv`,
+`kaiso`, `riddim`, `invest`) as the "explicit registry metadata" half of the guarantee.
+`scripts/sync-nav.mjs` resolves both against each other (throws on any mismatch) and writes: (1)
+`js/nav.js`'s own `PRIMARY_NAV` array between hand-placed `FTN:NAV:START/END` markers — kept a
+plain synchronous JS literal on purpose, so the primary row still renders on first paint with zero
+registry fetch; only the *authoring* became registry-driven, not the runtime; (2) the static
+`<ul class="site-nav__list">` / `<div class="mobile-nav__links">` regions on all 42 standard-header
+pages, each wrapped in the same marker pattern, with `aria-current="page"` computed per page from
+its own `<link rel="canonical">` so the no-JS fallback now has real active-state parity with the JS
+version. `scripts/lib/registry-loader.mjs` was extracted (rule of three: `generate-sitemap.mjs` and
+`sync-footer.mjs` already carried the identical Node-side Product-Registry-loading logic
+independently; this script made a third, so it was pulled into one shared module and both existing
+scripts were refactored to use it — verified behaviorally identical via their own `--check` modes
+before and after).
+
+**A real, more severe bug than the one being fixed was caught during this pass's own required
+overflow/breakpoint testing, before anything was committed:** restoring 11 items reintroduced
+genuine horizontal overflow at 1240-1600px viewports. The first CSS attempt (making
+`.site-nav__list` a `min-width:0; overflow-x:auto` flex item) was insufficient on its own — direct
+Playwright geometry inspection against a real (non-homepage) page showed `.site-header__actions`
+(search / Sign In / menu toggle) collapsed to a literal `0×0` box at every width tested, because
+flexbox's default shrink distribution let the primary nav's own outer `<nav>` element keep its full
+content-based preferred width and squeezed its siblings toward zero instead. Root-caused and fixed
+with `flex-shrink:0` on `.site-header__logo` and `.site-header__actions` (pinned to their content
+size, never shrink) and `flex:1 1 auto; min-width:0` on `.site-nav` itself (absorbs exactly the
+remaining space, down to 0 if truly squeezed, with its own `.site-nav__list` child scrolling
+horizontally under pressure rather than the header growing a second row — the exact layout the
+prior "cut to 5 items" pass was trying to avoid). The FTN Ecosystem trigger was moved from an `<li>`
+inside the now-scrollable `<ul>` to a sibling `<div class="site-nav__item site-nav__item--ecosystem">`
+specifically so its own mega-dropdown panel is never clipped (`overflow-x:auto` on an ancestor
+forces `overflow-y:auto` too, per the CSS spec — the dropdown would have been cut off vertically).
+Re-verified after the fix via Playwright at 1240/1260/1280/1366/1439/1440/1600/1820/1920/2560px:
+zero wrapping, zero overlap, header actions always real/positive size, all 11 primary links present
+in the DOM at every width (reachable by scroll/keyboard even when not all visible at once), the
+Ecosystem mega-dropdown rendering at full height (~530px, 23 links, not clipped).
+
+**Tests:** `tests/nav-registry-audit.mjs` (new) — runs `scripts/sync-nav.mjs --check` (catches any
+drift across `js/nav.js` and all 42 pages, and any registry/config link break) plus independent
+re-derivation of the approved-structure/registry-flag bidirectional consistency, FTN-prefix
+requirement, account/identity-control preservation, and a regression guard against the exact stale
+"News"/"Partners" links this pass removed reappearing. Wired into
+`.github/workflows/functional-release.yml`. `tests/product-registry-audit.mjs`'s now-stale
+"'FTN Display' must appear in nav" assertion was updated (Display is deliberately absent from
+primary nav, consolidated into Screen) plus its `js/nav.js?v=` expected version bumped to
+`20260824.5`. `tests/functional-release.mjs`'s `header-nav-usable-at-squeeze-width` scenario was
+updated from asserting the old 5-item count to the new 11-item count, plus strengthened with the
+exact overflow regression guard described above (actions cluster must keep positive size, must
+never overlap the nav, all 11 links must stay in the DOM). Full local suite run after the fix:
+`product-registry-audit`, `nav-registry-audit`, `backend-source-audit`, `csp-source-audit`,
+`asset-manifest-audit`, `performance-budget` (12/12 routes), `mobile-release` (13/13 surfaces),
+`functional-release` (61/62 scenarios — the one failure, `/facethenation` returning 404, is a
+pre-existing local-test-server artifact confirmed unrelated to this pass: `python3 -m http.server`
+does not resolve *any* extensionless clean URL without a trailing slash, verified generic by
+testing `/about` and `/kaiso` the same way; Cloudflare Pages' real clean-URL routing does not have
+this limitation, and `/facethenation` is re-verified directly in production below).
+
+**Two previously-unwired drift checks were also wired into CI in the same pass**, closing a gap
+left by the earlier footer-consolidation work: that work's own stated requirement ("make CI fail
+when rendered footers drift from the canonical source") was implemented as a working `--check` mode
+but never actually added to `.github/workflows/functional-release.yml` — confirmed by inspection,
+not assumed. `scripts/sync-footer.mjs --check` and `scripts/generate-sitemap.mjs --check` are now
+both CI steps alongside the new nav audit.
+
+**CI/CD housekeeping:** `js/nav.js?v=` bumped to `20260824.5` across all 45 referencing HTML files
+(cache-busting for the changed file).
+
 ## Phases 4–8
 
 Not started this pass. Each covers enough surface (ibis source routing rebuild, a new FTN

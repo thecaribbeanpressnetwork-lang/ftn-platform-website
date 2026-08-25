@@ -143,6 +143,48 @@ name, or "FTN Display" as an independent top-level product:** that is stale cont
 missed, not a reason to revert this decision — fix the stale reference to match this entry, don't
 restore the old naming.
 
+### Primary navigation restored to the 11-item approved structure, made registry-driven — **Active** (2026-08-24, BUILD NOW)
+
+**Supersedes** the "Founder Walkthrough Repair Pass" note that had cut `js/nav.js`'s `PRIMARY_NAV`
+from 11 items to 5 (FTN Platform, FTN Community Connect, FTN Display, FTN Live, FTN Directory) plus
+the Ecosystem trigger, because the wider list wrapped the header actions cluster at wide viewports
+or shrank nav text to an unreadable 11px. That regression was root-caused and fixed this pass (see
+below), not reintroduced by ignoring it.
+
+**Current, binding decision:** the primary nav is the founder-approved 11-item structure — FTN
+Platform, FTN Community Connect, FTN Live, FTN Parliament, FTN TV, FTN Kaiso, FTN Riddim, FTN
+Invest-in, FTN Directory, About FTN, Contact. FTN Display is deliberately **not** in this list (it
+is a capability of FTN Screen, not an independent nav entry — consistent with the FTN Live/Display
+decision above).
+
+**Ownership, so a future session edits the right file:** `data/nav-config.mjs` is the one ordered,
+curated source (which entries, in what order) — it is not exhaustive of every product on purpose,
+same reasoning as `data/footer-config.mjs`. Each entry resolves against
+`js/product-registry-data.js`'s `navPlacement.primary` flag (real products) or is a literal (the
+three non-product structural entries). `scripts/sync-nav.mjs` generates: `js/nav.js`'s own
+`PRIMARY_NAV` literal (kept a synchronous JS array on purpose — the primary row renders on first
+paint with no registry fetch, so only the *authoring* is registry-driven, never the runtime), and
+the static/no-JS `<ul class="site-nav__list">` / `<div class="mobile-nav__links">` regions on all
+42 standard-header pages. `tests/nav-registry-audit.mjs` fails CI if any of these three drift apart
+or from each other.
+
+**The overflow regression the prior pass was actually fixing was real and was re-verified, not
+dismissed:** restoring 11 items reintroduced genuine horizontal overflow at 1240-1600px viewports
+that briefly, during this pass's own testing, squeezed the header actions cluster (search/sign-in/
+menu toggle) to a literal 0×0 box — worse than the "microscopic text" the prior pass described.
+Root cause: flexbox's default shrink distribution let `.site-nav` absorb none of the deficit while
+its siblings absorbed all of it. Fixed with `flex-shrink:0` on `.site-header__logo` /
+`.site-header__actions` (pinned to their content size, never shrink) and `.site-nav__list` as its
+own `min-width:0; overflow-x:auto` flex item (the primary list becomes a horizontal scroll strip
+under pressure, not a second header row and not a control that silently disappears). The FTN
+Ecosystem trigger sits outside that scrollable list specifically so its mega-dropdown is never
+clipped (`overflow-x:auto` forces `overflow-y:auto` too, per the CSS spec). See
+`css/components/nav.css` and `js/nav.js`'s own comments for the implementation; the repair ledger's
+Phase 3 nav-consolidation entry for the full before/after verification.
+
+**If a future session finds header overflow at 1240-1600px again:** that means the CSS above
+regressed, not that the item count needs cutting again — fix the CSS, don't re-litigate the list.
+
 ---
 
 ## Still-open conflicts (do not silently resolve)
