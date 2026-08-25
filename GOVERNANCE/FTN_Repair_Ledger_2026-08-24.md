@@ -704,3 +704,41 @@ observation (local files vs. deployed history don't fully match) flagged for fou
 not attempted here.
 
 **Commit:** pending (this entry + the migration + the test are committed together next).
+
+## Supabase RLS/authorization audit — actual applied migration state as of 2026-08-25 (Cycle 12)
+
+Closing out the state of the two `issues`-table migrations above, honestly, since "prepared and
+reviewed" is not the same as "applied" and this ledger should never claim otherwise.
+
+**`20260825120000_restore_public_issues_read_policy.sql` — NOT applied to production.**
+**`20260825130000_restrict_issues_raw_coordinate_grant.sql` (the coordinate-privacy fix found in a
+follow-up pass, see `FTN_Completion_Ledger_2026-08-25.md` Cycle 9) — NOT applied to production.**
+
+Both are fully authored, reviewed, statically tested (`tests/supabase-issues-security-audit.mjs`,
+passing), and committed to `main` since commit `822932a`. Neither has ever been run against the
+live database this entire engagement — no session in this engagement has held write-capable
+Supabase access, and none created one: an unauthenticated write connection would be a real
+credential/infrastructure change, treated the same as any other irreversible action requiring
+direct founder execution rather than autonomous creation, consistent with every "read-only,"
+"founder's own reviewed deploy step" instruction given across this engagement.
+
+**Real, current blocker for full "Verify production database behaviour" completion**: the row
+policy this migration restores uses `using (true)` — deliberately matching the column grant's own
+already-declared "every issue, redacted" intent (see the migration's own header comment) — but
+`public.issues.status`/`.lifecycle_status` carry no CHECK constraint anywhere in this repo's own
+migration history (they're owned by Community Connect's separate repository, not this one), so
+their real, live set of values cannot be confirmed from static analysis. This is exactly the
+scenario a prior founder instruction anticipated ("if an unexpected live status value makes the
+public policy unsafe, fail closed, correct the allowlist") — the missing piece is the live query
+itself, which requires either founder execution or a future session with real Supabase MCP access.
+A ready-to-run pre-flight query for this is included in the same handoff package as the migrations
+below (also recorded in the session's own final report to the founder, since this session has no
+mechanism to place text on the founder's clipboard or open a browser tab for them).
+
+**Everything gated on these two migrations remains correspondingly unverified in production**: the
+anon/authenticated role-boundary tests, Community Connect's real public report-reading flow, and
+the security-advisor pass the founder's instruction required before applying. None of these can be
+honestly marked "confirmed" until the founder (or a future session with real database access) runs
+the pre-flight check, applies both migrations in order, and reports back — or grants a session real
+write access to do so directly. This entry exists so a future session reads the true state here
+rather than assuming "committed and reviewed" means "live."
