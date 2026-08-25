@@ -107,7 +107,12 @@ product({
   callsToAction:[{label:'Ask ibis',route:'/ibis-ai/'},{label:'Open Creative Studio',route:'/ibis-ai/#ibis-creative-studio'}],visualMnemonic:'Ibis creative command node',panelAsset:'/assets/panels/05-ibis-ai.png',panelRow:1,accent:'var(--color-ibis)',atmosphere:{accent:'var(--color-ibis)',background:'dark-minimal',motionProfile:'node-pulse',heroStyle:'calm-focused'},
   dataSources:['FTN Product Registry','FTN public source functions','authenticated approved AI provider','verified creative-provider registry'],accessRules:['guest deterministic tools','authenticated server AI','paid provider calls disabled until credits and server approval'],featureFlags:['ibis-router','ibis-visual','ibis-authenticated-ai','ibis-creative-studio','provider-cost-lock'],
   relatedProducts:['platform-home','mission-control','kaiso','ftn-fire','learn'],legalNotices:['Generated-output notice','Private conversation boundary','Provider transfer and cost notice','Responsible AI'],analyticsClassification:'private-content-no-replay',
-  keywords:['help','navigate','find','assist','goal','route','analyze','visual','image','video','creative studio','campaign','TV show','pilot','series','screenplay','script'],capabilities:['task-routing','ftn-data-analysis','media-discovery','on-device-visual-draft','creative-project-planning','provider-evidence','authenticated-server-ai','cross-product-handoff']
+  keywords:['help','navigate','find','assist','goal','route','analyze','visual','image','video','creative studio','campaign','TV show','pilot','series','screenplay','script'],capabilities:['task-routing','ftn-data-analysis','media-discovery','on-device-visual-draft','creative-project-planning','provider-evidence','authenticated-server-ai','cross-product-handoff'],
+  // Phase 3 service-worker route-policy consolidation: 'mixed' -- guest-usable deterministic tools
+  // plus authenticated server AI with private conversation content (see legalNotices above) that
+  // must never be served from or written to the SW's public cache. See account's identical field
+  // for the same reasoning.
+  authRequirement:'mixed'
 }),
 product({
   id:'parliament',name:'FTN Parliament',shortName:'Parliament',tagline:'Public records. Clear sources. Civic context.',
@@ -309,7 +314,13 @@ product({
   description:'The shared FTN identity and preference surface for protected saves, projects, consent choices, sessions, export and deletion.',route:'/account/',status:'AVAILABLE',
   primaryUser:'Returning FTN users and creators',primaryJourney:'Sign in at the point of need, return to the exact task and inspect or revoke account state.',
   callsToAction:[{label:'Open FTN Account',route:'/account/'}],visualMnemonic:'Identity keyring',dataSources:['Supabase Auth','FTN account schema'],accessRules:['guest sign-in','authenticated self-service'],featureFlags:['account-email-auth'],relatedProducts:['ibis-ai','love','opportunities'],legalNotices:['Account privacy','Consent controls','Deletion and retention'],analyticsClassification:'authentication-no-replay',
-  keywords:['account','sign in','login','profile','session','saved','consent','delete','export'],capabilities:['email-auth','session','return-to-task','profile','saved-items','sign-out']
+  keywords:['account','sign in','login','profile','session','saved','consent','delete','export'],capabilities:['email-auth','session','return-to-task','profile','saved-items','sign-out'],
+  // Phase 3 service-worker route-policy consolidation: 'mixed' means a real guest-visible surface
+  // (the sign-in page itself) that also renders authenticated, per-user responses once signed in --
+  // scripts/sync-service-worker.mjs reads this to exclude the route from the SW's public cache,
+  // same as an explicitly PRIVATE/VAULTED product. See data/route-policy.mjs for the non-product
+  // half of this policy and the explicit "not a security boundary" statement.
+  authRequirement:'mixed'
 }),
 product({
   id:'health',name:'FTN Health',shortName:'Health',tagline:'A future Caribbean health-information pathway.',
