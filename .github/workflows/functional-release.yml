@@ -35,6 +35,9 @@ jobs:
       - name: Audit primary navigation drift (registry <-> nav-config <-> generated pages)
         run: node tests/nav-registry-audit.mjs
 
+      - name: Audit service-worker route-policy drift (registry <-> route-policy <-> generated regex)
+        run: node tests/service-worker-policy-audit.mjs
+
       - name: Check sitemap.xml matches the Product Registry
         run: node scripts/generate-sitemap.mjs --check
 
@@ -153,6 +156,11 @@ jobs:
         env:
           FTN_TEST_BASE: http://127.0.0.1:3000
         run: node tests/mobile-release.mjs
+
+      - name: Run service-worker lifecycle scenarios (offline, upgrade-safety, private-cache exclusion)
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/service-worker-lifecycle.mjs
 
       - name: Verify FTN Surface System and ecosystem front door
         env:
