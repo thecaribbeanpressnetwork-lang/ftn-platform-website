@@ -620,6 +620,36 @@ Card, real ibis Q&A with a mandatory Trust Card, the fail-closed unsupported-que
 unchanged primary navigation, and no paid-provider network calls all verified against production
 itself, not just the local build.
 
+### Independent Phase 5B verification corrections — 2026-08-25
+
+Fresh review after the initial close-out found and corrected four bounded defects without changing
+the Phase 5B architecture:
+
+- The observation schema now carries `sourceReferenceDate` separately from both
+  `referencePeriod` and `publicationDate`. Central Bank monthly observations propagate their real
+  `YYYY-MM` source period into ibis provenance and Trust Cards; the TTPS current-year count keeps
+  this field null because TTPS publishes no statistical "as at" date. FTN retrieval dates are never
+  substituted.
+- A comparison/change question naming exactly one period now fails closed with
+  `NEED_TWO_PERIODS` instead of silently comparing the two latest observations.
+- Indicator-list answers now carry `capability:'STATISTIC'` provenance, so the "Trust Card for every
+  successful statistical response" rule also covers that path.
+- The Central Bank Copyright Notice was found and read directly. It permits attributed,
+  unaltered reproduction and addresses redistribution/private or commercial use, with revocable
+  permission. The earlier "no published reuse terms" statement was corrected in code and
+  governance records.
+
+The production parser was also extracted to `scripts/lib/cbtt-fx-parser.mjs`, so the fixture test
+imports the real parser instead of maintaining a copy. The FX chart now uses a meaningful
+data-relative vertical scale for its narrow range, while crime retains its prior explicit scale;
+on mobile, the 24-month plot scrolls rather than clipping. A visible production screenshot also
+caught all 24 monthly x-axis labels colliding; the chart now displays a bounded label interval while
+its accessible table retains every observation.
+
+All three Phase 5B static suites and `tests/statistics-release.mjs` are now explicit steps in the
+functional release workflow. They previously existed but were not invoked by CI, so their
+regressions were testable locally yet not release-gated.
+
 ## FTN Final Production Completion Pass (2026-08-25)
 
 Founder-authorized. Full detail, cycle-by-cycle: `GOVERNANCE/FTN_Completion_Ledger_2026-08-25.md`
@@ -637,6 +667,12 @@ missed when the other two occurrences were fixed in Phase 5A -- corrected to `24
 **Confirmed external blocker:** Supabase RLS/policy verification (Priority 3) could not be
 performed -- no CLI, MCP tool, or environment credentials available in this session. Not guessed,
 not claimed. Community Connect statistics integration correctly stays deferred as a consequence.
+
+**Note:** this pass's commits (`dfb3205`, `044d5ab`) were made concurrently with another session's
+independent Phase 5B verification-correction commits (`cf73620`, `1b3f3c2`, `b476a88`, recorded in
+the entry immediately above) and merged together on `main` -- both bodies of work are real and
+independently verified; neither overwrote the other. See this ledger's merge commit for the exact
+integration.
 
 **Commit:** `dfb3205` (test fix + new completion ledger). Full regression suite (28 static/unit
 files + 11 Playwright release suites) re-run clean.

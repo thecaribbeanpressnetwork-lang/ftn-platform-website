@@ -149,7 +149,7 @@
   function factOf(obs, indicator) {
     return {
       value: obs.value, unit: obs.unit, referencePeriod: obs.referencePeriod,
-      publicationDate: obs.publicationDate, retrievedAt: obs.retrievedAt,
+      sourceReferenceDate: obs.sourceReferenceDate, publicationDate: obs.publicationDate, retrievedAt: obs.retrievedAt,
       revisionStatus: obs.revisionStatus, suppressionReason: obs.suppressionReason,
       indicatorId: indicator.id, indicatorName: indicator.publicName,
     };
@@ -165,11 +165,18 @@
       return { id: d.id, name: d.publicName, unit: d.unit, frequency: d.frequency, topic: d.topic };
     });
     var lines = list.map(function (d) { return d.name + ' (' + d.unit + ', ' + d.frequency.toLowerCase() + ')'; });
+    var Provenance = global.FTN && global.FTN.IbisProvenance;
+    var provenanceFields = {
+      capability: 'STATISTIC', retrievalMethod: 'LOCAL_COMPUTATION',
+      transformation: 'Listed the indicator definitions currently loaded in the verified FTN Statistics catalog without inference.',
+      confidenceBasis: 'Deterministic inventory of the loaded FTN Statistics catalog',
+      costToIbis: 'ZERO_COST_TO_IBIS',
+    };
     return {
       success: true, intent: 'LIST_INDICATORS',
       indicators: list,
       answer: list.length ? ('FTN Statistics currently has ' + list.length + ' verified indicator(s): ' + lines.join('; ') + '.') : 'No verified indicators are loaded right now.',
-      provenance: null,
+      provenance: Provenance ? Provenance.build(provenanceFields) : provenanceFields,
     };
   }
 
@@ -192,7 +199,7 @@
       success: true, intent: 'LATEST_VALUE', degraded: false,
       fact: factOf(latest, indicator), source: source,
       answer: 'The latest ' + indicator.publicName + ' is ' + latest.value + ' ' + latest.unit + ' (' + latest.referencePeriod + '), retrieved by FTN on ' + (latest.retrievedAt || 'an unrecorded date') + '.' +
-        (latest.publicationDate ? ' The source publishes this as of ' + latest.publicationDate + '.' : ' The source does not publish a statistical reference date for this figure, so its currency cannot be independently confirmed beyond FTN’s own retrieval date.'),
+        (latest.sourceReferenceDate ? ' The source identifies the reference period as ' + latest.sourceReferenceDate + '.' : ' The source does not publish a statistical reference date for this figure, so its currency cannot be independently confirmed beyond FTN’s own retrieval date.'),
       provenance: provenance,
     };
   }
@@ -225,11 +232,13 @@
 
   function resolvePeriodPair(catalog, indicatorId, periods) {
     var obs = observationsFor(catalog, indicatorId);
-    var tokens = periods.months.length >= 2 ? periods.months : periods.years;
+    var tokens = periods.months.length ? periods.months : periods.years;
     var a, b;
     if (tokens.length >= 2) {
       a = observationForPeriod(obs, tokens[0]);
       b = observationForPeriod(obs, tokens[1]);
+    } else if (tokens.length === 1) {
+      return fail('NEED_TWO_PERIODS', 'Name two compatible periods to compare, or omit periods to compare the two most recent verified observations.');
     } else {
       // No two periods named -- a deterministic, disclosed default: the two most recent real
       // (non-suppressed) observations, never an invented or interpolated pair.

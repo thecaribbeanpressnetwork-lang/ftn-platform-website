@@ -19,23 +19,33 @@
     });
   }
 
-  // rows: [{label, value}] (>=2 rows). opts: {ariaLabel, chartClass, defs, maxFractionDigits}.
+  // rows: [{label, value}] (>=2 rows). opts: {ariaLabel, chartClass, defs, maxFractionDigits,
+  // yPadding, labelEvery}. yPadding is an absolute amount below the series minimum. When omitted,
+  // derive a small data-relative margin so narrow-range series (such as monthly FX) remain legible
+  // rather than inheriting a crime-count scale. labelEvery reduces visual x-axis crowding only;
+  // the caller's accessible table continues to expose every observation.
   function lineChart(rows, opts) {
     opts = opts || {};
     var w = 900, h = 330, p = 48;
     var values = rows.map(function (r) { return r.value; });
-    var max = Math.max.apply(null, values), min = Math.min.apply(null, values) - 30;
+    var max = Math.max.apply(null, values), rawMin = Math.min.apply(null, values);
+    var range = max - rawMin;
+    var padding = opts.yPadding != null
+      ? opts.yPadding
+      : Math.max(range * 0.15, Math.abs(max) * 0.001, 0.0001);
+    var min = rawMin - padding;
     var x = function (i) { return p + i * (w - p * 2) / (rows.length - 1); };
     var y = function (v) { return h - p - (v - min) / (max - min) * (h - p * 2); };
     var points = rows.map(function (r, i) { return x(i) + ',' + y(r.value); }).join(' ');
     var cls = opts.chartClass || 'ftn-stat-chart';
     var digits = opts.maxFractionDigits != null ? opts.maxFractionDigits : 1;
+    var labelEvery = Math.max(1, opts.labelEvery || 1);
     return '<svg class="' + cls + '" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(opts.ariaLabel || '') + '">' +
       (opts.defs || '') +
       '<polyline class="' + cls + '__line" points="' + points + '" pathLength="1"/>' +
       rows.map(function (r, i) {
         return '<g><circle class="' + cls + '__dot" cx="' + x(i) + '" cy="' + y(r.value) + '" r="5"/>' +
-          '<text x="' + x(i) + '" y="' + (h - 16) + '" text-anchor="middle">' + esc(r.label) + '</text>' +
+          ((i % labelEvery === 0 || i === rows.length - 1) ? '<text x="' + x(i) + '" y="' + (h - 16) + '" text-anchor="middle">' + esc(r.label) + '</text>' : '') +
           '<text class="' + cls + '__value" x="' + x(i) + '" y="' + (y(r.value) - 14) + '" text-anchor="middle">' +
           Number(r.value).toLocaleString(undefined, { maximumFractionDigits: digits }) + '</text></g>';
       }).join('') + '</svg>';

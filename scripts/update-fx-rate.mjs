@@ -8,49 +8,14 @@
 // config JSON at parse time, not hardcoded blindly -- a real layout change fails closed.
 import fs from 'node:fs/promises';
 import { fetchAndParse, todayInTimezone } from './lib/statistics-source-adapter.mjs';
+import { parseMonthlyFx } from './lib/cbtt-fx-parser.mjs';
 
 const url = 'https://www.central-bank.org.tt/exchange-rates-monthly/';
 const path = new URL('../data/fx-usd-ttd.json', import.meta.url);
-const ROW_ID_PREFIX = 'table_107_row_';
-
-function parsePeriod(ddmmyyyy) {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(ddmmyyyy);
-  return m ? `${m[3]}-${m[2]}` : null;
-}
-
 const rows = await fetchAndParse({
   url,
   userAgent: 'FTN-Observer-Source-Check/1.0',
-  parse(html) {
-    const headerRe = /origHeader&quot;:&quot;([^&]*)&quot;/g;
-    const headers = [];
-    let hm;
-    while ((hm = headerRe.exec(html))) headers.push(hm[1]);
-    const expectedStart = ['Date', 'BBD Buying Rate', 'BBD Selling Rate'];
-    if (expectedStart.some((h, i) => headers[i] !== h)) {
-      throw new Error('Central Bank monthly exchange-rate table column layout changed');
-    }
-    const usdBuyIdx = headers.indexOf('USD Buying Rate');
-    const usdSellIdx = headers.indexOf('USD Selling Rate');
-    if (usdBuyIdx === -1 || usdSellIdx === -1) throw new Error('USD columns were not found in the Central Bank monthly table');
-
-    const rowRe = new RegExp(`<tr id="${ROW_ID_PREFIX}\\d+"[^>]*>([\\s\\S]*?)<\\/tr>`, 'g');
-    const out = [];
-    let rm;
-    while ((rm = rowRe.exec(html))) {
-      const cells = [...rm[1].matchAll(/<td[^>]*>([^<]*)<\/td>/g)].map((c) => c[1]);
-      const period = parsePeriod(cells[0]);
-      const buying = Number(cells[usdBuyIdx]);
-      const selling = Number(cells[usdSellIdx]);
-      if (!period || !Number.isFinite(buying) || !Number.isFinite(selling)) continue;
-      // The source's own placeholder row for a not-yet-complete current month -- not a real
-      // observation, so it is skipped here rather than stored as a fabricated zero rate.
-      if (buying === 0 && selling === 0) continue;
-      out.push({ period, usdBuying: buying, usdSelling: selling });
-    }
-    if (!out.length) throw new Error('No real Central Bank USD exchange-rate rows were found');
-    return out;
-  },
+  parse: parseMonthlyFx,
 });
 
 let existing = { source: null, monthly: [] };

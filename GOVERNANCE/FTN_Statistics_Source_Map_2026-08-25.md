@@ -200,10 +200,13 @@ history. 427 real monthly observations retrieved, January 1991 to July 2026. The
 (incomplete) month's own placeholder row (`0.0000` for every currency) is correctly filtered out by
 both the write-side script and its fixture tests — never stored as a fabricated zero rate.
 
-**Licensing:** same posture as TTPS (§4) — no published data-reuse terms found; the Bank's
-Disclaimer page addresses liability only. FTN cites and links the published rate; it does not
-redistribute the underlying table. See `.claude/context/decisions.md`'s "FTN Statistics:
-cite-and-link, don't redistribute" entry, which this indicator now falls under too.
+**Licensing (independently corrected 2026-08-25):** the Bank does publish a separate
+[Copyright Notice](https://www.central-bank.org.tt/copyright-notice/). It permits attributed
+reproduction in unaltered form and says people reproducing, redistributing, or making private or
+commercial use must acknowledge the source, while noting that permission is revocable. This is
+different from the unresolved CSO/TTPS posture in §4. FTN preserves the published figures
+unaltered, prominently attributes and links the Central Bank, and records the revocable permission
+instead of incorrectly describing the Disclaimer as the only applicable policy.
 
 **Rejected without investigation, per the brief's own explicit instruction:** debt-to-GDP. The
 brief was explicit that this must not return "without a defensible official source, reference

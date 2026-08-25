@@ -108,6 +108,7 @@
         value: row.reported,
         unit: 'count',
         referencePeriod: String(row.year),
+        sourceReferenceDate: String(row.year),
         publicationDate: null, // CSO's published workbook does not itself carry a page-level publication date FTN could verify this pass
         retrievedAt: raw.source && raw.source.retrieved,
         sourceId: 'tt-cso-crime-historical',
@@ -120,6 +121,7 @@
           value: murderSeries.rates[i],
           unit: 'per 100,000 population',
           referencePeriod: String(row.year),
+          sourceReferenceDate: String(row.year),
           publicationDate: null,
           retrievedAt: raw.source && raw.source.retrieved,
           sourceId: 'tt-cso-crime-historical',
@@ -135,6 +137,7 @@
       value: cur.reported != null ? cur.reported : null,
       unit: 'count',
       referencePeriod: cur.year ? ('1 January – ' + (cur.asOf || 'present') + ', ' + cur.year) : null,
+      sourceReferenceDate: null, // TTPS does not publish an "as at" date for this cumulative figure
       publicationDate: null, // TTPS does not publish a statistical reference/"as at" date for this cumulative total -- explicit, not omitted
       retrievedAt: cur.asOf || null,
       sourceId: 'tt-ttps-crime-current',

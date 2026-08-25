@@ -2116,6 +2116,12 @@ observations (January 1991 – July 2026) into `data/fx-usd-ttd.json`, now runni
 `.github/workflows/update-fx-rate.yml` (proportionate to the source's own monthly publication
 cadence, not disguised as a live feed).
 
+Independent verification subsequently found the Central Bank's separate Copyright Notice (the
+original pass had inspected only its Disclaimer). The notice permits attributed reproduction in
+unaltered form, addresses redistribution/private or commercial use, and makes permission
+revocable. The adapter's licensing note and the source map now record that actual policy instead of
+the earlier "no published reuse terms" conclusion.
+
 ## 5. Economics — how "never spend money automatically" is enforced today
 
 Already real, not just documented:
