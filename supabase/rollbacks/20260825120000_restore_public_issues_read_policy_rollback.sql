@@ -1,0 +1,15 @@
+-- Rollback for 20260825120000_restore_public_issues_read_policy.sql.
+--
+-- NOT part of the normal migration sequence -- kept outside supabase/migrations/ specifically so
+-- `supabase db push` / the CLI's migration scanner never auto-applies it. Apply manually via the
+-- Supabase Dashboard SQL Editor only, and only if the restored SELECT policy is found to have
+-- caused a real problem.
+--
+-- Reverting this returns public.issues to denying every row for every SELECT (RLS enabled, zero
+-- SELECT policies) -- the state it has been in since the table's own creation. This does NOT
+-- expose anything by reverting (RLS fails closed with zero policies); it re-breaks
+-- public.issues_public's public transparency feature back to returning zero rows, which is the
+-- exact silent gap this pass's audit found and fixed. Only revert if restoring public read access
+-- itself is the problem, not as a generic "undo everything" step -- if the coordinate-privacy fix
+-- (20260825130000) is the actual concern, revert that one instead and leave this one in place.
+drop policy if exists "Public read redacted issues" on public.issues;

@@ -47,6 +47,7 @@ for (const migration of [
   'supabase/migrations/20260812123000_founder_action_register.sql',
   'supabase/migrations/20260812130000_enforce_community_public_view_boundaries.sql',
   'supabase/migrations/20260825120000_restore_public_issues_read_policy.sql',
+  'supabase/migrations/20260825130000_restrict_issues_raw_coordinate_grant.sql',
 ]) {
   assert(fs.existsSync(migration),`Missing FTN-owned applied migration record: ${migration}`);
 }
