@@ -70,14 +70,15 @@ await scenario('home-release-assets-versioned', async page=>{await open(page,'/'
 await scenario('home-mobile', async page=>{await open(page,'/');assert.equal(await page.locator('.ecosystem-hero__actions .btn').count(),2);await page.locator('[data-ecosystem-toggle]').press('Enter');await page.waitForSelector('[data-ecosystem-reveal]:not([hidden])');assert.equal(await page.locator('[data-ecosystem-toggle]').getAttribute('aria-expanded'),'true');assert.equal(await page.locator('.ecosystem-product-link').count(),23);},{width:390,height:844});
 
 await scenario('header-nav-usable-at-squeeze-width', async page=>{
-  // Founder walkthrough defect #16: the header was reduced from 11 items to 5 (js/nav.js
-  // PRIMARY_NAV) specifically because the previous progressive-reveal breakpoints shrank nav text
-  // to an unreadable 11px in the 1240-1439px band once enough items were showing. Regression-guard
-  // both the item count and a real usable minimum text size at exactly that width, not just that
-  // the header exists.
+  // Founder walkthrough defect #16 (original finding): the header was reduced from 11 items to 5
+  // because the previous progressive-reveal breakpoints shrank nav text to an unreadable 11px once
+  // enough items were showing. Phase 3 nav consolidation (2026-08-24) restored the founder-approved
+  // 11-item PRIMARY_NAV (js/nav.js, generated from data/nav-config.mjs) -- this regression-guards
+  // that the *original* fix (a real, readable minimum text size) held, without re-litigating the
+  // item count the founder has since explicitly approved.
   await open(page,'/');
-  // 5 flat PRIMARY_NAV items (js/nav.js) plus the single "FTN Ecosystem" mega-menu trigger = 6.
-  assert.equal(await page.locator('.site-nav__item').count(),6,'header nav item count changed from the founder-approved 5 flat items + Ecosystem trigger');
+  // 11 PRIMARY_NAV items (js/nav.js) plus the single "FTN Ecosystem" mega-menu trigger = 12.
+  assert.equal(await page.locator('.site-nav__item').count(),12,'header nav item count changed from the founder-approved 11 primary items + Ecosystem trigger');
   const homeNavFontPx=await page.locator('.site-nav__trigger').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
   assert(homeNavFontPx>=13,`homepage header nav text is ${homeNavFontPx}px, below a usable minimum at this width -- css/components/ecosystem-homepage-refinement.css .site-header--dark .site-nav__trigger--link had its own separate, unguarded 11px override`);
   // Sign In is deliberately hidden on the homepage itself (.ecosystem-home [data-sign-in-entry])
@@ -87,6 +88,19 @@ await scenario('header-nav-usable-at-squeeze-width', async page=>{
   assert(navFontPx>=13,`header nav text is ${navFontPx}px, below a usable minimum at this width`);
   const btnHeight=await page.locator('.site-header__actions .btn').first().evaluate(el=>el.getBoundingClientRect().height);
   assert(btnHeight>=28,`header Sign In control is ${btnHeight}px tall, below a usable minimum`);
+  // Restoring 11 items reintroduced real horizontal overflow at this width -- caught during this
+  // same pass via direct geometry inspection (a naive flex-shrink distribution let .site-nav__list
+  // swallow the whole header row, squeezing .site-header__actions to a literal 0x0 box and hiding
+  // Sign In entirely). Regression-guard that fix: the actions cluster must keep real, positive
+  // size and must never visually overlap the primary nav's own box.
+  const actionsBox=await page.locator('.site-header__actions').boundingBox();
+  assert(actionsBox && actionsBox.width>0 && actionsBox.height>0,'header actions (search/sign-in/menu) collapsed to zero size -- primary nav is swallowing the row again');
+  const navBox=await page.locator('.site-nav').boundingBox();
+  assert(navBox.x+navBox.width<=actionsBox.x+0.5,'primary nav visually overlaps the header actions cluster');
+  // The overflow itself must degrade to a horizontal scroll on the primary list, not a silently
+  // dropped item -- every configured primary link must still exist in the DOM even if not all are
+  // in view without scrolling.
+  assert.equal(await page.locator('.site-nav__list a').count(),11,'all 11 primary nav links must remain in the DOM (reachable by scroll/keyboard), not dropped to fit');
 }, {width:1300,height:900});
 
 await scenario('ibis-visual-and-handoff', async page=>{

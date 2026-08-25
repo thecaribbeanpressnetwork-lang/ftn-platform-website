@@ -32,6 +32,15 @@ jobs:
       - name: Audit Product Registry and private-route boundaries
         run: node tests/product-registry-audit.mjs
 
+      - name: Audit primary navigation drift (registry <-> nav-config <-> generated pages)
+        run: node tests/nav-registry-audit.mjs
+
+      - name: Check sitemap.xml matches the Product Registry
+        run: node scripts/generate-sitemap.mjs --check
+
+      - name: Check every page footer matches data/footer-config.mjs
+        run: node scripts/sync-footer.mjs --check
+
       - name: Audit visual asset manifest coverage
         run: node tests/asset-manifest-audit.mjs
 
