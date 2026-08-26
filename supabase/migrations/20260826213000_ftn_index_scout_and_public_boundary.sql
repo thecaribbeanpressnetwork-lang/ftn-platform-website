@@ -58,11 +58,35 @@ create policy "ftn_index_outreach_server_only" on public.ftn_index_outreach_queu
 create policy "ftn_index_runs_server_only" on public.ftn_index_scout_runs for all to anon, authenticated using (false) with check (false);
 create policy "ftn_index_settings_server_only" on public.ftn_index_internal_settings for all to anon, authenticated using (false) with check (false);
 
--- Public entities must have passed beyond provisional discovery state.
+-- Public entity/source/field/relationship reads require a non-provisional parent entity.
 drop policy if exists "ftn_index_public_entities_read" on public.ftn_index_entities;
 create policy "ftn_index_public_entities_read" on public.ftn_index_entities for select to anon, authenticated
   using (public_status in ('claimed','current','stale','disputed'));
 
+drop policy if exists "ftn_index_public_fields_read" on public.ftn_index_fields;
+create policy "ftn_index_public_fields_read" on public.ftn_index_fields for select to anon, authenticated
+  using (
+    visibility='public' and superseded_at is null and exists (
+      select 1 from public.ftn_index_entities e
+      where e.id=ftn_index_fields.entity_id and e.public_status in ('claimed','current','stale','disputed')
+    )
+  );
+
+drop policy if exists "ftn_index_public_sources_read" on public.ftn_index_sources;
+create policy "ftn_index_public_sources_read" on public.ftn_index_sources for select to anon, authenticated
+  using (exists (
+    select 1 from public.ftn_index_entities e
+    where e.id=ftn_index_sources.entity_id and e.public_status in ('claimed','current','stale','disputed')
+  ));
+
+drop policy if exists "ftn_index_public_relationships_read" on public.ftn_index_relationships;
+create policy "ftn_index_public_relationships_read" on public.ftn_index_relationships for select to anon, authenticated
+  using (
+    exists (select 1 from public.ftn_index_entities e where e.id=ftn_index_relationships.from_entity_id and e.public_status in ('claimed','current','stale','disputed'))
+    and exists (select 1 from public.ftn_index_entities e where e.id=ftn_index_relationships.to_entity_id and e.public_status in ('claimed','current','stale','disputed'))
+  );
+
+-- Preserve every existing view column in its prior order; append sources after updated_at.
 create or replace view public.ftn_index_public_entities
 with (security_invoker = true)
 as
@@ -78,8 +102,8 @@ select
     else 25
   end::integer as verification_freshness,
   coalesce((select jsonb_object_agg(f.field_key,f.value_json) from public.ftn_index_fields f where f.entity_id=e.id and f.visibility='public' and f.superseded_at is null),'{}'::jsonb) as fields,
-  coalesce((select jsonb_agg(jsonb_build_object('label',s.source_label,'type',s.source_type,'url',s.source_url,'observed_at',s.observed_at,'last_checked_at',s.last_checked_at) order by s.last_checked_at desc) from public.ftn_index_sources s where s.entity_id=e.id),'[]'::jsonb) as sources,
-  e.updated_at
+  e.updated_at,
+  coalesce((select jsonb_agg(jsonb_build_object('label',s.source_label,'type',s.source_type,'url',s.source_url,'observed_at',s.observed_at,'last_checked_at',s.last_checked_at) order by s.last_checked_at desc) from public.ftn_index_sources s where s.entity_id=e.id),'[]'::jsonb) as sources
 from public.ftn_index_entities e
 where e.public_status in ('claimed','current','stale','disputed');
 
@@ -145,8 +169,8 @@ end; $$;
 revoke all on function public.ftn_index_confirm_invitation(text,jsonb) from public,anon,authenticated;
 grant execute on function public.ftn_index_confirm_invitation(text,jsonb) to service_role;
 
--- Register the currently verified free-plan ceilings we can enforce locally. These are total
--- provider allowances, not a claim that current platform-wide usage is zero.
+-- Register verified free-plan ceilings. usage_value is a local measurement field and is not
+-- initialized as a claim about total platform-wide provider usage.
 insert into public.ftn_cost_guard(service_key,service_label,plan_name,free_limit,usage_value,usage_unit,founder_approved_paid,hard_stop_at_free_limit,estimated_next_cost,currency)
 values
  ('supabase_database','Supabase database size','free',500,0,'MB',false,true,25,'USD'),
