@@ -9,6 +9,8 @@ const claimMigration=read('supabase/migrations/20260826211000_ftn_index_claim_li
 const boundaryMigration=read('supabase/migrations/20260826213000_ftn_index_scout_and_public_boundary.sql');
 const schedulerMigration=read('supabase/migrations/20260826214000_ftn_index_scout_scheduler.sql');
 const bulkMigration=read('supabase/migrations/20260826215000_ftn_index_scout_bulk_ingest.sql');
+const qualityMigration=read('supabase/migrations/20260826220000_ftn_index_quality_gate.sql');
+const outreachGuardMigration=read('supabase/migrations/20260826220500_ftn_index_outreach_state_guard.sql');
 const fn=read('supabase/functions/ftn-index/index.ts');
 const scout=read('supabase/functions/ftn-index-scout/index.ts');
 const html=read('index/index.html');
@@ -36,6 +38,10 @@ check('scout-discovery-fields-internal',/visibility:\s*"internal"/.test(scout)||
 check('scout-uses-bulk-rpc',/ftn_index_ingest_scout_candidates/.test(scout)&&/jsonb_array_elements/.test(bulkMigration));
 check('scout-does-not-downgrade-confirmed',/public_status='provisional' then excluded/.test(bulkMigration));
 check('outreach-blocked-until-transport',/blocked_until_free_transport_is_approved/.test(scout)&&/blocked-transport/.test(bulkMigration));
+check('scout-quality-gate',/function qualityGate/.test(scout)&&/status:"pass"\|"review"\|"reject"/.test(scout));
+check('quality-stored-with-reasons',/quality_status/.test(qualityMigration)&&/quality_score/.test(qualityMigration)&&/quality_reasons/.test(qualityMigration));
+check('quality-pass-only-contactable',/v_quality_status='pass'/.test(qualityMigration)&&/v_contactable:=v_contactable\+1/.test(qualityMigration));
+check('human-optout-is-distinct',/do-not-contact.*human\/business opt-out/i.test(outreachGuardMigration)&&/status:='failed'/.test(outreachGuardMigration));
 check('daily-owned-scheduler',/cron\.schedule/.test(schedulerMigration)&&/pg_net/.test(schedulerMigration)&&/timeout_milliseconds := 60000/.test(schedulerMigration));
 check('public-page-canonical',/https:\/\/ftnplatform\.org\/index\//.test(html));
 check('public-page-free-correction-copy',/correct their own public record free/i.test(html));
