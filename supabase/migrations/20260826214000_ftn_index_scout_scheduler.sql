@@ -22,7 +22,8 @@ select cron.schedule(
           where setting_key='scout_cron_secret'
         )
       ),
-      body := '{}'::jsonb
+      body := '{}'::jsonb,
+      timeout_milliseconds := 60000
     );
   $job$
 );
