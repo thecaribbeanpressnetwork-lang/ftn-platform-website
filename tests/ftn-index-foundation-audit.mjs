@@ -41,7 +41,7 @@ check('outreach-blocked-until-transport',/blocked_until_free_transport_is_approv
 check('scout-quality-gate',/function qualityGate/.test(scout)&&/status:"pass"\|"review"\|"reject"/.test(scout));
 check('quality-stored-with-reasons',/quality_status/.test(qualityMigration)&&/quality_score/.test(qualityMigration)&&/quality_reasons/.test(qualityMigration));
 check('quality-pass-only-contactable',/v_quality_status='pass'/.test(qualityMigration)&&/v_contactable:=v_contactable\+1/.test(qualityMigration));
-check('human-optout-is-distinct',/do-not-contact.*human\/business opt-out/i.test(outreachGuardMigration)&&/status:='failed'/.test(outreachGuardMigration));
+check('human-optout-is-distinct',/new\.do_not_contact/.test(outreachGuardMigration)&&/new\.status:='do-not-contact'/.test(outreachGuardMigration)&&/new\.status:=case when new\.quality_status='pass' then 'blocked-transport' else 'failed' end/.test(outreachGuardMigration));
 check('daily-owned-scheduler',/cron\.schedule/.test(schedulerMigration)&&/pg_net/.test(schedulerMigration)&&/timeout_milliseconds := 60000/.test(schedulerMigration));
 check('public-page-canonical',/https:\/\/ftnplatform\.org\/index\//.test(html));
 check('public-page-free-correction-copy',/correct their own public record free/i.test(html));
