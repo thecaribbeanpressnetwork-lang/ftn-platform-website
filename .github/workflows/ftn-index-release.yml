@@ -1,0 +1,33 @@
+name: FTN Index Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ftn-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit FTN Index architecture, privacy and cost boundaries
+        run: node tests/ftn-index-foundation-audit.mjs
+      - name: Verify generated sitemap contract
+        run: node scripts/generate-sitemap.mjs --check
+      - name: Verify FTN Index page is a static release artifact
+        run: |
+          test -f index/index.html
+          test -f js/ftn-index-page.js
+          test -f js/ftn-index-schema.js
+          test -f css/components/ftn-index.css

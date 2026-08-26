@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://ftnplatform.org/</loc></url>
+  <url><loc>https://ftnplatform.org/index/</loc></url>
   <url><loc>https://ftnplatform.org/community-connect/</loc></url>
   <url><loc>https://ftnplatform.org/scenario-workspace/</loc></url>
   <url><loc>https://ftnplatform.org/govern/</loc></url>

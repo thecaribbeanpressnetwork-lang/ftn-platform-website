@@ -18,10 +18,11 @@ import { loadRegistry as loadRegistryShared } from './lib/registry-loader.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-// Non-product utility/legal pages: real, crawlable, but not "FTN products" and so correctly
-// absent from the Product Registry. Keeping this list explicit (rather than e.g. globbing every
-// index.html) means a genuinely private/vaulted page never accidentally ends up here.
+// Non-product utility/infrastructure/legal pages: real, crawlable, but not "FTN products" and so
+// correctly absent from the Product Registry. FTN Index is shared data infrastructure rather than
+// an isolated product, so its public discovery surface belongs here intentionally.
 const UTILITY_PAGES = [
+  '/index/',
   '/about/',
   '/applications/',
   '/clock/',
