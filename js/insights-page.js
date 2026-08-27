@@ -38,8 +38,17 @@
     }).join('');
   }
 
+  function renderCommunityTruth() {
+    var section = document.getElementById('community-reports');
+    if (!section) return;
+    var copy = section.querySelector('.chart-card > p:first-child');
+    if (copy) copy.textContent = 'Community Connect is now using its production public dataset here. FTN reports only the records that actually exist, excludes marked QA/test submissions, and does not infer an adoption trend or resolution rate until enough real history exists to support one.';
+    var link = section.querySelector('.chart-card .u-mt-16');
+    if (link) link.innerHTML = '<a href="/community-connect/">Open Community Connect &rarr;</a>';
+  }
+
   function renderPage() {
-    renderPatterns(); renderConnections();
+    renderCommunityTruth(); renderPatterns(); renderConnections();
     if (global.FTN.WhatChanged) global.FTN.WhatChanged.render('what-changed-mount');
   }
 
