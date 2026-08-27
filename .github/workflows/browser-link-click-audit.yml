@@ -1,0 +1,41 @@
+name: FTN Browser Link Click Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  click-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium harness
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0
+          npx playwright install chromium
+      - name: Start local production-equivalent static server
+        run: |
+          python3 -m http.server 3000 --bind 127.0.0.1 > /tmp/ftn-click-server.log 2>&1 &
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:3000/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ftn-click-server.log
+          exit 1
+      - name: Human-style browser click audit
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/browser-link-click-audit.mjs
