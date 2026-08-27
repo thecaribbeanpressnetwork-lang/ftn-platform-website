@@ -20,7 +20,7 @@ check('index-page-mobile-viewport',/name="viewport"\s+content="width=device-widt
 check('index-mobile-single-column',/@media\(max-width:760px\)[\s\S]*\.index-edit\{grid-template-columns:1fr\}/.test(css));
 check('index-mobile-full-width-confirm',/@media\(max-width:760px\)[\s\S]*\.index-edit button\{justify-self:stretch;width:100%;min-height:48px\}/.test(css));
 check('index-mobile-safe-shell-padding',/@media\(max-width:760px\)[\s\S]*\.index-shell\{padding-left:1rem;padding-right:1rem\}/.test(css));
-check('index-hero-binary-is-jpeg',hero.length>50000&&hero[0]===0xff&&hero[1]===0xd8&&hero[2]===0xff);
+check('index-hero-binary-is-complete-jpeg',hero.length>15000&&hero[0]===0xff&&hero[1]===0xd8&&hero[2]===0xff&&hero.at(-2)===0xff&&hero.at(-1)===0xd9);
 check('index-and-faq-share-hero',/\.index-hero,\.faq-hero\{/.test(strategyCss)&&/ftn-index-hero\.jpg/.test(strategyCss));
 check('index-hero-desktop-height-capped',/height:clamp\(190px,22vw,320px\)!important/.test(strategyCss));
 check('index-hero-mobile-height-capped',/height:clamp\(145px,42vw,205px\)!important/.test(strategyCss));
