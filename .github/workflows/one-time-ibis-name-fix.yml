@@ -14,25 +14,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Canonicalize registry source and generated footers
+      - name: Align audit with canonical ibis-ai identity and retire migration
         run: |
+          set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('js/product-registry-data.js')
+          p=Path('tests/product-registry-audit.mjs')
           s=p.read_text()
-          old="id:'ibis-ai',name:'FTN ibis',shortName:'ibis',tagline:'Ai powered by Caribbean intelligence.'"
-          new="id:'ibis-ai',name:'ibis-ai',shortName:'ibis-ai',tagline:'AI powered by Caribbean intelligence.'"
+          old="'FTN Community Connect','FTN Face The Nation','FTN ibis','FTN Invest-in'"
+          new="'FTN Community Connect','FTN Face The Nation','ibis-ai','FTN Invest-in'"
           if old not in s:
-              raise SystemExit('legacy ibis registry identity not found')
+              raise SystemExit('legacy FTN ibis audit assertion not found')
           p.write_text(s.replace(old,new,1))
           PY
-          node scripts/sync-footer.mjs
           node tests/product-registry-audit.mjs
           node scripts/sync-footer.mjs --check
           git config user.name 'FTN Release Bot'
           git config user.email 'actions@users.noreply.github.com'
           git rm .github/workflows/one-time-ibis-name-fix.yml
-          git add js/product-registry-data.js '*.html' '*/index.html' '*/*/index.html' || true
+          git add tests/product-registry-audit.mjs
           git diff --cached --check
-          git commit -m 'Finish canonical ibis-ai registry identity'
+          git commit -m 'Canonicalize ibis-ai audit identity and retire migration'
           git push origin HEAD:main
