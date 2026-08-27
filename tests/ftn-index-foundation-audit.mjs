@@ -40,7 +40,7 @@ check('outreach-disabled-by-default',/\('outreach_enabled','false'\)/.test(opera
 check('outreach-free-envelope',/3000/.test(outreach)&&/100/.test(outreach)&&/Cost Guard/.test(outreach)&&/resend-free/.test(operationsMigration));
 check('outreach-pass-pilot-only',/selected_for_pilot/.test(outreach)&&/quality_status","pass/.test(outreach)&&/do_not_contact",false/.test(outreach));
 check('outreach-token-created-at-send',/randomToken\(32\)/.test(outreach)&&/token_hash:tokenHash/.test(outreach)&&/revoked_at/.test(outreach));
-check('recipient-optout-service-role-only',/ftn_index_opt_out_invitation/.test(operationsMigration)&&/grant execute[\s\S]*to service_role/.test(operationsMigration)&&/claim-optout/.test(fn)&&/Do not contact this business again/.test(page));
+check('recipient-optout-backend-only',/ftn_index_opt_out_invitation/.test(operationsMigration)&&/grant execute[\s\S]*to service_role/.test(operationsMigration)&&/claim-optout/.test(fn)&&!/Do not contact this business again/.test(page));
 check('ops-delegates-existing-founder-auth',/ftn-owner-control/.test(ops)&&/action:"authorize"/.test(ops)&&/x-ftn-device-credential/.test(ops));
 check('ops-does-not-expose-scout-secret',!/scout_cron_secret/.test(ops));
 check('ops-duplicate-pilot-suppression',/duplicate_contact/.test(ops)&&/duplicate_domain/.test(ops)&&/duplicate contact\/domain records/i.test(ops));
