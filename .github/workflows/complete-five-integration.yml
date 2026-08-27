@@ -62,7 +62,7 @@ jobs:
           grep -q 'screen-festival-scout.js' screen/index.html
           grep -q 'opportunities-scout.js' opportunities/index.html
           grep -q 'nexus-memory.js' god-mode/index.html
-          ! grep -q 'ibis.ai' js/screen-workspace.js
+          ! grep -Fq 'ibis.ai' js/screen-workspace.js
       - name: Commit integrated surfaces
         run: |
           git config user.name "FTN Release Bot"
