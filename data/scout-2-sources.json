@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "verifiedAt": "2026-08-27",
+  "rules": {
+    "caribbeanFirst": true,
+    "officialSourcesPreferred": true,
+    "paidRecurringSearchAllowed": false,
+    "automaticProductCreation": false,
+    "founderApprovalRequired": true
+  },
+  "categories": ["MONEY","COMPETITOR","AWARD","ACCELERATOR","PROCUREMENT","PARTNER","PROBLEM","PRODUCT","DATA","CAPABILITY","ARCHITECTURE"],
+  "sources": [
+    {"id":"wsa","category":"AWARD","owner":"World Summit Awards","url":"https://wsa-global.org/","priority":"P0","geography":"GLOBAL/CARIBBEAN"},
+    {"id":"world-bank-lac-ai","category":"ACCELERATOR","owner":"World Bank","url":"https://www.worldbank.org/en/brief/2026/06/02/accelerator-lac","priority":"P0","geography":"LAC"},
+    {"id":"cdb-ciif","category":"MONEY","owner":"Caribbean Development Bank","url":"https://www.caribank.org/our-work/programmes/cultural-and-creative-industries-innovation-fund","priority":"P0","geography":"CARIBBEAN"},
+    {"id":"caricom-procurement","category":"PROCUREMENT","owner":"CARICOM Secretariat","url":"https://caricom.org/procurement-notices/","priority":"P0","geography":"CARIBBEAN"},
+    {"id":"caricom-statistics-opportunities","category":"PROCUREMENT","owner":"CARICOM Regional Statistics Programme","url":"https://statistics.caricom.org/?page_id=5876","priority":"P0","geography":"CARIBBEAN"},
+    {"id":"caribbean-export-opportunities","category":"MONEY","owner":"Caribbean Export Development Agency","url":"https://carib-export.com/en/opportunities","priority":"P0","geography":"CARIBBEAN"},
+    {"id":"idb-gobernarte","category":"AWARD","owner":"Inter-American Development Bank","url":"https://www.iadb.org/en/who-we-are/topics/modernization-state/initiatives/gobernarte","priority":"P0","geography":"LAC"},
+    {"id":"idb-techlab-caribbean","category":"PARTNER","owner":"Inter-American Development Bank","url":"https://www.iadb.org/en/news/idb-launches-techlab-strengthen-caribbean-digital-growth-and-innovation","priority":"P0","geography":"TRINIDAD AND TOBAGO/CARIBBEAN"},
+    {"id":"undp-sids-2","category":"PARTNER","owner":"UNDP Trinidad and Tobago","url":"https://www.undp.org/trinidad-and-tobago/sids-20-pioneering-digital-future-caribbean","priority":"P0","geography":"CARIBBEAN"},
+    {"id":"barbados-pearly","category":"COMPETITOR","owner":"Government Information Service Barbados","url":"https://gisbarbados.gov.bb/blog/governments-pearly-app-officially-launched/","priority":"P0","geography":"BARBADOS"},
+    {"id":"local-tt-wsa","category":"COMPETITOR","owner":"World Summit Awards","url":"https://wsa-global.org/winner/local-tt/","priority":"P0","geography":"TRINIDAD AND TOBAGO"}
+  ]
+}
