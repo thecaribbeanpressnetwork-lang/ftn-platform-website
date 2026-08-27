@@ -68,7 +68,7 @@
           var result = global.FTN.EntityMetadataEngine.createRecord('screen-submission', input);
           if (!result.valid) { output.innerHTML = global.FTN.WorkspaceShell.renderErrorsHTML(result.errors); return; }
           if (!form.authority.checked) { output.innerHTML = global.FTN.WorkspaceShell.renderErrorsHTML(['Confirm that you have authority to submit this title and trailer reference.']); return; }
-          result.record.intentInterpreter = 'ibis.ai';
+          result.record.intentInterpreter = 'ibis-ai';
           result.record.authorityConfirmed = true;
           result.record.attachedTrailer = attachedFile ? { name:attachedFile.name, type:attachedFile.type, size:attachedFile.size, transfer:'metadata-only-local-preview' } : null;
           renderRecord(result.record, api, output, fields, attachedFile, form);

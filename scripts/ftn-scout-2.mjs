@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const ROOT=process.cwd();
-const inputArg=process.argv.find((x)=>x.startsWith('--input='))?.slice(8)||'data/scout-2-findings-2026-08-27.json';
+const inputArg=process.argv.find((x)=>x.startsWith('--input='))?.slice(8)||'data/scout-2-current.json';
 const outArg=process.argv.find((x)=>x.startsWith('--out='))?.slice(6)||'reports/FTN_Scout_2_Latest.md';
 const jsonArg=process.argv.find((x)=>x.startsWith('--json='))?.slice(7)||outArg.replace(/\.md$/i,'.json');
 const selfTest=process.argv.includes('--self-test');
