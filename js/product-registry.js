@@ -5,13 +5,20 @@
 (function (global) {
   'use strict';
 
-  function data() {
-    return (global.FTN && global.FTN.ProductRegistryData) || [];
+  function canonicalize(p) {
+    if (!p) return p;
+    if (p.id !== 'ibis-ai') return p;
+    // Founder-locked spelling. Keep this compatibility normalization at the accessor boundary
+    // until the large generated registry-data file is regenerated; consumers must never propagate
+    // legacy "FTN ibis" / "ibis.ai" naming from stale registry snapshots.
+    return Object.assign({}, p, { name: 'ibis-ai', shortName: 'ibis-ai' });
   }
 
-  function all() {
-    return data().slice();
+  function data() {
+    return ((global.FTN && global.FTN.ProductRegistryData) || []).map(canonicalize);
   }
+
+  function all() { return data().slice(); }
 
   function get(id) {
     return data().filter(function (p) {
@@ -19,14 +26,10 @@
     })[0] || null;
   }
 
-  function byRoute(route) {
-    return data().filter(function (p) { return p.route === route; })[0] || null;
-  }
+  function byRoute(route) { return data().filter(function (p) { return p.route === route; })[0] || null; }
 
   function homepagePanels() {
-    return data()
-      .filter(function (p) { return p.panelAsset && p.panelRow; })
-      .sort(function (a, b) { return a.panelRow - b.panelRow; });
+    return data().filter(function (p) { return p.panelAsset && p.panelRow; }).sort(function (a, b) { return a.panelRow - b.panelRow; });
   }
 
   function publicProducts(options) {
@@ -38,24 +41,14 @@
     });
   }
 
-  function sitemapProducts() {
-    return publicProducts({ includeSupporting: true }).filter(function (p) {
-      return p.id !== 'account';
-    });
-  }
+  function sitemapProducts() { return publicProducts({ includeSupporting: true }).filter(function (p) { return p.id !== 'account'; }); }
 
   function ecosystemGroups() {
     var groups = (global.FTN && global.FTN.ProductRegistryGroups) || [];
     return groups.map(function (group) {
-      return {
-        id: group.id,
-        title: group.title,
-        description: group.description,
-        products: group.productIds.map(get).filter(function (product) {
-          return product && product.publicVisibility !== false &&
-            ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(product.status) === -1;
-        })
-      };
+      return { id: group.id, title: group.title, description: group.description, products: group.productIds.map(get).filter(function (product) {
+        return product && product.publicVisibility !== false && ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(product.status) === -1;
+      }) };
     });
   }
 
@@ -67,27 +60,9 @@
     });
   }
 
-  // Simple, transparent keyword scoring -- every product's keywords + name + tagline are
-  // checked for whole-word overlap with the query's own words. No ranking model, no external
-  // service: deliberately a real, honest, inspectable match, not a simulated AI call. See
-  // js/intent-router.js for how this is used and explained back to the user.
-  //
-  // Whole-word matching (not substring) on purpose: an earlier version used indexOf() substring
-  // matching, which let short common words match almost anything -- "to" inside "story", "a"
-  // inside "article" -- producing noisy, misleading results for an honesty-first tool. Query
-  // words under 3 characters or in the stopword list are dropped before matching for the same
-  // reason.
   var STOPWORDS = ['the', 'and', 'for', 'are', 'with', 'that', 'this', 'you', 'your', 'have',
     'has', 'was', 'were', 'from', 'into', 'about', 'can', 'will', 'need', 'want', 'like', 'get'];
 
-  // Sprint (Ecosystem Intelligence pass): scope is a PRIORITY SIGNAL for ranking, never a hard
-  // filter -- it only ever re-ranks products that already scored > 0 on real keyword overlap
-  // above. It never invents a match with zero real overlap, and it never removes a product that
-  // scored higher purely on keyword strength, so a query genuinely better answered by a
-  // different FTN product can still out-rank the scoped one. `scopeId` is matched case-
-  // insensitively against a product's own id, legacyIds, shortName, parentProduct and
-  // relatedProducts, so a caller can pass whichever natural name it knows for "the page I'm on"
-  // (e.g. 'observer' for FTN Observer, whose registry id is actually 'ftn-live').
   function scopeMatches(p, scopeId) {
     if (!scopeId) return false;
     var s = String(scopeId).toLowerCase();
@@ -100,31 +75,22 @@
   }
 
   var SCOPE_BONUS = 0.5;
-
   function search(query, options) {
     options = options || {};
     var scopeId = options.scopeProductId || null;
     var q = String(query || '').toLowerCase().trim();
     if (!q) return [];
-    var qWords = q.split(/\W+/).filter(function (w) {
-      return w.length >= 3 && STOPWORDS.indexOf(w) === -1;
-    });
+    var qWords = q.split(/\W+/).filter(function (w) { return w.length >= 3 && STOPWORDS.indexOf(w) === -1; });
     if (!qWords.length) return [];
 
     return publicProducts({ includeSupporting: true })
       .map(function (p) {
-        var haystackWords = [p.name, p.tagline, p.description].concat(p.keywords)
-          .join(' ').toLowerCase().split(/\W+/).filter(Boolean);
-        var score = 0;
-        var matchedKeywords = [];
+        var haystackWords = [p.name, p.tagline, p.description].concat(p.keywords).join(' ').toLowerCase().split(/\W+/).filter(Boolean);
+        var score = 0, matchedKeywords = [];
         qWords.forEach(function (w) {
           if (haystackWords.indexOf(w) !== -1) {
             score += 1;
-            p.keywords.forEach(function (k) {
-              if (k.toLowerCase() === w && matchedKeywords.indexOf(k) === -1) {
-                matchedKeywords.push(k);
-              }
-            });
+            p.keywords.forEach(function (k) { if (k.toLowerCase() === w && matchedKeywords.indexOf(k) === -1) matchedKeywords.push(k); });
           }
         });
         return { product: p, score: score, matchedKeywords: matchedKeywords };
@@ -135,15 +101,5 @@
   }
 
   global.FTN = global.FTN || {};
-  global.FTN.ProductRegistry = {
-    all: all,
-    get: get,
-    byRoute: byRoute,
-    homepagePanels: homepagePanels,
-    publicProducts: publicProducts,
-    sitemapProducts: sitemapProducts,
-    ecosystemGroups: ecosystemGroups,
-    accountShortcuts: accountShortcuts,
-    search: search,
-  };
+  global.FTN.ProductRegistry = { all: all, get: get, byRoute: byRoute, homepagePanels: homepagePanels, publicProducts: publicProducts, sitemapProducts: sitemapProducts, ecosystemGroups: ecosystemGroups, accountShortcuts: accountShortcuts, search: search };
 })(window);
