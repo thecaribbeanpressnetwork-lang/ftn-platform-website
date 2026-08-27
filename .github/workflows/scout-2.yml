@@ -1,0 +1,36 @@
+name: FTN Scout 2.0
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'scripts/ftn-scout-2.mjs'
+      - 'tests/ftn-scout-2-audit.mjs'
+      - 'data/scout-2-*.json'
+      - '.github/workflows/scout-2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  scout-2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Scout 2.0 decision gates
+        run: node tests/ftn-scout-2-audit.mjs
+      - name: Run Scout 2.0 against current verified intelligence
+        run: node scripts/ftn-scout-2.mjs --out=/tmp/FTN_Scout_2_Report.md --json=/tmp/FTN_Scout_2_Report.json
+      - name: Retain founder intelligence report
+        uses: actions/upload-artifact@v4
+        with:
+          name: FTN-Scout-2-Report
+          path: |
+            /tmp/FTN_Scout_2_Report.md
+            /tmp/FTN_Scout_2_Report.json
+          retention-days: 90
