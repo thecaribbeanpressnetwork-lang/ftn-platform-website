@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-27",
+  "policy": {
+    "llmCalls": false,
+    "paidApis": false,
+    "automaticApplications": false,
+    "automaticSpend": false,
+    "founderApprovalRequired": true
+  },
+  "keywords": [
+    "grant", "funding", "fund", "call for", "applications", "apply", "procurement",
+    "tender", "consultancy", "expression of interest", "eoi", "accelerator", "challenge",
+    "award", "innovation", "digital", "data", "statistics", "interoperable", "civic",
+    "citizen", "municipal", "local government", "creative industries", "culture",
+    "artificial intelligence", "ai", "Caribbean", "Trinidad and Tobago"
+  ],
+  "sources": [
+    {"id":"caricom-procurement","name":"CARICOM Procurement","url":"https://caricom.org/procurement/","class":"PROCUREMENT","priority":"P0"},
+    {"id":"cdb-ciif","name":"Caribbean Development Bank CIIF","url":"https://www.caribank.org/our-work/programmes/cultural-and-creative-industries-innovation-fund","class":"MONEY","priority":"P0"},
+    {"id":"cdb-procurement","name":"Caribbean Development Bank Procurement","url":"https://www.caribank.org/work-with-us/procurement","class":"PROCUREMENT","priority":"P1"},
+    {"id":"world-bank-lac","name":"World Bank Latin America and Caribbean","url":"https://www.worldbank.org/en/region/lac","class":"ACCELERATOR","priority":"P1"},
+    {"id":"idb-caribbean","name":"Inter-American Development Bank Caribbean","url":"https://www.iadb.org/en/where-we-work/caribbean","class":"PARTNER","priority":"P1"},
+    {"id":"undp-tt","name":"UNDP Trinidad and Tobago","url":"https://www.undp.org/trinidad-and-tobago","class":"PARTNER","priority":"P1"},
+    {"id":"caribbean-export","name":"Caribbean Export Development Agency","url":"https://carib-export.com/","class":"MONEY","priority":"P1"},
+    {"id":"wsa-global","name":"World Summit Awards","url":"https://wsa-global.org/","class":"COMPETITOR","priority":"P2"},
+    {"id":"gis-barbados","name":"Government of Barbados GIS","url":"https://gisbarbados.gov.bb/blog/","class":"COMPETITOR","priority":"P2"}
+  ]
+}
