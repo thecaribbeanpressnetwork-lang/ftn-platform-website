@@ -13,7 +13,7 @@ check('email-long-values-wrap',/word-break:break-word/.test(outreach));
 check('email-full-width-touch-cta',/display:block;box-sizing:border-box;width:100%/.test(outreach)&&/text-align:center/.test(outreach));
 check('email-missing-fields-visible',/\[Not found\]/.test(outreach));
 check('email-platform-social-fields',/instagram:"Instagram"/.test(outreach)&&/facebook:"Facebook"/.test(outreach)&&/tiktok:"TikTok"/.test(outreach)&&/x:"X"/.test(outreach)&&/youtube:"YouTube"/.test(outreach));
-check('index-page-mobile-viewport',/name="viewport" content="width=device-width, initial-scale=1\.0"/.test(html));
+check('index-page-mobile-viewport',/name="viewport"\s+content="width=device-width,\s*initial-scale=1(?:\.0)?"/.test(html));
 check('index-mobile-single-column',/@media\(max-width:760px\)[\s\S]*\.index-edit\{grid-template-columns:1fr\}/.test(css));
 check('index-mobile-full-width-confirm',/@media\(max-width:760px\)[\s\S]*\.index-edit button\{justify-self:stretch;width:100%;min-height:48px\}/.test(css));
 check('index-mobile-safe-shell-padding',/@media\(max-width:760px\)[\s\S]*\.index-shell\{padding-left:1rem;padding-right:1rem\}/.test(css));
