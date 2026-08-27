@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 
 const BASE = process.env.FTN_TEST_BASE || 'http://127.0.0.1:3000';
 const ROOT = process.cwd();
-const SKIP_DIRS = new Set(['.git', 'node_modules', 'test-artifacts', 'ux-guardian-report']);
+const SKIP_DIRS = new Set(['.git', '.github', 'node_modules', 'tests', 'scripts', 'test-artifacts', 'ux-guardian-report', 'GOVERNANCE']);
 
 async function htmlFiles(dir = ROOT) {
   const out = [];
@@ -28,95 +28,102 @@ function routeFor(file) {
 function normalizeHref(href, sourceUrl) {
   if (!href) return null;
   const raw = href.trim();
-  if (!raw || raw.startsWith('javascript:') || raw.startsWith('data:') || raw.startsWith('blob:')) return null;
-  if (raw.startsWith('mailto:') || raw.startsWith('tel:')) return { kind: 'protocol', raw };
-  try {
-    return { kind: 'url', raw, url: new URL(raw, sourceUrl) };
-  } catch {
-    return { kind: 'invalid', raw };
-  }
+  if (!raw) return null;
+  if (/^(javascript:|data:|blob:)/i.test(raw)) return { kind: 'unsafe', raw };
+  if (/^(mailto:|tel:)/i.test(raw)) return { kind: 'protocol', raw };
+  try { return { kind: 'url', raw, url: new URL(raw, sourceUrl) }; }
+  catch { return { kind: 'invalid', raw }; }
 }
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1365, height: 900 } });
 const failures = [];
 const pages = (await htmlFiles()).map(routeFor).sort();
-let clicked = 0;
+const clickTargets = new Map();
+let renderedAnchors = 0;
 let protocolLinks = 0;
 
+// Pass 1: open every deployable HTML surface and validate every rendered anchor definition.
 for (const route of pages) {
-  const discovery = await context.newPage();
+  const page = await context.newPage();
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(e.message));
   try {
-    const response = await discovery.goto(BASE + route, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const response = await page.goto(BASE + route, { waitUntil: 'domcontentloaded', timeout: 30000 });
     assert(response && response.ok(), `${route} returned ${response?.status()}`);
-    await discovery.waitForTimeout(120);
-
-    const links = await discovery.locator('a[href]').evaluateAll((nodes) => {
-      const seen = new Set();
-      return nodes.map((a) => ({ href: a.getAttribute('href') || '', target: a.getAttribute('target') || '', text: (a.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120) }))
-        .filter((x) => x.href && !seen.has(x.href) && seen.add(x.href));
-    });
-
-    for (const link of links) {
-      const parsed = normalizeHref(link.href, BASE + route);
+    await page.waitForTimeout(100);
+    const anchors = await page.locator('a[href]').evaluateAll(nodes => nodes.map((a, index) => ({
+      index,
+      href: a.getAttribute('href') || '',
+      target: a.getAttribute('target') || '',
+      text: (a.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120)
+    })));
+    renderedAnchors += anchors.length;
+    for (const anchor of anchors) {
+      const parsed = normalizeHref(anchor.href, BASE + route);
       if (!parsed) continue;
-      if (parsed.kind === 'invalid') {
-        failures.push(`${route}: invalid href ${link.href}`);
-        continue;
-      }
+      if (parsed.kind === 'unsafe') { failures.push(`${route}: unsafe/non-navigable href ${anchor.href}`); continue; }
+      if (parsed.kind === 'invalid') { failures.push(`${route}: invalid href ${anchor.href}`); continue; }
       if (parsed.kind === 'protocol') {
-        assert(/^(mailto|tel):[^\s]+$/i.test(parsed.raw), `${route}: malformed ${parsed.raw}`);
-        protocolLinks += 1;
+        if (!/^(mailto|tel):[^\s]+$/i.test(parsed.raw)) failures.push(`${route}: malformed ${parsed.raw}`);
+        else protocolLinks += 1;
         continue;
       }
-
-      const source = await context.newPage();
-      const pageErrors = [];
-      source.on('pageerror', (e) => pageErrors.push(e.message));
-      try {
-        const start = await source.goto(BASE + route, { waitUntil: 'domcontentloaded', timeout: 45000 });
-        assert(start && start.ok(), `${route} reload returned ${start?.status()}`);
-        await source.waitForTimeout(80);
-
-        const locator = source.locator(`a[href=${JSON.stringify(link.href)}]`).first();
-        assert(await locator.count(), `${route}: rendered link disappeared: ${link.href}`);
-
-        const targetBlank = (await locator.getAttribute('target')) === '_blank';
-        if (targetBlank) {
-          const popupPromise = context.waitForEvent('page', { timeout: 7000 }).catch(() => null);
-          await locator.click({ timeout: 7000, force: true });
-          const popup = await popupPromise;
-          assert(popup, `${route}: target=_blank link did not open: ${link.href}`);
-          await popup.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
-          assert(!popup.url().startsWith('chrome-error://'), `${route}: browser error opening ${link.href}`);
-          await popup.close();
-        } else {
-          const before = source.url();
-          await locator.click({ timeout: 7000, force: true });
-          await source.waitForTimeout(180);
-          const after = source.url();
-          const expectedHashOnly = parsed.url.origin === new URL(before).origin && parsed.url.pathname === new URL(before).pathname && parsed.url.hash;
-          assert(after !== before || expectedHashOnly, `${route}: click produced no navigation/state change: ${link.href}`);
-          assert(!after.startsWith('chrome-error://'), `${route}: browser error opening ${link.href}`);
-          if (after.startsWith(BASE)) {
-            const body = (await source.locator('body').innerText().catch(() => '')).trim();
-            assert(body.length > 20, `${route}: internal destination appears blank: ${link.href}`);
-          }
-        }
-        if (pageErrors.length) throw new Error(`page error after ${link.href}: ${pageErrors.join(' | ')}`);
-        clicked += 1;
-      } catch (e) {
-        failures.push(`${route} -> ${link.href}${link.text ? ` [${link.text}]` : ''}: ${e.message}`);
-      } finally {
-        await source.close().catch(() => {});
-      }
+      // Absolute URL is the interaction identity. Hash links on different source pages remain distinct,
+      // while repeated global footer/nav destinations are clicked once after every occurrence is validated.
+      const key = parsed.url.href;
+      if (!clickTargets.has(key)) clickTargets.set(key, { route, href: anchor.href, target: anchor.target, text: anchor.text, url: parsed.url });
     }
-    console.log(`CLICK PAGE PASS ${route} (${links.length} unique hrefs discovered)`);
+    if (pageErrors.length) failures.push(`${route}: page error during discovery: ${pageErrors.join(' | ')}`);
+    console.log(`ANCHOR PAGE PASS ${route} (${anchors.length} rendered anchors)`);
   } catch (e) {
     failures.push(`${route}: ${e.message}`);
-  } finally {
-    await discovery.close().catch(() => {});
-  }
+  } finally { await page.close().catch(() => {}); }
+}
+
+// Pass 2: physically click every unique destination/action in Chromium from a real source page.
+let clicked = 0;
+for (const target of clickTargets.values()) {
+  const page = await context.newPage();
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(e.message));
+  try {
+    const start = await page.goto(BASE + target.route, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    assert(start && start.ok(), `${target.route} reload returned ${start?.status()}`);
+    await page.waitForTimeout(80);
+    const matches = page.locator(`a[href=${JSON.stringify(target.href)}]`);
+    assert(await matches.count(), `${target.route}: rendered link disappeared: ${target.href}`);
+    let locator = matches.first();
+    for (let i = 0; i < await matches.count(); i++) {
+      if (await matches.nth(i).isVisible().catch(() => false)) { locator = matches.nth(i); break; }
+    }
+    const before = page.url();
+    const targetBlank = (await locator.getAttribute('target')) === '_blank';
+    if (targetBlank) {
+      const popupPromise = context.waitForEvent('page', { timeout: 3500 }).catch(() => null);
+      await locator.click({ timeout: 5000, force: true });
+      const popup = await popupPromise;
+      assert(popup, `${target.route}: target=_blank link did not open: ${target.href}`);
+      await popup.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+      assert(!popup.url().startsWith('chrome-error://'), `${target.route}: browser error opening ${target.href}`);
+      await popup.close();
+    } else {
+      await locator.click({ timeout: 5000, force: true });
+      await page.waitForTimeout(120);
+      const after = page.url();
+      const expectedHashOnly = target.url.origin === new URL(before).origin && target.url.pathname === new URL(before).pathname && target.url.hash;
+      assert(after !== before || expectedHashOnly, `${target.route}: click produced no navigation/state change: ${target.href}`);
+      assert(!after.startsWith('chrome-error://'), `${target.route}: browser error opening ${target.href}`);
+      if (after.startsWith(BASE)) {
+        const body = (await page.locator('body').innerText().catch(() => '')).trim();
+        assert(body.length > 20, `${target.route}: internal destination appears blank: ${target.href}`);
+      }
+    }
+    if (pageErrors.length) throw new Error(`page error after ${target.href}: ${pageErrors.join(' | ')}`);
+    clicked += 1;
+  } catch (e) {
+    failures.push(`${target.route} -> ${target.href}${target.text ? ` [${target.text}]` : ''}: ${e.message}`);
+  } finally { await page.close().catch(() => {}); }
 }
 
 await context.close();
@@ -124,7 +131,7 @@ await browser.close();
 
 if (failures.length) {
   console.error(`\nBrowser link-click audit failed with ${failures.length} issue(s):`);
-  for (const f of failures) console.error(' - ' + f);
+  failures.forEach(f => console.error(' - ' + f));
   process.exit(1);
 }
-console.log(`\nBrowser link-click audit passed: ${pages.length} HTML surfaces, ${clicked} browser-clicked links, ${protocolLinks} validated mail/tel links.`);
+console.log(`\nBrowser link-click audit passed: ${pages.length} deployable HTML surfaces, ${renderedAnchors} rendered anchors validated, ${clicked} unique browser-clicked destinations/actions, ${protocolLinks} mail/tel links validated.`);
