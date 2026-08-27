@@ -3,7 +3,7 @@
 var URL='https://jshmidfpqrajxtukzges.supabase.co',KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
 var state={session:null,summary:null,mapData:null,national:null,nationalPromise:null,map:null,mapLayer:null,mapMarkers:{},categoryOptions:[]};
 var $=function(id){return document.getElementById(id);};
-var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});};
+var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'})[c];});};
 var iso=function(days){return new Date(Date.now()+days*86400000).toISOString().slice(0,10);};
 function num(v){return Number(v||0).toLocaleString();}
 function list(id,items,render,empty){$(id).innerHTML=(items||[]).map(function(x){return '<li>'+render(x)+'</li>';}).join('')||'<li>'+esc(empty)+'</li>';}
@@ -71,10 +71,12 @@ async function refresh(){
   var f=filters(),results=await Promise.all([rpc('mayor_dashboard_summary_v2',f),rpc('mayor_map_data',f),national()]);
   state.summary=Array.isArray(results[0])?results[0][0]:results[0];state.mapData=Array.isArray(results[1])?results[1][0]:results[1];
   renderSummary(state.summary,results[2]);renderMap(state.mapData);status.textContent='Community picture updated from current authorized data.';
- }catch(e){status.textContent='The protected Mayor data did not finish loading. Refresh to try again.';}
+  return true;
+ }catch(e){status.textContent='The protected Mayor data did not finish loading. Refresh to try again.';return false;}
 }
-function brief(){
- if(!state.summary)return refresh().then(brief);var d=state.summary,t=d.totals||{},n=state.national,current=n.crime.current||{},fx=n.latestFx||{};
+async function brief(){
+ if(!state.summary){var loaded=await refresh();if(!loaded||!state.summary){$('mayorStatus').textContent='A Mayor brief cannot be generated until the authorized community data loads successfully.';return;}}
+ var d=state.summary,t=d.totals||{},n=state.national,current=n.crime.current||{},fx=n.latestFx||{};
  $('mayorBriefPanel').hidden=false;
  $('mayorBriefBody').textContent=(d.community||'All communities')+' · '+(d.category||'All categories')+' · '+(d.status||'All statuses')+' · '+new Date(d.period.from).toLocaleDateString()+'–'+new Date(d.period.to).toLocaleDateString()+'\n\n'+num(t.reports)+' Community Connect reports: '+num(t.open)+' open and '+num(t.resolved)+' resolved.\n\nPriority signals: '+((d.correlations||[]).map(function(x){return x.signal+' ('+x.count+')';}).join('; ')||'No repeated category signals in this period.')+'\n\nNational context: TTPS current-year reported murders '+num(current.reported)+' (retrieved '+(current.asOf||'not stated')+'). CSO historical reported murders '+num(n.latestHistorical.reported)+' in '+n.latestHistorical.year+'. Central Bank monthly TT$/US$ selling rate '+Number(fx.usdSelling||0).toFixed(4)+' for '+(fx.period||'not stated')+'.\n\nMethod: Community Connect figures are authorized aggregate reports for the selected filters and period. Map coordinates are generalized to 3 decimals. National indicators are separately sourced context and are not combined to infer causation.';
  $('mayorBriefPanel').scrollIntoView({behavior:'smooth',block:'start'});
