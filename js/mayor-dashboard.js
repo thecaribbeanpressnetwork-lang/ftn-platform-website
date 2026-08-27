@@ -3,7 +3,7 @@
 var URL='https://jshmidfpqrajxtukzges.supabase.co',KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
 var state={session:null,summary:null,mapData:null,national:null,nationalPromise:null,map:null,mapLayer:null,mapMarkers:{},categoryOptions:[]};
 var $=function(id){return document.getElementById(id);};
-var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'})[c];});};
+var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});};
 var iso=function(days){return new Date(Date.now()+days*86400000).toISOString().slice(0,10);};
 function num(v){return Number(v||0).toLocaleString();}
 function list(id,items,render,empty){$(id).innerHTML=(items||[]).map(function(x){return '<li>'+render(x)+'</li>';}).join('')||'<li>'+esc(empty)+'</li>';}
