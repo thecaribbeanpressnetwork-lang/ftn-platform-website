@@ -1,5 +1,6 @@
 name: One-time FTN five-bucket integration
 
+# Triggered after the workflow existed on main so GitHub evaluates this one-time integration.
 on:
   push:
     branches: [ main ]
