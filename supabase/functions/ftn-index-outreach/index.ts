@@ -1,0 +1,77 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.112.2";
+
+function reply(body:unknown,status=200){return new Response(JSON.stringify(body),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});}
+async function sha256(value:string){const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");}
+function randomToken(bytes=32){const a=crypto.getRandomValues(new Uint8Array(bytes));let s="";for(const x of a)s+=String.fromCharCode(x);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");}
+function text(v:unknown){if(v===null||v===undefined)return"";return typeof v==="string"?v:String(v);}
+function esc(v:string){return v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]||c));}
+
+Deno.serve(async req=>{
+  if(req.method!=="POST")return reply({ok:false,error:"Method not allowed"},405);
+  const url=Deno.env.get("SUPABASE_URL")||"",service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
+  if(!url||!service)return reply({ok:false,error:"Outreach unavailable"},503);
+  const db=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
+  const supplied=req.headers.get("x-ftn-index-outreach-secret")||"";
+  const{data:secret}=await db.from("ftn_index_internal_settings").select("setting_value").eq("setting_key","outreach_internal_secret").maybeSingle();
+  if(!secret?.setting_value||supplied!==secret.setting_value)return reply({ok:false,error:"Unauthorized"},401);
+  let body:any={};try{body=await req.json();}catch{return reply({ok:false,error:"Invalid request"},400);}
+  if(body.action!=="send-selected-pilot")return reply({ok:false,error:"Unknown action"},400);
+
+  const [{data:enabled},{data:transport},{data:maxRow}]=await Promise.all([
+    db.from("ftn_index_internal_settings").select("setting_value").eq("setting_key","outreach_enabled").maybeSingle(),
+    db.from("ftn_index_internal_settings").select("setting_value").eq("setting_key","outreach_transport").maybeSingle(),
+    db.from("ftn_index_internal_settings").select("setting_value").eq("setting_key","pilot_max_batch").maybeSingle()
+  ]);
+  if(enabled?.setting_value!=="true")return reply({ok:false,error:"Outreach disabled"},409);
+  if(transport?.setting_value!=="resend")return reply({ok:false,error:"Approved transport unavailable"},409);
+  const apiKey=Deno.env.get("FTN_INDEX_RESEND_API_KEY")||"",from=Deno.env.get("FTN_INDEX_FROM_EMAIL")||"";
+  if(!apiKey||!from)return reply({ok:false,error:"Resend transport is not configured"},409);
+
+  const now=new Date(),monthStart=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),1)).toISOString(),dayStart=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate())).toISOString();
+  const [{count:monthSent},{count:daySent}]=await Promise.all([
+    db.from("ftn_index_outreach_events").select("id",{head:true,count:"exact"}).eq("event_type","sent").gte("created_at",monthStart),
+    db.from("ftn_index_outreach_events").select("id",{head:true,count:"exact"}).eq("event_type","sent").gte("created_at",dayStart)
+  ]);
+  const max=Math.max(1,Math.min(5,Number(maxRow?.setting_value)||5));
+  if((monthSent||0)>=3000)return reply({ok:false,error:"FTN Cost Guard: monthly free email limit reached"},429);
+  if((daySent||0)>=100)return reply({ok:false,error:"FTN Cost Guard: daily free email limit reached"},429);
+
+  const{data:queues,error:qError}=await db.from("ftn_index_outreach_queue").select("id,entity_id,public_contact_field_id,status,quality_status,quality_score,do_not_contact,selected_for_pilot").eq("selected_for_pilot",true).eq("status","blocked-transport").eq("quality_status","pass").eq("do_not_contact",false).order("quality_score",{ascending:false}).limit(max);
+  if(qError)return reply({ok:false,error:"Pilot queue unavailable"},500);
+  if(!(queues||[]).length)return reply({ok:false,error:"No approved pilot records are selected"},409);
+  if((daySent||0)+(queues||[]).length>100||(monthSent||0)+(queues||[]).length>3000)return reply({ok:false,error:"FTN Cost Guard would exceed the free email envelope"},429);
+
+  const entityIds=(queues||[]).map((q:any)=>q.entity_id),fieldIds=(queues||[]).map((q:any)=>q.public_contact_field_id).filter(Boolean);
+  const [{data:entities},{data:contacts}]=await Promise.all([
+    db.from("ftn_index_entities").select("id,ftn_id,display_name,slug,territory_code,category,public_status").in("id",entityIds),
+    db.from("ftn_index_fields").select("id,entity_id,field_key,value_json,provenance_type,superseded_at").in("id",fieldIds)
+  ]);
+  const em=new Map((entities||[]).map((x:any)=>[x.id,x])),fm=new Map((contacts||[]).map((x:any)=>[x.id,x]));
+  const batch=`pilot-${now.toISOString().replace(/[:.]/g,"-")}`;const results:any[]=[];
+
+  for(const q of queues||[]){
+    const entity:any=em.get(q.entity_id),contact:any=fm.get(q.public_contact_field_id);const email=text(contact?.value_json).trim().toLowerCase();
+    if(!entity||entity.public_status!=="provisional"||contact?.field_key!=="email"||contact?.superseded_at||!email.includes("@")){
+      await db.from("ftn_index_outreach_queue").update({status:"failed",last_error_code:"pilot_record_invalid",selected_for_pilot:false,updated_at:new Date().toISOString()}).eq("id",q.id);
+      await db.from("ftn_index_outreach_events").insert({entity_id:q.entity_id,outreach_queue_id:q.id,event_type:"send-failed",provider:"resend",metadata:{error:"pilot_record_invalid"}});results.push({ftn_id:entity?.ftn_id||null,ok:false,error:"pilot_record_invalid"});continue;
+    }
+    const rawToken=randomToken(32),tokenHash=await sha256(rawToken),contactHash=await sha256(email),expires=new Date(Date.now()+14*86400000).toISOString();
+    const{data:invite,error:inviteError}=await db.from("ftn_index_claim_invitations").insert({entity_id:q.entity_id,public_contact_hash:contactHash,token_hash:tokenHash,expires_at:expires,outreach_batch:batch}).select("id").single();
+    if(inviteError||!invite){results.push({ftn_id:entity.ftn_id,ok:false,error:"invitation_create_failed"});continue;}
+    const claimUrl=`https://ftnplatform.org/index/?claim=${encodeURIComponent(rawToken)}`;
+    const subject=`Review ${entity.display_name} in FTN Index`;
+    const html=`<!doctype html><html><body style="font-family:Arial,sans-serif;background:#0b0b0c;color:#f5f5f5;padding:24px"><div style="max-width:620px;margin:auto;background:#141416;border:1px solid #2a2a2d;border-radius:16px;padding:28px"><div style="font-weight:800;letter-spacing:.08em;color:#E10613">FTN INDEX</div><h1 style="font-size:24px">Review the public information we found for ${esc(entity.display_name)}.</h1><p>FTN Index is building a structured Caribbean knowledge layer for people, search systems and AI agents. We found public business information for your organization and would like you to review it.</p><p><strong>There is no charge to correct or confirm factual information.</strong></p><p><a href="${claimUrl}" style="display:inline-block;background:#E10613;color:white;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700">Review ${esc(entity.display_name)}</a></p><p style="font-size:13px;color:#b9b9bd">The link expires in 14 days. FTN confirmation means the organization recently reviewed its indexed public information; it is not an endorsement or safety rating.</p><p style="font-size:13px;color:#b9b9bd">If you do not want FTN to contact this business again, the review page includes a do-not-contact option.</p><p style="font-size:12px;color:#8e8e93">FTN Platform · Caribbean digital infrastructure · ftnplatform.org</p></div></body></html>`;
+    await db.from("ftn_index_outreach_events").insert({entity_id:q.entity_id,outreach_queue_id:q.id,invitation_id:invite.id,event_type:"send-attempted",provider:"resend",metadata:{batch}});
+    const r=await fetch("https://api.resend.com/emails",{method:"POST",headers:{"authorization":`Bearer ${apiKey}`,"content-type":"application/json"},body:JSON.stringify({from,to:[email],subject,html})});const data=await r.json().catch(()=>({}));
+    if(!r.ok||!data?.id){
+      await db.from("ftn_index_claim_invitations").update({revoked_at:new Date().toISOString()}).eq("id",invite.id);
+      await db.from("ftn_index_outreach_queue").update({status:"failed",last_attempt_at:new Date().toISOString(),last_error_code:`resend_${r.status}`,updated_at:new Date().toISOString()}).eq("id",q.id);
+      await db.from("ftn_index_outreach_events").insert({entity_id:q.entity_id,outreach_queue_id:q.id,invitation_id:invite.id,event_type:"send-failed",provider:"resend",metadata:{status:r.status}});results.push({ftn_id:entity.ftn_id,ok:false,error:`resend_${r.status}`});continue;
+    }
+    const sentAt=new Date().toISOString();await db.from("ftn_index_outreach_queue").update({status:"invited",transport_key:"resend",external_message_id:data.id,last_attempt_at:sentAt,invited_at:sentAt,last_error_code:null,selected_for_pilot:false,updated_at:sentAt}).eq("id",q.id);
+    await db.from("ftn_index_outreach_events").insert({entity_id:q.entity_id,outreach_queue_id:q.id,invitation_id:invite.id,event_type:"sent",provider:"resend",external_message_id:data.id,metadata:{batch}});results.push({ftn_id:entity.ftn_id,ok:true});
+  }
+  const sent=results.filter(x=>x.ok).length;await db.from("ftn_cost_guard").update({usage_value:(monthSent||0)+sent,last_checked_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("service_key","ftn_index_email_transport");
+  return reply({ok:true,batch,attempted:results.length,sent,failed:results.length-sent,results});
+});
