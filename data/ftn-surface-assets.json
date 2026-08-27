@@ -1,7 +1,7 @@
 {
-  "version": "2.5.0",
+  "version": "2.5.1",
   "verified": "2026-08-27",
-  "policy": "Directory panels and approved composite boards are reference-only. Only explicit heroAsset entries may render in the shared workspace hero. FTN Index brand assets are founder-approved owned SVG geometry.",
+  "policy": "Directory panels and approved composite boards are reference-only. Only explicit approved production assets may render. The founder-locked FTN Index raster master is the authoritative visual source of truth; SVG marks are implementation derivatives and must not redefine, redraw or substitute the locked identity.",
   "surfaces": [
     {
       "productId": "platform-home",
@@ -15,8 +15,21 @@
       "safeArea": "Desktop visual master; live text remains HTML and the approved map/ibis region is protected across breakpoints",
       "approvedForProduction": true
     },
-    {"productId":"ftn-index","reference":"founder-approved golden spiral FTN Index brand direction","productionAsset":"/assets/logos/ftn-index-lockup.svg","source":"FTN-owned SVG geometry derived from founder-approved FTN Index brand direction","license":"FTN-owned original vector mark","dimensions":"1180x320 SVG viewBox","desktopFocalPoint":"50% 50%","mobileFocalPoint":"50% 50%","approvedForProduction":true},
-    {"productId":"ftn-index-mark","reference":"founder-approved golden spiral FTN Index brand direction","productionAsset":"/assets/logos/ftn-index-mark.svg","source":"FTN-owned SVG geometry combining golden spiral, ibis and knowledge nodes","license":"FTN-owned original vector mark","dimensions":"512x512 SVG viewBox","desktopFocalPoint":"50% 50%","mobileFocalPoint":"50% 50%","approvedForProduction":true},
+    {
+      "productId":"ftn-index-locked-master",
+      "reference":"founder-locked FTN Index golden spiral identity",
+      "productionAsset":"/assets/logos/ftn-index-locked-master.png",
+      "source":"Exact crop from founder-locked FTN Index brand master supplied 2026-08-27",
+      "license":"FTN-owned approved brand master",
+      "dimensions":"1025x430 PNG",
+      "fileHashSha256":"3d1d28847bc63b917dfae1a950757d30d1eacae3177f9c0fb7191f859d904f9b",
+      "desktopFocalPoint":"50% 50%",
+      "mobileFocalPoint":"50% 50%",
+      "safeArea":"Preserve the full spiral/ibis/network symbol and FTN INDEX wordmark; do not crop into the mark, recolor, redraw, replace the ibis, or reinterpret the composition.",
+      "approvedForProduction":true
+    },
+    {"productId":"ftn-index","reference":"implementation derivative of the founder-locked raster master","productionAsset":"/assets/logos/ftn-index-lockup.svg","source":"FTN-owned SVG derivative retained only for small/vector contexts; the locked PNG remains authoritative","license":"FTN-owned implementation derivative","dimensions":"1180x320 SVG viewBox","desktopFocalPoint":"50% 50%","mobileFocalPoint":"50% 50%","approvedForProduction":true},
+    {"productId":"ftn-index-mark","reference":"implementation derivative of the founder-locked raster master","productionAsset":"/assets/logos/ftn-index-mark.svg","source":"FTN-owned simplified SVG derivative retained only where a compact vector icon is required; it must not replace the locked master in flagship identity surfaces","license":"FTN-owned implementation derivative","dimensions":"512x512 SVG viewBox","desktopFocalPoint":"50% 50%","mobileFocalPoint":"50% 50%","approvedForProduction":true},
     {"productId":"community-connect","reference":"approved page reference board","productionAsset":"/assets/heroes/community-connect-report.webp","source":"High-resolution parent scene generated from the founder-approved Community Connect reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"66% 50%","approvedForProduction":true},
     {"productId":"screen","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-screen-film-crew.webp","source":"High-resolution parent scene generated from the founder-approved FTN Screen reference","dimensions":"1600x900 WebP","desktopFocalPoint":"66% 50%","mobileFocalPoint":"64% 50%","approvedForProduction":true},
     {"productId":"tv","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-tv-control-room.webp","source":"High-resolution parent scene generated from the founder-approved FTN TV reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"62% 50%","approvedForProduction":true},
