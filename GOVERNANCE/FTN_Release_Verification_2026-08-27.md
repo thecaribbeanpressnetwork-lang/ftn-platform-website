@@ -1,6 +1,6 @@
 # FTN Release Verification — 2026-08-27
 
-Purpose: establish the final human-authored verification checkpoint after the `ibis-ai` canonical naming work, public-surface corrections, and Events interaction repair completed and their one-time migration workflows retired.
+Purpose: establish the final human-authored verification checkpoint after the `ibis-ai` canonical naming work, public-surface corrections, Events interaction repair, and target-blank security repair completed and their one-time migration workflows retired.
 
 ## Source state entering this checkpoint
 
@@ -9,10 +9,11 @@ Purpose: establish the final human-authored verification checkpoint after the `i
 - Public `/ibis-ai/` title, metadata and hand-authored Intelligence footer use the canonical `ibis-ai` identity.
 - Events hand-authored footer residue corrected from `FTN ibis` to `ibis-ai`.
 - FTN Events no longer renders an empty `mailto:` before an RFQ exists. The Email RFQ control starts as an in-page disabled-state action and becomes a populated `mailto:` only after RFQ content is generated.
-- Browser link-click audit now applies interaction semantics correctly: every rendered anchor definition is validated; actionable FTN-owned destinations are exercised; skip links are keyboard-activated; local resources are requested; external link contracts are validated without treating third-party anti-bot/network behavior as an FTN defect.
+- Browser link-click audit applies interaction semantics correctly: every rendered anchor definition is validated; actionable FTN-owned destinations are exercised; skip links are keyboard-activated; local resources are requested; external link contracts are validated without treating third-party anti-bot/network behavior as an FTN defect.
+- All eight `target="_blank"` links on the unlisted portfolio surface now include `rel="noopener noreferrer"`, closing the final external-link opener security defects surfaced by the browser audit.
 - Product Registry audit enforces the canonical `ibis-ai` identity.
 - Generated footer surfaces remain synchronized from the Product Registry.
-- One-time naming, public-surface and Events repair workflows removed after successful execution.
+- One-time naming, public-surface, Events and portfolio link-security workflows removed after successful execution.
 - Community Connect Android acceptance build, browser interaction audit and production dependency audit passed on app commit `5a529bb2fac7a0796bf15631e0381a210e1c0512`.
 
 ## Release rule
