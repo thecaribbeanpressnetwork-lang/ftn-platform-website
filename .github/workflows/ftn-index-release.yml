@@ -25,9 +25,14 @@ jobs:
         run: node tests/ftn-index-foundation-audit.mjs
       - name: Verify generated sitemap contract
         run: node scripts/generate-sitemap.mjs --check
-      - name: Verify FTN Index page is a static release artifact
+      - name: Verify FTN Index release artifacts
         run: |
           test -f index/index.html
           test -f js/ftn-index-page.js
           test -f js/ftn-index-schema.js
           test -f css/components/ftn-index.css
+          test -f god-mode/index/index.html
+          test -f js/ftn-index-ops.js
+          test -f css/components/ftn-index-ops.css
+          test -f supabase/functions/ftn-index-ops/index.ts
+          test -f supabase/functions/ftn-index-outreach/index.ts
