@@ -1,0 +1,37 @@
+name: One-time FTN Footer Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-time-footer-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.repository == 'thecaribbeanpressnetwork-lang/ftn-platform-website'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate canonical footers
+        run: node scripts/sync-footer.mjs
+      - name: Commit generated footer regions
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'Footers already synchronized.'
+            exit 0
+          fi
+          git config user.name 'FTN Release Automation'
+          git config user.email 'thecaribbeanpressnetwork@gmail.com'
+          git add -- '*.html'
+          git commit -m 'Sync canonical FTN footers'
+          git push origin HEAD:main
