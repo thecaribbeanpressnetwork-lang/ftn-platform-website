@@ -101,7 +101,7 @@ product({
   legalNotices:['Independent non-government service','Official destinations remain source-owned'],keywords:['government','service','department','parliament','public notice','civic'],capabilities:['official-source-gateway','country-boundary','service-routing']
 }),
 product({
-  id:'ibis-ai',name:'FTN ibis',shortName:'ibis',tagline:'Ai powered by Caribbean intelligence.',
+  id:'ibis-ai',name:'ibis-ai',shortName:'ibis-ai',tagline:'AI powered by Caribbean intelligence.',
   description:'FTN’s Caribbean-first intelligence and creative orchestration workspace for task routing, analysis, image/video project planning and provider-transparent production.',route:'/ibis-ai/',status:'AVAILABLE',
   primaryUser:'People trying to complete or create something across FTN',primaryJourney:'Describe the outcome, choose an intelligence or creative mode, inspect the source/provider/cost boundary and continue with an exportable project.',
   callsToAction:[{label:'Ask ibis',route:'/ibis-ai/'},{label:'Open Creative Studio',route:'/ibis-ai/#ibis-creative-studio'}],visualMnemonic:'Ibis creative command node',panelAsset:'/assets/panels/05-ibis-ai.png',panelRow:1,accent:'var(--color-ibis)',atmosphere:{accent:'var(--color-ibis)',background:'dark-minimal',motionProfile:'node-pulse',heroStyle:'calm-focused'},
