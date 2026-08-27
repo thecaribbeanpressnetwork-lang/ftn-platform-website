@@ -23,6 +23,8 @@ jobs:
           node-version: '22'
       - name: Audit FTN Index architecture, privacy and cost boundaries
         run: node tests/ftn-index-foundation-audit.mjs
+      - name: Audit FTN Index phone email and claim readiness
+        run: node tests/ftn-index-mobile-email-audit.mjs
       - name: Verify generated sitemap contract
         run: node scripts/generate-sitemap.mjs --check
       - name: Verify FTN Index release artifacts
