@@ -1,0 +1,25 @@
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+
+execFileSync(process.execPath,['scripts/ftn-scout-2.mjs','--self-test'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/ftn-scout-2.mjs','--out=/tmp/scout2.md','--json=/tmp/scout2.json'],{stdio:'inherit'});
+const out=JSON.parse(await fs.readFile('/tmp/scout2.json','utf8'));
+assert.equal(out.schemaVersion,2);
+assert.equal(out.guardrails.automaticProductCreation,false);
+assert.equal(out.guardrails.automaticApplicationSubmission,false);
+assert.equal(out.guardrails.automaticSpend,false);
+assert.equal(out.guardrails.founderApprovalRequired,true);
+const local=out.findings.find(x=>x.id==='collision-local-tt');
+assert(local,'Local TT collision must be present');
+assert.equal(local.directive,'STRATEGIC_COLLISION');
+assert.equal(local.priority,'P0');
+const cdb=out.findings.find(x=>x.id==='money-cdb-ciif-data-intelligence');
+assert(cdb,'CDB data-intelligence funding must be present');
+assert(['P0','P1'].includes(cdb.priority));
+const wb=out.findings.find(x=>x.id==='accelerator-world-bank-lac-ai');
+assert(wb,'World Bank LAC AI Accelerator watch must be present');
+assert.equal(wb.status,'WATCH_NEXT_COHORT');
+const proc=out.findings.find(x=>x.id==='proc-caricom-statistics-ict');
+assert(proc?.deadlineConflict,'Conflicting CARICOM deadline must be escalated, not silently resolved');
+console.log(`Scout 2.0 audit passed: ${out.findings.length} verified findings with collision, money, recurrence and deadline-conflict gates.`);
