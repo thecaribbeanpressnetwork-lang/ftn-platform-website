@@ -2,7 +2,7 @@
   "source": {
     "name": "Central Bank of Trinidad and Tobago — Exchange Rates (Monthly)",
     "url": "https://www.central-bank.org.tt/exchange-rates-monthly/",
-    "retrieved": "2026-08-31"
+    "retrieved": "2026-09-07"
   },
   "monthly": [
     {
@@ -2139,6 +2139,11 @@
       "period": "2026-07",
       "usdBuying": 6.7294,
       "usdSelling": 6.7786
+    },
+    {
+      "period": "2026-08",
+      "usdBuying": 6.7062,
+      "usdSelling": 6.7701
     }
   ]
 }
