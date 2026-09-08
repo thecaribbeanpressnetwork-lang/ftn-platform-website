@@ -28,6 +28,7 @@ The substrate may become more complex while the user experience becomes simpler.
 - **Recall** — bringing prior objects or scenes back into view by language, gesture or direct action.
 - **Suppression** — dematerializing objects without deleting them.
 - **Action** — executing through connected tools, APIs and agents when permitted.
+- **Explanation** — ibis must be able to explain why any object appeared, which signals produced it, which engine/scout contributed, what evidence supports it, what remains uncertain, and what would change confidence.
 
 ## Interaction model
 
@@ -44,9 +45,62 @@ The user should be able to manipulate Headspace through whichever modality is mo
 - connected accounts
 - location/context signals, when permissioned
 - APIs / agents
+- connected devices and hardware capabilities, when genuinely exposed by supported interfaces
 - future ambient or neural inputs
 
 The user should not need to select a tool before stating intent. ibis should determine which capabilities are relevant and ask for permission only when needed.
+
+Users should be able to tell ibis anything. The system should interpret the request and materialize the minimum useful set of capabilities.
+
+## Explainability and conversation
+
+Every revealed object must remain conversational.
+
+Examples:
+
+- “Why am I seeing this?”
+- “Explain the graph.”
+- “What evidence supports that?”
+- “Which scout found this?”
+- “What did you correlate?”
+- “What would make you less confident?”
+- “What should I do next?”
+- “Launch the relevant scouts.”
+- “Run the correlation engine on this.”
+- “Imagine three alternatives.”
+
+The explanation layer should expose:
+
+- source and provenance
+- freshness
+- verified fact vs inference vs estimate vs generated scenario
+- confidence
+- assumptions
+- contributing scouts/engines
+- correlation vs causation distinction
+- alternative interpretations
+- next available actions
+
+## Engines inside Headspace
+
+Core engines must be invokable through natural language or contextual controls, not separate dashboards.
+
+Examples:
+
+- Scout Network
+- Signal Fusion Engine
+- Correlation / Prediction Engine
+- Foresight Engine
+- Butterfly Engine
+- Economic Shadow / Twin
+- Trust Engine
+- Entity Resolution
+- Opportunity Graph
+- Intent Graph
+- Caribbean Context Graph
+- Action / Agent Layer
+
+An engine may materialize as a temporary thought object when the user needs to inspect or steer it. Otherwise it should remain invisible.
 
 ## Materialization model
 
@@ -74,6 +128,20 @@ Use golden-ratio relationships where they improve visual hierarchy and balance, 
 
 Headspace should feel organic, breathable and connected rather than gridded like a dashboard.
 
+## Resizable thought surfaces
+
+Thought objects must be resizable when their content benefits from more or less space.
+
+Users should be able to:
+
+- drag to resize
+- say “make the graph bigger”
+- say “shrink the video”
+- expand a map or document temporarily
+- return an object to its previous size using Back/Undo
+
+Resize state is part of Headspace memory and should persist with saved scenes where appropriate.
+
 ## Reversible spatial memory
 
 Every meaningful spatial action should be reversible.
@@ -88,6 +156,7 @@ Required primitives:
 - save scene
 - recall scene
 - pin
+- resize
 - dematerialize
 - clear attention without deleting memory
 
@@ -114,8 +183,11 @@ Headspace must be able to materialize, eventually from live systems:
 - alerts
 - predictions
 - scenario simulations
+- scout controls
+- correlation / reasoning inspection
 - tasks / agents
 - API / tool controls
+- supported device control surfaces
 
 ## Media
 
@@ -131,9 +203,9 @@ Target integrations:
 
 Media objects should be draggable, resizable, pinnable, dismissible and recallable.
 
-## Tool & API surfaces
+## Tool, API and device surfaces
 
-A connected tool or API should appear as a capability inside the current thought-space, not as a separate product silo.
+A connected tool, API or supported device should appear as a capability inside the current thought-space, not as a separate product silo.
 
 Examples:
 
@@ -143,8 +215,19 @@ Examples:
 - “Connect this business to my accounting data.”
 - “Show me the GitHub issue.”
 - “Run this through the Caribbean Context Graph.”
+- “Bring up four MP3 decks, use the USB stick I connected, connect to my Pioneer mixer, and help me DJ this party.”
 
-The tool layer must respect permissions, provenance and reversible actions.
+The DJ example defines the orchestration pattern, not a claim that arbitrary Pioneer hardware can currently be controlled from a browser. Production Headspace must:
+
+1. detect only capabilities actually exposed by the operating system, browser, driver, local bridge, MIDI/HID/audio API, vendor SDK or connected application
+2. request permission before using them
+3. identify the device and supported controls
+4. materialize only controls that are truly available
+5. keep the user in control of consequential actions
+6. expose current connection state
+7. never claim device control when no supported interface exists
+
+This pattern can later apply to creative hardware, cameras, microphones, mixers, displays, sensors, vehicles, smart-home systems, industrial systems and other supported devices.
 
 ## Wiring architecture
 
@@ -159,6 +242,10 @@ Each integration should expose:
 - whether the output is verified, estimated, inferred or generated
 - persistence / memory behavior
 - user-visible controls
+- explainability hooks
+- resizing behavior where relevant
+- scout / engine dependencies
+- device/tool capability state where relevant
 
 Core systems to wire:
 
@@ -172,16 +259,17 @@ Core systems to wire:
 8. Trust Engine / Trust Passport
 9. Entity Resolution
 10. Scout Network
-11. Action / Agent Layer
-12. ibis API / Extension
-13. FTN Opportunities
-14. Community Connect
-15. Observatory / Statistics
-16. Media layer
-17. Riddim
-18. Mayor / institutional intelligence
-19. account / identity / permissions
-20. connected external tools and APIs
+11. Correlation / Prediction Engine
+12. Action / Agent Layer
+13. ibis API / Extension
+14. FTN Opportunities
+15. Community Connect
+16. Observatory / Statistics
+17. Media layer
+18. Riddim
+19. Mayor / institutional intelligence
+20. account / identity / permissions
+21. connected external tools, APIs and supported devices
 
 ## Simplification rule
 
@@ -202,7 +290,7 @@ Everything else should materialize contextually.
 
 The useful long-term hypothesis is not “digitize the brain.” It is:
 
-> Build a computational environment that already organizes information in brain-like cognitive primitives, so future brain-computer, wearable, ambient or multimodal interfaces can connect to a system whose interaction model is already based on intent, attention, memory, association and action.
+> Build a computational environment that already organizes information in brain-like cognitive primitives, so future brain-computer, wearable, ambient or multimodal interfaces can connect to a system whose interaction model is already based on intent, attention, memory, association, explanation and action.
 
 This is a product/HCI hypothesis, not a claim of neuroscience capability.
 
@@ -212,4 +300,4 @@ The target is not merely polished SaaS. The interface should be distinctive enou
 
 Success condition:
 
-> A user can enter with one intention, receive only the objects necessary to think and act, manipulate those objects naturally, and leave with less interface complexity than they started with.
+> A user can enter with one intention, receive only the objects necessary to think and act, interrogate why those objects appeared, launch deeper intelligence when needed, manipulate those objects naturally, and leave with less interface complexity than they started with.
