@@ -1,0 +1,9 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const ctx={window:{},console};vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/ibis-presentation.js','utf8'),ctx);const P=ctx.window.FTN.IbisPresentation;assert(P);
+assert.equal(P.chooseVisual({values:[1],kind:'SCORE'}),'GAUGE');assert.equal(P.chooseVisual({values:[1]}),'KPI');assert.equal(P.chooseVisual({values:[1,2,3],relationship:'TIME'}),'LINE');assert.equal(P.chooseVisual({values:[1,2],labels:['A','B'],relationship:'CATEGORY'}),'BAR');assert.equal(P.chooseVisual({rows:[{a:1}],kind:'TABLE'}),'TABLE');
+const liveBad=P.normalize({mode:'LIVE',title:'Live feed',values:[1,2],relationship:'TIME'});assert.equal(liveBad.success,false);assert.equal(liveBad.errorType,'LIVE_WITHOUT_UPDATE_PATH');
+const liveGood=P.normalize({mode:'LIVE',title:'Live feed',values:[1,2],relationship:'TIME',refresh:async()=>({values:[2,3]})});assert.equal(liveGood.success,true);assert.equal(liveGood.presentation.mode,'LIVE');assert.equal(liveGood.presentation.visual,'LINE');
+const snapshot=P.normalize({mode:'SNAPSHOT',title:'Official monthly series',values:[1,2],relationship:'TIME',source:'Central Bank'});assert.equal(snapshot.success,true);assert.equal(snapshot.presentation.mode,'SNAPSHOT');assert.equal(snapshot.presentation.source,'Central Bank');
+const derived=P.normalize({mode:'DERIVED',values:[10],kind:'SCORE',calculatedAt:'2026-09-07T12:00:00Z'});assert.equal(derived.success,true);assert.equal(derived.presentation.visual,'GAUGE');
+assert.equal(P.normalize({mode:'FAKE_LIVE'}).errorType,'INVALID_MODE');
+console.log('ibis Presentation Intelligence: chart selection, source preservation and LIVE-with-update-path invariant verified.');
