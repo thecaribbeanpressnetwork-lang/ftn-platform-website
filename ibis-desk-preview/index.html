@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/components/ibis-desk-preview.css?v=20260907.2">
-<script src="/js/ibis-desk-preview.js?v=20260907.2" defer></script>
+<link rel="stylesheet" href="/css/components/ibis-desk-preview.css?v=20260907.3">
+<script src="/js/ibis-desk-preview.js?v=20260907.3" defer></script>
 </head>
 <body>
 <a class="skip" href="#desk">Skip to desk</a>
@@ -25,12 +25,17 @@
       <button type="button" data-preset="blank">New desk</button>
     </nav>
     <div class="memory-index" aria-label="ibis memory objects">
-      <span>RECALL</span>
+      <span>RECALL OBJECT</span>
       <button type="button" data-recall="answer">Answer</button>
       <button type="button" data-recall="graph">Graph</button>
       <button type="button" data-recall="opportunity">Opportunity</button>
       <button type="button" data-recall="context">Context</button>
       <button type="button" data-recall="synapse">Connection</button>
+    </div>
+    <div class="memory-index" aria-label="saved ibis scenes">
+      <span>MY MEMORY</span>
+      <button type="button" id="saveScene">Save this desk</button>
+      <button type="button" id="recallScene">Recall saved desk</button>
     </div>
     <div class="rail-foot"><a href="/ibis-preview/">← ibis landing preview</a><a href="/">Current FTN homepage</a></div>
   </aside>
@@ -38,7 +43,7 @@
     <div class="ambient" aria-hidden="true"></div>
     <header class="desk-head">
       <div><span class="kicker">TRINIDAD &amp; TOBAGO · LIVE WORKSPACE CONCEPT</span><h1>Your Caribbean, arranged around the question.</h1></div>
-      <div class="head-actions"><button id="undoDesk" type="button" disabled>← Back</button><button id="redoDesk" type="button" disabled>Forward →</button><button id="restoreDesk" type="button">Put it back</button><button id="clearDesk" type="button">Clear desk</button><a href="/account/">Sign in</a></div>
+      <div class="head-actions"><button id="undoDesk" type="button" disabled>← Back</button><button id="redoDesk" type="button" disabled>Forward →</button><button id="restoreDesk" type="button">Put it back</button><button id="saveDeskTop" type="button">Save desk</button><button id="clearDesk" type="button">Clear desk</button><a href="/account/">Sign in</a></div>
     </header>
 
     <section class="canvas" id="canvas" aria-label="Spatial ibis workspace">
@@ -49,7 +54,7 @@
       <article class="desk-card card-synapse" data-card="synapse" tabindex="0"><div class="card-bar"><span>CONNECTION</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div><div class="synapse-line"><b>Your business</b><i></i><b>Seasonal demand</b><i></i><b>Capital</b></div><p>One question can wake several parts of the Caribbean network at once.</p></article>
     </section>
 
-    <div class="command-hint" id="commandHint">Try: “put that back”, “show me the graph”, “hide opportunities”, “go back”, or ask a new question.</div>
+    <div class="command-hint" id="commandHint">Try: “put that back”, “show me the graph”, “save this desk”, “recall my desk”, “go back”, or ask a new question.</div>
     <form class="query-dock" id="queryDock">
       <div class="dock-grip" id="dockGrip" aria-label="Drag ibis input">···</div>
       <label class="skip" for="deskQuery">Ask ibis</label>
@@ -57,7 +62,7 @@
       <button type="submit">Ask ibis</button>
       <button type="button" id="tellButton" class="secondary">Tell ibis</button>
     </form>
-    <p class="preview-note">Interactive design prototype. Cards are illustrative and no query is sent, stored or reasoned over.</p>
+    <p class="preview-note">Interactive design prototype. Cards are illustrative. Saved desk scenes stay only in this browser for the prototype; queries are not sent to a live ibis model.</p>
   </main>
 </div>
 </body>
