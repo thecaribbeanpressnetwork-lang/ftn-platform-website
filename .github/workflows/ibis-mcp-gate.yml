@@ -8,6 +8,7 @@ on:
       - 'scripts/lib/ibis-mcp-client.mjs'
       - 'tests/ibis-mcp-client-integration.mjs'
       - 'tests/fixtures/ibis-mcp-test-server.mjs'
+      - 'tests/fixtures/ibis-mcp-http-test-server.mjs'
   workflow_dispatch:
 
 permissions:
@@ -25,6 +26,6 @@ jobs:
       - name: Install pinned official MCP v2 SDK
         run: |
           npm init -y >/dev/null 2>&1
-          npm install --no-save @modelcontextprotocol/client@2 @modelcontextprotocol/server@2 zod@4
-      - name: Prove ibis MCP client end to end
+          npm install --no-save @modelcontextprotocol/client@2 @modelcontextprotocol/server@2 @modelcontextprotocol/node@2 zod@4
+      - name: Prove ibis MCP client over stdio and Streamable HTTP
         run: node tests/ibis-mcp-client-integration.mjs
