@@ -38,5 +38,7 @@
   }
   async function request(capability,payload,context){var Client=await ensure(capability);return Client.request({capability:capability,payload:payload||{},context:context||{}});}
   FTN.HeadspaceFabric={ensure:ensure,request:request};
-  if(typeof document!=='undefined'&&!document.querySelector('script[data-headspace-correlation]')){var s=document.createElement('script');s.src='/js/ibis-headspace-correlation.js?v=20260907.1';s.defer=true;s.dataset.headspaceCorrelation='';document.head.appendChild(s);}
+  function attach(src,marker){if(typeof document==='undefined'||document.querySelector('script['+marker+']'))return;var s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute(marker,'');document.head.appendChild(s);}
+  attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');
+  attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');
 })(typeof window!=='undefined'?window:globalThis);
