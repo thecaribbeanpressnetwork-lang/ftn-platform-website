@@ -41,3 +41,5 @@ jobs:
         run: node tests/ibis-live-surface-adapters-audit.mjs
       - name: Audit deterministic intelligence through universal IbisClient fabric
         run: node tests/ibis-intelligence-fabric-integration-audit.mjs
+      - name: Audit relationship epistemics and causal-label discipline
+        run: node tests/ibis-relationship-epistemics-audit.mjs
