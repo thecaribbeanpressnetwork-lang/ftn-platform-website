@@ -5,6 +5,7 @@
   'use strict';
   var FTN=global.FTN=global.FTN||{};
   var RULES=[
+    {re:/\b(build|create|make)\b.*\b(website|web site|app|application)\b.*\b(test|preview|publish|deploy|share|link)\b|\b(build|test|publish preview|send link)\b/i,ops:['CREATE','TEST','PUBLISH_PREVIEW','SHARE'],caps:['BUILD_TEST_PUBLISH_SHARE'],agents:['STRATEGY','ENGINEERING','OPS','COMMS']},
     {re:/\b(latest|current|today|now|this week|breaking|recent|price|weather|news)\b/i,ops:['RESEARCH','VERIFY'],caps:['LIVE_INTELLIGENCE']},
     {re:/\b(calculate|how much|percent|interest|yield|mortgage|roi|return|principal|budget)\b/i,ops:['CALCULATE'],caps:['CAPITAL_SCENARIO']},
     {re:/\b(compare|versus|vs\.?|better off|difference between)\b/i,ops:['COMPARE'],caps:[]},
@@ -23,7 +24,7 @@
     {re:/\b(strategy|plan|business model|go to market|prioritize|decision)\b/i,ops:['PLAN','COMPARE'],agents:['STRATEGY']}
   ];
   function uniq(a){return Array.from(new Set(a));}
-  function sideEffect(text){if(/\b(send|submit|apply|purchase|buy|delete|install|deploy|publish|post|transfer|book|cancel)\b/i.test(text))return'EXTERNAL';if(/\b(open|connect|upload|move|rename|draft|prepare|create file)\b/i.test(text))return'REVERSIBLE';return'READ_ONLY';}
+  function sideEffect(text){if(/\b(send|submit|apply|purchase|buy|delete|install|deploy|publish|post|transfer|book|cancel|share)\b/i.test(text))return'EXTERNAL';if(/\b(open|connect|upload|move|rename|draft|prepare|create file)\b/i.test(text))return'REVERSIBLE';return'READ_ONLY';}
   function epistemic(text,ops){if(/\b(imagine|hypothetical|what if|suppose)\b/i.test(text))return'IMAGINATION';if(/\b(predict|forecast|will|coming next|anticipate)\b/i.test(text)||ops.indexOf('PREDICT')>=0)return'PREDICTION';if(/\b(current|latest|today|now|live)\b/i.test(text))return'CURRENT_FACT_REQUIRED';if(ops.indexOf('CALCULATE')>=0)return'DERIVED_OR_SCENARIO';return'GENERAL';}
   function route(input,context){var text=String(input||'').trim();if(!text)return{success:false,errorType:'EMPTY_INPUT'};var ops=['ANSWER'],caps=['TEXT'],agents=[],matched=[];RULES.forEach(function(r,i){if(r.re.test(text)){matched.push(i);ops=ops.concat(r.ops||[]);caps=caps.concat(r.caps||[]);agents=agents.concat(r.agents||[]);}});if(!agents.length)agents.push('GENERAL');if(ops.some(function(x){return ['PLAN','COMPARE','PREDICT','MATCH','RESEARCH'].indexOf(x)>=0;})&&agents.indexOf('STRATEGY')<0)agents.unshift('STRATEGY');var se=sideEffect(text);if(se!=='READ_ONLY'&&agents.indexOf('OPS')<0)agents.push('OPS');return{success:true,input:text,operations:uniq(ops),capabilityCandidates:uniq(caps),agents:uniq(agents),sideEffect:se,epistemicMode:epistemic(text,ops),requiresPermission:se==='EXTERNAL',matchedRules:matched,contextHints:{hasAttachments:!!(context&&context.attachments&&context.attachments.length),hasSelectedThought:!!(context&&context.selectedThought),hasPersonalContext:!!(context&&context.personalContext&&context.personalContext.length)},fallbackCapability:'TEXT'};}
   function canAlwaysAttempt(input){return !!String(input||'').trim();}
