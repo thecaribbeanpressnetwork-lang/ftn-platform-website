@@ -42,7 +42,9 @@ jobs:
         run: node tests/ibis-discoverability-audit.mjs
 
       - name: Audit FTN ibis MCP app contract
-        run: npm test --prefix apps/ftn-ibis-mcp
+        run: |
+          npm ci --prefix apps/ftn-ibis-mcp
+          npm test --prefix apps/ftn-ibis-mcp
 
       - name: Audit FTN ibis browser companion permissions and packaging
         run: node apps/ftn-ibis-browser-extension/test.mjs
