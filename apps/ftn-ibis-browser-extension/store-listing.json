@@ -1,0 +1,32 @@
+{
+  "status": "READY_FOR_DEVELOPER_PORTAL_DRAFT",
+  "name": "FTN ibis — Caribbean Intelligence",
+  "summary": "Source-backed Caribbean opportunities and intelligence from your browser.",
+  "category": "Productivity",
+  "languages": ["en"],
+  "website": "https://ftnplatform.org/ibis/",
+  "supportUrl": "https://ftnplatform.org/contact/",
+  "privacyPolicyUrl": "https://ftnplatform.org/legal/privacy-policy/",
+  "termsUrl": "https://ftnplatform.org/legal/terms-of-service/",
+  "chromeCompatibility": "Manifest V3",
+  "operaCompatibility": "Chromium Manifest V3; optional and not required for FTN ibis operation",
+  "dataUse": {
+    "sold": false,
+    "advertising": false,
+    "analyticsSdk": false,
+    "backgroundBrowsingCollection": false,
+    "userInitiatedQueriesOnly": true,
+    "selectedTextOnlyAfterExplicitAction": true
+  },
+  "permissionsJustification": {
+    "contextMenus": "Adds the explicit Ask FTN ibis action when the user selects text.",
+    "host_permissions": "Calls only the public, read-only FTN ibis MCP endpoint."
+  },
+  "remainingPortalGates": [
+    "Developer account registration and any store fee",
+    "Store identity and policy attestations",
+    "Required screenshots and promotional artwork",
+    "Chrome Web Store review and publication",
+    "Optional separate Opera Add-ons review"
+  ]
+}

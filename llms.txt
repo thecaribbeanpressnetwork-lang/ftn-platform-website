@@ -7,6 +7,8 @@ The public project brief, current capability status, founder ownership boundary 
 - https://ftnplatform.org/ibis/
 - https://ftnplatform.org/ibis/ibis.json
 - https://ftnplatform.org/ibis/ecosystem-map/
+- https://ftnplatform.org/ibis/international-capital/
+- https://ftnplatform.org/ibis/international-capital/landscape.json
 - https://ftnplatform.org/ibis/feed.xml
 - https://ftnplatform.org/docs/ibis-provenance-manifest.json
 

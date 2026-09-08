@@ -137,7 +137,7 @@ function createServer() {
       type: z.enum(TYPES).optional().describe('Optional record type filter.'),
       limit: z.number().int().min(1).max(20).default(10),
     }),
-    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   }, async ({ query, type, limit }) => {
     const data = await loadData();
     const rows = data.findings.map(normalize)
@@ -155,7 +155,7 @@ function createServer() {
       id: z.string().max(160).optional(),
       sourceUrl: z.string().url().max(500).optional(),
     }).refine((value) => value.id || value.sourceUrl, { message: 'Provide id or sourceUrl.' }),
-    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   }, async ({ id, sourceUrl }) => {
     const data = await loadData();
     const record = data.findings.map(normalize).find((item) => (id && item.id === id) || (sourceUrl && item.sourceUrl === sourceUrl));
@@ -173,7 +173,7 @@ function createServer() {
       territory: z.string().max(80).default('').describe('Optional territory such as Trinidad and Tobago or Caribbean.'),
       limit: z.number().int().min(1).max(10).default(8),
     }),
-    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   }, async ({ query, territory, limit }) => {
     const data = await loadData();
     const rows = data.findings.map(normalize)
@@ -191,7 +191,7 @@ function createServer() {
     title: 'Route an FTN intent',
     description: 'Use this when the user expresses a Caribbean goal and needs the most relevant FTN product or ibis workflow. Routing is deterministic and transparent.',
     inputSchema: z.object({ intent: z.string().min(1).max(240) }),
-    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   }, async ({ intent }) => {
     const lower = intent.toLowerCase();
     const ranked = ROUTES.map((route) => ({ route, score: route.terms.reduce((sum, term) => sum + (lower.includes(term) ? 1 : 0), 0) }))
@@ -206,7 +206,7 @@ function createServer() {
     title: 'Get the FTN ibis profile',
     description: 'Use this when the user asks what FTN ibis is, who owns it, what it connects to, or how to verify it.',
     inputSchema: z.object({ entity: z.string().max(120).default('FTN ibis') }),
-    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   }, async ({ entity }) => {
     const data = await loadData();
     const payload = {

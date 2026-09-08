@@ -38,18 +38,21 @@ curl http://127.0.0.1:8787/health
 
 MCP endpoint: `https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-ibis-mcp` (deployed Edge Function). The local endpoint is `http://127.0.0.1:8787/mcp`.
 
-For ChatGPT Developer Mode, expose the endpoint through a public HTTPS tunnel and connect the resulting `/mcp` URL under **Settings → Apps & Connectors → Advanced settings**. Use a stable HTTPS deployment for public submission; do not submit a localhost or tunnel URL.
+For ChatGPT Developer Mode, enable Developer mode under **Settings → Security and login**, then add the production endpoint from the ChatGPT Plugins page. Use the submitted production URL, not localhost or a temporary tunnel.
 
 ## Public identity
 
 - Product: **FTN ibis — Caribbean Intelligence**
 - Canonical page: https://ftnplatform.org/ibis/
 - Privacy policy: https://ftnplatform.org/legal/privacy-policy/
+- Terms: https://ftnplatform.org/legal/terms-of-service/
+- Support: https://ftnplatform.org/contact/
 - Support/funding contact: facethenationtt@gmail.com
 
 ## Remaining production work
 
-1. Run live health/initialize/tools-list checks against the deployed endpoint and optionally move it behind a stable FTN-owned HTTPS endpoint.
-2. Add authenticated workspace tools only after OAuth and consent are implemented.
-3. Add an optional MCP Apps widget after the tool-only flow passes ChatGPT testing.
-4. Prepare the app metadata, logo, test prompts, privacy/support evidence and publisher verification for directory review.
+1. Select the verified FTN developer or business identity in the OpenAI Platform submission portal.
+2. Create a **With MCP** universal-URL draft and scan the deployed endpoint.
+3. Run the five positive and three negative reviewer cases in `submission-metadata.json`.
+4. Complete policy attestations and submit for OpenAI review.
+5. Add authenticated workspace tools only after OAuth, consent, retention and deletion controls are implemented.

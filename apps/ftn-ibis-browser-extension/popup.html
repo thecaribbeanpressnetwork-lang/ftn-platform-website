@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ask FTN ibis</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="popup-shell">
+  <header class="brand">
+    <img src="icons/ibis-48.png" alt="">
+    <div><strong>FTN ibis</strong><span>Caribbean Intelligence</span></div>
+  </header>
+  <main>
+    <form id="ask-form">
+      <label for="query">What are you looking for?</label>
+      <textarea id="query" maxlength="160" rows="3" placeholder="Funding, partners, procurement, Caribbean research…"></textarea>
+      <div class="actions">
+        <button type="submit" data-tool="search">Search ibis</button>
+        <button type="submit" data-tool="opportunity_scout" class="secondary">Find opportunities</button>
+      </div>
+    </form>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <section id="results" class="results" aria-label="Results"></section>
+  </main>
+  <footer>
+    <a href="https://ftnplatform.org/ibis/" target="_blank" rel="noopener noreferrer">Open FTN ibis</a>
+    <span>Read-only · source-backed</span>
+  </footer>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

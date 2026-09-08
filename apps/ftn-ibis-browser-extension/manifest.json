@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "FTN ibis — Caribbean Intelligence",
+  "short_name": "FTN ibis",
+  "version": "0.1.0",
+  "description": "Search source-backed Caribbean opportunities and intelligence from your browser.",
+  "homepage_url": "https://ftnplatform.org/ibis/",
+  "permissions": ["contextMenus"],
+  "host_permissions": ["https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-ibis-mcp"],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_title": "Ask FTN ibis",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/ibis-16.png",
+      "32": "icons/ibis-32.png",
+      "48": "icons/ibis-48.png",
+      "128": "icons/ibis-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/ibis-16.png",
+    "32": "icons/ibis-32.png",
+    "48": "icons/ibis-48.png",
+    "128": "icons/ibis-128.png"
+  },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'" }
+}

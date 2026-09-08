@@ -1,0 +1,195 @@
+{
+  "name": "FTN ibis international capital and AI landscape",
+  "lastReviewed": "2026-09-08",
+  "canonicalUrl": "https://ftnplatform.org/ibis/international-capital/",
+  "method": "Public, source-backed landscape screening. Inclusion is not an endorsement, relationship, open-call guarantee or eligibility determination.",
+  "decisionLabels": {
+    "PRIORITY": "Directly relevant enough for a verified approach or active monitoring.",
+    "PARTNER": "Best pursued through a qualified institution, consortium or regional partner.",
+    "EVALUATE": "Useful technology or market signal; test before adoption.",
+    "INDIRECT": "Capital exists but is normally intermediated, institutional or too large for a direct early-stage application.",
+    "NOT_CURRENT_FIT": "Current rules or geography do not match FTN ibis."
+  },
+  "records": [
+    {
+      "id": "uwi-aiic",
+      "region": "Caribbean",
+      "name": "UWI St. Augustine Artificial Intelligence Innovation Centre",
+      "kind": "research and policy partner",
+      "decision": "PRIORITY",
+      "fit": "Trinidad-based regional AI research, governance, talent and institutional legitimacy.",
+      "nextMove": "Propose a bounded provenance, Caribbean-data and opportunity-intelligence collaboration.",
+      "sourceUrl": "https://sta.uwi.edu/news/releases/release.asp?id=23092"
+    },
+    {
+      "id": "ctu-caribbean-ai",
+      "region": "Caribbean",
+      "name": "CTU Caribbean AI Task Force and Forum",
+      "kind": "regional policy ecosystem",
+      "decision": "PARTNER",
+      "fit": "Regional AI governance, coordination and responsible adoption.",
+      "nextMove": "Map ibis provenance and consent controls to the regional AI framework.",
+      "sourceUrl": "https://ctu.int/event/1st-ctu-caribbean-artificial-intelligence-forum/"
+    },
+    {
+      "id": "idb-lab",
+      "region": "Latin America and Caribbean",
+      "name": "IDB Lab",
+      "kind": "grants, equity, loans and ecosystem connections",
+      "decision": "PRIORITY",
+      "fit": "Development innovation, responsible AI, GovTech and inclusion in Latin America and the Caribbean.",
+      "nextMove": "Track challenges and approach through a measurable public-interest pilot, not a generic chatbot pitch.",
+      "sourceUrl": "https://www.idblab.org/"
+    },
+    {
+      "id": "cdb-revup",
+      "region": "Caribbean",
+      "name": "CDB and RevUP Caribbean",
+      "kind": "incubation and access to finance",
+      "decision": "PRIORITY",
+      "fit": "Caribbean early-stage company scaling, mentorship, technology support and financing readiness.",
+      "nextMove": "Confirm cohort access and prepare traction, governance and regional-impact evidence.",
+      "sourceUrl": "https://www.caribank.org/newsroom/news-and-events/cdb-and-revup-caribbean-power-next-wave-caribbean-entrepreneurs-incubation-programme"
+    },
+    {
+      "id": "morro-ventures",
+      "region": "Caribbean and Latin America",
+      "name": "Morro Ventures",
+      "kind": "early-stage technology venture capital",
+      "decision": "PRIORITY",
+      "fit": "Caribbean technology companies with post-revenue or scalable early-stage potential.",
+      "nextMove": "Build a concise investor data room around recurring usage, defensible Caribbean data and regional expansion.",
+      "sourceUrl": "https://morroventures.com/morro-fund-ii/"
+    },
+    {
+      "id": "innogen-delta",
+      "region": "Central America and Caribbean",
+      "name": "Innogen Delta I",
+      "kind": "technology venture capital",
+      "decision": "PRIORITY",
+      "fit": "Early technology ventures and digital transformation; the fund states a portfolio diversity objective.",
+      "nextMove": "Monitor investable-stage criteria and seek an introduction after proof of repeat usage and revenue.",
+      "sourceUrl": "https://www.iadb.org/en/news/idb-lab-invests-innogen-delta-i-drive-tech-entrepreneurship-and-digital-transformation-central"
+    },
+    {
+      "id": "canada-gac",
+      "region": "Canada",
+      "name": "Global Affairs Canada open international-assistance calls",
+      "kind": "grant and contribution calls",
+      "decision": "PARTNER",
+      "fit": "Potential inclusion, gender, governance and digital-development calls when exact applicant and geography rules match.",
+      "nextMove": "Monitor the official open-calls page and qualify each call individually; do not assume CFLI or ODA eligibility for Trinidad and Tobago.",
+      "sourceUrl": "https://www.international.gc.ca/world-monde/funding-financement/open_calls-appels_ouverts.aspx?lang=eng"
+    },
+    {
+      "id": "canada-nfrf-edi",
+      "region": "Canada",
+      "name": "Canadian research partnerships with EDI requirements",
+      "kind": "research consortium funding",
+      "decision": "PARTNER",
+      "fit": "EDI is assessed in several Canadian research programs, but a qualified Canadian research lead is normally required.",
+      "nextMove": "Pursue through a Canadian university partner with a substantive Caribbean research role and an evidence-based EDI plan.",
+      "sourceUrl": "https://nserc-crsng.canada.ca/en/funding/research-partnerships-and-collaborations/inter-agency/tri-agency-statement-equity-diversity"
+    },
+    {
+      "id": "horizon-europe",
+      "region": "Europe",
+      "name": "Horizon Europe",
+      "kind": "research and innovation consortia",
+      "decision": "PARTNER",
+      "fit": "Trinidad and Tobago entities may participate in many calls but are not generally entitled to automatic EU funding.",
+      "nextMove": "Join only calls that explicitly fund the country or secure consortium/self-funding support before committing proposal effort.",
+      "sourceUrl": "https://www.eucelac-platform.eu/sites/default/files/faq_lac-horizoneurope_en.pdf"
+    },
+    {
+      "id": "women-techeu",
+      "region": "Europe",
+      "name": "Women TechEU",
+      "kind": "women-led deep-tech grant and support",
+      "decision": "NOT_CURRENT_FIT",
+      "fit": "Relevant inclusion design, but current calls require an eligible women-led company in the EU or an associated country.",
+      "nextMove": "Do not restructure ownership or add a nominal founder to chase the weighting. Reassess only if genuine leadership and establishment rules are met.",
+      "sourceUrl": "https://womentecheurope.eu/active-calls/"
+    },
+    {
+      "id": "japan-caricom-fund",
+      "region": "Japan and Caribbean",
+      "name": "Japan-CARICOM Friendship and Cooperation Fund",
+      "kind": "institutional cooperation",
+      "decision": "PARTNER",
+      "fit": "Active diplomatic cooperation pathway for CARICOM priorities; not presented as a direct startup grant portal.",
+      "nextMove": "Develop a regional public-interest pilot suitable for CARICOM or a government/university sponsor.",
+      "sourceUrl": "https://www.mofa.go.jp/files/100769424.pdf"
+    },
+    {
+      "id": "toyota-foundation-2026",
+      "region": "Japan",
+      "name": "Toyota Foundation 2026 International Grant Program",
+      "kind": "international grant",
+      "decision": "NOT_CURRENT_FIT",
+      "fit": "The 2026 international program targets East, Southeast and South Asia and is closed.",
+      "nextMove": "Monitor future research programs only where geography and project rules explicitly include Caribbean participation.",
+      "sourceUrl": "https://www.toyotafound.or.jp/english/grant/international/"
+    },
+    {
+      "id": "china-idb-cofinance",
+      "region": "China and Latin America/Caribbean",
+      "name": "China-IDB co-financing mechanisms",
+      "kind": "large development and private-sector finance",
+      "decision": "INDIRECT",
+      "fit": "Capital supports sustainable growth, private investment, inequality reduction and some technology sectors through IDB structures.",
+      "nextMove": "Treat as a future institutional-scale route through IDB/IDB Invest, not an early-stage open grant.",
+      "sourceUrl": "https://www.iadb.org/en/news/china-provide-2-billion-latin-america-and-caribbean-co-financing-fund"
+    },
+    {
+      "id": "latam-gpt",
+      "region": "Latin America",
+      "name": "LatamGPT",
+      "kind": "regional foundation model and data collaboration",
+      "decision": "PARTNER",
+      "fit": "Regional data curation, sovereignty and culturally grounded model infrastructure.",
+      "nextMove": "Explore Caribbean corpus contribution, evaluation and application-layer collaboration while preserving FTN data rights.",
+      "sourceUrl": "https://www.latamgpt.org/en"
+    },
+    {
+      "id": "qwen",
+      "region": "China",
+      "name": "Qwen open-weight models",
+      "kind": "multilingual and multimodal model option",
+      "decision": "EVALUATE",
+      "fit": "Apache-2.0 open-weight families offer multilingual, speech and multimodal capabilities that may lower provider dependence.",
+      "nextMove": "Benchmark a small self-hostable model on Caribbean language, provenance and tool-use tests before any production adoption.",
+      "sourceUrl": "https://github.com/QwenLM/Qwen3"
+    },
+    {
+      "id": "deepseek",
+      "region": "China",
+      "name": "DeepSeek",
+      "kind": "reasoning and coding model option",
+      "decision": "EVALUATE",
+      "fit": "Commercial use is permitted for some released models, subject to the exact model license and use restrictions.",
+      "nextMove": "Use only in a provider-neutral evaluation lane after license, privacy, hosting and availability review.",
+      "sourceUrl": "https://github.com/deepseek-ai/DeepSeek-V3"
+    },
+    {
+      "id": "glm",
+      "region": "China",
+      "name": "GLM open models",
+      "kind": "agentic and tool-use model option",
+      "decision": "EVALUATE",
+      "fit": "Open model releases advertise tool calling and commercial secondary development under their stated licenses.",
+      "nextMove": "Benchmark the smallest viable model; avoid committing to hosted data transfer until privacy and jurisdiction review is complete.",
+      "sourceUrl": "https://github.com/zai-org/GLM-4.5"
+    },
+    {
+      "id": "rwazi",
+      "region": "Global/emerging markets",
+      "name": "Rwazi",
+      "kind": "decision intelligence company",
+      "decision": "EVALUATE",
+      "fit": "Useful benchmark for consented real-world signals and evidence-backed enterprise decisions.",
+      "nextMove": "Differentiate ibis through Caribbean institutional context, public-source provenance, opportunity workflows and founder-controlled memory.",
+      "sourceUrl": "https://rwazi.com/"
+    }
+  ]
+}
