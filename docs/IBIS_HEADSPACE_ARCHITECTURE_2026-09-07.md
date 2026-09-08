@@ -251,6 +251,54 @@ Driver acquisition must prefer the device/vendor/OS official source or a verifie
 
 Open-source building blocks should be adopted only after licence, security, maintenance and provenance review. The initial local-computer lane should remain provider-agnostic and capable of using local/open models when practical.
 
+## Execution Spine
+
+Before deeper maths/correlation work, ibis needs one shared execution substrate so every action is not implemented as a one-off automation.
+
+The Execution Spine is the common layer that converts an intention into an auditable sequence of tool actions.
+
+Required components:
+
+1. **Capability Registry** — what browsers, apps, APIs, files, devices, agents and FTN systems are currently available, plus what each can actually do.
+2. **Permission Broker** — scopes permissions by task and resource; requests escalation only when necessary.
+3. **Identity / Profile Vault** — user-approved reusable facts, CVs, bios, addresses, work history, preferences, documents and application answers, with field-level controls.
+4. **Credential Broker** — credentials stay in approved secure stores; ibis requests use without exposing secrets in Headspace.
+5. **Browser Agent** — navigate, click, type, upload, download, fill forms, manage tabs and inspect page state.
+6. **Desktop Agent / Local Bridge** — operate approved desktop applications, files, OS surfaces and supported hardware.
+7. **Document Composer** — create/adapt CVs, cover letters, forms, PDFs and other task-specific documents using approved profile data.
+8. **Task State / Resume Engine** — long multi-step work can pause for a user decision and continue from the exact state instead of restarting.
+9. **Human Handoff** — CAPTCHA, identity proofing, legal attestations, ambiguous questions, payment approvals or unsupported UI can be surfaced cleanly to the user, then the agent resumes.
+10. **Action Ledger** — records what was read, clicked, entered, downloaded, uploaded, changed, submitted or installed; actions remain explainable.
+11. **Rollback / Recovery** — reversible actions should be undoable where technically possible; destructive/system changes require stronger confirmation.
+12. **Capability Health / Confidence** — ibis knows when a tool is uncertain, disconnected, stale or unsupported and does not bluff success.
+13. **Policy / Consequence Classifier** — distinguishes harmless inspection from submissions, financial transfers, account changes, system elevation and other consequential actions.
+14. **Local/Cloud Router** — selects local execution, browser automation, cloud APIs or human handoff based on privacy, latency, cost and capability.
+
+### Job application example
+
+A request such as “apply for this job for me” should be executable through the same spine:
+
+1. inspect the job page
+2. read the role and requirements
+3. compare it to the user profile/CV
+4. explain fit and any material gaps
+5. generate/adapt the appropriate CV/cover letter if needed
+6. open/fill the application
+7. upload approved documents
+8. answer routine questions from the Profile Vault
+9. stop for information ibis does not know or should not guess
+10. handle CAPTCHA/identity verification through Human Handoff
+11. submit according to the user’s submission policy
+12. save confirmation, job URL, answers, documents and next steps into Memory/Watch
+
+A user should be able to set a preference such as:
+
+- prepare only; I submit
+- fill everything and ask me before final submission
+- submit eligible applications automatically within my saved rules
+
+The visible Headspace should show only the application, fit, material decisions and status — not every underlying click unless the user asks to inspect execution.
+
 ## Caribbean Capital Intelligence
 
 Headspace needs a dedicated capital/wealth intelligence lane because regional financial decisions are fragmented across countries, currencies, banks, taxes, property markets, residency rules, businesses, yields and risk.
@@ -367,8 +415,9 @@ Core systems to wire:
 20. account / identity / permissions
 21. connected external tools, APIs and supported devices
 22. local computer bridge
-23. Caribbean Capital Intelligence
-24. investor-grade market / due-diligence intelligence
+23. Execution Spine
+24. Caribbean Capital Intelligence
+25. investor-grade market / due-diligence intelligence
 
 ## Simplification rule
 
