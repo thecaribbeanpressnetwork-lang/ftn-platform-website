@@ -6,41 +6,21 @@
   'use strict';
   var FTN=global.FTN=global.FTN||{},loads={};
   function load(src,test){if(test())return Promise.resolve();if(loads[src])return loads[src];loads[src]=new Promise(function(resolve,reject){var s=document.createElement('script');s.src=src;s.defer=true;s.onload=function(){test()?resolve():reject(new Error('Loaded '+src+' but expected capability did not register.'));};s.onerror=function(){reject(new Error('Could not load '+src));};document.head.appendChild(s);});return loads[src];}
-  async function base(){
-    await load('/js/ibis-capability-taxonomy.js',function(){return !!FTN.CapabilityTaxonomy;});
-    await load('/js/ibis-provider-registry.js',function(){return !!FTN.IbisProviders;});
-    await load('/js/ibis-intelligence-fabric-extension.js',function(){return !!(FTN.IbisIntelligenceFabricExtension&&FTN.IbisIntelligenceFabricExtension.applied);});
-    await load('/js/ibis-eligibility.js',function(){return !!FTN.IbisEligibility;});
-    await load('/js/ibis-provenance.js',function(){return !!FTN.IbisProvenance;});
-    await load('/js/ibis-client.js',function(){return !!FTN.IbisClient;});
-    await load('/js/ibis-intelligence-client-extension.js',function(){return !!(FTN.IbisIntelligenceClientExtension&&FTN.IbisIntelligenceClientExtension.applied);});
-  }
+  async function base(){await load('/js/ibis-capability-taxonomy.js',function(){return !!FTN.CapabilityTaxonomy;});await load('/js/ibis-provider-registry.js',function(){return !!FTN.IbisProviders;});await load('/js/ibis-intelligence-fabric-extension.js',function(){return !!(FTN.IbisIntelligenceFabricExtension&&FTN.IbisIntelligenceFabricExtension.applied);});await load('/js/ibis-eligibility.js',function(){return !!FTN.IbisEligibility;});await load('/js/ibis-provenance.js',function(){return !!FTN.IbisProvenance;});await load('/js/ibis-client.js',function(){return !!FTN.IbisClient;});await load('/js/ibis-intelligence-client-extension.js',function(){return !!(FTN.IbisIntelligenceClientExtension&&FTN.IbisIntelligenceClientExtension.applied);});}
   async function ensure(capability){
     await base();
-    if(capability==='CORRELATION_ANALYSIS'){
-      await load('/js/ibis-math.js',function(){return !!FTN.IbisMath;});
-      await load('/js/ibis-correlation-engine.js',function(){return !!FTN.IbisCorrelation;});
-    }else if(capability==='CAPITAL_SCENARIO'){
-      await load('/js/ibis-math.js',function(){return !!FTN.IbisMath;});
-      await load('/js/ibis-capital-intelligence.js',function(){return !!FTN.IbisCapital;});
-    }else if(capability==='INTENT_STORE'){
-      await load('/js/ibis-intent-graph.js',function(){return !!FTN.IbisIntentGraph;});
-    }else if(capability==='OPPORTUNITY_MATCH'){
-      await load('/js/ibis-intent-graph.js',function(){return !!FTN.IbisIntentGraph;});
-      await load('/js/ibis-opportunity-graph.js',function(){return !!FTN.IbisOpportunityGraph;});
-    }else if(capability==='CONTEXT_GRAPH_QUERY'){
-      await load('/js/product-registry-data.js',function(){return Array.isArray(FTN.ProductRegistryData);});
-      await load('/js/ftn-node-registry.js',function(){return !!FTN.NodeRegistry;});
-      await load('/js/ibis-context-graph.js',function(){return !!FTN.IbisContextGraph;});
-    }
-    if(!FTN.CapabilityTaxonomy.isRecognized(capability))throw new Error('Capability is not recognized by ibis: '+capability);
-    return FTN.IbisClient;
+    if(capability==='CORRELATION_ANALYSIS'){await load('/js/ibis-math.js',function(){return !!FTN.IbisMath;});await load('/js/ibis-correlation-engine.js',function(){return !!FTN.IbisCorrelation;});}
+    else if(capability==='CAPITAL_SCENARIO'){await load('/js/ibis-math.js',function(){return !!FTN.IbisMath;});await load('/js/ibis-capital-intelligence.js',function(){return !!FTN.IbisCapital;});}
+    else if(capability==='INTENT_STORE'){await load('/js/ibis-intent-graph.js',function(){return !!FTN.IbisIntentGraph;});}
+    else if(capability==='OPPORTUNITY_MATCH'){await load('/js/ibis-intent-graph.js',function(){return !!FTN.IbisIntentGraph;});await load('/js/ibis-opportunity-graph.js',function(){return !!FTN.IbisOpportunityGraph;});}
+    else if(capability==='CONTEXT_GRAPH_QUERY'){await load('/js/product-registry-data.js',function(){return Array.isArray(FTN.ProductRegistryData);});await load('/js/ftn-node-registry.js',function(){return !!FTN.NodeRegistry;});await load('/js/ibis-context-graph.js',function(){return !!FTN.IbisContextGraph;});}
+    else if(capability==='FORESIGHT_GENERATE'){await load('/js/ibis-relationship-epistemics.js',function(){return !!FTN.IbisRelationshipEpistemics;});await load('/js/ibis-foresight-engine.js',function(){return !!FTN.IbisForesight;});}
+    if(!FTN.CapabilityTaxonomy.isRecognized(capability))throw new Error('Capability is not recognized by ibis: '+capability);return FTN.IbisClient;
   }
   async function request(capability,payload,context){var Client=await ensure(capability);return Client.request({capability:capability,payload:payload||{},context:context||{}});}
-  function focus(names){if(typeof document==='undefined')return;var wanted=new Set(names||[]);document.querySelectorAll('.thought').forEach(function(t){var name=t.dataset.thought;if(wanted.has(name)){t.classList.remove('dematerialized');t.classList.add('materializing');setTimeout(function(){t.classList.remove('materializing');},760);}else if(!t.classList.contains('pinned')){t.classList.add('dematerialized');}});}
+  function focus(names){if(typeof document==='undefined')return;var wanted=new Set(names||[]);document.querySelectorAll('.thought').forEach(function(t){var name=t.dataset.thought;if(wanted.has(name)){t.classList.remove('dematerialized');t.classList.add('materializing');setTimeout(function(){t.classList.remove('materializing');},760);}else if(!t.classList.contains('pinned'))t.classList.add('dematerialized');});}
   function prepareViz(card){if(!card)return null;card.querySelectorAll('.ibis-viz-host,[data-viz-mount],.ibis-correlation-viz').forEach(function(n){n.remove();});var host=document.createElement('div');host.className='ibis-viz-host';card.appendChild(host);return host;}
   FTN.HeadspaceFabric={ensure:ensure,request:request,focus:focus,prepareViz:prepareViz};
   function attach(src,marker){if(typeof document==='undefined'||document.querySelector('script['+marker+']'))return;var s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute(marker,'');document.head.appendChild(s);}
-  attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');
-  attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');
+  attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');attach('/js/ibis-headspace-foresight.js?v=20260907.1','data-headspace-foresight');
 })(typeof window!=='undefined'?window:globalThis);
