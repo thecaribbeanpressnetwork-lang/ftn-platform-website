@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ibis Desk — Spatial Caribbean Intelligence | FTN Platform</title>
+<meta name="description" content="A spatial preview of ibis: ask once and let the Caribbean intelligence workspace assemble around your need.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/components/ibis-desk-preview.css?v=20260907.1">
+<script src="/js/ibis-desk-preview.js?v=20260907.1" defer></script>
+</head>
+<body>
+<a class="skip" href="#desk">Skip to desk</a>
+<div class="app-shell">
+  <aside class="rail" id="rail">
+    <a class="brand" href="/ibis-preview/"><span class="mark">ib</span><span><strong>ibis</strong><small>Desk preview</small></span></a>
+    <nav>
+      <button type="button" data-preset="business">My business</button>
+      <button type="button" data-preset="opportunity">Opportunities</button>
+      <button type="button" data-preset="place">Place intelligence</button>
+      <button type="button" data-preset="mayor">Mayor mode</button>
+      <button type="button" data-preset="blank">New desk</button>
+    </nav>
+    <div class="rail-foot"><a href="/ibis-preview/">← ibis landing preview</a><a href="/">Current FTN homepage</a></div>
+  </aside>
+  <main class="desk" id="desk">
+    <div class="ambient" aria-hidden="true"></div>
+    <header class="desk-head">
+      <div><span class="kicker">TRINIDAD &amp; TOBAGO · LIVE WORKSPACE CONCEPT</span><h1>Your Caribbean, arranged around the question.</h1></div>
+      <div class="head-actions"><button id="clearDesk" type="button">Clear desk</button><a href="/account/">Sign in</a></div>
+    </header>
+
+    <section class="canvas" id="canvas" aria-label="Spatial ibis workspace">
+      <article class="desk-card card-answer" data-card="answer" tabindex="0">
+        <div class="card-bar"><span>IBIS ANSWER</span><div><button type="button" data-pin aria-label="Pin answer">Pin</button><button type="button" data-close aria-label="Dismiss answer">×</button></div></div>
+        <h2>Christmas demand is likely to tighten your inventory window.</h2>
+        <p>Your business pattern, seasonal timing and supplier lead-time signals suggest that waiting until December may increase stock-out risk.</p>
+        <div class="actions"><button type="button">Why?</button><button type="button">Evidence</button><button type="button">What should I do?</button></div>
+      </article>
+
+      <article class="desk-card card-graph" data-card="graph" tabindex="0">
+        <div class="card-bar"><span>DEMAND SIGNAL</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
+        <div class="graph"><span style="--h:24%"></span><span style="--h:31%"></span><span style="--h:38%"></span><span style="--h:52%"></span><span style="--h:63%"></span><span style="--h:82%"></span><span style="--h:94%"></span></div>
+        <div class="graph-labels"><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span></div>
+        <p>Illustrative pattern — not live forecast data.</p>
+      </article>
+
+      <article class="desk-card card-opportunity" data-card="opportunity" tabindex="0">
+        <div class="card-bar"><span>OPPORTUNITY</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
+        <span class="pill">Potential fit</span><h3>Working-capital support</h3><p>ibis could surface financing or supplier-credit options before seasonal inventory pressure becomes urgent.</p><button class="text-action" type="button">Open opportunity →</button>
+      </article>
+
+      <article class="desk-card card-context" data-card="context" tabindex="0">
+        <div class="card-bar"><span>CONTEXT</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
+        <ul><li><strong>Seasonality</strong><span>Holiday demand rising</span></li><li><strong>Supply</strong><span>Lead times lengthening</span></li><li><strong>Weather</strong><span>No active disruption shown</span></li><li><strong>Confidence</strong><span>Conceptual preview only</span></li></ul>
+      </article>
+
+      <article class="desk-card card-synapse" data-card="synapse" tabindex="0">
+        <div class="card-bar"><span>CONNECTION</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
+        <div class="synapse-line"><b>Your business</b><i></i><b>Seasonal demand</b><i></i><b>Capital</b></div>
+        <p>One question can wake several parts of the Caribbean network at once.</p>
+      </article>
+    </section>
+
+    <form class="query-dock" id="queryDock">
+      <div class="dock-grip" id="dockGrip" aria-label="Drag ibis input">···</div>
+      <label class="skip" for="deskQuery">Ask ibis</label>
+      <input id="deskQuery" autocomplete="off" value="What should my business prepare for before Christmas?">
+      <button type="submit">Ask ibis</button>
+      <button type="button" id="tellButton" class="secondary">Tell ibis</button>
+    </form>
+    <p class="preview-note">Interactive design prototype. Cards are illustrative and no query is sent, stored or reasoned over.</p>
+  </main>
+</div>
+</body>
+</html>
