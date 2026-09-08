@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ibis Headspace — Caribbean Intelligence in Motion | FTN Platform</title>
-<meta name="description" content="A living spatial preview of ibis where answers, graphs, media, tools and connections materialize around intent.">
+<meta name="description" content="A living spatial preview of ibis where answers, graphs, media, scouts, correlations, tools and connections materialize around intent.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/components/ibis-headspace-preview.css?v=20260907.1">
-<script src="/js/ibis-headspace-preview.js?v=20260907.1" defer></script>
+<link rel="stylesheet" href="/css/components/ibis-headspace-preview.css?v=20260907.2">
+<script src="/js/ibis-headspace-preview.js?v=20260907.2" defer></script>
 </head>
 <body>
 <a class="skip" href="#headspace">Skip to Headspace</a>
@@ -22,6 +22,7 @@
       <button type="button" data-preset="opportunity">Opportunities</button>
       <button type="button" data-preset="place">Place intelligence</button>
       <button type="button" data-preset="media">Media & culture</button>
+      <button type="button" data-preset="dj">DJ mode concept</button>
       <button type="button" data-preset="blank">Clear Headspace</button>
     </nav>
     <div class="memory-index">
@@ -32,6 +33,10 @@
       <button type="button" data-recall="context">Context</button>
       <button type="button" data-recall="media">Media</button>
       <button type="button" data-recall="tools">Tools / APIs</button>
+      <button type="button" data-recall="explain">Why / evidence</button>
+      <button type="button" data-recall="scouts">Scouts</button>
+      <button type="button" data-recall="correlation">Correlation</button>
+      <button type="button" data-recall="device">Device surface</button>
     </div>
     <div class="rail-foot"><a href="/ibis-desk-preview/">Earlier spatial prototype</a><a href="/">Current FTN homepage</a></div>
   </aside>
@@ -48,7 +53,7 @@
         <div class="thought-bar"><span>IBIS ANSWER</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
         <h2>Christmas demand is likely to tighten your inventory window.</h2>
         <p>Your business pattern, seasonal timing and supplier lead-time signals suggest acting before December.</p>
-        <div class="actions"><button type="button">Why?</button><button type="button">Evidence</button><button type="button">What next?</button></div>
+        <div class="actions"><button type="button" data-explain>Why?</button><button type="button" data-evidence>Evidence</button><button type="button" data-next>What next?</button></div>
       </article>
 
       <article class="thought thought-graph" data-thought="graph" tabindex="0">
@@ -79,20 +84,51 @@
         <div class="tool-list"><button type="button" data-tool="api">Connect API</button><button type="button" data-tool="link">Use current link</button><button type="button" data-tool="file">Add file</button><button type="button" data-tool="agent">Send to agent</button></div>
         <p id="toolStatus">Prototype controls only. No external action is executed from this preview.</p>
       </article>
+
+      <article class="thought thought-explain dematerialized" data-thought="explain" tabindex="0">
+        <div class="thought-bar"><span>WHY YOU ARE SEEING THIS</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
+        <h3>ibis connected three signals.</h3>
+        <ol class="reason-list"><li><strong>Seasonality</strong><span>Holiday purchasing usually concentrates later in the year.</span></li><li><strong>Supply timing</strong><span>Longer lead times make late ordering more fragile.</span></li><li><strong>Your stated goal</strong><span>You asked what to prepare for before Christmas.</span></li></ol>
+        <div class="actions"><button type="button" data-launch-scout>Launch scouts</button><button type="button" data-correlate>Test correlations</button></div>
+        <p class="confidence-note">Concept explanation only. Production outputs must show source, freshness, confidence and whether each claim is verified, inferred, estimated or generated.</p>
+      </article>
+
+      <article class="thought thought-scouts dematerialized" data-thought="scouts" tabindex="0">
+        <div class="thought-bar"><span>SCOUT NETWORK</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
+        <h3>Which parts of the network should look?</h3>
+        <div class="scout-grid"><span>Opportunity Scout</span><span>Commerce Scout</span><span>Price Scout</span><span>Government Scout</span><span>Place Scout</span><span>Media Scout</span></div>
+        <p id="scoutStatus">Prototype only. No scout is running yet.</p>
+      </article>
+
+      <article class="thought thought-correlation dematerialized" data-thought="correlation" tabindex="0">
+        <div class="thought-bar"><span>CORRELATION ENGINE</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
+        <h3>What may move together?</h3>
+        <div class="correlation-line"><span>Demand</span><i></i><span>Lead time</span><i></i><span>Stock-out risk</span></div>
+        <p>In production ibis would test whether these signals meaningfully co-vary, separate correlation from causation, and expose evidence and confidence.</p>
+      </article>
+
+      <article class="thought thought-device dematerialized" data-thought="device" tabindex="0">
+        <div class="thought-bar"><span>DEVICE CAPABILITY · CONCEPT</span><div><button type="button" data-pin>Pin</button><button type="button" data-close>×</button></div></div>
+        <h3>DJ Headspace</h3>
+        <p>Example request: “Bring up four MP3 decks, use the USB stick I connected, connect to my Pioneer mixer, and help me DJ this party.”</p>
+        <div class="deck-grid"><button type="button">Deck A</button><button type="button">Deck B</button><button type="button">Deck C</button><button type="button">Deck D</button></div>
+        <div class="device-status"><span>USB media</span><b>Not connected in preview</b><span>Mixer</span><b>Not connected in preview</b></div>
+        <p>The production pattern would detect exposed device capabilities, request permission, map controls, keep the user in charge, and only claim hardware control when an actual supported interface is connected.</p>
+      </article>
     </section>
 
-    <div class="command-hint" id="commandHint">Try “show me the graph”, “hide media”, “put that back”, “save this Headspace”, or ask something new.</div>
+    <div class="command-hint" id="commandHint">Try “why am I seeing this?”, “launch scouts”, “correlate these”, “make the graph bigger”, “show DJ mode”, “put that back”, or ask something new.</div>
 
     <form class="input-orbit" id="inputOrbit">
       <div class="orbit-grip" id="orbitGrip" aria-label="Drag ibis input">···</div>
-      <label class="skip" for="headspaceQuery">Ask ibis</label>
-      <input id="headspaceQuery" autocomplete="off" value="What should my business prepare for before Christmas?">
+      <label class="skip" for="headspaceQuery">Tell ibis anything</label>
+      <input id="headspaceQuery" autocomplete="off" value="What should my business prepare for before Christmas?" aria-label="Tell ibis anything">
       <button type="button" id="voiceButton" class="icon-button" aria-label="Speak to ibis" title="Speak to ibis">◉</button>
-      <button type="submit">Ask ibis</button>
-      <button type="button" id="attachButton" class="secondary">＋</button>
+      <button type="submit">Tell ibis</button>
+      <button type="button" id="attachButton" class="secondary" aria-label="Add file or input">＋</button>
     </form>
     <input id="filePicker" type="file" hidden>
-    <p class="preview-note">Interactive design prototype. No live ibis reasoning, recording, upload or external API action occurs unless explicitly connected in a future build.</p>
+    <p class="preview-note">Interactive design prototype. No live ibis reasoning, scout execution, hardware control, recording, upload or external API action occurs unless explicitly connected in a future build.</p>
   </main>
 </div>
 </body>
