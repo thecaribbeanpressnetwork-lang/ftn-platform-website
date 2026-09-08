@@ -1,0 +1,15 @@
+{
+  "status": "DRAFT_SUBMISSION_METADATA",
+  "displayName": "FTN ibis — Caribbean Intelligence",
+  "shortDescription": "Source-backed Caribbean intelligence, opportunities and FTN workflows with clear provenance and permission boundaries.",
+  "longDescription": "FTN ibis helps people discover Caribbean opportunities, source-backed regional intelligence and relevant FTN capabilities. It returns founder-reviewed records, original source links and explicit uncertainty notices. The initial app is read-only and does not submit applications, send messages or access private conversations.",
+  "publisher": "FTN Platform / RealityArtTV Media",
+  "canonicalWebsite": "https://ftnplatform.org/ibis/",
+  "privacyPolicy": "https://ftnplatform.org/legal/privacy-policy/",
+  "supportEmail": "facethenationtt@gmail.com",
+  "logo": "https://ftnplatform.org/assets/ibis/ibis-mark.svg",
+  "mcpEndpoint": "https://ftnplatform.org/api/ibis/mcp",
+  "tools": ["search", "fetch", "opportunity_scout", "route_intent", "get_entity_profile"],
+  "dataAccess": "Public FTN-indexed records only in the initial slice; no raw conversation history or private workspace access.",
+  "reviewNote": "This is an FTN internal submission draft, not a claim that the endpoint is deployed or approved by OpenAI."
+}
