@@ -5,6 +5,20 @@ import fs from 'node:fs';
 const base=process.env.FTN_TEST_BASE||'http://127.0.0.1:4173';
 fs.mkdirSync('test-artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true});
+
+const landing=await browser.newPage({viewport:{width:1440,height:1000}});
+await landing.goto(base+'/ibis-preview/',{waitUntil:'networkidle'});
+assert.match(await landing.locator('.hero h1').innerText(),/Ask ibis/i,'Cinematic ibis landing headline must exist');
+assert.equal(await landing.locator('#askInput').count(),1,'Landing intent input must exist');
+await landing.screenshot({path:'test-artifacts/ibis-headspace-lander.png',fullPage:false});
+await landing.locator('#askInput').fill('What is the latest USD selling rate?');
+await Promise.all([
+  landing.waitForURL(/\/ibis-headspace-preview\/\?q=/),
+  landing.locator('#askForm button[type="submit"]').click()
+]);
+assert.match(landing.url(),/ibis-headspace-preview/,'Landing intent should enter Headspace');
+await landing.close();
+
 const page=await browser.newPage({viewport:{width:1440,height:1000}});
 const consoleErrors=[];
 page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text());});
@@ -16,6 +30,7 @@ assert.equal(await page.locator('.thought').count()>=10,true,'Headspace thought 
 async function ask(text){await page.locator('#headspaceQuery').fill(text);await page.locator('#inputOrbit button[type="submit"]').click();await page.waitForTimeout(900);}
 
 await ask('What is the latest USD selling rate?');
+assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('headspace-engaged')),true,'Working Headspace should enter engaged minimal-chrome state');
 assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/USD|TTD|selling|rate/i,'Verified statistics answer should materialize');
 assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz').count(),1,'Statistics should use Presentation Intelligence');
 assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--snapshot').count(),1,'Central Bank series must be labelled SNAPSHOT');
@@ -51,4 +66,4 @@ await mobile.screenshot({path:'test-artifacts/ibis-headspace-mobile.png',fullPag
 
 assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));
 await browser.close();
-console.log('ibis Headspace browser audit: statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, dragging and mobile attention layout verified; screenshots captured.');
+console.log('ibis browser audit: cinematic lander handoff, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, dragging and mobile attention layout verified; screenshots captured.');
