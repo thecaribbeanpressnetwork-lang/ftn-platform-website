@@ -38,6 +38,15 @@ jobs:
       - name: Audit Product Registry and private-route boundaries
         run: node tests/product-registry-audit.mjs
 
+      - name: Audit ibis public discoverability and international-capital records
+        run: node tests/ibis-discoverability-audit.mjs
+
+      - name: Audit FTN ibis MCP app contract
+        run: npm test --prefix apps/ftn-ibis-mcp
+
+      - name: Audit FTN ibis browser companion permissions and packaging
+        run: node apps/ftn-ibis-browser-extension/test.mjs
+
       - name: Audit primary navigation drift (registry <-> nav-config <-> generated pages)
         run: node tests/nav-registry-audit.mjs
 

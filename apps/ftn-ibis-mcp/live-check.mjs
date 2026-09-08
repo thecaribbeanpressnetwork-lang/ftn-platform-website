@@ -21,8 +21,21 @@ const initialized = await request({ jsonrpc: '2.0', id: 1, method: 'initialize',
 if (initialized.status !== 200 || initialized.json?.result?.serverInfo?.name !== 'ftn-ibis-mcp') throw new Error(`initialize failed: ${JSON.stringify(initialized)}`);
 
 const listed = await request({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
-const names = (listed.json?.result?.tools || []).map((tool) => tool.name);
+const tools = listed.json?.result?.tools || [];
+const names = tools.map((tool) => tool.name);
 const expected = ['search', 'fetch', 'opportunity_scout', 'route_intent', 'get_entity_profile'];
 if (listed.status !== 200 || expected.some((name) => !names.includes(name))) throw new Error(`tools/list failed: ${JSON.stringify(listed)}`);
+
+for (const tool of tools) {
+  const annotations = tool.annotations || {};
+  if (
+    annotations.readOnlyHint !== true ||
+    annotations.openWorldHint !== false ||
+    annotations.destructiveHint !== false ||
+    annotations.idempotentHint !== true
+  ) {
+    throw new Error(`unsafe or incomplete annotations for ${tool.name}: ${JSON.stringify(annotations)}`);
+  }
+}
 
 console.log(JSON.stringify({ ok: true, endpoint, health: healthBody, tools: names }));
