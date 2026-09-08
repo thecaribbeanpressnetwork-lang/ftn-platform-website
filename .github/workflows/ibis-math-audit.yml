@@ -45,3 +45,5 @@ jobs:
         run: node tests/ibis-relationship-epistemics-audit.mjs
       - name: Audit evidence-backed Foresight discipline
         run: node tests/ibis-foresight-engine-audit.mjs
+      - name: Audit external creative and specialist capability radar
+        run: node tests/ibis-capability-radar-audit.mjs
