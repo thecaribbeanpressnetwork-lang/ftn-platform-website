@@ -1,0 +1,30 @@
+name: ibis MCP Client Gate
+
+on:
+  push:
+    branches: [feature/ibis-1-interface]
+    paths:
+      - '.github/workflows/ibis-mcp-gate.yml'
+      - 'scripts/lib/ibis-mcp-client.mjs'
+      - 'tests/ibis-mcp-client-integration.mjs'
+      - 'tests/fixtures/ibis-mcp-test-server.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mcp-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned official MCP v2 SDK
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save @modelcontextprotocol/client@2 @modelcontextprotocol/server@2 zod@4
+      - name: Prove ibis MCP client end to end
+        run: node tests/ibis-mcp-client-integration.mjs
