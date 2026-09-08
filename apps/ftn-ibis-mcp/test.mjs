@@ -36,6 +36,7 @@ try {
   }).then((response) => response.text());
   assert.match(tools, /opportunity_scout/);
   assert.match(tools, /get_entity_profile/);
+  assert.match(tools, /get_service_tiers/);
   assert.match(tools, /destructiveHint/);
   assert.match(tools, /readOnlyHint/);
   console.log('FTN ibis MCP server health + initialize + tools/list passed');

@@ -53,6 +53,6 @@ For ChatGPT Developer Mode, enable Developer mode under **Settings → Security 
 
 1. Select the verified FTN developer or business identity in the OpenAI Platform submission portal.
 2. Create a **With MCP** universal-URL draft and scan the deployed endpoint.
-3. Run the five positive and three negative reviewer cases in `submission-metadata.json`.
+3. Run the six positive and three negative reviewer cases in `submission-metadata.json`.
 4. Complete policy attestations and submit for OpenAI review.
 5. Add authenticated workspace tools only after OAuth, consent, retention and deletion controls are implemented.

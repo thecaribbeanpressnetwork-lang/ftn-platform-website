@@ -142,6 +142,7 @@
           <li>the protected FTN transaction service records contact and creator submissions, consent/authority confirmation, route, time and the fields shown in the form;</li>
           <li>Cloudflare hosting, security and Web Analytics may process ordinary delivery telemetry such as request, device, referrer, country-level and security information;</li>
           <li>product workspaces may save clearly labelled drafts, preferences, recent items and source watchlists in the visitor&rsquo;s own browser.</li>
+          <li>when a signed-in user deliberately starts FTN ibis Pro checkout, FTN records the plan, amount, currency, internal order reference and WAM payment-status identifiers; WAM hosts checkout and FTN does not receive card, CVV or wallet credentials.</li>
         </ul>
         <p>Contact and creator transactions require a stated purpose, authority confirmation and Cloudflare Turnstile. A successful receipt includes a transaction ID; a browser-only draft or email fallback is not described as submitted.</p>
         <p>Do not enter passwords, payment-card details, medical records, private civic evidence, identity documents, urgent threats or legally privileged information into general forms.</p>
@@ -168,7 +169,7 @@
         <h2 id="third-party-services">Third-Party Services</h2>
         <p>The website currently requests font files from Google Fonts.</p>
         <p>When a visitor&rsquo;s browser requests those files, the third-party provider may receive ordinary technical request information such as the visitor&rsquo;s IP address, browser details and request time as part of normal internet delivery.</p>
-        <p>FTN does not currently use third-party behavioural advertising networks, social-media tracking pixels or embedded payment processors on this website. The production host currently includes Cloudflare Web Analytics/delivery telemetry; sensitive surfaces prohibit session replay.</p>
+        <p>FTN does not use third-party behavioural advertising networks or social-media tracking pixels. FTN ibis Pro uses WAM-hosted checkout after an explicit user action; WAM processes payment credentials under its own terms and privacy notice while FTN retains only the minimum order, status and entitlement evidence needed to provide the purchased access. The production host currently includes Cloudflare Web Analytics/delivery telemetry; sensitive surfaces prohibit session replay.</p>
         <p>The website is hosted through infrastructure that may process ordinary server and security information necessary to deliver and protect the site. Such infrastructure may include Cloudflare Pages and related domain or hosting services configured outside the website repository.</p>
 
         <h2 id="presentation-mode-and-live-mode">Presentation Mode and Live Mode</h2>

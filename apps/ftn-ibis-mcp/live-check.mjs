@@ -23,7 +23,7 @@ if (initialized.status !== 200 || initialized.json?.result?.serverInfo?.name !==
 const listed = await request({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
 const tools = listed.json?.result?.tools || [];
 const names = tools.map((tool) => tool.name);
-const expected = ['search', 'fetch', 'opportunity_scout', 'route_intent', 'get_entity_profile'];
+const expected = ['search', 'fetch', 'opportunity_scout', 'route_intent', 'get_entity_profile', 'get_service_tiers'];
 if (listed.status !== 200 || expected.some((name) => !names.includes(name))) throw new Error(`tools/list failed: ${JSON.stringify(listed)}`);
 
 for (const tool of tools) {
