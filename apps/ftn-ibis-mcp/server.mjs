@@ -228,6 +228,21 @@ function createServer() {
     return resultContent('FTN ibis profile', payload);
   });
 
+  registerTool('get_service_tiers', {
+    title: 'Compare FTN ibis Standard and Pro',
+    description: 'Use this when the user asks what FTN ibis costs or what the free and paid tiers include. This tool only describes plans; it cannot charge the user.',
+    inputSchema: z.object({}),
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
+  }, async () => resultContent('FTN ibis has a free Standard tier and an optional Pro pass.', {
+    plans: [
+      { id: 'ibis-standard', name: 'FTN ibis Standard', price: 'TT$0', features: ['Five public source-backed tools', 'Caribbean opportunity search', 'Provenance and original source links'] },
+      { id: 'ibis-pro-30d', name: 'FTN ibis Pro — 30 days', price: 'TT$99', renewal: 'One-time; no automatic renewal', features: ['Everything in Standard', 'Private saved watchlists', 'International capital brief matching'] },
+    ],
+    pricingUrl: 'https://ftnplatform.org/ibis/pricing/',
+    paymentNotice: 'Checkout is WAM-hosted. This read-only tool cannot create a charge.',
+    provenance: provenance({ lane: 'service-tiers' }),
+  }));
+
   return server;
 }
 

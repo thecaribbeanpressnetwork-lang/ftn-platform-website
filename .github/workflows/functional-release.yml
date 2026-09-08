@@ -49,6 +49,9 @@ jobs:
       - name: Audit FTN ibis browser companion permissions and packaging
         run: node apps/ftn-ibis-browser-extension/test.mjs
 
+      - name: Audit FTN ibis Standard/Pro and WAM payment boundaries
+        run: node tests/ibis-wam-billing-audit.mjs
+
       - name: Audit primary navigation drift (registry <-> nav-config <-> generated pages)
         run: node tests/nav-registry-audit.mjs
 

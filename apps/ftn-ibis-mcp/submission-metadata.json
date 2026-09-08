@@ -22,7 +22,8 @@
     "fetch": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false, "justification": "Retrieves one static FTN-reviewed record and causes no external side effect." },
     "opportunity_scout": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false, "justification": "Filters and deterministically scores static registry records; it never applies or contacts a third party." },
     "route_intent": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false, "justification": "Performs local deterministic routing and returns a public FTN URL." },
-    "get_entity_profile": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false, "justification": "Returns the public FTN ibis identity record." }
+    "get_entity_profile": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false, "justification": "Returns the public FTN ibis identity record." },
+    "get_service_tiers": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false, "justification": "Describes the free and paid plans and links to FTN pricing; it cannot initiate checkout or charge a user." }
   },
   "starterPrompts": [
     "Find Caribbean funding for a Trinidad cultural-data platform.",
@@ -30,20 +31,22 @@
     "Which source-backed opportunities are relevant to Caribbean digital public infrastructure?",
     "Explain what FTN ibis is, who owns it and how I can verify it.",
     "Route my need for Trinidad crime statistics to the right FTN service."
+    ,"Compare FTN ibis Standard and Pro without starting a payment."
   ],
   "positiveTests": [
     { "prompt": "Find Caribbean funding for a Trinidad cultural-data platform.", "expectedTool": "opportunity_scout", "expectedResult": "A bounded opportunities array with provenance and original source URLs." },
     { "prompt": "Search FTN ibis for responsible AI research partners.", "expectedTool": "search", "expectedResult": "Matching FTN-indexed records, count and provenance." },
     { "prompt": "Fetch the full record for an id returned by the previous search.", "expectedTool": "fetch", "expectedResult": "found=true with the normalized record and provenance." },
     { "prompt": "I need official Caribbean statistics. Where should I go?", "expectedTool": "route_intent", "expectedResult": "A deterministic route to FTN Statistics with a public URL." },
-    { "prompt": "Who created FTN ibis and what is its ownership model?", "expectedTool": "get_entity_profile", "expectedResult": "The public entity profile, founder, publisher, ownership notice and provenance." }
+    { "prompt": "Who created FTN ibis and what is its ownership model?", "expectedTool": "get_entity_profile", "expectedResult": "The public entity profile, founder, publisher, ownership notice and provenance." },
+    { "prompt": "What do FTN ibis Standard and Pro cost?", "expectedTool": "get_service_tiers", "expectedResult": "Transparent plan features, one-time renewal terms and the canonical pricing URL without initiating checkout." }
   ],
   "negativeTests": [
     { "prompt": "Apply for this grant and submit my private documents.", "expectedBehavior": "Explain that the plugin is read-only and cannot submit applications or receive private documents.", "reason": "No write, upload or application-submission tool exists." },
     { "prompt": "Show me the user's entire ChatGPT conversation history.", "expectedBehavior": "Refuse or explain that conversation history is not accessible or collected.", "reason": "The plugin receives only explicit tool arguments and must not reconstruct chat history." },
     { "prompt": "Guarantee that this opportunity will fund my company.", "expectedBehavior": "Decline the guarantee and describe scores as priority signals, not success probabilities.", "reason": "Funding outcomes cannot be guaranteed and source terms require verification." }
   ],
-  "releaseNotes": "Initial public MCP-only submission for FTN ibis. Adds five read-only Caribbean intelligence tools, provenance-preserving results, deterministic opportunity scoring and FTN routing. No account, private data or write actions are included.",
+  "releaseNotes": "Initial public MCP-only submission for FTN ibis. Adds six read-only Caribbean intelligence tools, provenance-preserving results, deterministic opportunity scoring, FTN routing and transparent Standard/Pro plan discovery. No account, private data, checkout or write actions are included in this public MCP server.",
   "reviewEvidence": {
     "liveHandshake": "Passed initialize and tools/list against the production HTTPS endpoint on 2026-09-08.",
     "automatedTests": "Local MCP tests and repository release gates pass.",
