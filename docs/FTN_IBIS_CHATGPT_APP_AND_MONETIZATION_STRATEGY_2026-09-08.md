@@ -59,6 +59,18 @@ Never sell private user conversations or infer sensitive personal traits for com
 
 Use the app as a demonstrable public-interest technology product for grants, research collaborations, challenge prizes and development-agency contracts. Funding should accelerate source coverage, multilingual/voice access, independent safety review and regional infrastructure—not replace a path to earned revenue.
 
+## Adoption signals for funders and investors
+
+Usage can become credible traction evidence when it is measured as a small, auditable funnel:
+
+- discovery: qualified visits, search impressions, referral sources and verified-domain conversions;
+- activation: first source-backed answer, first opportunity brief, saved workspace or explicit FTN route;
+- value: repeat users, completed briefs, alerts requested, applications prepared and source-citation opens;
+- trust: correction rate, source freshness, opt-outs, support resolution and privacy incidents;
+- conversion: paid checkout starts, completed purchases, pilot renewals, institutional conversations and grant referrals.
+
+Report monthly aggregates, cohort retention and anonymized geography/sector bands. Do not claim that a view identifies a funder, proves copying or predicts an investment. Any private usage signal should remain server-side, consent-aware, retention-limited and excluded from public ranking. The strongest investor evidence is a chain from discovery to repeated value to a paid or contracted outcome.
+
 ## What people would pay for
 
 Users will not pay simply for “an AI that knows the Caribbean.” They may pay for outcomes that are difficult to obtain elsewhere:
