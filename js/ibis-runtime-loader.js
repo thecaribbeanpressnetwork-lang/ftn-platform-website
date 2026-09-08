@@ -9,6 +9,7 @@
     await load('/js/ibis-permission-ledger.js',function(){return !!FTN.PermissionLedger;});
     await load('/js/ibis-app-registry.js',function(){return !!FTN.AppRegistry;});
     await load('/js/ibis-universal-router.js',function(){return !!FTN.UniversalRouter;});
+    await load('/js/ibis-build-preview-share.js',function(){return !!FTN.BuildPreviewShare;});
     await load('/js/ibis-multi-agent-orchestrator.js',function(){return !!FTN.MultiAgentOrchestrator;});
     await load('/js/ibis-device-sensor-bridge.js',function(){return !!FTN.DeviceSensorBridge;});
     await load('/js/ibis-runtime.js',function(){return !!FTN.IbisRuntime;});
