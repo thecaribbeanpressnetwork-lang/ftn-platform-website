@@ -2,6 +2,8 @@
 
 **Status:** foundation contract for the first FTN ibis MCP app
 
+**Deployed read-only transport:** `https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-ibis-mcp` (live Edge Function; health and MCP handshake still require an external live/browser gate).
+
 ## Decision
 
 FTN ibis should learn from use, but it must not silently ingest full conversations or infer a person's identity, funding intent or sensitive traits. The initial ChatGPT/LLM connector is read-only. Learning is added through explicit, bounded lanes owned by FTN.
