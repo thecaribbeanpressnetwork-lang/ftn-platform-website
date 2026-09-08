@@ -8,10 +8,16 @@ on:
       - 'js/ibis-live-research.js'
       - 'js/ibis-provider-registry.js'
       - 'supabase/functions/ibis-*/**'
+      - 'supabase/migrations/*ibis*memory*.sql'
+      - 'tests/ibis-semantic-memory-audit.mjs'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  SUPABASE_URL: https://jshmidfpqrajxtukzges.supabase.co
+  SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI6ImpzaG1pZGZwcXJhanh0dWt6Z2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NjkwMjIsImV4cCI6MjA5ODM0NTAyMn0.GWyeaQr53LljtTn_WmWfjDvC9ZUU_fI2tzlx3Ty5-0c
 
 jobs:
   live-adapter-gate:
@@ -20,6 +26,9 @@ jobs:
     steps:
       - name: Checkout target branch
         uses: actions/checkout@v4
+
+      - name: Audit semantic-memory foundation
+        run: node tests/ibis-semantic-memory-audit.mjs
 
       - name: Prove public current-research adapters
         shell: bash
@@ -30,11 +39,28 @@ jobs:
           node -e 'const x=JSON.parse(process.argv[1]); if(!Array.isArray(x.hits)) process.exit(1); console.log("Hacker News adapter OK; hits:",x.hits.length)' "$HN"
           node -e 'const x=JSON.parse(process.argv[1]); if(!Array.isArray(x.items)) process.exit(1); console.log("GitHub public-search adapter OK; items:",x.items.length)' "$GH"
 
+      - name: Prove preview provider-health adapter and configured providers
+        shell: bash
+        run: |
+          set -euo pipefail
+          HTTP_CODE="$(curl --silent --show-error --max-time 30 -o /tmp/ibis-provider-health.json -w '%{http_code}' \
+            "$SUPABASE_URL/functions/v1/ibis-provider-health-preview" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H 'Origin: https://ftnplatform.org')"
+          cat /tmp/ibis-provider-health.json
+          test "$HTTP_CODE" = "200"
+          node - <<'NODE'
+          const fs=require('fs');
+          const body=JSON.parse(fs.readFileSync('/tmp/ibis-provider-health.json','utf8'));
+          if(body.capability!=='MODEL_PROVIDER_HEALTH') throw new Error('Wrong capability response');
+          if(!Array.isArray(body.providers)||body.providers.length<2) throw new Error('Provider health results missing');
+          console.log('provider health:', body.providers.map(p=>`${p.provider}:${p.state}:${p.configuredModelVisible ?? 'n/a'}`).join(', '));
+          if(!(body.healthyCount>=1)) throw new Error('No configured model provider is healthy');
+          NODE
+
       - name: Prove deployed ibis assistant reaches upstream model
         shell: bash
-        env:
-          SUPABASE_URL: https://jshmidfpqrajxtukzges.supabase.co
-          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzaG1pZGZwcXJhanh0dWt6Z2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NjkwMjIsImV4cCI6MjA5ODM0NTAyMn0.GWyeaQr53LljtTn_WmWfjDvC9ZUU_fI2tzlx3Ty5-0c
         run: |
           set -euo pipefail
           BODY='{"messages":[{"role":"user","content":"Reply with exactly IBIS-LIVE-OK and nothing else."}]}'
@@ -57,5 +83,5 @@ jobs:
 
       - name: Record gate scope
         run: |
-          echo 'NOTE: This gate proves the guest assistant upstream plus the two zero-credential public research adapters.'
-          echo 'It does NOT prove authenticated ibis-query/Gemini because a real FTN user JWT is intentionally not stored in CI.'
+          echo 'NOTE: This gate proves semantic-memory migration invariants, live public research, provider credential/model health, and the guest assistant upstream.'
+          echo 'It does NOT prove authenticated ibis-query/Gemini generation because a real FTN user JWT is intentionally not stored in CI.'
