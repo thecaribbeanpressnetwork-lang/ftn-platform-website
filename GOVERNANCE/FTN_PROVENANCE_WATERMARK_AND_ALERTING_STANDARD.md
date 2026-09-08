@@ -70,6 +70,10 @@ Static Cloudflare Pages cannot receive an alert by itself. A beacon requires an 
 
 Preserve the discovered URL, screenshot, HTML headers, downloaded file and timestamp. Hash the suspected copy and compare it with the FTN release manifest. Record the first-publication commit/Drive revision, the relevant licence and the degree of transformation. Contact the operator with a factual notice; escalate to a platform or legal process only after the evidence is reviewed.
 
+## Opportunity Scout connection
+
+A provenance event may add a small **attention signal** to an opportunity record only when the event is aggregated and non-identifying. Distinct referrer origins, repeated recent requests and a verified organization referral can contribute modestly; an IP address, a single anonymous hit or a guessed person must never raise a funding score. The scout must display the signal separately from eligibility, payout, source freshness and probability, with the notice that attention is not a funding inquiry.
+
 ## Ownership boundary
 
 This system documents provenance for FTN-created material. It does not claim ownership of third-party code, models, fonts, stock media, provider outputs, public facts or user-submitted content. Those remain governed by their licences, terms and agreements.
