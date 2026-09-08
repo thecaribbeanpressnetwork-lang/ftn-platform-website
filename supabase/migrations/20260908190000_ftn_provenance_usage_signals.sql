@@ -23,4 +23,9 @@ create index if not exists ftn_provenance_usage_signals_asset_created_idx
 
 alter table public.ftn_provenance_usage_signals enable row level security;
 revoke all on public.ftn_provenance_usage_signals from anon, authenticated;
+create policy "provenance signals deny client access"
+  on public.ftn_provenance_usage_signals
+  for all to anon, authenticated
+  using (false)
+  with check (false);
 comment on table public.ftn_provenance_usage_signals is 'Private, non-identifying FTN asset usage signals. Not proof of copying or viewer identity.';
