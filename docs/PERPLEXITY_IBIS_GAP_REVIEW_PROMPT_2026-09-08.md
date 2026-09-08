@@ -8,6 +8,21 @@ You are performing an external investor-grade red-team review of **ibis**, an ea
 
 Your job is NOT to praise it. Determine what is missing compared with the best-funded AI assistants, agent companies, autonomous-work products and app-building agents available in 2026, and identify the cheapest credible way to close each gap using open-source software, free tiers, free credits, MCP servers, public APIs or self-hosted tooling.
 
+## Strategic mandate
+
+The objective is to come out of the gate **as close to the top tier as is credibly possible**, while preserving an honest distinction between working capability, tested seed, adapter-ready architecture and discovery-only ideas.
+
+Assume we are willing to study and reproduce **publicly observable product capabilities and workflows** from funded competitors, using our own implementation, open standards, public APIs, documented behavior, open-source software and legally reusable building blocks. Do **not** recommend copying proprietary code, bypassing access controls, violating licences, scraping private systems, or misrepresenting competitors' IP as ours.
+
+The review must explicitly consider:
+- the Caribbean as the home intelligence layer;
+- how Caribbean users, firms, tradespeople, creators, investors and institutions connect to the wider world;
+- cross-border payments, funding, grants, accelerators, remote work, commerce, travel, logistics, diaspora and capital flows;
+- what capability proof would make ibis more fundable internationally;
+- what can be made operational quickly with free/open-source infrastructure before applying for capital.
+
+**Product boundary:** FTN Community Connect remains a normal browser-based FTN destination and must always remain directly usable as a conventional web experience. It is **not to be absorbed into ibis**. ibis may link to or open Community Connect when relevant, but Community Connect must remain independently navigable and functional.
+
 ## Current ibis capabilities
 
 ### Working / tested foundations
@@ -98,10 +113,16 @@ At minimum compare ibis with current capabilities from:
 12. What phone/laptop/device capabilities are realistic with browser APIs, native mobile APIs, a local bridge, Bluetooth/USB/HID/serial/MIDI, external sensors and vendor SDKs?
 13. Find useful open-source field/trade tools: computer vision measurement, AR measurement, OCR, electrical calculators, CAD/BIM, GIS, thermal-camera integrations, Bluetooth measurement devices, multimeters/test instruments, barcode/QR, asset inspection, maintenance, offline-first forms.
 14. Which Caribbean-specific datasets/APIs should ibis integrate first to create a defensible regional advantage?
-15. Which parts of the current ibis capability matrix are likely to impress investors, and which will be dismissed as architecture without proof?
-16. Design a 10–15 minute live investor demo that proves the maximum amount of capability with the smallest implementation burden.
-17. Propose a 30-day P0 execution plan using mostly free/open resources.
-18. Red-team the thesis: what could make ibis look like a wrapper, and what proprietary data/workflows/network effects would make it defensible?
+15. Which global datasets/APIs/connectors are essential so Caribbean users can transact, work, invest, travel, raise funds, apply, sell and collaborate internationally?
+16. What global funding/accelerator/grant/investor discovery sources should ibis or FTN Scouts integrate so a Caribbean founder can move from local opportunity discovery to international capital access?
+17. Which parts of the current ibis capability matrix are likely to impress investors, and which will be dismissed as architecture without proof?
+18. Design a 10–15 minute live investor demo that proves the maximum amount of capability with the smallest implementation burden.
+19. Propose a **day-one adapter checklist** for the next implementation session: every live adapter or connector that must be in place before we call the execution fabric credible.
+20. Propose a 30-day P0 execution plan using mostly free/open resources.
+21. Red-team the thesis: what could make ibis look like a wrapper, and what proprietary data/workflows/network effects would make it defensible?
+22. Identify publicly observable competitor behaviors/workflows worth reproducing using clean-room/public-interface implementation, and specify the safest free/open building blocks for each.
+23. Identify any capability category the current matrix still completely misses.
+24. For Community Connect, recommend how ibis should link/open/pass context to it while preserving Community Connect as a normal independent browser product rather than subsuming it into Headspace.
 
 ## Required output format
 
@@ -122,13 +143,19 @@ C. **Missing-capability table** with columns:
 - Estimated engineering difficulty
 - Demo value
 
-D. **Connector strategy** — recommended MCP / Activepieces / Nango / direct integration architecture.
+D. **Day-one live-adapter checklist** — exact adapters/connections that should be operational in the next implementation session, ordered by leverage.
 
-E. **30-day build order**.
+E. **Connector strategy** — recommended MCP / Activepieces / Nango / direct integration architecture.
 
-F. **Investor demo script**.
+F. **Caribbean ↔ world connectivity matrix** — funding, remote work, payments, commerce, travel/logistics, diaspora, research/data and cross-border collaboration.
 
-G. **Defensibility recommendations**.
+G. **30-day build order**.
+
+H. **Investor demo script**.
+
+I. **Defensibility recommendations**.
+
+J. **Community Connect boundary recommendation** — how to preserve it as an independently usable conventional browser destination.
 
 Use current official sources wherever possible. Cite every externally verifiable product claim. Do not treat a listed candidate as an implemented ibis feature. Distinguish clearly between WORKING, PARTIAL, ORCHESTRATOR-ONLY, DISCOVERY-ONLY and MISSING.
 
