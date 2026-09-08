@@ -37,3 +37,5 @@ jobs:
         run: node tests/ibis-intent-opportunity-graph-audit.mjs
       - name: Audit presentation intelligence and live invariants
         run: node tests/ibis-presentation-audit.mjs
+      - name: Audit live surface adapters and updater retention
+        run: node tests/ibis-live-surface-adapters-audit.mjs
