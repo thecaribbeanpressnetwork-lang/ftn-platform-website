@@ -22,7 +22,7 @@ assert.equal((await ctx.FTN.PersonalContext.snapshot()).length,1);
 const unknown=ctx.FTN.UniversalRouter.route('Explain why birds migrate');
 assert.equal(unknown.success,true);assert(unknown.capabilityCandidates.includes('TEXT'),'Unknown topics must retain TEXT fallback');
 const external=ctx.FTN.UniversalRouter.route('Build the website and deploy it');
-assert.equal(external.sideEffect,'EXTERNAL');assert(external.agents.includes('ENGINEERING'));assert(external.agents.includes('OPS'));
+assert.equal(external.sideEffect,'EXTERNAL');assert(external.agents.includes('ENGINEERING'));assert(external.agents.includes('OPS'));assert(external.agents.includes('COMMS'));
 
 let executed=0;
 ctx.FTN.MultiAgentOrchestrator.configure({router:ctx.FTN.UniversalRouter,permissionLedger:ctx.FTN.PermissionLedger,executor:async()=>{executed++;return{success:true,data:{ok:true}};},persistence:{saveRun:async x=>x,saveTask:async x=>x}});
@@ -31,6 +31,7 @@ assert.equal(run.status,'WAITING_PERMISSION','External work must block without e
 assert(run.run.tasks.some(t=>t.status==='WAITING_PERMISSION'));
 await ctx.FTN.PermissionLedger.set('agent:ENGINEERING','external_action','ALLOW');
 await ctx.FTN.PermissionLedger.set('agent:OPS','external_action','ALLOW');
+await ctx.FTN.PermissionLedger.set('agent:COMMS','external_action','ALLOW');
 run=await ctx.FTN.MultiAgentOrchestrator.execute('Build the website and deploy it',{});
 assert.equal(run.status,'COMPLETED');assert(executed>0);
 
