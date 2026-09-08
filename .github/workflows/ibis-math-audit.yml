@@ -1,4 +1,4 @@
-name: ibis Math Kernel Gate
+name: ibis Math & Correlation Gate
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  ibis-math:
+  ibis-math-correlation:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -23,3 +23,5 @@ jobs:
           node-version: '22'
       - name: Audit deterministic math kernel
         run: node tests/ibis-math-audit.mjs
+      - name: Audit correlation engine
+        run: node tests/ibis-correlation-engine-audit.mjs
