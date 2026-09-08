@@ -31,3 +31,5 @@ jobs:
         run: node tests/ibis-statistics-confidence-audit.mjs
       - name: Audit capital intelligence math
         run: node tests/ibis-capital-intelligence-audit.mjs
+      - name: Audit grounded context graph v1
+        run: node tests/ibis-context-graph-audit.mjs
