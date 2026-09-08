@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node server.mjs",
     "check": "node --check server.mjs",
-    "test": "node test.mjs"
+    "test": "node test.mjs",
+    "live-check": "node live-check.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/node": "^2.0.0",
