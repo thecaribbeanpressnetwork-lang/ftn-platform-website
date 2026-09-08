@@ -36,7 +36,7 @@ npm start
 curl http://127.0.0.1:8787/health
 ```
 
-MCP endpoint: `http://127.0.0.1:8787/mcp`
+MCP endpoint: `https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-ibis-mcp` (deployed Edge Function). The local endpoint is `http://127.0.0.1:8787/mcp`.
 
 For ChatGPT Developer Mode, expose the endpoint through a public HTTPS tunnel and connect the resulting `/mcp` URL under **Settings → Apps & Connectors → Advanced settings**. Use a stable HTTPS deployment for public submission; do not submit a localhost or tunnel URL.
 
@@ -49,7 +49,7 @@ For ChatGPT Developer Mode, expose the endpoint through a public HTTPS tunnel an
 
 ## Remaining production work
 
-1. Deploy this server behind a stable FTN-owned HTTPS endpoint.
+1. Run live health/initialize/tools-list checks against the deployed endpoint and optionally move it behind a stable FTN-owned HTTPS endpoint.
 2. Add authenticated workspace tools only after OAuth and consent are implemented.
 3. Add an optional MCP Apps widget after the tool-only flow passes ChatGPT testing.
 4. Prepare the app metadata, logo, test prompts, privacy/support evidence and publisher verification for directory review.
