@@ -56,7 +56,8 @@ const groupedIds=ecosystemGroups.flatMap(group=>group.products.map(product=>prod
 for(const id of firstClassDirectoryIds)assert(groupedIds.includes(id),`Active product missing from Product Registry ecosystem groups: ${id}`);
 assert(directorySource.includes('Registry.ecosystemGroups()'),'FTN Directory must consume registry-defined ecosystem groups');
 assert(!directorySource.includes("'mission-control'"),'Mission Control must not be exposed in the FTN Directory');
-for(const name of ['FTN Community Connect','FTN Face The Nation','ibis-ai','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks','FTN Live','FTN Learn'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
+for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks','FTN Live','FTN Learn'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);
+assert.deepEqual(Array.from(products.find(p=>p.id==='ibis-ai').sitemapRoutes),['/ibis/','/ibis/ecosystem-map/'],'FTN ibis discovery routes must remain registry-owned');
 // FTN Live compatibility migration (2026-08-24 founder decision): 'FTN Display' is deliberately
 // no longer required as an independent canonical name -- it is consolidated into FTN Screen as
 // Display Mode (parentProduct:'screen'), which is why 'FTN Screen' above already covers it.

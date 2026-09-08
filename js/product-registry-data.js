@@ -46,6 +46,7 @@ function product(config){
     // -- Phase 3 additive fields --
     purposeStatement:null,
     routeAliases:[],
+    sitemapRoutes:[],
     navPlacement:{primary:false,ecosystemGroup:null,footer:true},
     authRequirement:'guest',
     dataProduced:[],
@@ -105,6 +106,7 @@ product({
   description:'FTN ibis is FTN Platform’s founder-led Caribbean intelligence, intent and execution network: provenance-aware reasoning, opportunity intelligence, governed action and a permissioned Headspace interface. The legacy /ibis-ai/ route remains the compatible workspace.',route:'/ibis-ai/',status:'AVAILABLE',
   primaryUser:'People trying to complete or create something across FTN',primaryJourney:'Describe the outcome, choose an intelligence or creative mode, inspect the source/provider/cost boundary and continue with an exportable project.',
   callsToAction:[{label:'Ask ibis',route:'/ibis-ai/'},{label:'Open Creative Studio',route:'/ibis-ai/#ibis-creative-studio'}],visualMnemonic:'Ibis creative command node',panelAsset:'/assets/panels/05-ibis-ai.png',panelRow:1,accent:'var(--color-ibis)',atmosphere:{accent:'var(--color-ibis)',background:'dark-minimal',motionProfile:'node-pulse',heroStyle:'calm-focused'},
+  sitemapRoutes:['/ibis/','/ibis/ecosystem-map/'],
   dataSources:['FTN Product Registry','FTN public source functions','authenticated approved AI provider','verified creative-provider registry'],accessRules:['guest deterministic tools','authenticated server AI','paid provider calls disabled until credits and server approval'],featureFlags:['ibis-router','ibis-visual','ibis-authenticated-ai','ibis-creative-studio','provider-cost-lock'],
   relatedProducts:['platform-home','mission-control','kaiso','ftn-fire','learn'],legalNotices:['Generated-output notice','Private conversation boundary','Provider transfer and cost notice','Responsible AI'],analyticsClassification:'private-content-no-replay',
   keywords:['help','navigate','find','assist','goal','route','analyze','visual','image','video','creative studio','campaign','TV show','pilot','series','screenplay','script'],capabilities:['task-routing','ftn-data-analysis','media-discovery','on-device-visual-draft','creative-project-planning','provider-evidence','authenticated-server-ai','cross-product-handoff'],
