@@ -35,3 +35,5 @@ jobs:
         run: node tests/ibis-context-graph-audit.mjs
       - name: Audit private intent and opportunity graphs
         run: node tests/ibis-intent-opportunity-graph-audit.mjs
+      - name: Audit presentation intelligence and live invariants
+        run: node tests/ibis-presentation-audit.mjs
