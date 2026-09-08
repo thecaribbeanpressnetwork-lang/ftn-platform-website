@@ -17,7 +17,7 @@ const staggered=C.analyze(
   {...b,periods:['2021','2022','2023','2024','2025','2026'],values:[20,30,40,50,60,70]},
   {minPairs:4}
 );
-assert.equal(staggered.success,true); assert.deepEqual(staggered.alignedPeriods,['2021','2022','2023','2024']); assert.equal(staggered.n,4);
+assert.equal(staggered.success,true); assert.equal(staggered.alignedPeriods.join(','),'2021,2022,2023,2024'); assert.equal(staggered.n,4);
 
 const tooThin=C.analyze(a,{...b,periods:['2023','2024'],values:[40,50]});
 assert.equal(tooThin.success,false); assert.equal(tooThin.errorType,'INSUFFICIENT_OVERLAP');
