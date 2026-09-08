@@ -23,6 +23,7 @@ FTN ibis is a founder-led, Caribbean-first intelligence, intent and execution ne
 8. [Provenance, watermark and usage-alerting standard](https://drive.google.com/file/d/1oIQ2M_fNMs-_LlNBJShYbT8TwgpaqFqI/view?usp=drivesdk)
 9. [Provenance manifest](https://drive.google.com/file/d/1NYDx3XnUgCYH4kadCTrpCEQBHGm2X-oR/view?usp=drivesdk)
 10. [ChatGPT app and monetization strategy](https://drive.google.com/file/d/1F8KVw7GYz2yrKDI3-zb-sLsDq5-5S191/view?usp=drivesdk)
+11. [MCP learning and privacy contract](https://drive.google.com/file/d/1WzVuUK8g4xz8o6ep29q-oKDvEWby5At7/view?usp=drivesdk)
 
 ## Public/searchable evidence
 
