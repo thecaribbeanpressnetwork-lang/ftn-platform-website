@@ -51,3 +51,5 @@ jobs:
         run: node tests/ibis-runtime-foundation-audit.mjs
       - name: Audit autonomous build test preview publish and share workflow
         run: node tests/ibis-build-preview-share-audit.mjs
+      - name: Audit universal connected-app routing fabric
+        run: node tests/ibis-connection-fabric-audit.mjs
