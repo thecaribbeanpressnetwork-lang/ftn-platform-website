@@ -229,6 +229,102 @@ The DJ example defines the orchestration pattern, not a claim that arbitrary Pio
 
 This pattern can later apply to creative hardware, cameras, microphones, mixers, displays, sensors, vehicles, smart-home systems, industrial systems and other supported devices.
 
+## Local computer agency and driver acquisition
+
+Headspace should eventually be able to operate the user’s local computer through an FTN-controlled local bridge when the user explicitly asks and grants permission.
+
+Target capabilities:
+
+- inspect local files and folders within approved scopes
+- open and operate desktop applications
+- inspect connected hardware
+- identify missing software dependencies or drivers
+- locate official or trusted driver sources
+- download driver/install packages
+- verify publisher/signature/checksum where available
+- explain exactly what will change before installation
+- require explicit approval for system-level installation, elevation, restart or configuration changes
+- install or launch supported software when approved
+- connect applications, hardware, browser sessions, files and APIs into one Headspace task
+
+Driver acquisition must prefer the device/vendor/OS official source or a verified package repository. ibis must not silently install unsigned or provenance-unknown system software.
+
+Open-source building blocks should be adopted only after licence, security, maintenance and provenance review. The initial local-computer lane should remain provider-agnostic and capable of using local/open models when practical.
+
+## Caribbean Capital Intelligence
+
+Headspace needs a dedicated capital/wealth intelligence lane because regional financial decisions are fragmented across countries, currencies, banks, taxes, property markets, residency rules, businesses, yields and risk.
+
+This is not a standalone finance dashboard. It is a family of engines, calculators, scouts and data connectors that materialize around a financial intention.
+
+Example questions:
+
+- “How much money do I need invested to live on TT$35,000 a month without touching principal?”
+- “If I have US$2 million, where in the Caribbean could I live from income with the best combination of yield, safety, healthcare, taxes and lifestyle?”
+- “Compare living in Tobago, Barbados, Grenada and Curaçao for my budget.”
+- “What Caribbean banks or instruments currently offer the best low-risk yields for this currency and term?”
+- “What happens if interest rates fall 2%?”
+- “How much capital would I need to buy this hotel and maintain a 12-month reserve?”
+- “Find businesses in the Caribbean that fit my acquisition criteria.”
+- “Model this property as a rental, hotel, mixed-use asset and resale play.”
+- “What currency risk am I taking?”
+- “What taxes, residency rules or capital controls matter here?”
+- “Show me three ways to deploy US$5 million into Caribbean assets and explain the trade-offs.”
+
+Required capabilities:
+
+- financial-independence / income-target calculator
+- real vs nominal return modelling
+- inflation scenarios
+- tax-aware cash-flow modelling where data is available and jurisdiction-specific advice is properly qualified
+- FX and currency-risk scenarios
+- bank-deposit and fixed-income comparisons
+- portfolio and drawdown simulations
+- Monte Carlo scenarios where appropriate
+- property underwriting
+- business acquisition underwriting
+- market-entry economics
+- operating-reserve and runway models
+- debt-service and leverage modelling
+- relocation cost and residency economics
+- jurisdiction comparison
+- due-diligence checklists and evidence rooms
+- private-opportunity matching through the Intent/Opportunity Graphs
+- capital deployment scenarios
+- liquidity and exit-risk assessment
+- provenance, freshness and confidence for every financial input
+
+For high-stakes personal financial decisions, Headspace must distinguish educational modelling from regulated financial advice and expose assumptions, dates, sources, uncertainty and professional-review triggers.
+
+## Investor-grade Caribbean intelligence
+
+For wealthy investors, family offices, funds, developers, corporations and diaspora capital, ibis should become a Caribbean decision-intelligence layer rather than merely a consumer assistant.
+
+High-value investor surfaces include:
+
+- Caribbean market-entry intelligence
+- cross-island opportunity discovery
+- private business-sale / buyer-intent matching
+- property and development intelligence
+- procurement and concession discovery
+- sector heat maps
+- infrastructure and climate-risk overlays
+- tourism demand signals
+- informal-economy estimates
+- supply-chain and logistics analysis
+- labour and talent intelligence
+- regulation and licensing pathways
+- acquisition-target scouting
+- company / asset dossiers
+- due-diligence workspaces
+- scenario simulation
+- country/jurisdiction comparison
+- diaspora capital matching
+- trusted local partner discovery
+- ongoing watchlists and Foresight alerts
+
+The defensible value is not a generic global-finance model. It is the combination of Caribbean Context Graph + Intent Graph + Opportunity Graph + regional data + proprietary scouts + local entity resolution + trust/provenance + execution capability.
+
 ## Wiring architecture
 
 All existing and future FTN capabilities should be mapped into a common Headspace object/action model.
@@ -270,6 +366,9 @@ Core systems to wire:
 19. Mayor / institutional intelligence
 20. account / identity / permissions
 21. connected external tools, APIs and supported devices
+22. local computer bridge
+23. Caribbean Capital Intelligence
+24. investor-grade market / due-diligence intelligence
 
 ## Simplification rule
 
