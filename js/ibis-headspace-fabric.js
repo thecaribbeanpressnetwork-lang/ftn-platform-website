@@ -18,9 +18,16 @@
     if(!FTN.CapabilityTaxonomy.isRecognized(capability))throw new Error('Capability is not recognized by ibis: '+capability);return FTN.IbisClient;
   }
   async function request(capability,payload,context){var Client=await ensure(capability);return Client.request({capability:capability,payload:payload||{},context:context||{}});}
-  function focus(names){if(typeof document==='undefined')return;var wanted=new Set(names||[]);document.querySelectorAll('.thought').forEach(function(t){var name=t.dataset.thought;if(wanted.has(name)){t.classList.remove('dematerialized');t.classList.add('materializing');setTimeout(function(){t.classList.remove('materializing');},760);}else if(!t.classList.contains('pinned'))t.classList.add('dematerialized');});}
+  var LAYOUTS={
+    1:[[31,23,38]],
+    2:[[9,34,31],[50,16,35]],
+    3:[[4,8,38],[58,7,34],[31,57,30]],
+    4:[[4,7,34],[61,7,31],[15,56,29],[57,55,30]]
+  };
+  function compose(names){if(typeof document==='undefined'||global.matchMedia&&global.matchMedia('(max-width:760px)').matches)return;var active=(names||[]).map(function(n){return document.querySelector('[data-thought="'+n+'"]');}).filter(Boolean).filter(function(t){return!t.classList.contains('pinned');});if(!active.length)return;var layout=LAYOUTS[Math.min(active.length,4)]||LAYOUTS[4];active.forEach(function(t,i){var slot=layout[i%layout.length];t.style.left=slot[0]+'%';t.style.top=slot[1]+'%';t.style.width=slot[2]+'%';t.style.right='auto';t.style.bottom='auto';t.style.height='auto';});}
+  function focus(names){if(typeof document==='undefined')return;var wanted=new Set(names||[]);document.querySelectorAll('.thought').forEach(function(t){var name=t.dataset.thought;if(wanted.has(name)){t.classList.remove('dematerialized');t.classList.add('materializing');setTimeout(function(){t.classList.remove('materializing');},760);}else if(!t.classList.contains('pinned'))t.classList.add('dematerialized');});compose(names);}
   function prepareViz(card){if(!card)return null;card.querySelectorAll('.ibis-viz-host,[data-viz-mount],.ibis-correlation-viz').forEach(function(n){n.remove();});var host=document.createElement('div');host.className='ibis-viz-host';card.appendChild(host);return host;}
-  FTN.HeadspaceFabric={ensure:ensure,request:request,focus:focus,prepareViz:prepareViz};
+  FTN.HeadspaceFabric={ensure:ensure,request:request,focus:focus,compose:compose,prepareViz:prepareViz};
   function attach(src,marker){if(typeof document==='undefined'||document.querySelector('script['+marker+']'))return;var s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute(marker,'');document.head.appendChild(s);}
   attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');attach('/js/ibis-headspace-foresight.js?v=20260907.1','data-headspace-foresight');
 })(typeof window!=='undefined'?window:globalThis);
