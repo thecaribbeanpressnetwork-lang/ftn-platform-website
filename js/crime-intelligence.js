@@ -58,12 +58,14 @@
     return '<div class="crime-bars">'+rows.map(function(r){return '<div class="crime-bar"><span>'+esc(r.name)+'</span><div><i style="--bar:'+(r.reported/max*100).toFixed(2)+'%"></i></div><strong>'+r.reported+'</strong></div>';}).join('')+'</div>';
   }
   function periodValue(data,period) {
-    var snaps=data.dailySnapshots||[],latest=snaps[snaps.length-1];
+    var snaps=(data.dailySnapshots||[]).filter(function(snapshot){return snapshot.sourceReferenceDate;});
     if(period==='ytd') return {value:data.current.reported,label:'recorded since 1 January '+data.current.year,note:'Official TTPS current-year total'};
-    var days=period==='week'?7:31,cut=new Date(new Date(latest.date+'T12:00:00').getTime()-days*86400000),base=null;
-    snaps.forEach(function(s){if(new Date(s.date+'T12:00:00')<=cut)base=s;});
+    var latest=snaps[snaps.length-1];
+    if(!latest)return {value:'—',label:period==='week'?'weekly change':'monthly change',note:'Collecting official daily snapshots'};
+    var days=period==='week'?7:31,cut=new Date(new Date(latest.sourceReferenceDate+'T12:00:00').getTime()-days*86400000),base=null;
+    snaps.forEach(function(s){if(new Date(s.sourceReferenceDate+'T12:00:00')<=cut)base=s;});
     if(!base)return {value:'—',label:period==='week'?'weekly change':'monthly change',note:'Collecting official daily snapshots'};
-    return {value:latest.reported-base.reported,label:'additional recorded murders',note:'Change from '+base.date+' to '+latest.date};
+    return {value:latest.reported-base.reported,label:'additional recorded murders',note:'Change from '+base.sourceReferenceDate+' to '+latest.sourceReferenceDate};
   }
   function render(host,data) {
     var cur=data.current,latest=data.annual[data.annual.length-1],murderSeries=data.crimeSeries.filter(function(s){return s.id==='murder';})[0];
