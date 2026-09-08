@@ -1,0 +1,10 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const ctx={window:{},console,Map,Set};vm.createContext(ctx);for(const f of ['js/product-registry-data.js','js/ftn-node-registry.js','js/ibis-context-graph.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);const FTN=ctx.window.FTN;assert(FTN.IbisContextGraph);const scout=JSON.parse(fs.readFileSync('data/scout-2-current.json','utf8'));const g=FTN.IbisContextGraph.fromRegistries({scoutFindings:scout.findings,scoutRunDate:scout.runDate});const json=g.toJSON();assert.equal(json.scope,'GROUNDED_FTN_SLICE');assert(json.nodes.length>20);assert(json.edges.length>0);
+const ibis=g.get('FTN_PRODUCT','ibis-ai');assert(ibis);assert.equal(ibis.id,'ibis-ai');
+const cdb=g.get('OPPORTUNITY','money-cdb-ciif-data-intelligence');assert(cdb);assert.equal(cdb.label,'CIIF Data Intelligence and Digital Cultural Registry funding');
+const org=g.get('ORGANIZATION','Caribbean Development Bank');assert(org);const neighbors=g.neighbors('OPPORTUNITY','money-cdb-ciif-data-intelligence');assert(neighbors.some(x=>x.node&&x.node.type==='ORGANIZATION'));assert(neighbors.some(x=>x.node&&x.node.type==='FTN_PRODUCT'));
+const link=FTN.IbisContextGraph.explainConnection(g,'OPPORTUNITY','money-cdb-ciif-data-intelligence','FTN_PRODUCT','ibis-ai');assert.equal(link.connected,true);assert(link.provenance.length>=1);
+const missing=FTN.IbisContextGraph.explainConnection(g,'FTN_PRODUCT','ibis-ai','PLACE','Definitely Invented Place');assert.equal(missing.connected,false);
+const before=json.edges.length;FTN.IbisContextGraph.ingestScoutFindings(g,[scout.findings[0]],scout.runDate);assert.equal(g.toJSON().edges.length,before,'re-ingesting the same reviewed finding must not duplicate edges');
+assert(g.toJSON().edges.every(e=>e.provenance!==undefined),'every edge must expose provenance field');
+console.log('ibis Context Graph v1: Product/Node Registry topology, reviewed Scout opportunities, organizations, places, deduplication and explainable connections verified.');

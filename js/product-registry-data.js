@@ -101,8 +101,8 @@ product({
   legalNotices:['Independent non-government service','Official destinations remain source-owned'],keywords:['government','service','department','parliament','public notice','civic'],capabilities:['official-source-gateway','country-boundary','service-routing']
 }),
 product({
-  id:'ibis-ai',name:'ibis-ai',shortName:'ibis-ai',tagline:'AI powered by Caribbean intelligence.',
-  description:'FTN’s Caribbean-first intelligence and creative orchestration workspace for task routing, analysis, image/video project planning and provider-transparent production.',route:'/ibis-ai/',status:'AVAILABLE',
+  id:'ibis-ai',name:'FTN ibis',shortName:'ibis',tagline:'Caribbean intelligence, intent and execution.',
+  description:'FTN ibis is FTN Platform’s founder-led Caribbean intelligence, intent and execution network: provenance-aware reasoning, opportunity intelligence, governed action and a permissioned Headspace interface. The legacy /ibis-ai/ route remains the compatible workspace.',route:'/ibis-ai/',status:'AVAILABLE',
   primaryUser:'People trying to complete or create something across FTN',primaryJourney:'Describe the outcome, choose an intelligence or creative mode, inspect the source/provider/cost boundary and continue with an exportable project.',
   callsToAction:[{label:'Ask ibis',route:'/ibis-ai/'},{label:'Open Creative Studio',route:'/ibis-ai/#ibis-creative-studio'}],visualMnemonic:'Ibis creative command node',panelAsset:'/assets/panels/05-ibis-ai.png',panelRow:1,accent:'var(--color-ibis)',atmosphere:{accent:'var(--color-ibis)',background:'dark-minimal',motionProfile:'node-pulse',heroStyle:'calm-focused'},
   dataSources:['FTN Product Registry','FTN public source functions','authenticated approved AI provider','verified creative-provider registry'],accessRules:['guest deterministic tools','authenticated server AI','paid provider calls disabled until credits and server approval'],featureFlags:['ibis-router','ibis-visual','ibis-authenticated-ai','ibis-creative-studio','provider-cost-lock'],
