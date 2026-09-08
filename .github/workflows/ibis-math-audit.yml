@@ -1,4 +1,4 @@
-name: ibis Math & Correlation Gate
+name: ibis Math, Correlation & Confidence Gate
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  ibis-math-correlation:
+  ibis-intelligence-core:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -25,3 +25,5 @@ jobs:
         run: node tests/ibis-math-audit.mjs
       - name: Audit correlation engine
         run: node tests/ibis-correlation-engine-audit.mjs
+      - name: Audit confidence assessment
+        run: node tests/ibis-confidence-audit.mjs
