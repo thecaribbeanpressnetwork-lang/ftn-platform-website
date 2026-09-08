@@ -20,6 +20,8 @@ FTN ibis is a founder-led, Caribbean-first intelligence, intent and execution ne
 5. [Research and speculative-theory boundary](https://drive.google.com/file/d/198iKsMTwoNd-OxwvckvJ9miu66pmTRIX/view?usp=drivesdk)
 6. [Public proof manifest](https://drive.google.com/file/d/1UQK1KOJdBNdBzpJ3dKOveE5ytcueISd3/view?usp=drivesdk)
 7. [FTN ibis wordmark](https://drive.google.com/file/d/16HEqbR1qGRtXDk2xU-xNcIe78_X6RuM0/view?usp=drivesdk)
+8. [Provenance, watermark and usage-alerting standard](https://drive.google.com/file/d/1oIQ2M_fNMs-_LlNBJShYbT8TwgpaqFqI/view?usp=drivesdk)
+9. [Provenance manifest](https://drive.google.com/file/d/1NYDx3XnUgCYH4kadCTrpCEQBHGm2X-oR/view?usp=drivesdk)
 
 ## Public/searchable evidence
 
