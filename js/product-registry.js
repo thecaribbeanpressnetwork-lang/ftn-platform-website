@@ -8,10 +8,9 @@
   function canonicalize(p) {
     if (!p) return p;
     if (p.id !== 'ibis-ai') return p;
-    // Founder-locked spelling. Keep this compatibility normalization at the accessor boundary
-    // until the large generated registry-data file is regenerated; consumers must never propagate
-    // legacy "FTN ibis" / "ibis.ai" naming from stale registry snapshots.
-    return Object.assign({}, p, { name: 'ibis-ai', shortName: 'ibis-ai' });
+    // Founder-locked identity. The legacy /ibis-ai/ route remains stable for compatibility,
+    // while public consumers describe the product as FTN ibis.
+    return Object.assign({}, p, { name: 'FTN ibis', shortName: 'ibis' });
   }
 
   function data() {

@@ -1,0 +1,36 @@
+{
+  "name": "FTN ibis",
+  "shortName": "ibis",
+  "version": "2026-09-08",
+  "publisher": {
+    "name": "FTN Platform",
+    "founder": "Ricardo Gill",
+    "publicName": "Ricardo Antoine / Rick Boss",
+    "contact": "facethenationtt@gmail.com"
+  },
+  "description": "Caribbean-first intelligence, intent and execution network with a permissioned cognitive interface called Headspace.",
+  "canonicalPublicPage": "https://ftnplatform.org/ibis/",
+  "repository": "https://github.com/thecaribbeanpressnetwork-lang/ftn-platform-website",
+  "status": {
+    "founderCognitiveLayer": "implemented_and_audited",
+    "opportunityBackend": "connected_first_party_read_only",
+    "semanticMemory": "live_schema_applied_authenticated_rls_recall",
+    "headspace": "separate_page_pending_exact_source_deployment_and_browser_gate",
+    "externalActions": "permission_and_adapter_gated",
+    "gillCohesiveConsciousnessHypothesis": "speculative_research_only"
+  },
+  "fundingSignals": [
+    "Caribbean digital transformation",
+    "responsible AI and provenance",
+    "human-computer interaction",
+    "regional intelligence infrastructure",
+    "public-interest technology",
+    "research fellowships and challenge prizes",
+    "SME and creator opportunity infrastructure"
+  ],
+  "ownership": {
+    "steward": "Ricardo Gill",
+    "record": "https://ftnplatform.org/ibis/",
+    "boundary": "Third-party code, data, trademarks, models and provider services remain subject to their own licences and terms."
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "FTN ibis",
+  "shortName": "ibis",
+  "alternateNames": [
+    "ibis by FTN Platform",
+    "ibisAI",
+    "Tell ibis",
+    "Tellibis",
+    "TellibisAI"
+  ],
+  "publisher": "FTN Platform",
+  "founder": "Ricardo Gill",
+  "description": "Caribbean-first intelligence, intent and execution network.",
+  "publicBrief": "https://ftnplatform.org/ibis/",
+  "fundingContact": "facethenationtt@gmail.com",
+  "repository": "https://github.com/thecaribbeanpressnetwork-lang/ftn-platform-website",
+  "status": "connected organism foundation; Headspace release gate in progress",
+  "researchTopics": [
+    "provenance-aware memory",
+    "cognitive graphs",
+    "permissioned intent",
+    "opportunity intelligence",
+    "Caribbean knowledge systems",
+    "agent safety"
+  ],
+  "ownershipNotice": "Founder-controlled FTN project; third-party components and data remain under their own licences and terms.",
+  "nameBoundary": "ibis.ai and ibis-ai are treated as claimed or crowded identifiers; ibisAI, Tellibis and TellibisAI are candidate compound identifiers pending registration and clearance."
+}

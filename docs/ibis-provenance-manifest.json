@@ -1,0 +1,76 @@
+{
+  "schema": "ftn.provenance-manifest/v1",
+  "project": "FTN ibis",
+  "shortName": "ibis",
+  "steward": "Ricardo Gill",
+  "canonicalUrl": "https://ftnplatform.org/ibis/",
+  "generatedAt": "2026-09-08T18:32:28.708Z",
+  "releaseCommit": "88e84b5fda7ac55ea272ac5dff3eea4da3815aad",
+  "hashAlgorithm": "SHA-256",
+  "signing": {
+    "status": "unsigned",
+    "note": "Sign outside the public repository before a formal release."
+  },
+  "assets": [
+    {
+      "path": "ibis/index.html",
+      "bytes": 7169,
+      "sha256": "764eb85e19c6d033c7565ed384fcd7bd4da1877598acb0107e3b9c78d817ef52"
+    },
+    {
+      "path": "ibis/ibis.json",
+      "bytes": 1041,
+      "sha256": "822c015c030232c012199f54d8685f82ab9f0eb29f3eea638fed5b0152a0e043"
+    },
+    {
+      "path": "ibis/feed.xml",
+      "bytes": 767,
+      "sha256": "a4cd50aab7b78981b2e139461f80ced796f2fdda2c79a57c6930a1e954c00608"
+    },
+    {
+      "path": "ibis/ecosystem-map/index.html",
+      "bytes": 7490,
+      "sha256": "7a5370982b088ae4d3d551d6d80a2807f7d86202d5da1588efa9ca08ee1d4bc9"
+    },
+    {
+      "path": "llms.txt",
+      "bytes": 916,
+      "sha256": "169f0f32982ec687306835ccc347601157ee049375bea45db031480791bdc419"
+    },
+    {
+      "path": "assets/ibis/ibis-mark.svg",
+      "bytes": 705,
+      "sha256": "8c7097f1626be33e9b306570dde48a2314f8aa04a26f10495acfa6b255700fee"
+    },
+    {
+      "path": "assets/ibis/ibis-wordmark.svg",
+      "bytes": 1070,
+      "sha256": "f07b8b507266d21fb05180b21c2fc0cfbddc6ab3d4d628c99e4abf5cf58d419b"
+    },
+    {
+      "path": "docs/ibis-public-proof-manifest.json",
+      "bytes": 1492,
+      "sha256": "0f0df6482a04ae1b250f62a703ee421555df2d282a8523b503af6c3f2b8d4656"
+    },
+    {
+      "path": "GOVERNANCE/IBIS_BRAND_IDENTITY_AND_NAME_PROTECTION.md",
+      "bytes": 7518,
+      "sha256": "1f91a36d0f4b8c806833880269f19e53bd0031e5566256eb76d653e2ee8d59d4"
+    },
+    {
+      "path": "GOVERNANCE/IBIS_FOUNDER_OWNERSHIP_AND_IP_DECLARATION.md",
+      "bytes": 5339,
+      "sha256": "62fbfebab90bded2b61839c71c90584fd476b78b769a1fea7d8b13ead1d7a697"
+    },
+    {
+      "path": "GOVERNANCE/IBIS_DISCOVERABILITY_AND_FUNDING_DOSSIER.md",
+      "bytes": 5402,
+      "sha256": "ecbfb5c5f39424254e9a37ca79cfeb65473895439a3c626bef2ed72e12fe449b"
+    },
+    {
+      "path": "GOVERNANCE/FTN_PROVENANCE_WATERMARK_AND_ALERTING_STANDARD.md",
+      "bytes": 5333,
+      "sha256": "d1c996b01559b213926c0f177c40b83d76454a60149e5f06e67bac5d917e252d"
+    }
+  ]
+}

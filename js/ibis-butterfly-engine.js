@@ -1,0 +1,12 @@
+// FTN Platform — Butterfly Engine: explicit second-order value and causal event chains.
+(function(global){
+  'use strict';
+  function clamp(value,min,max){value=Number(value);return Number.isFinite(value)?Math.max(min,Math.min(max,value)):0;}
+  function effectValue(effect,observed){effect=effect||{};var probability=observed&&effect.observed?1:clamp(effect.probability,0,1),value=clamp(effect.strategicValue,-10,10),connectivity=clamp(effect.connectivity,0,10);return probability*value*connectivity;}
+  function value(effects,options){options=options||{};return(effects||[]).reduce(function(sum,effect){return sum+effectValue(effect,!!options.observed);},0);}
+  function chain(fields){fields=fields||{};var expected=Array.isArray(fields.expectedEffects)?fields.expectedEffects:[],unexpected=Array.isArray(fields.unexpectedEffects)?fields.unexpectedEffects:[];return{id:fields.id||'butterfly-'+Date.now(),action:fields.action||null,informationGain:clamp(fields.informationGain,0,1),relationships:fields.relationships||[],expectedEffects:expected,unexpectedEffects:unexpected,expectedButterflyValue:value(expected),actualButterflyValue:value(expected.concat(unexpected),{observed:true}),outcome:fields.outcome||null,lesson:fields.lesson||null,causalSequence:['ACTION','INFORMATION_GAIN','RELATIONSHIPS','SECOND_ORDER_EFFECTS','OUTCOME','LESSON']};}
+  function relationshipEvidence(productId){var registry=global.FTN&&global.FTN.RelationshipRegistry;if(!registry||typeof registry.forProduct!=='function')return[];return registry.forProduct(productId).map(function(row){return{id:row.id,type:row.relationshipType,status:row.status,ownership:row.ownership,source:'FTN.RelationshipRegistry'};});}
+  function correlationEvidence(a,b,options){var engine=global.FTN&&global.FTN.IbisCorrelation;if(!engine||typeof engine.analyze!=='function')return{success:false,errorType:'CORRELATION_ENGINE_UNAVAILABLE'};return engine.analyze(a,b,options||{});}
+  async function record(fields,provenance){var event=chain(fields);if(!global.FTN||!global.FTN.FounderCognitiveLayer)return{success:false,errorType:'FCL_UNAVAILABLE',event:event};var record=await global.FTN.FounderCognitiveLayer.append({kind:'BUTTERFLY_CHAIN',chain:event},provenance||{});return{success:true,event:event,record:record};}
+  global.FTN=global.FTN||{};global.FTN.ButterflyEngine={value:value,chain:chain,relationshipEvidence:relationshipEvidence,correlationEvidence:correlationEvidence,record:record};
+})(typeof window!=='undefined'?window:globalThis);

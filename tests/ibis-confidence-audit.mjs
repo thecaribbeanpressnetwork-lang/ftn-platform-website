@@ -1,0 +1,9 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const ctx={window:{},console};vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/ibis-confidence.js','utf8'),ctx);const C=ctx.window.FTN.IbisConfidence;assert(C);
+const high=C.assess({sourceClass:'OFFICIAL_PRIMARY',claimType:'VERIFIED_FACT',sourceReferenceDate:'2026-09-01',independentSourceCount:2,sourceIdentity:'Central Bank',retrievalMethod:'PUBLIC_API'},{now:'2026-09-07',freshDays:30,staleDays:180});
+assert.equal(high.level,'HIGH');assert.equal(high.probability,null);assert.match(high.meaning,/not a probability/i);
+const derived=C.assess({sourceClass:'OFFICIAL_PRIMARY',claimType:'DERIVED_CALCULATION',sourceReferenceDate:'2026-09-01',independentSourceCount:1,sourceIdentity:'Official dataset',retrievalMethod:'PUBLIC_DOWNLOAD'},{now:'2026-09-07'});assert(['HIGH','MEDIUM'].includes(derived.level));
+const stale=C.assess({sourceClass:'PRIMARY',claimType:'INFERENCE',sourceReferenceDate:'2020-01-01',independentSourceCount:1,sourceIdentity:'Registry',retrievalMethod:'PUBLIC_DOWNLOAD'},{now:'2026-09-07'});assert.equal(stale.freshness.status,'STALE');assert.notEqual(stale.level,'HIGH');
+const degraded=C.assess({sourceClass:'OFFICIAL_PRIMARY',claimType:'VERIFIED_FACT',sourceReferenceDate:'2026-09-01',independentSourceCount:3,sourceIdentity:'Official',retrievalMethod:'PUBLIC_API',degradedState:'SOURCE_UNREACHABLE'},{now:'2026-09-07'});assert.equal(degraded.level,'LOW');assert(degraded.limitations.some(x=>x.includes('SOURCE_UNREACHABLE')));
+const unknown=C.assess({claimType:'PREDICTION'},{now:'2026-09-07'});assert.equal(unknown.freshness.status,'UNKNOWN');assert.equal(unknown.level,'LOW');
+console.log('ibis Confidence: source class, freshness, claim risk, provenance completeness and degraded-state grading verified without pseudo-probabilities.');

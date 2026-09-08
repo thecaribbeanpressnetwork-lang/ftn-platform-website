@@ -115,6 +115,15 @@ current consumers against products.md rather than the list a given engine origin
   validated value from storage, reflect as a `data-*` attribute on `<html>`, `get()`/`set()`,
   broadcast a change event). Each module owns only its own domain logic on top of this.
 
+## Headspace organism + Founder Cognitive Layer (branch work, 2026-09-08)
+
+The separate Headspace page extends—without replacing—the older `/ibis-ai/` workspace. Its runtime
+now compiles private personal context into a content-addressed Founder Cognitive Layer, injects the
+governed snapshot into orchestration, uses one combined Opportunity Intelligence system, and keeps
+external actions behind the existing Permission Ledger and real adapter checks. The cognitive model
+is not consciousness and Founder Resonance is never authentication. Detailed contracts, equations,
+proof files and honest remaining gates live in `GOVERNANCE/IBIS_FOUNDER_COGNITIVE_LAYER.md`.
+
 ## Ambient Utility doctrine + FTN Share
 
 - **FTN ALWAYS ON** (internal doctrine) / **AMBIENT UTILITY** (public-facing framing): build so the

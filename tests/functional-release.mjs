@@ -442,7 +442,7 @@ await scenario('observer-crime-series-and-period-control', async page=>{
   assert.equal(await crime.locator('.crime-chart__dot').count(),10,'CSO annual murder series is incomplete');
   assert.equal(await crime.locator('.crime-bar').count(),9,'CSO police-division comparison is incomplete');
   await crime.getByRole('button',{name:'Week'}).click();
-  assert.match(await crime.innerText(),/Collecting official daily snapshots/,'weekly comparison fabricates a change before enough official snapshots exist');
+  assert.match(await crime.innerText(),/Collecting official daily snapshots/,'weekly comparison fabricates a change without source-dated official snapshots');
 });
 
 await scenario('display-network-studio', async page=>{
