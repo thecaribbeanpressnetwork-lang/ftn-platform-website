@@ -1,4 +1,4 @@
-name: ibis Math, Correlation & Confidence Gate
+name: ibis Intelligence Core Gate
 
 on:
   push:
@@ -27,3 +27,7 @@ jobs:
         run: node tests/ibis-correlation-engine-audit.mjs
       - name: Audit confidence assessment
         run: node tests/ibis-confidence-audit.mjs
+      - name: Audit statistics confidence bridge
+        run: node tests/ibis-statistics-confidence-audit.mjs
+      - name: Audit capital intelligence math
+        run: node tests/ibis-capital-intelligence-audit.mjs
