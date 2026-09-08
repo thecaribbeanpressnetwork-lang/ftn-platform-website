@@ -43,3 +43,5 @@ jobs:
         run: node tests/ibis-intelligence-fabric-integration-audit.mjs
       - name: Audit relationship epistemics and causal-label discipline
         run: node tests/ibis-relationship-epistemics-audit.mjs
+      - name: Audit evidence-backed Foresight discipline
+        run: node tests/ibis-foresight-engine-audit.mjs
