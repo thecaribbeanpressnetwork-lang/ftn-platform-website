@@ -36,12 +36,15 @@ jobs:
           grep -Eq '^Central Bank FX [0-9]{4}-[0-9]{2}-[0-9]{2}: [0-9]+ monthly USD rate observation\(s\), latest .+ \(buy [0-9.]+, sell [0-9.]+\)$' /tmp/cbtt-proof.txt
           node -e "const x=require('./data/fx-usd-ttd.json'); const r=x.monthly?.at(-1); if(!r||!Number.isFinite(r.usdBuying)||!Number.isFinite(r.usdSelling)||!x.source?.url) process.exit(1); console.log('CBTT snapshot verified:',r.period,r.usdBuying,r.usdSelling)"
 
-      - name: Assert provenance is preserved
+      - name: Assert layered provenance is preserved
         run: |
           node - <<'NODE'
           const crime=require('./data/crime-statistics.json');
           const fx=require('./data/fx-usd-ttd.json');
-          if(!String(crime.source?.url||'').includes('ttps.gov.tt')) throw new Error('TTPS provenance missing');
+          if(!String(crime.source?.url||'').includes('cso.gov.tt')) throw new Error('Historical CSO provenance missing');
+          if(!String(crime.currentSource?.url||'').includes('ttps.gov.tt')) throw new Error('Current TTPS provenance missing');
+          if(crime.currentSource?.retrieved !== crime.current?.asOf) throw new Error('TTPS freshness metadata does not match snapshot');
+          if(!String(crime.dailySnapshots?.at(-1)?.sourceUrl||'').includes('ttps.gov.tt')) throw new Error('Daily TTPS row provenance missing');
           if(!String(fx.source?.url||'').includes('central-bank.org.tt')) throw new Error('CBTT provenance missing');
-          console.log('Official-source provenance gate passed');
+          console.log('Official-source layered provenance gate passed');
           NODE
