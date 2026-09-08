@@ -47,3 +47,5 @@ jobs:
         run: node tests/ibis-foresight-engine-audit.mjs
       - name: Audit external creative and specialist capability radar
         run: node tests/ibis-capability-radar-audit.mjs
+      - name: Audit persistent context, permissions, universal routing, multi-agent execution and device truth
+        run: node tests/ibis-runtime-foundation-audit.mjs
