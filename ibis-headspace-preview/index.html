@@ -10,7 +10,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/components/ibis-headspace-preview.css?v=20260907.2">
-<script src="/js/ibis-headspace-preview.js?v=20260907.2" defer></script>
+<script src="/js/ibis-headspace-preview.js?v=20260907.3" defer></script>
+<script src="/js/ibis-headspace-statistics.js?v=20260907.1" defer></script>
+<script src="/js/ibis-headspace-live-statistics.js?v=20260907.1" defer></script>
 </head>
 <body>
 <a class="skip" href="#headspace">Skip to Headspace</a>
@@ -117,18 +119,18 @@
       </article>
     </section>
 
-    <div class="command-hint" id="commandHint">Try “why am I seeing this?”, “launch scouts”, “correlate these”, “make the graph bigger”, “show DJ mode”, “put that back”, or ask something new.</div>
+    <div class="command-hint" id="commandHint">Try “What is the latest USD selling rate?”, “why am I seeing this?”, “launch scouts”, “correlate these”, “make the graph bigger”, “show DJ mode”, or ask something new.</div>
 
     <form class="input-orbit" id="inputOrbit">
       <div class="orbit-grip" id="orbitGrip" aria-label="Drag ibis input">···</div>
       <label class="skip" for="headspaceQuery">Tell ibis anything</label>
-      <input id="headspaceQuery" autocomplete="off" value="What should my business prepare for before Christmas?" aria-label="Tell ibis anything">
+      <input id="headspaceQuery" autocomplete="off" value="What is the latest USD selling rate?" aria-label="Tell ibis anything">
       <button type="button" id="voiceButton" class="icon-button" aria-label="Speak to ibis" title="Speak to ibis">◉</button>
       <button type="submit">Tell ibis</button>
       <button type="button" id="attachButton" class="secondary" aria-label="Add file or input">＋</button>
     </form>
     <input id="filePicker" type="file" hidden>
-    <p class="preview-note">Interactive design prototype. No live ibis reasoning, scout execution, hardware control, recording, upload or external API action occurs unless explicitly connected in a future build.</p>
+    <p class="preview-note">Interactive design prototype. Verified Statistics questions use FTN's deterministic official-source data path; other reasoning, scouts, hardware control, uploads and external actions remain unconnected unless explicitly stated.</p>
   </main>
 </div>
 </body>
