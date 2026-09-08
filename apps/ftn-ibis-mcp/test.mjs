@@ -28,10 +28,10 @@ try {
   });
   assert.equal(initialize.status, 200);
   const session = initialize.headers.get('mcp-session-id');
-  assert.ok(session, 'MCP session id missing');
+  assert.equal(session, null, 'Legacy HTTP fallback must remain stateless');
   const tools = await fetch(`http://127.0.0.1:${port}/mcp`, {
     method: 'POST',
-    headers: { accept: 'application/json, text/event-stream', 'content-type': 'application/json', 'mcp-session-id': session },
+    headers: { accept: 'application/json, text/event-stream', 'content-type': 'application/json' },
     body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }),
   }).then((response) => response.text());
   assert.match(tools, /opportunity_scout/);

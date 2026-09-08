@@ -17,6 +17,7 @@
 # Local browser-test runtime. The public site has no Node build dependency, so this
 # must never be shipped or accidentally committed with a static-site release.
 /node_modules/
+/apps/ftn-ibis-mcp/node_modules/
 
 # Visual regression failure output (tests/visual-regression.mjs) -- diff/current images written
 # only when a comparison fails, regenerated every run. tests/visual-baselines/ (the approved
