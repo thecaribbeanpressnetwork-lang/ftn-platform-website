@@ -37,7 +37,9 @@
     return FTN.IbisClient;
   }
   async function request(capability,payload,context){var Client=await ensure(capability);return Client.request({capability:capability,payload:payload||{},context:context||{}});}
-  FTN.HeadspaceFabric={ensure:ensure,request:request};
+  function focus(names){if(typeof document==='undefined')return;var wanted=new Set(names||[]);document.querySelectorAll('.thought').forEach(function(t){var name=t.dataset.thought;if(wanted.has(name)){t.classList.remove('dematerialized');t.classList.add('materializing');setTimeout(function(){t.classList.remove('materializing');},760);}else if(!t.classList.contains('pinned')){t.classList.add('dematerialized');}});}
+  function prepareViz(card){if(!card)return null;card.querySelectorAll('.ibis-viz-host,[data-viz-mount],.ibis-correlation-viz').forEach(function(n){n.remove();});var host=document.createElement('div');host.className='ibis-viz-host';card.appendChild(host);return host;}
+  FTN.HeadspaceFabric={ensure:ensure,request:request,focus:focus,prepareViz:prepareViz};
   function attach(src,marker){if(typeof document==='undefined'||document.querySelector('script['+marker+']'))return;var s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute(marker,'');document.head.appendChild(s);}
   attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');
   attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');
