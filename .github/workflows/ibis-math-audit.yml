@@ -39,3 +39,5 @@ jobs:
         run: node tests/ibis-presentation-audit.mjs
       - name: Audit live surface adapters and updater retention
         run: node tests/ibis-live-surface-adapters-audit.mjs
+      - name: Audit deterministic intelligence through universal IbisClient fabric
+        run: node tests/ibis-intelligence-fabric-integration-audit.mjs
