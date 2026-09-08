@@ -5,23 +5,21 @@ if(form&&input&&whisper){
   form.addEventListener('submit',(event)=>{
     event.preventDefault();
     const query=input.value.trim();
-    whisper.textContent=query
-      ? `ibis preview captured your intent: “${query}” — live reasoning is not connected on this preview branch.`
-      : 'Tell ibis what you are trying to make happen.';
+    if(!query){
+      whisper.textContent='Tell ibis what you are trying to make happen.';
+      input.focus();
+      return;
+    }
+    document.body.classList.add('entering-headspace');
+    whisper.textContent='Entering Headspace…';
+    const destination='/ibis-headspace-preview/?q='+encodeURIComponent(query);
+    setTimeout(()=>{window.location.href=destination;},420);
   });
   document.querySelectorAll('[data-fill]').forEach((button)=>{
     button.addEventListener('click',()=>{
       input.value=button.dataset.fill||'';
       input.focus();
-      whisper.textContent='Ready to ask. This preview does not store the information.';
+      whisper.textContent='Ready.';
     });
-  });
-}
-const menu=document.getElementById('menu');
-const rail=document.getElementById('rail');
-if(menu&&rail){
-  menu.addEventListener('click',()=>{
-    const open=rail.classList.toggle('open');
-    menu.setAttribute('aria-expanded',String(open));
   });
 }
