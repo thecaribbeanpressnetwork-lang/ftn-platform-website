@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
   if (action === "authorize") return reply(origin, { allowed: true, state: current?.mode || "normal", device: { id: device.id, name: device.device_name }, verifiedAt: new Date().toISOString() });
 
   if (action === "dashboard") {
-    const [products, features, auditRows, controlJournal, devices, grants, sources, links, readiness, deployments, founderActions, providers, jobs, credits, affiliateClicks, issues, requests, savedItems, preferences] = await Promise.all([
+    const [products, features, auditRows, controlJournal, devices, grants, sources, links, readiness, deployments, founderActions, providers, jobs, credits, affiliateClicks, issues, requests, savedItems, preferences, ibisMcpUsageRows] = await Promise.all([
       admin.from("ftn_product_controls").select("*").order("product_id"),
       admin.from("ftn_feature_controls").select("*").order("product_id").order("feature_key"),
       admin.from("ftn_owner_access_audit").select("id,user_id,device_id,session_id,action,outcome,reason_code,created_at").order("created_at", { ascending: false }).limit(100),
@@ -194,11 +194,21 @@ Deno.serve(async (req) => {
       admin.from("ftn_account_requests").select("id,user_id,request_type,status,requested_at,evidence_hold").in("status", ["PENDING", "IN_REVIEW"]).order("requested_at", { ascending: false }).limit(100),
       admin.from("ftn_saved_items").select("id", { count: "exact", head: true }),
       admin.from("ftn_user_preferences").select("user_id", { count: "exact", head: true }),
+      admin.from("ftn_ibis_mcp_usage_events").select("event_kind,host_name,tool_name,request_category,result_state,latency_ms,occurred_at").gte("occurred_at", new Date(Date.now() - 90 * 86400000).toISOString()).order("occurred_at", { ascending: false }).limit(5000),
     ]);
     const userPage = await admin.auth.admin.listUsers({ page: 1, perPage: 100 });
     const rolesByUser = new Map((await admin.from("ftn_operator_roles").select("user_id,role,revoked_at")).data?.filter((x: any) => !x.revoked_at).map((x: any) => [x.user_id, x.role]) || []);
     const directory = (userPage.data?.users || []).map((x: any) => ({ id: x.id, email: x.email || null, created_at: x.created_at, last_sign_in_at: x.last_sign_in_at, role: rolesByUser.get(x.id) || null }));
-    return reply(origin, { allowed: true, state: current || { mode: "normal" }, products: products.data || [], features: features.data || [], audit: auditRows.data || [], journal: controlJournal.data || [], devices: devices.data || [], accessGrants: grants.data || [], sources: sources.data || [], linkHealth: links.data || [], readiness: readiness.data || [], deployments: deployments.data || [], founderActions: founderActions.data || [], people: { total: userPage.data?.total || directory.length, directory }, mission: { issues: issues.data || [], requests: requests.data || [] }, activity: { reports: issues.count || (issues.data || []).length, savedItems: savedItems.count || 0, preferences: preferences.count || 0 }, creative: { providers: providers.data || [], jobs: jobs.data || [], creditLedger: credits.data || [], affiliateClicks: affiliateClicks.data || [], generationGloballyEnabled: Deno.env.get("FTN_CREATIVE_GENERATION_ENABLED") === "true" } });
+    const usageRows = ibisMcpUsageRows.data || [];
+    const byTool: Record<string, number> = {}, byHost: Record<string, number> = {}, byDay: Record<string, number> = {};
+    for (const row of usageRows as any[]) {
+      const tool = String(row.tool_name || "unknown"), host = String(row.host_name || "mcp"), day = String(row.occurred_at || "").slice(0, 10);
+      byTool[tool] = (byTool[tool] || 0) + 1;
+      byHost[host] = (byHost[host] || 0) + 1;
+      if (day) byDay[day] = (byDay[day] || 0) + 1;
+    }
+    const ibisMcpUsage = { periodDays: 90, totalEvents: usageRows.length, toolCalls: usageRows.filter((x: any) => x.event_kind === "tool-call").length, successes: usageRows.filter((x: any) => x.event_kind === "tool-success").length, errors: usageRows.filter((x: any) => x.event_kind === "tool-error").length, byTool, byHost, byDay, privacy: "Aggregate tool events only; no raw prompts, transcripts or visitor identities." };
+    return reply(origin, { allowed: true, state: current || { mode: "normal" }, products: products.data || [], features: features.data || [], audit: auditRows.data || [], journal: controlJournal.data || [], devices: devices.data || [], accessGrants: grants.data || [], sources: sources.data || [], linkHealth: links.data || [], readiness: readiness.data || [], deployments: deployments.data || [], founderActions: founderActions.data || [], people: { total: userPage.data?.total || directory.length, directory }, mission: { issues: issues.data || [], requests: requests.data || [] }, activity: { reports: issues.count || (issues.data || []).length, savedItems: savedItems.count || 0, preferences: preferences.count || 0 }, ibisMcpUsage, creative: { providers: providers.data || [], jobs: jobs.data || [], creditLedger: credits.data || [], affiliateClicks: affiliateClicks.data || [], generationGloballyEnabled: Deno.env.get("FTN_CREATIVE_GENERATION_ENABLED") === "true" } });
   }
 
   if (action === "approve-device") {

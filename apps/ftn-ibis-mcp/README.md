@@ -16,6 +16,8 @@ This is the first portable FTN ibis app surface. It exposes read-only, provenanc
 
 The server does not submit applications, send messages, access private conversations, or collect user identity. Scores are priority signals, not probabilities. Original sources must be checked before action.
 
+When the optional collector is configured, each tool call emits only an aggregate event (`tool-call`, `tool-success` or `tool-error`) to the FTN server-side usage collector. Set `FTN_IBIS_USAGE_WEBHOOK_URL` and `FTN_IBIS_USAGE_TOKEN` outside the repository. The founder can review the resulting 90-day evidence summary in **FTN Nexus Command → Ecosystem Data → FTN ibis Usage Evidence** after the migration and collector are deployed.
+
 ## Learning boundary
 
 The public read-only tools do not silently learn from conversations. FTN ibis learning is designed as three explicit lanes:

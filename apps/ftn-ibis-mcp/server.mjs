@@ -98,10 +98,38 @@ function resultContent(label, payload) {
   };
 }
 
+async function reportUsage(eventKind, toolName, startedAt, resultState = '') {
+  const endpoint = process.env.FTN_IBIS_USAGE_WEBHOOK_URL || '';
+  const token = process.env.FTN_IBIS_USAGE_TOKEN || '';
+  if (!endpoint || !token) return;
+  try {
+    await fetch(endpoint, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ eventKind, toolName, hostName: 'mcp', resultState, latencyMs: Math.max(0, Date.now() - startedAt) }),
+      signal: AbortSignal.timeout(1500),
+    });
+  } catch {
+    // Usage evidence must never make the intelligence tool fail.
+  }
+}
+
 function createServer() {
   const server = new McpServer({ name: 'ftn-ibis-mcp', version: APP_VERSION }, { capabilities: { tools: {} } });
+  const registerTool = (name, config, handler) => server.registerTool(name, config, async (args) => {
+    const startedAt = Date.now();
+    await reportUsage('tool-call', name, startedAt);
+    try {
+      const result = await handler(args);
+      await reportUsage('tool-success', name, startedAt, 'success');
+      return result;
+    } catch (error) {
+      await reportUsage('tool-error', name, startedAt, error instanceof Error ? error.name : 'error');
+      throw error;
+    }
+  });
 
-  server.registerTool('search', {
+  registerTool('search', {
     title: 'Search FTN ibis',
     description: 'Use this when the user wants source-backed Caribbean intelligence, entities, projects or opportunities. Returns only FTN-indexed records with provenance.',
     inputSchema: z.object({
@@ -120,7 +148,7 @@ function createServer() {
     return resultContent(`FTN ibis search returned ${rows.length} source-backed record(s).`, payload);
   });
 
-  server.registerTool('fetch', {
+  registerTool('fetch', {
     title: 'Fetch an FTN ibis record',
     description: 'Use this when the user wants the full source-backed record for an FTN ibis search result. Pass its record id or exact source URL.',
     inputSchema: z.object({
@@ -137,7 +165,7 @@ function createServer() {
     return resultContent(`FTN ibis record: ${record.title}`, { found: true, record, provenance: provenance({ recordId: record.id }) });
   });
 
-  server.registerTool('opportunity_scout', {
+  registerTool('opportunity_scout', {
     title: 'Scout Caribbean opportunities',
     description: 'Use this when the user wants grants, procurement, accelerators, awards or partnership opportunities relevant to the Caribbean. Scores are priority signals, not success probabilities.',
     inputSchema: z.object({
@@ -159,7 +187,7 @@ function createServer() {
     return resultContent(`FTN ibis opportunity scout found ${rows.length} candidate(s).`, payload);
   });
 
-  server.registerTool('route_intent', {
+  registerTool('route_intent', {
     title: 'Route an FTN intent',
     description: 'Use this when the user expresses a Caribbean goal and needs the most relevant FTN product or ibis workflow. Routing is deterministic and transparent.',
     inputSchema: z.object({ intent: z.string().min(1).max(240) }),
@@ -174,7 +202,7 @@ function createServer() {
     return resultContent(`FTN ibis routed the intent to ${top.label}.`, payload);
   });
 
-  server.registerTool('get_entity_profile', {
+  registerTool('get_entity_profile', {
     title: 'Get the FTN ibis profile',
     description: 'Use this when the user asks what FTN ibis is, who owns it, what it connects to, or how to verify it.',
     inputSchema: z.object({ entity: z.string().max(120).default('FTN ibis') }),
