@@ -1,0 +1,20 @@
+// FTN Platform — explicit permission ledger for ibis autonomous action.
+// Decisions are ALLOW / ASK / DENY. Absence or expiry fails to ASK, never silently ALLOW.
+(function(global){
+  'use strict';
+  var FTN=global.FTN=global.FTN||{},LOCAL_KEY='ibis.permissions.guest.v1',override={};
+  function auth(){return override.auth||FTN.Auth||null;} function local(){return override.storage||global.localStorage||null;}
+  async function user(){var a=auth();return a&&typeof a.getVerifiedUser==='function'?await a.getVerifiedUser():null;}
+  async function client(){var a=auth();return a&&typeof a.ready==='function'?await a.ready():null;}
+  function readLocal(){var s=local();if(!s)return[];try{return JSON.parse(s.getItem(LOCAL_KEY)||'[]');}catch(e){return[];}}
+  function writeLocal(rows){var s=local();if(s)s.setItem(LOCAL_KEY,JSON.stringify(rows));}
+  function normalizeDecision(v){v=String(v||'ASK').toUpperCase();if(['ALLOW','ASK','DENY'].indexOf(v)<0)throw new Error('Permission decision must be ALLOW, ASK or DENY.');return v;}
+  function expired(row){return !!(row&&row.expires_at&&new Date(row.expires_at).getTime()<=Date.now());}
+  async function set(subject,action,decision,opts){opts=opts||{};subject=String(subject||'').trim();action=String(action||'').trim();if(!subject||!action)throw new Error('Permission subject and action are required.');decision=normalizeDecision(decision);var u=await user(),row={subject:subject,action:action,decision:decision,constraints:opts.constraints||{},expires_at:opts.expiresAt||null,updated_at:new Date().toISOString()};if(!u){var rows=readLocal(),i=rows.findIndex(function(x){return x.subject===subject&&x.action===action;});row.id=i>=0?rows[i].id:'local-'+Date.now();row.created_at=i>=0?rows[i].created_at:row.updated_at;row.persistence='LOCAL_GUEST';if(i>=0)rows[i]=row;else rows.push(row);writeLocal(rows);return Object.assign({},row);}var c=await client();row.user_id=u.id;var q=await c.from('ibis_permission_ledger').upsert(row,{onConflict:'user_id,subject,action'}).select().single();if(q.error)throw q.error;return Object.assign({},q.data,{persistence:'CLOUD_USER'});}
+  async function get(subject,action){subject=String(subject||'');action=String(action||'');var u=await user(),row=null;if(!u)row=readLocal().find(function(x){return x.subject===subject&&x.action===action;})||null;else{var c=await client(),q=await c.from('ibis_permission_ledger').select('*').eq('user_id',u.id).eq('subject',subject).eq('action',action).maybeSingle();if(q.error)throw q.error;row=q.data||null;}if(!row)return{subject:subject,action:action,decision:'ASK',reason:'NO_EXPLICIT_PERMISSION'};if(expired(row))return{subject:subject,action:action,decision:'ASK',reason:'PERMISSION_EXPIRED',expired:true,constraints:row.constraints||{}};return{subject:subject,action:action,decision:row.decision,constraints:row.constraints||{},expiresAt:row.expires_at||null,persistence:u?'CLOUD_USER':'LOCAL_GUEST'};}
+  async function check(subject,action,context){var result=await get(subject,action),constraints=result.constraints||{},ctx=context||{};if(result.decision!=='ALLOW')return result;if(constraints.maxAmount!=null&&Number(ctx.amount)>Number(constraints.maxAmount))return Object.assign({},result,{decision:'ASK',reason:'AMOUNT_EXCEEDS_CONSTRAINT'});if(Array.isArray(constraints.allowedDomains)&&ctx.domain&&constraints.allowedDomains.indexOf(ctx.domain)<0)return Object.assign({},result,{decision:'ASK',reason:'DOMAIN_OUTSIDE_CONSTRAINT'});return result;}
+  async function revoke(subject,action){return set(subject,action,'DENY',{constraints:{revoked:true}});}
+  async function list(){var u=await user();if(!u)return readLocal();var c=await client(),q=await c.from('ibis_permission_ledger').select('*').eq('user_id',u.id).order('updated_at',{ascending:false});if(q.error)throw q.error;return q.data||[];}
+  function configure(options){override=options||{};}
+  FTN.PermissionLedger={set:set,get:get,check:check,revoke:revoke,list:list,configure:configure,normalizeDecision:normalizeDecision};
+})(typeof window!=='undefined'?window:globalThis);

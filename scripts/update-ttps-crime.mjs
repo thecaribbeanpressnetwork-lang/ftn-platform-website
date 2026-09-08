@@ -17,9 +17,18 @@ const murders = await fetchAndParse({
 });
 const data = JSON.parse(await fs.readFile(path, 'utf8'));
 const date = todayInTimezone('America/Port_of_Spain');
+
+// Preserve the historical-series source separately. The live current snapshot is
+// fetched directly from TTPS and must carry its own source/freshness metadata.
+data.currentSource = {
+  name: 'Trinidad and Tobago Police Service — Comparative Crime Statistics',
+  url,
+  retrieved: date,
+  offence: 'Murders',
+};
 data.current = {...data.current, asOf: date, reported: murders.reported, detected: murders.detected};
 data.dailySnapshots = (data.dailySnapshots || []).filter((row) => row.date !== date);
-data.dailySnapshots.push({date, reported: murders.reported, detected: murders.detected});
+data.dailySnapshots.push({date, reported: murders.reported, detected: murders.detected, sourceUrl: url});
 data.dailySnapshots.sort((a,b) => a.date.localeCompare(b.date));
 await fs.writeFile(path, JSON.stringify(data, null, 2) + '\n');
 console.log(`TTPS ${date}: ${murders.reported} reported, ${murders.detected} detected`);

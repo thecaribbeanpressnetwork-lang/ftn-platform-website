@@ -1,0 +1,17 @@
+@media(min-width:761px){
+  .app-shell{display:block;min-height:100vh}
+  .rail{position:fixed;inset:0 auto 0 0;width:176px;z-index:100;transform:translateX(-154px);background:rgba(0,0,0,.92);border-right:1px solid rgba(255,255,255,.04);transition:transform .48s cubic-bezier(.22,1,.36,1),background .3s ease;backdrop-filter:blur(18px)}
+  .rail:hover,.rail:focus-within{transform:translateX(0);background:rgba(0,0,0,.97)}
+  .rail .brand{opacity:.28;transition:opacity .25s ease}
+  .rail:hover .brand,.rail:focus-within .brand{opacity:1}
+  .rail nav,.rail .memory-index,.rail .rail-foot{opacity:.08;transition:opacity .28s ease}
+  .rail:hover nav,.rail:focus-within nav,.rail:hover .memory-index,.rail:focus-within .memory-index,.rail:hover .rail-foot,.rail:focus-within .rail-foot{opacity:1}
+  .headspace{width:100vw}
+  .headspace-head{transition:opacity .65s ease,transform .65s cubic-bezier(.22,1,.36,1)}
+  .field{transition:top .72s cubic-bezier(.22,1,.36,1)}
+  .headspace-engaged .headspace-head>div:first-child{opacity:0;transform:translateY(-18px);pointer-events:none;transition:opacity .55s ease,transform .55s ease}
+  .headspace-engaged .headspace-head{padding-top:10px}
+  .headspace-engaged .field{top:44px}
+  .headspace-engaged .head-actions{opacity:.42}
+  .headspace-engaged .head-actions:hover{opacity:1}
+}

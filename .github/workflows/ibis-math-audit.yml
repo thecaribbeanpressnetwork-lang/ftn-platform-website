@@ -1,0 +1,55 @@
+name: ibis Intelligence Core Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ibis-intelligence-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit deterministic math kernel
+        run: node tests/ibis-math-audit.mjs
+      - name: Audit correlation engine
+        run: node tests/ibis-correlation-engine-audit.mjs
+      - name: Audit confidence assessment
+        run: node tests/ibis-confidence-audit.mjs
+      - name: Audit statistics confidence bridge
+        run: node tests/ibis-statistics-confidence-audit.mjs
+      - name: Audit capital intelligence math
+        run: node tests/ibis-capital-intelligence-audit.mjs
+      - name: Audit grounded context graph v1
+        run: node tests/ibis-context-graph-audit.mjs
+      - name: Audit private intent and opportunity graphs
+        run: node tests/ibis-intent-opportunity-graph-audit.mjs
+      - name: Audit presentation intelligence and live invariants
+        run: node tests/ibis-presentation-audit.mjs
+      - name: Audit live surface adapters and updater retention
+        run: node tests/ibis-live-surface-adapters-audit.mjs
+      - name: Audit deterministic intelligence through universal IbisClient fabric
+        run: node tests/ibis-intelligence-fabric-integration-audit.mjs
+      - name: Audit relationship epistemics and causal-label discipline
+        run: node tests/ibis-relationship-epistemics-audit.mjs
+      - name: Audit evidence-backed Foresight discipline
+        run: node tests/ibis-foresight-engine-audit.mjs
+      - name: Audit external creative and specialist capability radar
+        run: node tests/ibis-capability-radar-audit.mjs
+      - name: Audit persistent context, permissions, universal routing, multi-agent execution and device truth
+        run: node tests/ibis-runtime-foundation-audit.mjs
+      - name: Audit autonomous build test preview publish and share workflow
+        run: node tests/ibis-build-preview-share-audit.mjs
+      - name: Audit universal connected-app routing fabric
+        run: node tests/ibis-connection-fabric-audit.mjs

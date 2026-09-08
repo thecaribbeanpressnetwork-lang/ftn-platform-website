@@ -1,0 +1,46 @@
+name: ibis Cloudflare Preview Verify
+
+on:
+  push:
+    branches: [feature/ibis-1-interface]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify real branch preview is reachable and serves ibis
+        shell: bash
+        env:
+          PREVIEW_ORIGIN: https://feature-ibis-1-interface.ftn-platform-website.pages.dev
+        run: |
+          set -euo pipefail
+          ok=0
+          for attempt in $(seq 1 30); do
+            code="$(curl --silent --show-error --location --max-time 15 -o /tmp/ibis-preview.html -w '%{http_code}' "$PREVIEW_ORIGIN/ibis-ai/" || true)"
+            if [ "$code" = "200" ] && grep -Eiq '<title>[^<]*ibis|\bibis\b' /tmp/ibis-preview.html; then
+              echo "Cloudflare branch preview verified on attempt $attempt: $PREVIEW_ORIGIN/ibis-ai/"
+              ok=1
+              break
+            fi
+            echo "Preview not ready yet (attempt $attempt, HTTP $code)"
+            sleep 4
+          done
+          test "$ok" = "1"
+          test "$(wc -c < /tmp/ibis-preview.html)" -gt 1000
+          ! grep -Eiq 'supabase/migrations|ANTHROPIC_API_KEY|GEMINI_API_KEY|service_role' /tmp/ibis-preview.html
+
+      - name: Verify Community Connect remains a standalone browser route
+        shell: bash
+        env:
+          PREVIEW_ORIGIN: https://feature-ibis-1-interface.ftn-platform-website.pages.dev
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_ORIGIN/community-connect/" -o /tmp/community-connect.html
+          test "$(wc -c < /tmp/community-connect.html)" -gt 1000
+          grep -Eiq 'Community Connect' /tmp/community-connect.html
+          echo 'Community Connect standalone route verified.'

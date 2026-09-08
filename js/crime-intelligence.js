@@ -58,8 +58,17 @@
     return '<div class="crime-bars">'+rows.map(function(r){return '<div class="crime-bar"><span>'+esc(r.name)+'</span><div><i style="--bar:'+(r.reported/max*100).toFixed(2)+'%"></i></div><strong>'+r.reported+'</strong></div>';}).join('')+'</div>';
   }
   function periodValue(data,period) {
-    var snaps=data.dailySnapshots||[],latest=snaps[snaps.length-1];
+    // Never calculate a period delta from legacy rows whose source was not recorded per snapshot.
+    // A snapshot is eligible only when its own sourceUrl proves it came from the official TTPS
+    // comparative endpoint. This intentionally means the Week/Month views remain in a collecting
+    // state until enough newly provenance-bearing observations exist.
+    var snaps=(data.dailySnapshots||[]).filter(function(s){
+      return /^https:\/\/ttps\.gov\.tt\/statistics\/comparative\//i.test(String(s&&s.sourceUrl||'')) &&
+        /^\d{4}-\d{2}-\d{2}$/.test(String(s&&s.date||'')) && Number.isFinite(s&&s.reported);
+    });
+    var latest=snaps[snaps.length-1];
     if(period==='ytd') return {value:data.current.reported,label:'recorded since 1 January '+data.current.year,note:'Official TTPS current-year total'};
+    if(!latest)return {value:'—',label:period==='week'?'weekly change':'monthly change',note:'Collecting official daily snapshots'};
     var days=period==='week'?7:31,cut=new Date(new Date(latest.date+'T12:00:00').getTime()-days*86400000),base=null;
     snaps.forEach(function(s){if(new Date(s.date+'T12:00:00')<=cut)base=s;});
     if(!base)return {value:'—',label:period==='week'?'weekly change':'monthly change',note:'Collecting official daily snapshots'};
