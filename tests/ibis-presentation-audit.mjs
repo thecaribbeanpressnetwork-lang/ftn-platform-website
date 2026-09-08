@@ -2,8 +2,10 @@ import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:asser
 const ctx={window:{},console};vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/ibis-presentation.js','utf8'),ctx);const P=ctx.window.FTN.IbisPresentation;assert(P);
 assert.equal(P.chooseVisual({values:[1],kind:'SCORE'}),'GAUGE');assert.equal(P.chooseVisual({values:[1]}),'KPI');assert.equal(P.chooseVisual({values:[1,2,3],relationship:'TIME'}),'LINE');assert.equal(P.chooseVisual({values:[1,2],labels:['A','B'],relationship:'CATEGORY'}),'BAR');assert.equal(P.chooseVisual({rows:[{a:1}],kind:'TABLE'}),'TABLE');
 const liveBad=P.normalize({mode:'LIVE',title:'Live feed',values:[1,2],relationship:'TIME'});assert.equal(liveBad.success,false);assert.equal(liveBad.errorType,'LIVE_WITHOUT_UPDATE_PATH');
+const modelBad=P.normalize({mode:'LIVE_MODEL',title:'Ticking model',values:[1]});assert.equal(modelBad.success,false);assert.equal(modelBad.errorType,'LIVE_WITHOUT_UPDATE_PATH');
 const liveGood=P.normalize({mode:'LIVE',title:'Live feed',values:[1,2],relationship:'TIME',refresh:async()=>({values:[2,3]})});assert.equal(liveGood.success,true);assert.equal(liveGood.presentation.mode,'LIVE');assert.equal(liveGood.presentation.visual,'LINE');
+const modelGood=P.normalize({mode:'LIVE_MODEL',title:'Interpolated population',values:[100],refresh:async()=>({values:[101],calculatedAt:'2026-09-07T12:00:01Z'})});assert.equal(modelGood.success,true);assert.equal(modelGood.presentation.mode,'LIVE_MODEL');assert.equal(modelGood.presentation.visual,'KPI');
 const snapshot=P.normalize({mode:'SNAPSHOT',title:'Official monthly series',values:[1,2],relationship:'TIME',source:'Central Bank'});assert.equal(snapshot.success,true);assert.equal(snapshot.presentation.mode,'SNAPSHOT');assert.equal(snapshot.presentation.source,'Central Bank');
 const derived=P.normalize({mode:'DERIVED',values:[10],kind:'SCORE',calculatedAt:'2026-09-07T12:00:00Z'});assert.equal(derived.success,true);assert.equal(derived.presentation.visual,'GAUGE');
 assert.equal(P.normalize({mode:'FAKE_LIVE'}).errorType,'INVALID_MODE');
-console.log('ibis Presentation Intelligence: chart selection, source preservation and LIVE-with-update-path invariant verified.');
+console.log('ibis Presentation Intelligence: chart selection, source preservation, LIVE-feed and LIVE_MODEL update-path invariants verified.');
