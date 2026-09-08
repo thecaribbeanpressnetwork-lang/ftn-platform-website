@@ -12,11 +12,12 @@
 <link rel="stylesheet" href="/css/components/ibis-headspace-preview.css?v=20260907.2">
 <link rel="stylesheet" href="/css/components/ibis-presentation.css?v=20260907.1">
 <script src="/js/charts.js?v=20260907.1" defer></script>
-<script src="/js/ibis-presentation.js?v=20260907.1" defer></script>
+<script src="/js/ibis-presentation.js?v=20260907.2" defer></script>
 <script src="/js/ibis-headspace-preview.js?v=20260907.3" defer></script>
 <script src="/js/ibis-headspace-statistics.js?v=20260907.1" defer></script>
 <script src="/js/ibis-headspace-live-statistics.js?v=20260907.2" defer></script>
 <script src="/js/ibis-headspace-capital.js?v=20260907.1" defer></script>
+<script src="/js/ibis-headspace-live-model.js?v=20260907.1" defer></script>
 </head>
 <body>
 <a class="skip" href="#headspace">Skip to Headspace</a>
@@ -123,7 +124,7 @@
       </article>
     </section>
 
-    <div class="command-hint" id="commandHint">Try “What is the latest USD selling rate?”, “How much capital do I need to live on TT$35,000 a month at 5%?”, “launch scouts”, “correlate these”, or “show DJ mode”.</div>
+    <div class="command-hint" id="commandHint">Try “What is the latest USD selling rate?”, “show live population”, “How much capital do I need to live on TT$35,000 a month at 5%?”, “launch scouts”, “correlate these”, or “show DJ mode”.</div>
 
     <form class="input-orbit" id="inputOrbit">
       <div class="orbit-grip" id="orbitGrip" aria-label="Drag ibis input">···</div>
@@ -134,7 +135,7 @@
       <button type="button" id="attachButton" class="secondary" aria-label="Add file or input">＋</button>
     </form>
     <input id="filePicker" type="file" hidden>
-    <p class="preview-note">Interactive design prototype. Verified Statistics and supplied-assumption capital questions use deterministic FTN engines; other reasoning, scouts, hardware control, uploads and external actions remain unconnected unless explicitly stated.</p>
+    <p class="preview-note">Interactive design prototype. Verified Statistics, supplied-assumption capital questions and selected FTN LIVE MODEL surfaces now use real deterministic FTN engines; scouts use the reviewed registry. Hardware control, uploads and external actions remain unconnected unless explicitly stated.</p>
   </main>
 </div>
 </body>
