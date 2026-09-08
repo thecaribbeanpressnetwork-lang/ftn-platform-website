@@ -14,6 +14,7 @@
   function attach(src,marker){if(typeof document==='undefined'||document.querySelector('script['+marker+']'))return;var s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute(marker,'');document.head.appendChild(s);}
   function attachStyle(href,marker){if(typeof document==='undefined'||document.querySelector('link['+marker+']'))return;var l=document.createElement('link');l.rel='stylesheet';l.href=href;l.setAttribute(marker,'');document.head.appendChild(l);}
   attachStyle('/css/components/ibis-headspace-elegance.css?v=20260908.1','data-headspace-elegance');
+  attach('/js/ibis-runtime-loader.js?v=20260908.1','data-ibis-runtime');
   attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');
   attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');
   attach('/js/ibis-headspace-foresight.js?v=20260907.1','data-headspace-foresight');
