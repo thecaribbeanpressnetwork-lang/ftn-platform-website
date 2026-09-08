@@ -33,3 +33,5 @@ jobs:
         run: node tests/ibis-capital-intelligence-audit.mjs
       - name: Audit grounded context graph v1
         run: node tests/ibis-context-graph-audit.mjs
+      - name: Audit private intent and opportunity graphs
+        run: node tests/ibis-intent-opportunity-graph-audit.mjs
