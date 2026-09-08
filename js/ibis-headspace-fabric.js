@@ -38,4 +38,5 @@
   }
   async function request(capability,payload,context){var Client=await ensure(capability);return Client.request({capability:capability,payload:payload||{},context:context||{}});}
   FTN.HeadspaceFabric={ensure:ensure,request:request};
+  if(typeof document!=='undefined'&&!document.querySelector('script[data-headspace-correlation]')){var s=document.createElement('script');s.src='/js/ibis-headspace-correlation.js?v=20260907.1';s.defer=true;s.dataset.headspaceCorrelation='';document.head.appendChild(s);}
 })(typeof window!=='undefined'?window:globalThis);
