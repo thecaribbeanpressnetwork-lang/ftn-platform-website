@@ -20,7 +20,7 @@ async function isolateExternalFonts(page){
 const landing=await browser.newPage({viewport:{width:1440,height:1000}});
 await isolateExternalFonts(landing);
 await landing.goto(base+'/ibis-preview/',{waitUntil:'networkidle'});
-assert.match(await landing.locator('.hero h1').innerText(),/Ask ibis/i,'Cinematic ibis landing headline must exist');
+assert.match(await landing.locator('.hero h1').innerText(),/Give ibis a problem, opportunity, product, song, document or goal/i,'Investor invitation headline must exist');
 assert.equal(await landing.locator('#askInput').count(),1,'Landing intent input must exist');
 await landing.screenshot({path:'test-artifacts/ibis-headspace-lander.png',fullPage:false});
 await landing.locator('#askInput').fill('What is the latest USD selling rate?');

@@ -89,14 +89,14 @@ var providers=[
     note:'Pre-existing production integration (supabase/functions/ibis-query), not newly added by this registry pass. Requires FTN Account sign-in (CI-enforced in tests/backend-source-audit.mjs). Marked costToIbis PAID_BY_IBIS_PRE_EXISTING rather than ZERO because Gemini API usage is billed to FTN\'s own key, not a customer-funded credit -- flagged honestly rather than reclassified without a founder review of that cost.'
   },
   {
-    id:'ibis-assistant-anthropic',name:'ibis-widget (Anthropic)',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','LOGLINE','SYNOPSIS','CHARACTER_DEVELOPMENT','WORLD_BUILDING','OUTLINE','BEAT_SHEET','SCREENPLAY','SCENE_BREAKDOWN','PRODUCTION_PLAN','PITCH_MATERIAL','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_LIVE',
-    apiStatus:'LIVE_WITH_ANTHROPIC_OR_GEMINI_FALLBACK',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:true,costToIbis:'PAID_BY_IBIS_FOUNDER_APPROVED',
+    id:'ibis-assistant-anthropic',name:'ibis Intelligence Gateway',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','LOGLINE','SYNOPSIS','CHARACTER_DEVELOPMENT','WORLD_BUILDING','OUTLINE','BEAT_SHEET','SCREENPLAY','SCENE_BREAKDOWN','PRODUCTION_PLAN','PITCH_MATERIAL','REVISION','CONTINUITY_CHECK'],integration:'FTN_OWNED_MULTI_PROVIDER_GATEWAY',
+    apiStatus:'LIVE_V4_GATEWAY_UPGRADE_PENDING_DEPLOYMENT',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:true,costToIbis:'PAID_BY_IBIS_FOUNDER_APPROVED',
     website:'https://www.anthropic.com/',apiUrl:'https://docs.anthropic.com/',pricingUrl:'https://www.anthropic.com/pricing',affiliateProgramUrl:null,
     commercialUse:'FOUNDER_APPROVED_NARROW_SCOPE_2026_08_19',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
     userAuthorizationRequired:false,
     weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://docs.anthropic.com/',
     lifecycleState:'ELIGIBLE',
-    note:'Backs the sitewide ibis widget (supabase/functions/ibis-assistant). Guest-accessible by explicit design, not authenticated. Anthropic is preferred when configured and Gemini is the live fallback, so ordinary questions remain answerable during a provider outage or key rotation. The widget still tries the free deterministic Product Registry match first.'
+    note:'Compatibility id retained so existing clients keep working. The currently deployed v4 endpoint remains eligible while this source upgrade awaits deployment. The FTN-owned gateway handles deterministic answers first, then bounded Anthropic, Gemini, two optional OpenAI-compatible adapters (including APIQIK/Bytez where verified and configured), and an optional reachable Ollama adapter. Per-isolate circuit breaking prevents a repeatedly failing provider from delaying every request. Every user receives the governed public Founder Reasoning Model. Evolving private founder memory enters prompts and payloads only after ftn-owner-control verifies both founder identity and approved device; neither layer grants authorization.'
   },
   {
     // Phase 3 provider discovery, verified 2026-08-20 against official documentation (not SEO
@@ -488,4 +488,3 @@ function withDefaults(p){
 global.FTN=global.FTN||{};
 global.FTN.IbisProviders={all:function(){return providers.map(withDefaults);},byCategory:function(category){return providers.filter(function(p){return p.categories.indexOf(category)>=0;}).map(withDefaults);},byCapability:function(capability){return providers.filter(function(p){return(p.capabilities||[]).indexOf(capability)>=0;}).map(withDefaults);},get:function(id){var p=providers.filter(function(x){return x.id===id;})[0];return p?withDefaults(p):null;},verifiedAt:VERIFIED};
 })(window);
-

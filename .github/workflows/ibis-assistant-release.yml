@@ -1,0 +1,31 @@
+name: Deploy and verify ibis assistant gateway
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: jshmidfpqrajxtukzges
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Require scoped Supabase deployment credential
+        run: test -n "$SUPABASE_ACCESS_TOKEN"
+      - name: Re-run the source reliability contract
+        run: node --experimental-strip-types tests/ibis-intelligence-gateway-audit.mjs
+      - name: Deploy the exact checked-out gateway source
+        run: supabase functions deploy ibis-assistant --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Verify deployed version and deterministic zero-cost answer
+        run: node scripts/verify-ibis-assistant-live.mjs

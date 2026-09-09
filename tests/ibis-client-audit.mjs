@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs';
 
-const context = { window: {} };
+const context = { window: {}, fetch: async () => ({ ok: true, json: async () => ({ answer: '4', provider: 'FTN ibis deterministic', model: 'ibis-rules-v1', answerClass: 'CALCULATION', evidenceState: 'DETERMINISTIC', requestId: 'test-request', fallbackUsed: false, generatedAt: '2026-09-09T00:00:00.000Z' }) }) };
 vm.createContext(context);
 vm.runInContext(fs.readFileSync('js/product-registry-data.js', 'utf8'), context);
 vm.runInContext(fs.readFileSync('js/ftn-node-registry.js', 'utf8'), context);
@@ -110,7 +110,7 @@ const mixedPlan = IbisClient.planProduction({
   nodeId: 'screen',
   stages: [
     { capability: 'INSTRUMENTAL_GENERATION' }, // genuinely eligible today
-    { capability: 'SCREENPLAY' }, // genuinely not eligible today (no deployed TEXT provider for a guest)
+    { capability: 'VIDEO_GENERATION' }, // no enabled video provider today
   ],
 });
 assert.equal(mixedPlan.approved, false, 'A plan with any blocked stage must not be reported as approved');
@@ -135,15 +135,18 @@ const ccPlan = IbisClient.planProduction({ nodeId: 'community-connect', stages: 
 assert.equal(ccPlan.approved, false);
 assert.equal(ccPlan.stages.length, 0, 'No stage should be evaluated once the node itself is excluded');
 
-// -- TEXT with no eligible guest provider today must fail honestly, not fabricate an answer -----
-const textResult = await IbisClient.request({ nodeId: 'ibis-ai', capability: 'TEXT', context: { authenticated: false } });
-assert.equal(textResult.success, false);
-assert.equal(textResult.code, 'NO_ELIGIBLE_PROVIDER', 'No guest TEXT provider is deployed yet -- this must be reported honestly, not faked');
+// -- Guest TEXT reaches the FTN-owned gateway and retains its answer metadata -------------------
+const textResult = await IbisClient.request({ nodeId: 'ibis-ai', capability: 'TEXT', context: { authenticated: false }, payload: { prompt: 'What is 2 plus 2?' } });
+assert.equal(textResult.success, true);
+assert.equal(textResult.result.answer, '4');
+assert.equal(textResult.result.answerClass, 'CALCULATION');
+assert.equal(textResult.result.evidenceState, 'DETERMINISTIC');
+assert.equal(textResult.result.requestId, 'test-request');
 
 // -- Sitewide callers (js/ibis-widget.js) deliberately omit nodeId -- must skip the node-permission
 // gate entirely, not be silently blocked, and reach the exact same honest capability-stage outcome.
-const noNodeIdResult = await IbisClient.request({ capability: 'TEXT', context: { authenticated: false } });
-assert.equal(noNodeIdResult.code, 'NO_ELIGIBLE_PROVIDER', 'Omitting nodeId must skip the permission gate cleanly, landing on the same real eligibility outcome as an authorized node');
+const noNodeIdResult = await IbisClient.request({ capability: 'TEXT', context: { authenticated: false }, payload: { prompt: 'What is 2 plus 2?' } });
+assert.equal(noNodeIdResult.success, true, 'Omitting nodeId must skip the permission gate and still reach the gateway');
 
 // -- describeNode(): real, current data only, never a fabricated capability list -----------------
 const ccDescribed = IbisClient.describeNode('community-connect');

@@ -11,6 +11,7 @@
     await load('/js/ibis-mission-tracker.js',function(){return !!FTN.IbisMissionTracker;});
     await load('/js/ibis-research-hypotheses.js',function(){return !!FTN.IbisResearchHypotheses;});
     await load('/js/ibis-permission-ledger.js',function(){return !!FTN.PermissionLedger;});
+    await load('/js/ibis-tool-catalog.js',function(){return !!FTN.IbisToolCatalog;});
     await load('/js/ibis-app-registry.js',function(){return !!FTN.AppRegistry;});
     await load('/js/ibis-connection-fabric.js',function(){return !!FTN.ConnectionFabric;});
     await load('/js/ibis-native-connections.js',function(){return !!(FTN.ConnectionFabric&&FTN.ConnectionFabric.gateway('REST'));});

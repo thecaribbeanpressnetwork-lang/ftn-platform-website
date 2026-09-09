@@ -1,0 +1,2878 @@
+{
+  "schemaVersion": 1,
+  "lastReviewed": "2026-09-09",
+  "policy": {
+    "principle": "Capability parity: any useful external capability should be connectable through an FTN-owned interface, but discovery never grants execution authority.",
+    "lifecycle": [
+      "DISCOVERY",
+      "CANDIDATE",
+      "SOURCE_READY",
+      "ENABLED",
+      "LIVE",
+      "BLOCKED",
+      "FAILED",
+      "DEFERRED"
+    ],
+    "runtimeRule": "ibis may select only ENABLED tools whose capability, privacy, cost, health and permission requirements match the request.",
+    "promotionRule": "A person must approve promotion after licence, provenance, security, privacy, cost, Caribbean relevance and rollback checks.",
+    "consequentialActionRule": "Payments, orders, applications, publishing, messages, account changes and physical-device actions require the Permission Ledger.",
+    "statusRule": "Status describes executable reality. Source or licence review is recorded separately and never promotes a tool to LIVE."
+  },
+  "tools": [
+    {
+      "id": "ibis-intelligence-gateway",
+      "name": "ibis Intelligence Gateway",
+      "category": "Model routing",
+      "role": "FTN-owned request contract, deterministic answers, provider failover and evidence state",
+      "sourceUrl": "https://ftnplatform.org/ibis/",
+      "license": "FTN-owned",
+      "decision": "BUILD_NOW",
+      "status": "SOURCE_READY",
+      "integration": "Core ibis service",
+      "automaticUse": "Allowed for read-only answers after deployment health checks",
+      "permissionClass": "READ_ONLY",
+      "notes": "Remains above every model gateway and provider.",
+      "purpose": "FTN-owned request contract, deterministic answers, provider failover and evidence state",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MODEL_ROUTING"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Core ibis service",
+      "verificationState": "APPROVED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Remains above every model gateway and provider.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-intelligence-gateway-audit.mjs"
+    },
+    {
+      "id": "model-context-protocol-registry",
+      "name": "Model Context Protocol Registry",
+      "category": "Tool discovery",
+      "role": "Discover standardized MCP servers and their published metadata",
+      "sourceUrl": "https://github.com/modelcontextprotocol/registry",
+      "license": "Apache-2.0",
+      "decision": "BUILD_NOW",
+      "status": "CANDIDATE",
+      "integration": "Daily discovery source",
+      "automaticUse": "Discovery only",
+      "permissionClass": "READ_ONLY",
+      "notes": "Registry presence is not a security, licence or quality approval.",
+      "purpose": "Discover standardized MCP servers and their published metadata",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "TOOL_DISCOVERY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Daily discovery source",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Registry presence is not a security, licence or quality approval.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "toolhive",
+      "name": "ToolHive",
+      "category": "Tool execution security",
+      "role": "Run MCP servers in isolated containers with policy and observability",
+      "sourceUrl": "https://github.com/stacklok/toolhive",
+      "license": "Apache-2.0",
+      "decision": "PREPARE_NOW",
+      "status": "CANDIDATE",
+      "integration": "Optional MCP execution boundary",
+      "automaticUse": "No until sandbox proof",
+      "permissionClass": "VARIES_BY_TOOL",
+      "notes": "Strong candidate when ibis begins running third-party MCP servers.",
+      "purpose": "Run MCP servers in isolated containers with policy and observability",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "TOOL_EXECUTION_SECURITY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Optional MCP execution boundary",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Strong candidate when ibis begins running third-party MCP servers.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "activepieces",
+      "name": "Activepieces Community Edition",
+      "category": "Workflow and connectors",
+      "role": "Common app integrations, triggers, retries, branches and versioned flows",
+      "sourceUrl": "https://github.com/activepieces/activepieces",
+      "license": "MIT community core; commercial enterprise features",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Connection Fabric gateway",
+      "automaticUse": "Only approved read-only flows",
+      "permissionClass": "VARIES_BY_OPERATION",
+      "notes": "Use its connectors without surrendering ibis permissions, memory or product identity.",
+      "purpose": "Common app integrations, triggers, retries, branches and versioned flows",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "WORKFLOW_AND_CONNECTORS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Connection Fabric gateway",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Use its connectors without surrendering ibis permissions, memory or product identity.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "litellm",
+      "name": "LiteLLM",
+      "category": "Model routing",
+      "role": "Unified model APIs, retries, fallbacks, load balancing and cost controls",
+      "sourceUrl": "https://github.com/BerriAI/litellm",
+      "license": "MIT core; commercial enterprise features",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Behind ibis Intelligence Gateway",
+      "automaticUse": "No until provider parity tests pass",
+      "permissionClass": "READ_ONLY",
+      "notes": "Must not replace the ibis answer contract or Founder Reasoning Model.",
+      "purpose": "Unified model APIs, retries, fallbacks, load balancing and cost controls",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MODEL_ROUTING"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Behind ibis Intelligence Gateway",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Must not replace the ibis answer contract or Founder Reasoning Model.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "langgraph-js",
+      "name": "LangGraph JS",
+      "category": "Durable agent workflows",
+      "role": "Checkpointed, resumable multi-step workflows with human review",
+      "sourceUrl": "https://github.com/langchain-ai/langgraphjs",
+      "license": "MIT",
+      "decision": "PREPARE_NOW",
+      "status": "CANDIDATE",
+      "integration": "Long-running workflow engine",
+      "automaticUse": "Only for workflows that require durable state",
+      "permissionClass": "VARIES_BY_STEP",
+      "notes": "Do not place ordinary one-answer requests in a heavy workflow engine.",
+      "purpose": "Checkpointed, resumable multi-step workflows with human review",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DURABLE_AGENT_WORKFLOWS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Long-running workflow engine",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Do not place ordinary one-answer requests in a heavy workflow engine.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "category": "Local model runtime",
+      "role": "Independent local text and multimodal model fallback",
+      "sourceUrl": "https://github.com/ollama/ollama",
+      "license": "MIT code; model licences vary",
+      "decision": "BUILD_NOW",
+      "status": "CANDIDATE",
+      "integration": "Intelligence Gateway provider adapter",
+      "automaticUse": "After exact model approval and worker health check",
+      "permissionClass": "READ_ONLY",
+      "notes": "Each downloaded model needs a separate licence and model-card review.",
+      "purpose": "Independent local text and multimodal model fallback",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "LOCAL_MODEL_RUNTIME"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Intelligence Gateway provider adapter",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Each downloaded model needs a separate licence and model-card review.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "llama-cpp",
+      "name": "llama.cpp",
+      "category": "Local model runtime",
+      "role": "Efficient local inference and OpenAI-compatible serving on constrained hardware",
+      "sourceUrl": "https://github.com/ggml-org/llama.cpp",
+      "license": "MIT code; model licences vary",
+      "decision": "PREPARE_NOW",
+      "status": "CANDIDATE",
+      "integration": "Alternative local provider adapter",
+      "automaticUse": "After exact model approval and worker health check",
+      "permissionClass": "READ_ONLY",
+      "notes": "Useful where lower-level performance control matters.",
+      "purpose": "Efficient local inference and OpenAI-compatible serving on constrained hardware",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "LOCAL_MODEL_RUNTIME"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Alternative local provider adapter",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Useful where lower-level performance control matters.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "promptfoo",
+      "name": "Promptfoo",
+      "category": "AI testing",
+      "role": "Regression, model comparison, red teaming and provider-outage testing",
+      "sourceUrl": "https://github.com/promptfoo/promptfoo",
+      "license": "MIT",
+      "decision": "BUILD_NOW",
+      "status": "CANDIDATE",
+      "integration": "CI quality gate",
+      "automaticUse": "Allowed in isolated test environments",
+      "permissionClass": "READ_ONLY_TEST",
+      "notes": "Required before public-store submission.",
+      "purpose": "Regression, model comparison, red teaming and provider-outage testing",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "AI_TESTING"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "CI quality gate",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Required before public-store submission.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "docling",
+      "name": "Docling",
+      "category": "Document intelligence",
+      "role": "Parse documents, images, audio and video into structured content",
+      "sourceUrl": "https://github.com/docling-project/docling",
+      "license": "MIT code; model licences vary",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Private intake worker and MCP service",
+      "automaticUse": "Allowed for user-supplied files after worker deployment",
+      "permissionClass": "READ_ONLY_USER_CONTENT",
+      "notes": "Prefer local execution for sensitive documents.",
+      "purpose": "Parse documents, images, audio and video into structured content",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DOCUMENT_INTELLIGENCE"
+      ],
+      "inputTypes": [
+        "DOCUMENT",
+        "IMAGE"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Private intake worker and MCP service",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Prefer local execution for sensitive documents.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "paddleocr",
+      "name": "PaddleOCR",
+      "category": "OCR",
+      "role": "OCR and document layout fallback",
+      "sourceUrl": "https://github.com/PaddlePaddle/PaddleOCR",
+      "license": "Apache-2.0",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Specialist behind document intake",
+      "automaticUse": "When primary extraction confidence is insufficient",
+      "permissionClass": "READ_ONLY_USER_CONTENT",
+      "notes": "Evaluate Caribbean forms and mixed-quality phone photographs.",
+      "purpose": "OCR and document layout fallback",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "OCR"
+      ],
+      "inputTypes": [
+        "DOCUMENT",
+        "IMAGE"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Specialist behind document intake",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Evaluate Caribbean forms and mixed-quality phone photographs.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "crawl4ai",
+      "name": "Crawl4AI",
+      "category": "Web research",
+      "role": "Self-hosted crawling and structured web extraction",
+      "sourceUrl": "https://github.com/unclecode/crawl4ai",
+      "license": "Apache-2.0",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Constrained research worker",
+      "automaticUse": "Public pages under domain, rate and robots policy",
+      "permissionClass": "READ_ONLY_PUBLIC_WEB",
+      "notes": "Authenticated pages remain outside automatic crawling.",
+      "purpose": "Self-hosted crawling and structured web extraction",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "WEB_RESEARCH"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Constrained research worker",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Authenticated pages remain outside automatic crawling.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "browser-use",
+      "name": "Browser Use",
+      "category": "Browser automation",
+      "role": "Browser action where a suitable API is unavailable",
+      "sourceUrl": "https://github.com/browser-use/browser-use",
+      "license": "MIT library; hosted service separate",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Permissioned browser worker",
+      "automaticUse": "Public read-only navigation only",
+      "permissionClass": "ASK_FOR_LOGIN_FORM_PAYMENT_PUBLISH",
+      "notes": "Never inherit founder browser cookies or broad account access.",
+      "purpose": "Browser action where a suitable API is unavailable",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "BROWSER_AUTOMATION"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL"
+      ],
+      "outputTypes": [
+        "PAGE_STATE",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Permissioned browser worker",
+      "verificationState": "VERIFIED",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Never inherit founder browser cookies or broad account access.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "github-search-api",
+      "name": "GitHub Search API",
+      "category": "Discovery source",
+      "role": "Find repositories, releases and maintenance signals",
+      "sourceUrl": "https://docs.github.com/en/rest/search/search",
+      "license": "Service terms",
+      "decision": "BUILD_NOW",
+      "status": "ENABLED",
+      "integration": "Open-Source Scout",
+      "automaticUse": "Daily discovery",
+      "permissionClass": "READ_ONLY_PUBLIC_DATA",
+      "notes": "Use GitHub Actions token only for rate limits and never include it in reports.",
+      "purpose": "Find repositories, releases and maintenance signals",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DISCOVERY_SOURCE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Open-Source Scout",
+      "verificationState": "ENABLED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Registered adapter/runtime health check required before each use",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Use GitHub Actions token only for rate limits and never include it in reports.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "hugging-face-hub-api",
+      "name": "Hugging Face Hub API",
+      "category": "Discovery source",
+      "role": "Find models and model metadata",
+      "sourceUrl": "https://huggingface.co/docs/hub/api",
+      "license": "Service terms; each model and dataset varies",
+      "decision": "BUILD_NOW",
+      "status": "ENABLED",
+      "integration": "Open-Source Scout",
+      "automaticUse": "Daily discovery",
+      "permissionClass": "READ_ONLY_PUBLIC_DATA",
+      "notes": "Exact checkpoint licence and training-data provenance remain mandatory.",
+      "purpose": "Find models and model metadata",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DISCOVERY_SOURCE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Open-Source Scout",
+      "verificationState": "ENABLED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Registered adapter/runtime health check required before each use",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Exact checkpoint licence and training-data provenance remain mandatory.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "youtube-data-api",
+      "name": "YouTube Data API",
+      "category": "Discovery source",
+      "role": "Find new videos that may reveal open-source projects and techniques",
+      "sourceUrl": "https://developers.google.com/youtube/v3/docs/search/list",
+      "license": "Service terms; video rights vary",
+      "decision": "BUILD_NOW",
+      "status": "SOURCE_READY",
+      "integration": "Open-Source Scout",
+      "automaticUse": "After API key configuration",
+      "permissionClass": "READ_ONLY_PUBLIC_DATA",
+      "notes": "YouTube is a lead source. ibis must verify the primary repository and licence.",
+      "purpose": "Find new videos that may reveal open-source projects and techniques",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DISCOVERY_SOURCE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Open-Source Scout",
+      "verificationState": "APPROVED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "YouTube is a lead source. ibis must verify the primary repository and licence.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "npm-registry-search",
+      "name": "npm Registry Search",
+      "category": "Discovery source",
+      "role": "Find JavaScript packages and update signals",
+      "sourceUrl": "https://github.com/npm/registry",
+      "license": "Service and package terms vary",
+      "decision": "BUILD_NOW",
+      "status": "ENABLED",
+      "integration": "Open-Source Scout",
+      "automaticUse": "Daily discovery",
+      "permissionClass": "READ_ONLY_PUBLIC_DATA",
+      "notes": "Package discovery never authorizes installation.",
+      "purpose": "Find JavaScript packages and update signals",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DISCOVERY_SOURCE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Open-Source Scout",
+      "verificationState": "ENABLED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Registered adapter/runtime health check required before each use",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Package discovery never authorizes installation.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "osv",
+      "name": "OSV",
+      "category": "Supply-chain security",
+      "role": "Check open-source package vulnerabilities",
+      "sourceUrl": "https://google.github.io/osv.dev/api/",
+      "license": "Apache-2.0 project",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Candidate promotion gate",
+      "automaticUse": "Allowed against candidate package coordinates",
+      "permissionClass": "READ_ONLY_PUBLIC_DATA",
+      "notes": "A clean OSV result is one signal, not a complete security review.",
+      "purpose": "Check open-source package vulnerabilities",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "SUPPLY_CHAIN_SECURITY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Candidate promotion gate",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "A clean OSV result is one signal, not a complete security review.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "openssf-scorecard",
+      "name": "OpenSSF Scorecard",
+      "category": "Supply-chain security",
+      "role": "Evaluate repository security practices and risky maintenance patterns",
+      "sourceUrl": "https://github.com/ossf/scorecard",
+      "license": "Apache-2.0",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Candidate promotion gate",
+      "automaticUse": "Allowed against public repositories",
+      "permissionClass": "READ_ONLY_PUBLIC_DATA",
+      "notes": "Use as evidence, not an automatic approval score.",
+      "purpose": "Evaluate repository security practices and risky maintenance patterns",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "SUPPLY_CHAIN_SECURITY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Candidate promotion gate",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Use as evidence, not an automatic approval score.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "trivy",
+      "name": "Trivy",
+      "category": "Supply-chain security",
+      "role": "Scan repositories, containers, dependencies, secrets and misconfiguration",
+      "sourceUrl": "https://github.com/aquasecurity/trivy",
+      "license": "Apache-2.0",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Sandbox and release gate",
+      "automaticUse": "Allowed on isolated candidate builds",
+      "permissionClass": "READ_ONLY_TEST",
+      "notes": "Pin scanner and database update behavior in CI.",
+      "purpose": "Scan repositories, containers, dependencies, secrets and misconfiguration",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "SUPPLY_CHAIN_SECURITY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Sandbox and release gate",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Pin scanner and database update behavior in CI.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "gitleaks",
+      "name": "Gitleaks",
+      "category": "Supply-chain security",
+      "role": "Detect secrets before third-party code or FTN changes are promoted",
+      "sourceUrl": "https://github.com/gitleaks/gitleaks",
+      "license": "MIT",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Sandbox and release gate",
+      "automaticUse": "Allowed on isolated candidate builds",
+      "permissionClass": "READ_ONLY_TEST",
+      "notes": "Reports must not expose discovered secret values.",
+      "purpose": "Detect secrets before third-party code or FTN changes are promoted",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "SUPPLY_CHAIN_SECURITY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Sandbox and release gate",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Reports must not expose discovered secret values.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "gridstack",
+      "name": "GridStack",
+      "category": "Headspace layout",
+      "role": "Touch-aware responsive grids, collision handling, drag and resize",
+      "sourceUrl": "https://github.com/gridstack/gridstack.js",
+      "license": "MIT",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Separate Headspace prototype",
+      "automaticUse": "Not applicable",
+      "permissionClass": "LOCAL_UI",
+      "notes": "Prototype without replacing the existing thought-surface model.",
+      "purpose": "Touch-aware responsive grids, collision handling, drag and resize",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "HEADSPACE_LAYOUT"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Separate Headspace prototype",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Prototype without replacing the existing thought-surface model.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "xyflow",
+      "name": "React Flow and xyflow",
+      "category": "Headspace neurons",
+      "role": "Node and edge visualization for thought relationships and workflows",
+      "sourceUrl": "https://github.com/xyflow/xyflow",
+      "license": "MIT",
+      "decision": "BUILD_LATER",
+      "status": "CANDIDATE",
+      "integration": "Headspace neuron layer",
+      "automaticUse": "Visual relationships only at first",
+      "permissionClass": "LOCAL_UI_THEN_VARIES",
+      "notes": "A visible edge must not execute until its trigger and permissions are explicit.",
+      "purpose": "Node and edge visualization for thought relationships and workflows",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "HEADSPACE_NEURONS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Headspace neuron layer",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "A visible edge must not execute until its trigger and permissions are explicit.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "whisper",
+      "name": "Whisper",
+      "category": "Speech recognition",
+      "role": "Transcription and voice-note intake",
+      "sourceUrl": "https://github.com/openai/whisper",
+      "license": "MIT code and weights",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Private audio worker",
+      "automaticUse": "User-supplied audio after deployment",
+      "permissionClass": "READ_ONLY_USER_CONTENT",
+      "notes": "Benchmark varied Trinidadian speakers and recording conditions.",
+      "purpose": "Transcription and voice-note intake",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "SPEECH_RECOGNITION"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Private audio worker",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Benchmark varied Trinidadian speakers and recording conditions.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "openvoice",
+      "name": "OpenVoice",
+      "category": "Voice synthesis",
+      "role": "Consent-bound voice cloning and style control",
+      "sourceUrl": "https://github.com/myshell-ai/OpenVoice",
+      "license": "MIT code; checkpoints require review",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Private voice lab",
+      "automaticUse": "No public synthesis before consent and misuse controls",
+      "permissionClass": "ASK_FOR_VOICE_GENERATION",
+      "notes": "Keep reference recordings private and revocable.",
+      "purpose": "Consent-bound voice cloning and style control",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "VOICE_SYNTHESIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Private voice lab",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Keep reference recordings private and revocable.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "f5-tts",
+      "name": "F5-TTS",
+      "category": "Voice synthesis",
+      "role": "Expressive zero-shot text-to-speech experiment",
+      "sourceUrl": "https://github.com/SWivid/F5-TTS",
+      "license": "MIT code; checkpoints require review",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Private voice lab alternative",
+      "automaticUse": "No public synthesis before consent and misuse controls",
+      "permissionClass": "ASK_FOR_VOICE_GENERATION",
+      "notes": "Select the exact checkpoint only after hardware and model-card review.",
+      "purpose": "Expressive zero-shot text-to-speech experiment",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "VOICE_SYNTHESIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Private voice lab alternative",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Select the exact checkpoint only after hardware and model-card review.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "demucs",
+      "name": "Demucs",
+      "category": "Music analysis",
+      "role": "Music stem separation",
+      "sourceUrl": "https://github.com/facebookresearch/demucs",
+      "license": "MIT; upstream archived",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Isolated Music Scout worker",
+      "automaticUse": "Owned or licensed audio only",
+      "permissionClass": "READ_ONLY_RIGHTS_CONFIRMED_MEDIA",
+      "notes": "Pin a reviewed maintained fork before relying on it.",
+      "purpose": "Music stem separation",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MUSIC_ANALYSIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Isolated Music Scout worker",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Pin a reviewed maintained fork before relying on it.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "basic-pitch",
+      "name": "Basic Pitch",
+      "category": "Music analysis",
+      "role": "Audio to MIDI transcription with pitch bends",
+      "sourceUrl": "https://github.com/spotify/basic-pitch",
+      "license": "Apache-2.0",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Music Scout specialist",
+      "automaticUse": "Owned or licensed audio only",
+      "permissionClass": "READ_ONLY_RIGHTS_CONFIRMED_MEDIA",
+      "notes": "Useful for arrangement analysis, not copyright clearance.",
+      "purpose": "Audio to MIDI transcription with pitch bends",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MUSIC_ANALYSIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Music Scout specialist",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Useful for arrangement analysis, not copyright clearance.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "librosa",
+      "name": "librosa",
+      "category": "Music analysis",
+      "role": "Tempo, onset, spectral and similarity features",
+      "sourceUrl": "https://github.com/librosa/librosa",
+      "license": "ISC",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Music Scout specialist",
+      "automaticUse": "Owned or licensed audio only",
+      "permissionClass": "READ_ONLY_RIGHTS_CONFIRMED_MEDIA",
+      "notes": "Analysis output must state confidence and limitations.",
+      "purpose": "Tempo, onset, spectral and similarity features",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MUSIC_ANALYSIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Music Scout specialist",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Analysis output must state confidence and limitations.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "musicbrainz",
+      "name": "MusicBrainz",
+      "category": "Music metadata",
+      "role": "Open music metadata matching and identifiers",
+      "sourceUrl": "https://musicbrainz.org/doc/MusicBrainz_API",
+      "license": "Data licences vary by dataset",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Music Scout metadata source",
+      "automaticUse": "Read-only under API rate policy",
+      "permissionClass": "READ_ONLY_PUBLIC_DATA",
+      "notes": "A metadata match does not prove ownership or rights.",
+      "purpose": "Open music metadata matching and identifiers",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MUSIC_METADATA"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Music Scout metadata source",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "A metadata match does not prove ownership or rights.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "ffmpeg",
+      "name": "FFmpeg",
+      "category": "Media processing",
+      "role": "Audio and video conversion, packaging and rendering primitives",
+      "sourceUrl": "https://ffmpeg.org/legal.html",
+      "license": "LGPL or GPL depending build configuration",
+      "decision": "BUILD_NEXT",
+      "status": "CANDIDATE",
+      "integration": "Isolated media worker",
+      "automaticUse": "User-owned or licensed media only",
+      "permissionClass": "READ_ONLY_OR_REVERSIBLE_MEDIA_OUTPUT",
+      "notes": "Document the exact build flags and notices.",
+      "purpose": "Audio and video conversion, packaging and rendering primitives",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MEDIA_PROCESSING"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "outputTypes": [
+        "IMAGE",
+        "VIDEO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Isolated media worker",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Document the exact build flags and notices.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "medusa",
+      "name": "Medusa",
+      "category": "Commerce",
+      "role": "Headless products, carts, orders and inventory",
+      "sourceUrl": "https://github.com/medusajs/medusa",
+      "license": "MIT core",
+      "decision": "BUILD_LATER",
+      "status": "CANDIDATE",
+      "integration": "Optional Trade Scout commerce service",
+      "automaticUse": "No until persistent catalogue operations are required",
+      "permissionClass": "ASK_FOR_ORDER_PAYMENT_PUBLISH",
+      "notes": "WAM remains the FTN payment boundary.",
+      "purpose": "Headless products, carts, orders and inventory",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "COMMERCE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Optional Trade Scout commerce service",
+      "verificationState": "VERIFIED",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "WAM remains the FTN payment boundary.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "mautic",
+      "name": "Mautic",
+      "category": "Marketing automation",
+      "role": "Audience segmentation, campaigns and marketing automation",
+      "sourceUrl": "https://github.com/mautic/mautic",
+      "license": "GPL-3.0",
+      "decision": "BUILD_LATER",
+      "status": "CANDIDATE",
+      "integration": "Isolated service through API",
+      "automaticUse": "No until legal and operational review",
+      "permissionClass": "ASK_FOR_MESSAGES_AND_CAMPAIGNS",
+      "notes": "Do not copy GPL code into the ibis frontend.",
+      "purpose": "Audience segmentation, campaigns and marketing automation",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "MARKETING_AUTOMATION"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Isolated service through API",
+      "verificationState": "VERIFIED",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Do not copy GPL code into the ibis frontend.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "erpnext",
+      "name": "ERPNext",
+      "category": "Business operations",
+      "role": "Purchasing, inventory, accounting and operations",
+      "sourceUrl": "https://github.com/frappe/erpnext",
+      "license": "GPL-3.0",
+      "decision": "DEFER",
+      "status": "CANDIDATE",
+      "integration": "Optional external system through API",
+      "automaticUse": "No",
+      "permissionClass": "ASK_FOR_BUSINESS_RECORD_CHANGES",
+      "notes": "Too heavy for the initial ibis capability foundation.",
+      "purpose": "Purchasing, inventory, accounting and operations",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "BUSINESS_OPERATIONS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Optional external system through API",
+      "verificationState": "VERIFIED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Too heavy for the initial ibis capability foundation.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "chatwoot",
+      "name": "Chatwoot",
+      "category": "Customer communication",
+      "role": "Omnichannel customer support and lead inbox",
+      "sourceUrl": "https://github.com/chatwoot/chatwoot",
+      "license": "MIT community edition; enterprise code separate",
+      "decision": "BUILD_LATER",
+      "status": "CANDIDATE",
+      "integration": "Optional funnel service through API",
+      "automaticUse": "Read-only inbox summary after connection",
+      "permissionClass": "ASK_FOR_OUTBOUND_MESSAGES",
+      "notes": "Use only when a real sales or support workflow needs it.",
+      "purpose": "Omnichannel customer support and lead inbox",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "CUSTOMER_COMMUNICATION"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Optional funnel service through API",
+      "verificationState": "VERIFIED",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Use only when a real sales or support workflow needs it.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "graphiti",
+      "name": "Graphiti",
+      "category": "Temporal knowledge graph",
+      "role": "Model facts and relationships that change over time",
+      "sourceUrl": "https://github.com/getzep/graphiti",
+      "license": "Apache-2.0",
+      "decision": "PREPARE_NOW",
+      "status": "CANDIDATE",
+      "integration": "Bounded memory experiment",
+      "automaticUse": "No until graph infrastructure and privacy model are approved",
+      "permissionClass": "PRIVATE_DATA_REVIEW",
+      "notes": "ibis remains memory and provenance authority.",
+      "purpose": "Model facts and relationships that change over time",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "TEMPORAL_KNOWLEDGE_GRAPH"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Bounded memory experiment",
+      "verificationState": "VERIFIED",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "ibis remains memory and provenance authority.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "openviking",
+      "name": "OpenViking",
+      "category": "Context and memory",
+      "role": "Tiered context, memories, resources and retrieval traces",
+      "sourceUrl": "https://github.com/volcengine/OpenViking",
+      "license": "AGPL-3.0",
+      "decision": "DEFER",
+      "status": "BLOCKED",
+      "integration": "Architecture study only",
+      "automaticUse": "No",
+      "permissionClass": "NOT_ELIGIBLE",
+      "notes": "Licence and overlap with the Founder Cognitive Layer require legal and architecture review.",
+      "purpose": "Tiered context, memories, resources and retrieval traces",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "CONTEXT_AND_MEMORY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Architecture study only",
+      "verificationState": "BLOCKED",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Licence and overlap with the Founder Cognitive Layer require legal and architecture review.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "openai-chatgpt",
+      "name": "OpenAI / ChatGPT",
+      "category": "Hosted model provider",
+      "role": "Text, vision and structured model inference",
+      "sourceUrl": "https://platform.openai.com/docs",
+      "license": "Commercial service; exact model terms apply",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Text, vision and structured model inference",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "HOSTED_MODEL_PROVIDER"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "anthropic-claude",
+      "name": "Anthropic / Claude",
+      "category": "Hosted model provider",
+      "role": "Text, vision and document reasoning",
+      "sourceUrl": "https://docs.anthropic.com/",
+      "license": "Commercial service; exact model terms apply",
+      "decision": "EXPERIMENT",
+      "status": "SOURCE_READY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Text, vision and document reasoning",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "HOSTED_MODEL_PROVIDER"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "SOURCE_READY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "google-gemini",
+      "name": "Google Gemini",
+      "category": "Hosted model provider",
+      "role": "Text, vision and multimodal reasoning",
+      "sourceUrl": "https://ai.google.dev/gemini-api/docs",
+      "license": "Commercial service; exact model terms apply",
+      "decision": "EXPERIMENT",
+      "status": "SOURCE_READY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Text, vision and multimodal reasoning",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "HOSTED_MODEL_PROVIDER"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "SOURCE_READY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity",
+      "category": "Research provider",
+      "role": "Current web research with citations through an approved API",
+      "sourceUrl": "https://docs.perplexity.ai/",
+      "license": "Commercial service; exact model terms apply",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Current web research with citations through an approved API",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "RESEARCH_PROVIDER"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "apiqik",
+      "name": "APIQIK",
+      "category": "Hosted model aggregator",
+      "role": "Optional routed model access",
+      "sourceUrl": "https://apiqik.com/",
+      "license": "UNKNOWN_REQUIRES_PRIMARY_TERMS_REVIEW",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Optional routed model access",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "HOSTED_MODEL_AGGREGATOR"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "bytez",
+      "name": "Bytez",
+      "category": "Hosted model aggregator",
+      "role": "Optional routed open-model access",
+      "sourceUrl": "https://docs.bytez.com/",
+      "license": "Commercial service; per-model terms apply",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Optional routed open-model access",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "HOSTED_MODEL_AGGREGATOR"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "venice-ai",
+      "name": "Venice AI",
+      "category": "Hosted model provider",
+      "role": "Optional privacy-positioned model access",
+      "sourceUrl": "https://docs.venice.ai/",
+      "license": "Commercial service; per-model terms apply",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Optional privacy-positioned model access",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "HOSTED_MODEL_PROVIDER"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "gemma-model-family",
+      "name": "Gemma model family",
+      "category": "Model family",
+      "role": "Candidate local text and vision checkpoints",
+      "sourceUrl": "https://ai.google.dev/gemma/docs",
+      "license": "REQUIRES_EXACT_CHECKPOINT_AND_GEMMA_TERMS_REVIEW",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "LOCAL_UI",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Candidate local text and vision checkpoints",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MODEL_FAMILY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "qwen-model-family",
+      "name": "Qwen model family",
+      "category": "Model family",
+      "role": "Candidate local text and vision checkpoints",
+      "sourceUrl": "https://qwen.readthedocs.io/",
+      "license": "REQUIRES_EXACT_CHECKPOINT_LICENCE_REVIEW",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "LOCAL_UI",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Candidate local text and vision checkpoints",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MODEL_FAMILY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "llama-model-family",
+      "name": "Llama model family",
+      "category": "Model family",
+      "role": "Candidate local text and vision checkpoints",
+      "sourceUrl": "https://www.llama.com/docs/",
+      "license": "REQUIRES_EXACT_CHECKPOINT_AND_LLAMA_TERMS_REVIEW",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "LOCAL_UI",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Candidate local text and vision checkpoints",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MODEL_FAMILY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "openf5-tts",
+      "name": "OpenF5-TTS",
+      "category": "Speech synthesis",
+      "role": "Candidate local consented-voice synthesis",
+      "sourceUrl": "https://github.com/SWivid/F5-TTS",
+      "license": "Apache-2.0 code; checkpoint/dataset terms separate",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "PRIVATE_DATA_REVIEW",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Candidate local consented-voice synthesis",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "SPEECH_SYNTHESIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "fish-speech",
+      "name": "Fish Speech",
+      "category": "Speech synthesis",
+      "role": "Candidate multilingual local speech synthesis",
+      "sourceUrl": "https://github.com/fishaudio/fish-speech",
+      "license": "Apache-2.0 code; checkpoint/dataset terms separate",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "PRIVATE_DATA_REVIEW",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Candidate multilingual local speech synthesis",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "SPEECH_SYNTHESIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "piper-tts",
+      "name": "Piper",
+      "category": "Speech synthesis",
+      "role": "Lightweight local text-to-speech fallback",
+      "sourceUrl": "https://github.com/OHF-Voice/piper1-gpl",
+      "license": "GPL-3.0 code; voice model terms separate",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "LOCAL_UI",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Lightweight local text-to-speech fallback",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "SPEECH_SYNTHESIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "vidrender",
+      "name": "VidRender",
+      "category": "Media rendering",
+      "role": "Candidate programmatic video rendering service",
+      "sourceUrl": "https://vidrender.com/",
+      "license": "UNKNOWN_REQUIRES_PRIMARY_TERMS_REVIEW",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "ASK_FOR_PUBLISHING",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Candidate programmatic video rendering service",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MEDIA_RENDERING"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "outputTypes": [
+        "IMAGE",
+        "VIDEO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "pixverse",
+      "name": "PixVerse",
+      "category": "Creative media provider",
+      "role": "Image and video generation for approved creative work",
+      "sourceUrl": "https://pixverse.ai/",
+      "license": "Commercial service; output and input terms apply",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "ASK_FOR_PUBLISHING",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Image and video generation for approved creative work",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "CREATIVE_MEDIA_PROVIDER"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "outputTypes": [
+        "IMAGE",
+        "VIDEO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "kling-ai",
+      "name": "Kling AI",
+      "category": "Creative media provider",
+      "role": "Image-to-video and video generation",
+      "sourceUrl": "https://klingai.com/",
+      "license": "Commercial service; output and input terms apply",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "ASK_FOR_PUBLISHING",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Image-to-video and video generation",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "CREATIVE_MEDIA_PROVIDER"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "outputTypes": [
+        "IMAGE",
+        "VIDEO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "elevenlabs",
+      "name": "ElevenLabs",
+      "category": "Speech synthesis",
+      "role": "Hosted consented-voice and narration generation",
+      "sourceUrl": "https://elevenlabs.io/docs",
+      "license": "Commercial service; voice/output terms apply",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "PRIVATE_DATA_REVIEW",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Hosted consented-voice and narration generation",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "SPEECH_SYNTHESIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "suno",
+      "name": "Suno",
+      "category": "Music generation",
+      "role": "Music ideation and generation subject to rights review",
+      "sourceUrl": "https://help.suno.com/",
+      "license": "Commercial service; plan/output terms apply",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "ASK_FOR_PUBLISHING",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Music ideation and generation subject to rights review",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MUSIC_GENERATION"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "youka",
+      "name": "Youka",
+      "category": "Lyrics and karaoke",
+      "role": "Candidate lyric-video and karaoke workflow",
+      "sourceUrl": "https://youka.io/",
+      "license": "UNKNOWN_REQUIRES_PRIMARY_TERMS_REVIEW",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "ASK_FOR_PUBLISHING",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Candidate lyric-video and karaoke workflow",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "LYRICS_AND_KARAOKE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "canirun-ai",
+      "name": "CanIRun.ai",
+      "category": "Hardware feasibility",
+      "role": "Estimate whether local hardware can run a selected model",
+      "sourceUrl": "https://canirun.ai/",
+      "license": "UNKNOWN_REQUIRES_PRIMARY_TERMS_REVIEW",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Estimate whether local hardware can run a selected model",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "HARDWARE_FEASIBILITY"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "searxng",
+      "name": "SearXNG",
+      "category": "Search and retrieval",
+      "role": "Self-hostable metasearch for research retrieval",
+      "sourceUrl": "https://github.com/searxng/searxng",
+      "license": "AGPL-3.0",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "READ_ONLY",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Self-hostable metasearch for research retrieval",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "SEARCH_AND_RETRIEVAL"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "playwright",
+      "name": "Playwright",
+      "category": "Browser testing",
+      "role": "Browser acceptance and authorized automation",
+      "sourceUrl": "https://github.com/microsoft/playwright",
+      "license": "Apache-2.0",
+      "decision": "EXPERIMENT",
+      "status": "SOURCE_READY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "VARIES_BY_OPERATION",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Browser acceptance and authorized automation",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "BROWSER_TESTING"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL"
+      ],
+      "outputTypes": [
+        "PAGE_STATE",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "SOURCE_READY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "n8n",
+      "name": "n8n",
+      "category": "Workflow and connectors",
+      "role": "Workflow automation candidate where its licence and deployment fit",
+      "sourceUrl": "https://github.com/n8n-io/n8n",
+      "license": "Sustainable Use License / Enterprise License",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "VARIES_BY_OPERATION",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Workflow automation candidate where its licence and deployment fit",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "WORKFLOW_AND_CONNECTORS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract OCR",
+      "category": "Document intelligence",
+      "role": "Local optical character recognition",
+      "sourceUrl": "https://github.com/tesseract-ocr/tesseract",
+      "license": "Apache-2.0",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "LOCAL_UI",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Local optical character recognition",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DOCUMENT_INTELLIGENCE"
+      ],
+      "inputTypes": [
+        "DOCUMENT",
+        "IMAGE"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "ocrmypdf",
+      "name": "OCRmyPDF",
+      "category": "Document intelligence",
+      "role": "Add searchable OCR layers to permitted PDFs",
+      "sourceUrl": "https://github.com/ocrmypdf/OCRmyPDF",
+      "license": "MPL-2.0",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "PRIVATE_DATA_REVIEW",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Add searchable OCR layers to permitted PDFs",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DOCUMENT_INTELLIGENCE"
+      ],
+      "inputTypes": [
+        "DOCUMENT",
+        "IMAGE"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "apache-tika",
+      "name": "Apache Tika",
+      "category": "Document intelligence",
+      "role": "Extract text and metadata from permitted documents",
+      "sourceUrl": "https://github.com/apache/tika",
+      "license": "Apache-2.0",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "PRIVATE_DATA_REVIEW",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Extract text and metadata from permitted documents",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DOCUMENT_INTELLIGENCE"
+      ],
+      "inputTypes": [
+        "DOCUMENT",
+        "IMAGE"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "comfyui",
+      "name": "ComfyUI",
+      "category": "Creative media runtime",
+      "role": "Local node-based image and media workflows",
+      "sourceUrl": "https://github.com/Comfy-Org/ComfyUI",
+      "license": "GPL-3.0 code; model terms separate",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "PRIVATE_DATA_REVIEW",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Local node-based image and media workflows",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "CREATIVE_MEDIA_RUNTIME"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "outputTypes": [
+        "IMAGE",
+        "VIDEO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "essentia",
+      "name": "Essentia",
+      "category": "Audio analysis",
+      "role": "Local audio descriptors, rhythm and music analysis",
+      "sourceUrl": "https://github.com/MTG/essentia",
+      "license": "AGPL-3.0; alternative commercial licence available",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "LOCAL_UI",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Local audio descriptors, rhythm and music analysis",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "AUDIO_ANALYSIS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "AUDIO"
+      ],
+      "outputTypes": [
+        "AUDIO",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "microfish",
+      "name": "MicroFish",
+      "category": "Research candidate",
+      "role": "Named candidate awaiting primary-project identity verification",
+      "sourceUrl": "https://github.com/search?q=MicroFish&type=repositories",
+      "license": "UNKNOWN_REQUIRES_PRIMARY_PROJECT_VERIFICATION",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "NOT_ELIGIBLE",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Named candidate awaiting primary-project identity verification",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "RESEARCH_CANDIDATE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "nanochat",
+      "name": "NanoChat",
+      "category": "Model research candidate",
+      "role": "Named small-chat-system candidate awaiting exact project review",
+      "sourceUrl": "https://github.com/search?q=NanoChat&type=repositories",
+      "license": "UNKNOWN_REQUIRES_PRIMARY_PROJECT_VERIFICATION",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "NOT_ELIGIBLE",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Named small-chat-system candidate awaiting exact project review",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MODEL_RESEARCH_CANDIDATE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "impeccable",
+      "name": "Impeccable",
+      "category": "UX/UI candidate",
+      "role": "Named interface-quality candidate awaiting exact project review",
+      "sourceUrl": "https://github.com/search?q=Impeccable&type=repositories",
+      "license": "UNKNOWN_REQUIRES_PRIMARY_PROJECT_VERIFICATION",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "NOT_ELIGIBLE",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Named interface-quality candidate awaiting exact project review",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "UX_UI_CANDIDATE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "heretic",
+      "name": "Heretic",
+      "category": "Model research candidate",
+      "role": "Named model-modification candidate quarantined for licence and safety review",
+      "sourceUrl": "https://github.com/search?q=Heretic+AI&type=repositories",
+      "license": "UNKNOWN_REQUIRES_PRIMARY_PROJECT_VERIFICATION",
+      "decision": "DEFER",
+      "status": "DISCOVERY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "NOT_ELIGIBLE",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Named model-modification candidate quarantined for licence and safety review",
+      "exactModelTerms": "Exact checkpoint/model and dataset/output terms require separate review before enablement.",
+      "taskTypes": [
+        "MODEL_RESEARCH_CANDIDATE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "DISCOVERY",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "graphrag",
+      "name": "GraphRAG",
+      "category": "Retrieval architecture",
+      "role": "Graph-grounded retrieval pattern and implementation candidate",
+      "sourceUrl": "https://github.com/microsoft/graphrag",
+      "license": "MIT code; model/data terms separate",
+      "decision": "EXPERIMENT",
+      "status": "CANDIDATE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "PRIVATE_DATA_REVIEW",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Graph-grounded retrieval pattern and implementation candidate",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "RETRIEVAL_ARCHITECTURE"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "CANDIDATE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "wam",
+      "name": "WAM",
+      "category": "Commerce and payments",
+      "role": "FTN commerce checkout and payment handoff",
+      "sourceUrl": "https://ftnplatform.org/ibis/pricing/",
+      "license": "FTN integration; provider terms apply",
+      "decision": "EXPERIMENT",
+      "status": "SOURCE_READY",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "ASK_FOR_PAYMENT",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "FTN commerce checkout and payment handoff",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "COMMERCE_AND_PAYMENTS"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "SOURCE_READY",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Not executable; source, licence and identity verification only",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "supabase",
+      "name": "Supabase",
+      "category": "Data and backend platform",
+      "role": "FTN database, authentication and Edge Function runtime",
+      "sourceUrl": "https://supabase.com/docs",
+      "license": "Apache-2.0 components plus hosted-service terms",
+      "decision": "EXPERIMENT",
+      "status": "LIVE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "VARIES_BY_OPERATION",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "FTN database, authentication and Edge Function runtime",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "DATA_AND_BACKEND_PLATFORM"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "LIVE",
+      "privacyClass": "PUBLIC_OR_USER_PROVIDED",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Registered adapter/runtime health check required before each use",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    },
+    {
+      "id": "cloudflare-pages",
+      "name": "Cloudflare Pages",
+      "category": "Hosting and edge platform",
+      "role": "Public FTN static hosting and deployment",
+      "sourceUrl": "https://developers.cloudflare.com/pages/",
+      "license": "Commercial hosted service; platform terms apply",
+      "decision": "EXPERIMENT",
+      "status": "LIVE",
+      "integration": "Replaceable ibis adapter or isolated service",
+      "automaticUse": "No until an adapter, health check and permission gate exist",
+      "permissionClass": "ASK_FOR_PUBLISHING",
+      "notes": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "purpose": "Public FTN static hosting and deployment",
+      "exactModelTerms": "NOT_APPLICABLE",
+      "taskTypes": [
+        "HOSTING_AND_EDGE_PLATFORM"
+      ],
+      "inputTypes": [
+        "TEXT",
+        "URL",
+        "STRUCTURED_DATA"
+      ],
+      "outputTypes": [
+        "TEXT",
+        "STRUCTURED_DATA"
+      ],
+      "runtime": "Replaceable ibis adapter or isolated service",
+      "verificationState": "LIVE",
+      "privacyClass": "SENSITIVE_USER_DATA",
+      "cost": "VARIABLE_OR_SELF_HOSTED; verify current price and spending ceiling before enablement",
+      "healthCheck": "Registered adapter/runtime health check required before each use",
+      "fallbackRole": "Optional replaceable capability; ibis must degrade honestly when unavailable",
+      "provenanceRequirements": "Record source URL, version/model, timestamp, provider, request ID and evidence state where applicable",
+      "caribbeanRelevance": "Evaluate regional access, latency, language, payment compatibility and Trinidad & Tobago usefulness before promotion",
+      "ownershipConcerns": "Named project candidate; runtime status is deliberately independent from source or licence verification.",
+      "rollbackMethod": "Disable the registry entry/adapter and return to the prior FTN-owned route",
+      "relevantTest": "tests/ibis-tool-catalog-audit.mjs"
+    }
+  ],
+  "taskLanes": [
+    "research",
+    "URLs",
+    "photos",
+    "documents",
+    "audio",
+    "voice",
+    "video",
+    "trade",
+    "importing",
+    "commerce",
+    "grants",
+    "jobs",
+    "music release",
+    "business building",
+    "property",
+    "civic work",
+    "browser action",
+    "monitoring",
+    "funding"
+  ]
+}

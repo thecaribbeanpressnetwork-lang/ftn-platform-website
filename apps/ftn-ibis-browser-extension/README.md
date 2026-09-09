@@ -12,7 +12,7 @@ A privacy-minimal Manifest V3 extension for Chrome and Opera. It gives FTN ibis 
 
 ## Local verification
 
-Run node test.mjs, then use Load unpacked in a Chromium browser and select this directory. Store installation and publication are separate actions because they require a developer account, store attestations and review.
+Run `node build-package.mjs` and `node test.mjs`, then use Load unpacked in a Chromium browser and select this directory. The package test verifies that the ZIP preserves the `icons/` paths required by the manifest and contains no stale files. Store installation and publication are separate actions because they require a developer account, real rendered screenshots, store attestations and review.
 
 ## Store identity
 

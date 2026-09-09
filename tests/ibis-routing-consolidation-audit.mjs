@@ -144,9 +144,11 @@ function syntheticClickTrack(bpm) {
   ];
   for (const file of targets) {
     const source = fs.readFileSync(file, 'utf8');
-    const count = (source.match(/AbortSignal\.timeout\(/g) || []).length;
+    const directTimeouts = (source.match(/AbortSignal\.timeout\(/g) || []).length;
+    const helperTimeouts = (source.match(/signal:\s*timeoutSignal\(/g) || []).length;
     const fetchCount = (source.match(/await fetch\(/g) || []).length;
-    assert.equal(count, fetchCount, `${file}: every outbound fetch() call must carry a real AbortSignal.timeout(), found ${count} timeout(s) for ${fetchCount} fetch call(s)`);
+    const count = helperTimeouts || directTimeouts;
+    assert.equal(count, fetchCount, `${file}: every outbound fetch() call must carry a real bounded timeout signal, found ${count} timeout(s) for ${fetchCount} fetch call(s)`);
   }
   // ibis-query's own API-key-in-URL fix: key must travel as a header now, not a query parameter.
   const querySource = fs.readFileSync('supabase/functions/ibis-query/index.ts', 'utf8');

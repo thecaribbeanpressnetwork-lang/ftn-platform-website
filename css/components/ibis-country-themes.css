@@ -1,0 +1,29 @@
+/* ibis country accents: the black foundation stays constant; selected flag colours guide
+   focus, borders and completion feedback without turning Headspace into a flag collage. */
+:root {
+  --ibis-theme-primary: #55d6d0;
+  --ibis-theme-secondary: #ef5b4f;
+  --ibis-theme-tertiary: #f7f8fa;
+  --ibis-theme-muted: #7f8b91;
+  --ibis-theme-line: #344047;
+}
+.thought:focus-visible,
+.thought.is-active,
+.window-shelf button:focus-visible { outline: 2px solid var(--ibis-theme-primary); outline-offset: 3px; }
+.thought.pinned:before { background: radial-gradient(circle at 24% 15%, color-mix(in srgb, var(--ibis-theme-secondary) 12%, transparent), transparent 48%); }
+.thought-bar > span { color: var(--ibis-theme-muted); }
+.thought-bar button:hover,
+.actions button:hover,
+.head-actions button:hover,
+.head-actions a:hover { color: var(--ibis-theme-primary); }
+.pill { border-color: color-mix(in srgb, var(--ibis-theme-primary) 42%, transparent); color: var(--ibis-theme-primary); }
+.graph span { background: linear-gradient(to top, color-mix(in srgb, var(--ibis-theme-secondary) 34%, transparent), var(--ibis-theme-primary)); }
+.input-orbit { border-color: color-mix(in srgb, var(--ibis-theme-primary) 42%, rgba(255,255,255,.14)); }
+.input-orbit button[type="submit"] { color: var(--ibis-theme-primary); }
+.speech-controls button[aria-pressed="true"] { border-color: var(--ibis-theme-primary); color: var(--ibis-theme-primary); }
+[data-ibis-theme="venezuela"] .mark,
+[data-ibis-theme="jamaica"] .mark,
+[data-ibis-theme="guyana"] .mark { box-shadow: 0 0 40px color-mix(in srgb, var(--ibis-theme-secondary) 20%, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  .thought, .ambient { animation: none !important; transition: none !important; }
+}

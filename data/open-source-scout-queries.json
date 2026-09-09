@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "sources": ["github", "huggingface", "npm"],
+  "sources": ["github", "huggingface", "npm", "mcp_registry", "youtube"],
+  "defaultSources": ["github", "huggingface", "npm"],
   "limitPerQuery": 10,
   "lanes": {
     "PROBLEM": "Find open-source solutions to problems FTN already has an active ticket/roadmap item for.",
@@ -43,6 +44,68 @@
       "lane": "ARCHITECTURE",
       "terms": ["temporal knowledge graph agent memory", "headless browser video rendering pipeline"],
       "why": "Before FTN builds a new subsystem from scratch, check whether real, licensable infrastructure already solves it."
+    },
+    {
+      "area": "ibis backend resilience",
+      "lane": "ARCHITECTURE",
+      "terms": ["LLM fallback router local model", "Ollama OpenAI compatible server", "model health check circuit breaker", "structured answer validation"],
+      "why": "Find practical open infrastructure for guaranteed answer-path continuity without making one hosted provider a single point of failure."
+    },
+    {
+      "area": "ibis voice and media",
+      "lane": "CAPABILITY",
+      "terms": ["open source voice cloning TTS", "F5-TTS voice cloning", "Fish Speech TTS", "browser audio rendering open source"],
+      "why": "Track deployable voice, transcription and rendering systems with clear model and output licences."
+    },
+    {
+      "area": "YouTube open-source scout",
+      "lane": "CAPABILITY",
+      "sources": ["youtube"],
+      "terms": ["open source AI tools", "self hosted LLM tutorial", "Ollama agent workflow", "open source Caribbean technology"],
+      "why": "YouTube is a discovery signal only; every candidate must be verified against its primary repository, documentation and licence before ibis recommends it."
+    },
+    {
+      "area": "Universal tool and MCP discovery",
+      "lane": "ARCHITECTURE",
+      "sources": ["mcp_registry", "github"],
+      "terms": ["document automation MCP", "commerce sourcing MCP", "music production MCP", "Caribbean data MCP"],
+      "why": "Continuously find standardized tools ibis could connect through its governed capability and permission boundary."
+    },
+    {
+      "area": "Trade Scout and importing",
+      "lane": "PROBLEM",
+      "terms": ["product image recognition open source", "supplier sourcing agent", "landed cost calculator", "customs tariff data API"],
+      "why": "Support product identification, supplier comparison, Trinidad landed-cost analysis and evidence-backed import planning."
+    },
+    {
+      "area": "Opportunity and procurement executor",
+      "lane": "PROBLEM",
+      "terms": ["grant discovery agent", "tender document extraction", "procurement compliance workflow", "application deadline tracker"],
+      "why": "Strengthen eligibility extraction, evidence checklists, deadlines and approval-controlled application preparation."
+    },
+    {
+      "area": "Music intelligence and release",
+      "lane": "PROBLEM",
+      "terms": ["music metadata matching", "audio key bpm analysis", "audio to midi", "music release workflow"],
+      "why": "Support rights-aware music analysis, metadata, release planning and reusable Caribbean music workflows."
+    },
+    {
+      "area": "Business and funnel builder",
+      "lane": "CAPABILITY",
+      "terms": ["headless commerce workflow", "open source marketing automation", "sales funnel automation", "customer support inbox open source"],
+      "why": "Find modular commerce, campaign and service components that ibis can orchestrate without replacing FTN ownership or WAM."
+    },
+    {
+      "area": "Document and multimodal intake",
+      "lane": "ARCHITECTURE",
+      "terms": ["multimodal document parser", "OCR document layout", "audio video document extraction", "vision language document model"],
+      "why": "Give every ibis workflow a common, privacy-conscious intake path for files, photos, audio, video and URLs."
+    },
+    {
+      "area": "Tool supply-chain security",
+      "lane": "ARCHITECTURE",
+      "terms": ["open source software supply chain scanner", "SBOM vulnerability scanner", "MCP server sandbox", "AI tool permission policy"],
+      "why": "Find verification and containment tools so discovery never becomes unreviewed installation or credential exposure."
     }
   ]
 }

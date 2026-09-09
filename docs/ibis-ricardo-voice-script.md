@@ -22,4 +22,3 @@ So tell me what you’re trying to make happen. We’ll take it one step at a ti
 - Let the rhythm breathe: short pauses after “plainly,” “say so,” and “one step at a time.”
 - Keep the tone intelligent and welcoming, with understated Caribbean warmth.
 - Preserve the pronunciation of “ibis” as **EYE-biss** and “FTN” as the three letters: **F-T-N**.
-

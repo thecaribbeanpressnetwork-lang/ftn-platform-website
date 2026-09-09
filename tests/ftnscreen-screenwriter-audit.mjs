@@ -1,8 +1,7 @@
 // Real correctness test for js/ftnscreen-screenwriter.js. Two distinct things are proven here,
 // deliberately not conflated:
-//   1. The REAL, current, unmocked state of the fabric: every creative stage honestly reports
-//      NO_ELIGIBLE_PROVIDER for a guest today (no TEXT provider is deployed) -- this is the true
-//      state, not a test failure to work around.
+//   1. The REAL, current, unmocked local state of the fabric: the guest gateway is eligible, then
+//      reports ALL_PROVIDERS_FAILED because this VM intentionally has no network fetch boundary.
 //   2. The PIPELINE ORCHESTRATION LOGIC is correct: stage sequencing, project-graph asset
 //      creation, dependency wiring, and selective revision -- proven with an injected mock
 //      executor. This is explicitly a code-path/structural test, not a claim that real text
@@ -42,14 +41,14 @@ assert.throws(() => Screenwriter.createProject(''), /idea/i);
 
 // -- Part 1: the REAL, unmocked, current state of the fabric ------------------------------------
 // No executor is injected here -- this exercises the real defaultExecutorFor() path against the
-// real, current provider registry (no guest TEXT provider is deployed today).
+// real, current provider registry. The gateway is eligible; this isolated VM has no fetch.
 {
   const project = Screenwriter.createProject('A young detective in Trinidad uncovers a smuggling operation.', {
     dialectParams: { explicitRequest: { country: 'Trinidad & Tobago', dialect: 'Trinidadian English' } },
   });
   const conceptResult = await Screenwriter.runStage(project, 'concept');
-  assert.equal(conceptResult.success, false, 'STORY_DEVELOPMENT must honestly report unavailable -- no TEXT provider is deployed for guests today');
-  assert.equal(conceptResult.code, 'NO_ELIGIBLE_PROVIDER');
+  assert.equal(conceptResult.success, false, 'STORY_DEVELOPMENT must honestly report transport failure when the eligible gateway cannot be reached');
+  assert.equal(conceptResult.code, 'ALL_PROVIDERS_FAILED');
 
   // developPilot() must stop honestly at the first real failure, never fabricating later stages.
   const project2 = Screenwriter.createProject('A soca artist trying to make it before Carnival.');
