@@ -14,6 +14,7 @@ const UTILITY_PAGES = [
   '/resources/',
   '/contact/',
   '/insights/',
+  '/ricardogill',
   '/sitemap/',
   '/accessibility/',
   '/trust/',
