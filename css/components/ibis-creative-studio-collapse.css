@@ -1,0 +1,30 @@
+.ibis-studio__toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgba(185, 144, 255, .28);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, .18), rgba(14, 16, 23, .9));
+  color: #fff;
+  padding: 16px 18px;
+  text-align: left;
+  cursor: pointer;
+}
+.ibis-studio__toggle span:first-child { display: grid; gap: 3px; }
+.ibis-studio__toggle small { color: #b990ff; font-size: 9px; font-weight: 850; letter-spacing: .13em; }
+.ibis-studio__toggle strong { font: 750 18px/1.2 Montserrat, Inter, sans-serif; }
+.ibis-studio__toggle span:last-child {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #7c3aed;
+  font-size: 21px;
+  line-height: 1;
+}
+.ibis-studio:not(.ibis-studio--collapsed) .ibis-studio__toggle { margin-bottom: 24px; }
+.ibis-studio--collapsed { padding: 12px !important; background: rgba(13, 10, 21, .72) !important; }
+.ibis-studio--collapsed > :not(.ibis-studio__toggle) { display: none !important; }
