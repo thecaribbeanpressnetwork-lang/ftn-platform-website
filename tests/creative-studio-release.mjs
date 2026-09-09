@@ -10,6 +10,9 @@ function wavBuffer(frequency=220,seconds=.4,sampleRate=8000){const samples=Math.
 await scenario('ibis-provider-transparent-studio',async page=>{
   const providerCalls=[];page.on('request',request=>{if(/pixverse|kling/i.test(request.url())&&!/fonts|googleapis/.test(request.url()))providerCalls.push(request.url());});
   await open(page,'/ibis-ai/');await page.waitForSelector('#ibis-creative-studio');
+  assert.equal(await page.locator('.ibis-studio__toggle').getAttribute('aria-expanded'),'false','Creative Studio must not overwhelm the primary ibis conversation on arrival');
+  await page.click('.ibis-studio__toggle');
+  assert.equal(await page.locator('.ibis-studio__toggle').getAttribute('aria-expanded'),'true');
   assert.match(await page.locator('#ibis-creative-studio').innerText(),/No surprise API bills/i);
   assert(await page.locator('.ibis-provider').count()>=2);
   // Phase 4B: VIDEO_GENERATION has no enabled provider anywhere in js/ibis-provider-registry.js
@@ -23,6 +26,19 @@ await scenario('ibis-provider-transparent-studio',async page=>{
   assert.match(await page.locator('#ibis-studio-output').innerText(),/PLANNED, NOT GENERATED/i);
   assert.match(await page.locator('#ibis-studio-status').innerText(),/No external generation occurred/i);
   assert.equal(providerCalls.length,0,'Creative planning must not call PixVerse or Kling');
+});
+
+await scenario('ibis-focused-answer-presentation',async page=>{
+  await page.route('**/functions/v1/ibis-assistant',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({answer:'2 + 2 = 4.',provider:'FTN ibis deterministic',model:'ibis-rules-v1',answerClass:'CALCULATION',evidenceState:'DETERMINISTIC',generatedAt:'2026-09-09T20:55:21.631Z',confidence:'HIGH'})}));
+  await open(page,'/ibis-ai/');
+  await page.fill('#ibis-goal','What is 2 plus 2?');
+  await page.click('.ibis-chat__send');
+  await page.waitForSelector('.ibis-answer-meta');
+  const answer=await page.locator('.ibis-msg--ibis').last().innerText();
+  assert.match(answer,/2 \+ 2 = 4\./);
+  assert.match(answer,/Calculated locally by ibis\./);
+  assert.doesNotMatch(answer,/Model:|Generated 2026|No strong FTN route|FTN Live/,'a calculation must not be padded with raw diagnostics or unrelated product routes');
+  assert.equal(await page.locator('.ibis-studio__toggle').getAttribute('aria-expanded'),'false');
 });
 
 await scenario('fire-flow-music-instrumental-handoff',async page=>{
@@ -80,4 +96,4 @@ await scenario('dj-local-file-two-deck-mode',async page=>{
 await scenario('riddim-hierarchy-includes-fire',async page=>{await open(page,'/riddim/');await page.waitForSelector('.riddim-card--fire');assert.equal(await page.locator('.riddim-card--fire').getAttribute('href'),'/riddim/fire/');},{width:390,height:844});
 
 await browser.close();
-console.log('5/5 ibis Creative Studio, FTN Fire, DAW and DJ scenarios passed.');
+console.log('6/6 ibis answer presentation, Creative Studio, FTN Fire, DAW and DJ scenarios passed.');

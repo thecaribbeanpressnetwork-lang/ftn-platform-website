@@ -140,6 +140,27 @@
     if(!terms||!terms.length)return null;
     return 'The user\'s own message already contains real Trinidad English/Creole vocabulary ('+terms.join(', ')+'). Respond naturally in clear English -- do not attempt to imitate or exaggerate Trinidadian dialect back at them.';
   }
+  function answerHTML(text){
+    var lines=String(text||'').split(/\r?\n/),html='',list=null;
+    function closeList(){if(list){html+='</'+list+'>';list=null;}}
+    lines.forEach(function(raw){
+      var line=raw.trim();
+      if(!line){closeList();return;}
+      if(/^Decision:\s*/.test(line)){closeList();html+='<p class="ibis-answer-decision">'+esc(line)+'</p>';return;}
+      if(/^(Real objective|Strongest path|Risks to control|Next actions|Relevant FTN routes)$/.test(line)){closeList();html+='<h3 class="ibis-answer-heading">'+esc(line)+'</h3>';return;}
+      if(/^\d+\.\s+/.test(line)){if(list!=='ol'){closeList();list='ol';html+='<ol class="ibis-answer-list">';}html+='<li>'+esc(line.replace(/^\d+\.\s+/,''))+'</li>';return;}
+      if(/^-\s+/.test(line)){if(list!=='ul'){closeList();list='ul';html+='<ul class="ibis-answer-list">';}html+='<li>'+esc(line.replace(/^-\s+/,''))+'</li>';return;}
+      closeList();html+='<p>'+esc(line)+'</p>';
+    });
+    closeList();return html;
+  }
+  function wantsFtnRoutes(text){return /\b(open|where|which ftn|find an? ftn|route me|what ftn|ftn tool|ftn product)\b/i.test(String(text||''));}
+  function answerMeta(server){
+    if(server.answerClass==='CALCULATION')return'<p class="ibis-answer-meta">Calculated locally by ibis.</p>';
+    if(server.answerClass==='CONVERSATION'||server.answerClass==='PRODUCT_IDENTITY'||server.answerClass==='FTN_REGISTRY')return'';
+    if(server.answerClass==='FOUNDER_REASONING_FALLBACK')return'<p class="ibis-answer-meta">Owned ibis reasoning · external facts not claimed'+(server.uncertainty?' · '+esc(server.uncertainty):'')+'</p>';
+    return'<p class="ibis-answer-meta">'+esc(server.provider||'Governed ibis route')+(server.model?' · '+esc(server.model):'')+(server.uncertainty?' · '+esc(server.uncertainty):'')+'</p>';
+  }
   function numericHistory(i){return(i&&Array.isArray(i.history)?i.history:[]).map(Number).filter(Number.isFinite);}
   function change(i){var s=numericHistory(i);if(s.length<2)return null;var a=s[0],b=s[s.length-1];return{delta:b-a,pct:a?(b-a)/Math.abs(a)*100:null};}
   function relevantIndicators(q){var terms=q.toLowerCase().split(/[^a-z0-9]+/).filter(function(x){return x.length>2;});return(global.FTN.indicators||[]).map(function(i){var hay=(i.title+' '+i.category+' '+(i.changeLabel||'')).toLowerCase(),score=terms.reduce(function(n,t){return n+(hay.indexOf(t)>=0?1:0);},0);return{i:i,score:score,c:change(i)};}).filter(function(x){return x.score>0||x.c;}).sort(function(a,b){return b.score-a.score||Math.abs((b.c&&b.c.pct)||0)-Math.abs((a.c&&a.c.pct)||0);}).slice(0,8);}
@@ -196,7 +217,7 @@
     ['Create a visual','Create a visual for a Caribbean digital infrastructure campaign'],
   ];
 
-  function injectStyle(){if(document.querySelector('link[data-ibis-style]'))return;var l=document.createElement('link');l.rel='stylesheet';l.href='/css/components/ibis-ai.css?v=20260821.1';l.setAttribute('data-ibis-style','true');document.head.appendChild(l);}
+  function injectStyle(){if(document.querySelector('link[data-ibis-style]'))return;var l=document.createElement('link');l.rel='stylesheet';l.href='/css/components/ibis-ai.css?v=20260909.2';l.setAttribute('data-ibis-style','true');document.head.appendChild(l);}
 
   async function init(){injectStyle();await ensureData();global.FTN.WorkspaceShell.init({productId:'ibis-ai',mountId:'workspace-root',accentSmallVar:'--color-ibis-on-dark',build:function(content){
       content.innerHTML='<div class="ibis-chat">'
@@ -317,7 +338,7 @@
         }
         var answer=await localAI(q);
         if(answer){
-          out.innerHTML='<span class="workspace-kicker">On-device AI</span><p>'+esc(answer).replace(/\n/g,'<br>')+'</p><hr>'+routeResults(q);
+          out.innerHTML='<span class="workspace-kicker">On-device AI</span>'+answerHTML(answer)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
           // Phase 4B: on-device inference never leaves the browser and calls no FTN provider at
           // all -- a synthetic envelope built here (localAI() doesn't route through IbisClient,
           // same reasoning as the Live Intelligence path above), only ever shown when the
@@ -331,7 +352,7 @@
         setStatus('verifying');
         var server=await serverAI(q);
         if(server.available){
-          out.innerHTML='<span class="workspace-kicker">FTN ibis · '+esc(server.provider)+'</span><p>'+esc(server.answer).replace(/\n/g,'<br>')+'</p><p class="workspace-muted">Model: '+esc(server.model||'governed ibis route')+' · Generated '+esc(server.generatedAt)+(server.uncertainty?' · '+esc(server.uncertainty):'')+'</p><hr>'+routeResults(q);
+          out.innerHTML='<span class="workspace-kicker">FTN ibis</span>'+answerHTML(server.answer)+answerMeta(server)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
           await ensureEvidence();
           mountEvidence(out,server.provenance||{capability:'TEXT',provider:server.providerId,model:server.model,sourceRetrievedAt:server.generatedAt,confidenceBasis:server.confidence||'NOT_ASSESSED'},{prompt:q,limitations:server.uncertainty});
         }else{

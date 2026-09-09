@@ -128,6 +128,8 @@ function syntheticClickTrack(bpm) {
   assert.match(serverAiBody, /IbisClient\.request\(\{nodeId:'ibis-ai',capability:'TEXT'/, 'serverAI() must route TEXT through IbisClient');
   assert.match(serverAiBody, /context:\{authenticated:!!user\}/, 'serverAI() must work for both guests and authenticated users');
   assert.doesNotMatch(serverAiBody, /Auth\.invoke\('ibis-query'/, 'the public workspace must not retain the auth-only legacy Gemini bypass');
+  assert.match(workspaceSource, /wantsFtnRoutes\(q\)\?'<hr>'\+routeResults\(q\):''/, 'unrelated deterministic answers must not receive irrelevant FTN route cards');
+  assert.match(workspaceSource, /answerClass==='CALCULATION'/, 'calculation responses must receive compact local provenance instead of raw model/timestamp clutter');
 }
 
 // --- 4. All five previously-timeout-less Edge Function fetch calls now have one. ---
