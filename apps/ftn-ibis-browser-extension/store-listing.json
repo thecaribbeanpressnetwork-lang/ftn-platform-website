@@ -1,7 +1,8 @@
 {
-  "status": "READY_FOR_DEVELOPER_PORTAL_DRAFT",
+  "status": "READY_FOR_DEVELOPER_PORTAL_UPLOAD",
   "name": "FTN ibis — Caribbean Intelligence",
   "summary": "Source-backed Caribbean opportunities and intelligence from your browser.",
+  "detailedDescription": "Search source-backed Caribbean opportunities and regional intelligence without leaving your browser. FTN ibis searches a founder-reviewed public registry for grants, accelerators, procurement, organizations, research partners and other Caribbean-relevant records.\n\nUse the toolbar popup to search by topic or choose Find opportunities for a focused opportunity scan. You can also select public text on a page, right-click and choose Ask FTN ibis. Results include original source links so you can verify current eligibility, deadlines and terms.\n\nFTN ibis is read-only. It does not submit applications, send messages, start payments, access browser history or read pages in the background. Search text is sent only after an explicit action. Do not send passwords, payment details, private messages or sensitive records.",
   "category": "Productivity",
   "languages": ["en"],
   "website": "https://ftnplatform.org/ibis/",
@@ -10,7 +11,14 @@
   "termsUrl": "https://ftnplatform.org/legal/terms-of-service/",
   "chromeCompatibility": "Manifest V3",
   "operaCompatibility": "Chromium Manifest V3; optional and not required for FTN ibis operation",
+  "singlePurpose": "Search the public FTN ibis registry for source-backed Caribbean intelligence and opportunities from an explicit toolbar or selected-text action.",
+  "remoteCode": {
+    "used": false,
+    "declaration": "No, I am not using remote code. All executable JavaScript is packaged with the extension. The extension sends JSON requests to the public FTN ibis API but never downloads or executes code from that service."
+  },
   "dataUse": {
+    "disclosedTypes": ["Website content"],
+    "websiteContentExplanation": "Only a query typed by the user or text the user deliberately selects and sends through Ask FTN ibis is transmitted to the FTN ibis endpoint to return requested results.",
     "sold": false,
     "advertising": false,
     "analyticsSdk": false,
@@ -22,10 +30,22 @@
     "contextMenus": "Adds the explicit Ask FTN ibis action when the user selects text.",
     "host_permissions": "Calls only the public, read-only FTN ibis MCP endpoint."
   },
+  "distribution": {
+    "visibility": "Public",
+    "regions": "All regions supported by the Chrome Web Store",
+    "matureContent": false,
+    "pricing": "Free"
+  },
+  "testInstructions": "No account or credentials are required. Click the toolbar icon, enter a public Caribbean topic such as 'Trinidad cultural funding', then choose Search ibis. To test the context menu, select public text on a page, right-click and choose Ask FTN ibis. Results should open in an extension page and include original-source links.",
+  "assets": {
+    "storeIcon": "icons/ibis-128.png",
+    "smallPromoTile": "store-assets/ftn-ibis-small-promo-440x280.png",
+    "screenshotRequiredAfterInstall": "Capture the installed popup at 1280x800 or 640x400 while it displays real source-backed results. Do not fabricate the screenshot."
+  },
   "remainingPortalGates": [
     "Developer account registration and any store fee",
     "Store identity and policy attestations",
-    "Required screenshots and promotional artwork",
+    "One real 1280x800 or 640x400 installed-extension screenshot",
     "Chrome Web Store review and publication",
     "Optional separate Opera Add-ons review"
   ]

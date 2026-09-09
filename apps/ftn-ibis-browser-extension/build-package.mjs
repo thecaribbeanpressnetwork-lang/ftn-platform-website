@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
-const archive = 'dist/ftn-ibis-chrome-store-0.1.0.zip';
+const archive = 'dist/ftn-ibis-chrome-store-0.1.1.zip';
 const files = [
   'manifest.json', 'background.js', 'popup.html', 'popup.js', 'results.html',
   'results.js', 'ibis-api.js', 'styles.css', 'icons/ibis-16.png',

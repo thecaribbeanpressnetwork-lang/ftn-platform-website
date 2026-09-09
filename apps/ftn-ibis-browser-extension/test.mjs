@@ -22,7 +22,9 @@ for (const file of ['popup.html', 'results.html']) {
   assert.doesNotMatch(html, /<script(?![^>]*src=)/);
   assert.match(html, /FTN ibis/);
 }
-const archiveEntries = execFileSync('unzip', ['-Z1', 'dist/ftn-ibis-chrome-store-0.1.0.zip'], { cwd: new URL('.', root), encoding: 'utf8' }).trim().split(/\r?\n/).sort();
+assert.equal(manifest.version, '0.1.1');
+assert.match(read('popup.html'), /Do not send passwords/);
+const archiveEntries = execFileSync('unzip', ['-Z1', 'dist/ftn-ibis-chrome-store-0.1.1.zip'], { cwd: new URL('.', root), encoding: 'utf8' }).trim().split(/\r?\n/).sort();
 const expectedEntries = [
   'manifest.json', 'background.js', 'popup.html', 'popup.js', 'results.html',
   'results.js', 'ibis-api.js', 'styles.css', 'icons/ibis-16.png',
