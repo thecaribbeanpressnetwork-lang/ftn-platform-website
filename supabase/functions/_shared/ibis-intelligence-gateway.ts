@@ -15,7 +15,7 @@ const FAILURE_THRESHOLD = 2;
 const CIRCUIT_COOLDOWN_MS = 30_000;
 const TOTAL_BUDGET_MS = 24_000;
 const PROVIDER_BUDGET_MS = 9_000;
-export const GATEWAY_VERSION = "ibis-gateway-2026-09-09.2";
+export const GATEWAY_VERSION = "ibis-gateway-2026-09-09.3";
 
 function normalized(text: string) {
   return text.toLowerCase().replace(/[?.!,]/g, " ").replace(/\s+/g, " ").trim();
@@ -54,6 +54,13 @@ function recordFailure(id: string, now: number) {
   circuits.set(id, { failures, openUntil: failures >= FAILURE_THRESHOLD ? now + CIRCUIT_COOLDOWN_MS : 0 });
 }
 
+function publicFailureCode(error: unknown) {
+  const message = error instanceof Error ? error.message : "PROVIDER_ERROR";
+  if (/^HTTP_[1-5][0-9]{2}$/.test(message) || message === "EMPTY_ANSWER") return message;
+  if (error instanceof DOMException && error.name === "TimeoutError") return "TIMEOUT";
+  return "PROVIDER_ERROR";
+}
+
 export function gatewayHealth(providers: GatewayProvider[]) {
   const now = Date.now();
   return {
@@ -72,6 +79,7 @@ export async function runGateway(input: { text: string; products?: IbisProduct[]
   const local = deterministicAnswer(input.text, input.products || []);
   if (local) return { ...local, provider: "FTN ibis deterministic", model: "ibis-rules-v1", generatedAt: new Date().toISOString(), requestId, fallbackUsed: false, fallbackState: "NOT_NEEDED", confidence: "HIGH", uncertainty: null, gatewayVersion: GATEWAY_VERSION };
   let attempted = 0;
+  const providerFailures: Array<{ provider: string; code: string }> = [];
   for (const provider of input.providers) {
     const now = Date.now();
     if (!provider.configured || !circuitAllows(provider.id, now)) continue;
@@ -85,8 +93,10 @@ export async function runGateway(input: { text: string; products?: IbisProduct[]
       return { answer: result.answer.trim(), provider: provider.label, model: result.model, answerClass: "MODEL_RESPONSE", evidenceState: "MODEL_GENERATED", generatedAt: new Date().toISOString(), requestId, fallbackUsed: attempted > 1, fallbackState: attempted > 1 ? "SUCCEEDED" : "NOT_NEEDED", confidence: "UNVERIFIED", uncertainty: "Model-generated answer; verify consequential claims against cited primary evidence.", gatewayVersion: GATEWAY_VERSION };
     } catch (error) {
       recordFailure(provider.id, Date.now());
-      console.error("ibis provider failed", provider.id, error instanceof Error ? error.message : "UNKNOWN_ERROR");
+      const code = publicFailureCode(error);
+      providerFailures.push({ provider: provider.id, code });
+      console.error("ibis provider failed", provider.id, code);
     }
   }
-  return { answer: "ibis could not reach an answer provider just now. Your question was preserved; please retry shortly.", provider: "FTN ibis gateway", model: "none", answerClass: "DEGRADED", evidenceState: "NO_ANSWER_GENERATED", generatedAt: new Date().toISOString(), requestId, fallbackUsed: attempted > 1, fallbackState: "EXHAUSTED", confidence: "UNAVAILABLE", uncertainty: "No provider produced an answer.", gatewayVersion: GATEWAY_VERSION };
+  return { answer: "ibis could not reach an answer provider just now. Your question was preserved; please retry shortly.", provider: "FTN ibis gateway", model: "none", answerClass: "DEGRADED", evidenceState: "NO_ANSWER_GENERATED", generatedAt: new Date().toISOString(), requestId, fallbackUsed: attempted > 1, fallbackState: "EXHAUSTED", confidence: "UNAVAILABLE", uncertainty: "No provider produced an answer.", providerFailures, gatewayVersion: GATEWAY_VERSION };
 }

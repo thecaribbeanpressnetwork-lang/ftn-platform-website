@@ -49,6 +49,21 @@ assert.equal(unavailable.provider, 'FTN ibis gateway');
 assert.equal(unavailable.model, 'none');
 assert.equal(unavailable.confidence, 'UNAVAILABLE');
 assert.equal(unavailable.fallbackState, 'EXHAUSTED');
+assert.deepEqual(unavailable.providerFailures, []);
+
+const diagnosed = await runGateway({
+  text: 'Diagnose a provider outage',
+  requestId: 'diagnostic-request',
+  providers: [
+    { id: 'unauthorized', label: 'Unauthorized', configured: true, async run() { throw new Error('HTTP_401'); } },
+    { id: 'opaque', label: 'Opaque', configured: true, async run() { throw new Error('secret provider response must not escape'); } },
+  ],
+});
+assert.deepEqual(diagnosed.providerFailures, [
+  { provider: 'unauthorized', code: 'HTTP_401' },
+  { provider: 'opaque', code: 'PROVIDER_ERROR' },
+]);
+assert.doesNotMatch(JSON.stringify(diagnosed), /secret provider response/);
 
 const health = gatewayHealth([
   { id: 'configured', label: 'Configured', configured: true, async run() { return { answer: 'ok', model: 'x' }; } },
