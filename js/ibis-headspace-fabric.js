@@ -16,6 +16,7 @@
   function attachUniversal(){setTimeout(function(){attach('/js/ibis-headspace-universal.js?v=20260908.1','data-headspace-universal');},0);}
   attachStyle('/css/components/ibis-headspace-elegance.css?v=20260908.1','data-headspace-elegance');
   attach('/js/ibis-runtime-loader.js?v=20260908.2','data-ibis-runtime');
+  attach('/js/ibis-headspace-tool-health.js?v=20260909.1','data-headspace-tool-health');
   attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');
   attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');
   attach('/js/ibis-headspace-foresight.js?v=20260907.1','data-headspace-foresight');
