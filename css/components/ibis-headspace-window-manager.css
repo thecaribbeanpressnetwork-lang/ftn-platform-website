@@ -1,0 +1,6 @@
+/* Familiar window controls, kept quiet so Headspace remains a cognitive field. */
+.thought.hs-minimized{display:none!important}.thought.hs-snapped{box-shadow:0 0 0 1px rgba(255,255,255,.28),0 0 28px rgba(117,199,186,.16)}
+.thought-bar .window-actions{display:flex;gap:3px;opacity:.32}.thought:hover .window-actions,.thought:focus .window-actions{opacity:1}.thought-bar .window-actions button{min-width:20px;padding:3px 5px;border:1px solid transparent;border-radius:5px}.thought-bar .window-actions button:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16)}
+.window-shelf{position:absolute;z-index:90;left:50%;bottom:70px;transform:translateX(-50%);display:flex;gap:5px;max-width:min(720px,calc(100% - 36px));padding:5px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(4,5,5,.88);backdrop-filter:blur(16px);box-shadow:0 12px 44px rgba(0,0,0,.42)}.window-shelf[hidden]{display:none}.window-shelf button{border:0;border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.06);color:#c8cec9;font-size:8px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer}.window-shelf button:hover{background:rgba(117,199,186,.16);color:#fff}
+@media(max-width:760px){.window-shelf{position:fixed;bottom:68px}.head-actions [data-arrange]{display:none}}
+
