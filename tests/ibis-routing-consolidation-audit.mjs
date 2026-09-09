@@ -3,10 +3,9 @@
 // Guards the specific gaps this pass found and closed: (1) js/ibis-provenance.js's shared envelope
 // schema, additive and never fabricating a missing field; (2) js/ibis-client.js's two previously-
 // missing default executors (CARIBBEAN_LANGUAGE_ID, LIVE_INTELLIGENCE) and its TIMEOUT-vs-real-
-// network-error mislabeling fix; (3) js/ibis-ai-workspace.js's serverAI() now actually consulting
-// the eligibility engine before calling supabase/functions/ibis-query, closing the real control-
-// bypass this pass found (the registry's enabled/disabled flag did not previously gate that call
-// path at all); (4) the five Edge Function fetch calls that had no timeout now have one; (5) the
+// network-error mislabeling fix; (3) js/ibis-ai-workspace.js's serverAI() now routes guest and
+// authenticated prompts through the shared IbisClient instead of the legacy auth-only Gemini
+// call; (4) the five Edge Function fetch calls that had no timeout now have one; (5) the
 // registry's new additive timeoutMs/privacyClassification/attributionRequired defaults.
 //
 // No real network call is made anywhere in this file -- everything is either pure local logic
@@ -121,17 +120,14 @@ function syntheticClickTrack(bpm) {
   assert.match(clientSource, /Promise\.race\(\[/, 'callGeminiQuery must race against a real timeout since ftn-auth.js\'s invoke() has none of its own');
 }
 
-// --- 3. serverAI() now checks eligibility before calling supabase/functions/ibis-query. ---
+// --- 3. serverAI() uses the shared, guest-capable governed client. ---
 {
   const workspaceSource = fs.readFileSync('js/ibis-ai-workspace.js', 'utf8');
-  const serverAiBody = workspaceSource.slice(workspaceSource.indexOf('async function serverAI'), workspaceSource.indexOf('async function serverAI') + 1800);
-  assert.match(serverAiBody, /ensureEligibility\(\)/, 'serverAI() must load the eligibility engine before calling ibis-query');
-  assert.match(serverAiBody, /IbisEligibility\.evaluate\('ibis-query-gemini','TEXT'/, 'serverAI() must evaluate ibis-query-gemini\'s real eligibility before invoking the function -- this is the control-bypass fix');
-  assert.match(serverAiBody, /!=='ELIGIBLE'/, 'serverAI() must fail closed (not proceed) unless the provider is genuinely ELIGIBLE');
-  // Regression guard: the eligibility check must appear textually BEFORE the ibis-query invoke call.
-  const evalIdx = serverAiBody.indexOf("IbisEligibility.evaluate");
-  const invokeIdx = serverAiBody.indexOf("Auth.invoke('ibis-query'");
-  assert(evalIdx !== -1 && invokeIdx !== -1 && evalIdx < invokeIdx, 'eligibility must be checked BEFORE the server function is invoked, not after or not at all');
+  const serverAiBody = workspaceSource.slice(workspaceSource.indexOf('async function serverAI'), workspaceSource.indexOf('async function serverAI') + 2200);
+  assert.match(serverAiBody, /ensureIbisClient\(\)/, 'serverAI() must load the shared governed client');
+  assert.match(serverAiBody, /IbisClient\.request\(\{nodeId:'ibis-ai',capability:'TEXT'/, 'serverAI() must route TEXT through IbisClient');
+  assert.match(serverAiBody, /context:\{authenticated:!!user\}/, 'serverAI() must work for both guests and authenticated users');
+  assert.doesNotMatch(serverAiBody, /Auth\.invoke\('ibis-query'/, 'the public workspace must not retain the auth-only legacy Gemini bypass');
 }
 
 // --- 4. All five previously-timeout-less Edge Function fetch calls now have one. ---
