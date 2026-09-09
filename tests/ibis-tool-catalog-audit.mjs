@@ -31,4 +31,7 @@ result=await catalog.invoke('activepieces','send_message',{text:'test'},{});
 assert.equal(result.success,false);
 assert.equal(result.errorType,'TOOL_PERMISSION_REQUIRED','Consequential tools must stop at the Permission Ledger.');
 
+const byStatus=registry.tools.reduce((acc,tool)=>{acc[tool.status]=(acc[tool.status]||0)+1;return acc;},{});
+const byCategory=registry.tools.reduce((acc,tool)=>{acc[tool.category]=(acc[tool.category]||0)+1;return acc;},{});
+console.log('ibis governed tool inventory:',JSON.stringify({total:registry.tools.length,byStatus,byCategory}));
 console.log('ibis tool catalog audit: discovery, enablement, health and permission boundaries verified.');
