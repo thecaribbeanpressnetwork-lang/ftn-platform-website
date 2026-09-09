@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280" role="img" aria-labelledby="title desc">
+  <title id="title">FTN ibis Caribbean Intelligence</title>
+  <desc id="desc">Dark premium promotional tile with the FTN ibis bird and source-backed Caribbean intelligence message.</desc>
+  <defs>
+    <radialGradient id="glow" cx="82%" cy="10%" r="74%">
+      <stop offset="0" stop-color="#18325e"/>
+      <stop offset="1" stop-color="#07090d"/>
+    </radialGradient>
+    <linearGradient id="wing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0bd62"/>
+      <stop offset="1" stop-color="#cf8e31"/>
+    </linearGradient>
+  </defs>
+  <rect width="440" height="280" rx="22" fill="url(#glow)"/>
+  <circle cx="350" cy="71" r="89" fill="none" stroke="#263b61" stroke-opacity=".6"/>
+  <circle cx="350" cy="71" r="58" fill="none" stroke="#263b61" stroke-opacity=".38"/>
+  <g transform="translate(40 43)">
+    <rect width="76" height="76" rx="22" fill="#05070b" stroke="#27334a"/>
+    <path d="M17 43c13-25 30-31 48-30-13 6-23 18-25 34-7-2-14-4-23-4Z" fill="url(#wing)"/>
+    <path d="M40 47c8 7 17 10 28 9-11-5-18-13-21-24-3 5-6 10-7 15Z" fill="#80aaf7"/>
+    <path d="M30 49c-4 9-9 16-16 22 9-3 17-7 23-14Z" fill="#e8aa46"/>
+    <path d="M28 46c-7 7-14 10-22 10 7-4 13-10 17-18Z" fill="#7ca8f8"/>
+    <circle cx="49" cy="26" r="3" fill="#fff"/>
+  </g>
+  <text x="40" y="151" fill="#f7f8fb" font-family="Arial,Helvetica,sans-serif" font-size="30" font-weight="700" letter-spacing="-1">FTN ibis</text>
+  <text x="40" y="177" fill="#d4a85c" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="1.5">CARIBBEAN INTELLIGENCE</text>
+  <text x="40" y="216" fill="#c5cede" font-family="Arial,Helvetica,sans-serif" font-size="14">Source-backed opportunities.</text>
+  <text x="40" y="237" fill="#c5cede" font-family="Arial,Helvetica,sans-serif" font-size="14">Original links. Clear provenance.</text>
+</svg>

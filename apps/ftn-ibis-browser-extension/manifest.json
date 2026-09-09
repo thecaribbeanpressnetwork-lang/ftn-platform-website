@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "FTN ibis — Caribbean Intelligence",
   "short_name": "FTN ibis",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Search source-backed Caribbean opportunities and intelligence from your browser.",
   "homepage_url": "https://ftnplatform.org/ibis/",
   "permissions": ["contextMenus"],

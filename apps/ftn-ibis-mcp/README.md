@@ -13,6 +13,7 @@ This is the first portable FTN ibis app surface. It exposes read-only, provenanc
 - `opportunity_scout` — rank founder-reviewed grants, procurement, accelerators, awards and partners.
 - `route_intent` — transparent keyword routing to an FTN capability.
 - `get_entity_profile` — identity, ownership and verification profile for FTN ibis.
+- `get_service_tiers` — transparent Standard/Pro plan discovery without checkout or charging.
 
 The server does not submit applications, send messages, access private conversations, or collect user identity. Scores are priority signals, not probabilities. Original sources must be checked before action.
 
