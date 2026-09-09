@@ -90,13 +90,13 @@ var providers=[
   },
   {
     id:'ibis-assistant-anthropic',name:'ibis Intelligence Gateway',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','LOGLINE','SYNOPSIS','CHARACTER_DEVELOPMENT','WORLD_BUILDING','OUTLINE','BEAT_SHEET','SCREENPLAY','SCENE_BREAKDOWN','PRODUCTION_PLAN','PITCH_MATERIAL','REVISION','CONTINUITY_CHECK'],integration:'FTN_OWNED_MULTI_PROVIDER_GATEWAY',
-    apiStatus:'LIVE_V4_GATEWAY_UPGRADE_PENDING_DEPLOYMENT',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:true,costToIbis:'PAID_BY_IBIS_FOUNDER_APPROVED',
+    apiStatus:'LIVE_V7_MULTI_PROVIDER_WITH_OWNED_FALLBACK',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:true,costToIbis:'PAID_BY_IBIS_FOUNDER_APPROVED',
     website:'https://www.anthropic.com/',apiUrl:'https://docs.anthropic.com/',pricingUrl:'https://www.anthropic.com/pricing',affiliateProgramUrl:null,
     commercialUse:'FOUNDER_APPROVED_NARROW_SCOPE_2026_08_19',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
     userAuthorizationRequired:false,
     weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://docs.anthropic.com/',
-    lifecycleState:'ELIGIBLE',
-    note:'Compatibility id retained so existing clients keep working. The currently deployed v4 endpoint remains eligible while this source upgrade awaits deployment. The FTN-owned gateway handles deterministic answers first, then bounded Anthropic, Gemini, two optional OpenAI-compatible adapters (including APIQIK/Bytez where verified and configured), and an optional reachable Ollama adapter. Per-isolate circuit breaking prevents a repeatedly failing provider from delaying every request. Every user receives the governed public Founder Reasoning Model. Evolving private founder memory enters prompts and payloads only after ftn-owner-control verifies both founder identity and approved device; neither layer grants authorization.'
+    lifecycleState:'DEPLOYED',
+    note:'Compatibility id retained so existing clients keep working. The deployed v7 FTN-owned gateway handles deterministic answers first, then bounded Anthropic, Gemini, two optional OpenAI-compatible adapters (including APIQIK/Bytez when verified and configured), and an optional reachable Ollama adapter. If every external provider is unavailable, the owned Founder Reasoning Engine returns structured planning guidance without making current-world factual claims. Per-isolate circuit breaking prevents a repeatedly failing provider from delaying every request. Evolving private founder memory enters prompts and payloads only after ftn-owner-control verifies both founder identity and approved device; neither layer grants authorization.'
   },
   {
     // Phase 3 provider discovery, verified 2026-08-20 against official documentation (not SEO
