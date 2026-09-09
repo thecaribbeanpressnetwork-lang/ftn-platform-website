@@ -14,7 +14,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const defaults = { limitPerQuery: 10, timeoutMs: 6_000 };
+const defaults = { limitPerQuery: 10, timeoutMs: 12_000 };
 const reviewRepository = 'thecaribbeanpressnetwork-lang/ftn-platform-website';
 const accepted = new Set(['mit', 'apache-2.0', 'bsd-2-clause', 'bsd-3-clause', 'isc', 'unlicense', 'cc0-1.0']);
 const reviewOnly = new Set(['mpl-2.0', 'epl-2.0', 'lgpl-2.1', 'lgpl-3.0']);
@@ -91,9 +91,9 @@ function recommendation(candidate, area) {
   };
 }
 
-async function getJson(url, headers = {}) {
+async function getJson(url, headers = {}, timeoutMs = defaults.timeoutMs) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), defaults.timeoutMs);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { headers, signal: controller.signal });
     if (!response.ok) throw new Error(`${new URL(url).hostname} returned ${response.status}`);
@@ -121,6 +121,58 @@ async function huggingFace(term, limit) {
 async function npm(term, limit) {
   const data = await getJson(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(term)}&size=${limit}`);
   return (data.objects || []).map(({ package: item, score: packageScore }) => score({ source: 'npm', name: item.name, url: item.links?.npm || `https://www.npmjs.com/package/${item.name}`, description: item.description || '', licence: item.license || '', popularity: Math.round((packageScore?.final || 0) * 1000), updatedAt: item.date, homepage: item.links?.homepage || '' }));
+}
+
+async function mcpRegistry(term, limit) {
+  const data = await getJson(`https://registry.modelcontextprotocol.io/v0.1/servers?search=${encodeURIComponent(term)}&limit=${limit}&version=latest`, {}, 30_000);
+  return (data.servers || []).filter(item => item?._meta?.['io.modelcontextprotocol.registry/official']?.isLatest !== false).map(item => {
+    const server = item.server || {};
+    const official = item._meta?.['io.modelcontextprotocol.registry/official'] || {};
+    const repository = server.repository?.url || '';
+    return score({
+      source: 'MCP Registry',
+      name: server.title || server.name || 'Unnamed MCP server',
+      url: repository || server.websiteUrl || `https://registry.modelcontextprotocol.io/v0.1/servers?search=${encodeURIComponent(server.name || term)}`,
+      description: server.description || '',
+      licence: '',
+      popularity: 0,
+      updatedAt: official.updatedAt || official.publishedAt || '',
+      homepage: server.websiteUrl || repository,
+      registryName: server.name || '',
+      version: server.version || '',
+      transportCount: (server.remotes || []).length + (server.packages || []).length
+    });
+  });
+}
+
+async function youtube(term, limit) {
+  const key = String(process.env.YOUTUBE_DATA_API_KEY || '').trim();
+  if (!key) throw new Error('YOUTUBE_DATA_API_KEY is not configured; YouTube discovery was skipped.');
+  const params = new URLSearchParams({
+    key,
+    part: 'snippet',
+    q: term,
+    type: 'video',
+    maxResults: String(Math.min(50, limit)),
+    order: 'date',
+    safeSearch: 'moderate',
+    relevanceLanguage: 'en',
+    regionCode: 'TT'
+  });
+  const data = await getJson(`https://www.googleapis.com/youtube/v3/search?${params}`);
+  return (data.items || []).map(item => {
+    const snippet = item.snippet || {};
+    return score({
+      source: 'YouTube',
+      name: snippet.title || item.id?.videoId || 'Untitled video',
+      url: item.id?.videoId ? `https://www.youtube.com/watch?v=${item.id.videoId}` : 'https://www.youtube.com/',
+      description: `${snippet.channelTitle || 'Unknown channel'} · ${snippet.description || ''}`,
+      licence: '',
+      popularity: 0,
+      updatedAt: snippet.publishedAt || '',
+      homepage: snippet.channelId ? `https://www.youtube.com/channel/${snippet.channelId}` : ''
+    });
+  });
 }
 
 const LANE_TITLE = {
@@ -161,16 +213,21 @@ function markdown(report) {
 export async function run({ configPath = resolve(root, 'data/open-source-scout-queries.json') } = {}) {
   const config = JSON.parse(await readFile(configPath, 'utf8'));
   const limit = Math.max(1, Math.min(20, Number(config.limitPerQuery) || defaults.limitPerQuery));
-  const sourceFns = { github, huggingface: huggingFace, npm };
+  const sourceFns = { github, huggingface: huggingFace, npm, mcp_registry: mcpRegistry, youtube };
   const errors = [];
   const unavailableSources = new Set();
+  const attemptedSources = new Set();
   const areas = [];
   for (const entry of config.queries) {
     const candidates = [];
+    const defaultSources = Array.isArray(config.defaultSources) && config.defaultSources.length ? config.defaultSources : config.sources;
+    const entrySources = Array.isArray(entry.sources) && entry.sources.length ? entry.sources : defaultSources;
     for (const term of entry.terms) {
-      for (const source of config.sources) {
+      for (const source of entrySources) {
         if (unavailableSources.has(source)) continue;
+        attemptedSources.add(source);
         try {
+          if (typeof sourceFns[source] !== 'function') throw new Error(`Unknown scout source: ${source}`);
           const results = await sourceFns[source](term, limit);
           for (const candidate of results) {
             const matched = relevance(candidate, term);
@@ -187,7 +244,14 @@ export async function run({ configPath = resolve(root, 'data/open-source-scout-q
     const deduped = [...new Map(candidates.map(item => [`${item.source}:${item.name}`, item])).values()].sort((a, b) => b.score - a.score);
     areas.push({ area: entry.area, lane: laneOf(entry), why: entry.why, candidates: deduped.map(candidate => recommendation(candidate, entry)) });
   }
-  const report = { schemaVersion: 1, generatedAt: new Date().toISOString(), sources: config.sources, areas, errors };
+  const report = {
+    schemaVersion: 2,
+    generatedAt: new Date().toISOString(),
+    sources: config.sources,
+    sourceStatus: config.sources.map(source => ({ source, attempted: attemptedSources.has(source), available: attemptedSources.has(source) && !unavailableSources.has(source) })),
+    areas,
+    errors
+  };
   return { report, markdown: markdown(report) };
 }
 
@@ -200,6 +264,7 @@ async function main() {
     if (!link.includes('/issues/new?') || !link.includes('open-source-scout')) throw new Error('Founder action link self-test failed');
     if (laneOf({ lane: 'CAPABILITY' }) !== 'CAPABILITY') throw new Error('Lane recognition self-test failed');
     if (laneOf({ lane: 'not-a-real-lane' }) !== 'PROBLEM' || laneOf({}) !== 'PROBLEM') throw new Error('Lane fail-closed-to-PROBLEM self-test failed');
+    if (!['github', 'huggingface', 'npm', 'mcp_registry', 'youtube'].every(source => typeof ({ github, huggingface: huggingFace, npm, mcp_registry: mcpRegistry, youtube })[source] === 'function')) throw new Error('Scout source registry self-test failed');
     console.log('FTN Open-Source Scout self-test passed.');
     return;
   }

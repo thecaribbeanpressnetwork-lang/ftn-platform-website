@@ -48,4 +48,4 @@ The FTN-owned MCP/API layer is the portable memory boundary. ChatGPT, Claude, Ge
 
 ## First implementation boundary
 
-The current MCP slice exposes only `search`, `fetch`, `opportunity_scout`, `route_intent` and `get_entity_profile`. It does not claim to learn from a user's chat. The next authenticated slice may add `get_user_workspace` and `remember`, subject to every gate above.
+The current MCP slice exposes only six read-only tools: `search`, `fetch`, `opportunity_scout`, `route_intent`, `get_entity_profile` and `get_service_tiers`. It does not claim to learn from a user's chat, submit applications, send messages, access private documents or conversations, or make payments. The next authenticated slice may add `get_user_workspace` and `remember`, subject to every gate above.

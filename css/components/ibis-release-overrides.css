@@ -1,0 +1,13 @@
+/* FTN ibis release palette and legibility corrections. Keep the obsidian field; remove the
+   previous sand/gold action treatment that made the public product feel like a template. */
+:root{--ibis-teal:#5eead4;--ibis-blue:#78afff;--ibis-cyan:#b7f7ef}
+.hero .primary{background:var(--ibis-teal)!important;color:#041116!important;box-shadow:0 10px 34px rgba(94,234,212,.18)}
+.hero .primary:hover,.hero .primary:focus-visible{background:var(--ibis-cyan)!important}
+.eyebrow{color:var(--ibis-teal)!important}
+.ownership a{color:var(--ibis-teal)!important}
+.thought,.thought h2,.thought h3{color:#f7fbff}
+.thought p,.reason-list span,.confidence-note{color:#b0c2c8!important}
+.thought-bar{color:#75a6ad}
+.input-orbit button[type=submit]{color:var(--ibis-teal)!important}
+.pill{border-color:rgba(94,234,212,.42)!important;color:var(--ibis-teal)!important}
+.ambient{opacity:.2!important}

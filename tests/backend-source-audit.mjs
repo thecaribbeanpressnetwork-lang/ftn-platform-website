@@ -9,6 +9,7 @@ const functions = [
   'ftn-news-sources',
   'ftn-transactions',
   'ibis-query',
+  'ibis-assistant',
   'dj-tube-stems',
   'ftn-owner-control',
   'ftn-account-control',
@@ -53,6 +54,15 @@ for (const migration of [
 }
 
 const combined = files.map(file => fs.readFileSync(file,'utf8')).join('\n');
+const gateway = fs.readFileSync('supabase/functions/_shared/ibis-intelligence-gateway.ts','utf8');
+const assistant = fs.readFileSync('supabase/functions/ibis-assistant/index.ts','utf8');
+assert.match(assistant,/Founder Reasoning Model for every response/i,'The server gateway must apply the public Founder Reasoning Model even when a client bypasses Headspace orchestration');
+assert.match(assistant,/\.\.\/_shared\/ibis-intelligence-gateway\.ts/,'ibis-assistant must use the shared FTN-owned gateway');
+assert.match(gateway,/deterministicAnswer/,'gateway must preserve a zero-cost deterministic answer path');
+assert.match(gateway,/CIRCUIT_COOLDOWN_MS/,'gateway must temporarily skip repeatedly failing providers');
+assert.match(assistant,/IBIS_OPENAI_COMPAT/,'gateway must expose a provider-neutral OpenAI-compatible adapter');
+assert.match(assistant,/IBIS_OLLAMA_BASE_URL/,'gateway must expose an optional FTN-controlled Ollama adapter');
+assert.doesNotMatch(assistant,/localhost|127\.0\.0\.1/,'a cloud Edge Function must never pretend a local Ollama service is reachable by default');
 
 // Common secret formats that must never appear as literals in the repository.
 const forbidden = [

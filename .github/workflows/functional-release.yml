@@ -26,6 +26,9 @@ jobs:
       - name: Audit Git-owned FTN backend source
         run: node tests/backend-source-audit.mjs
 
+      - name: Audit FTN ibis Intelligence Gateway failover and deterministic answers
+        run: node --experimental-strip-types tests/ibis-intelligence-gateway-audit.mjs
+
       - name: Audit public.issues security migrations (static SQL analysis)
         run: node tests/supabase-issues-security-audit.mjs
 
@@ -87,6 +90,14 @@ jobs:
 
       - name: Audit FTN Open-Source Scout self-test (licence gate, scoring, lane recognition)
         run: node scripts/ftn-open-source-scout.mjs --self-test
+      - name: Audit ibis governed tool catalog
+        run: node tests/ibis-tool-catalog-audit.mjs
+
+      - name: Audit ibis Headspace themes, window controls and isolated speech controls
+        run: node tests/ibis-headspace-controls-audit.mjs
+
+      - name: Audit ibis investor demo invitation and release-truth status view
+        run: node tests/ibis-investor-demo-audit.mjs
 
       - name: Audit FTN Node Registry derivation
         run: node tests/ftn-node-registry-audit.mjs

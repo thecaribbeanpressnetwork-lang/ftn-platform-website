@@ -79,7 +79,20 @@
         if (timer) clearTimeout(timer);
         var latencyMs = Date.now() - startedAt;
         if (!result.ok || !result.body || !result.body.answer) return { success: false, latencyMs: latencyMs, errorType: 'SERVER_ERROR' };
-        return { success: true, latencyMs: latencyMs, data: { answer: result.body.answer, provider: result.body.provider } };
+        return { success: true, latencyMs: latencyMs, data: {
+          answer: result.body.answer,
+          provider: result.body.provider,
+          model: result.body.model || null,
+          generatedAt: result.body.generatedAt || null,
+          answerClass: result.body.answerClass || 'MODEL_RESPONSE',
+          evidenceState: result.body.evidenceState || 'MODEL_GENERATED',
+          requestId: result.body.requestId || null,
+          fallbackUsed: !!result.body.fallbackUsed,
+          fallbackState: result.body.fallbackState || null,
+          confidence: result.body.confidence || null,
+          uncertainty: result.body.uncertainty || null,
+          gatewayVersion: result.body.gatewayVersion || null,
+        } };
       })
       .catch(function () {
         if (timer) clearTimeout(timer);

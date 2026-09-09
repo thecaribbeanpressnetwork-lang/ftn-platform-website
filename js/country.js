@@ -20,6 +20,7 @@
     { code: 'BB', name: 'Barbados' },
     { code: 'GY', name: 'Guyana' },
     { code: 'LC', name: 'Saint Lucia' },
+    { code: 'VE', name: 'Venezuela' },
     { code: 'XC', name: 'Rest of the Caribbean' },
   ];
 

@@ -18,6 +18,11 @@ async function waitForReady() {
 
 try {
   await waitForReady();
+  async function envelope(response) {
+    const body = await response.text();
+    const dataLine = body.split(/\r?\n/).find((line) => line.startsWith('data: '));
+    return JSON.parse(dataLine ? dataLine.slice(6) : body);
+  }
   const health = await fetch(`http://127.0.0.1:${port}/health`).then((response) => response.json());
   assert.equal(health.ok, true);
   assert.equal(health.mcpPath, '/mcp');
@@ -29,17 +34,43 @@ try {
   assert.equal(initialize.status, 200);
   const session = initialize.headers.get('mcp-session-id');
   assert.equal(session, null, 'Legacy HTTP fallback must remain stateless');
-  const tools = await fetch(`http://127.0.0.1:${port}/mcp`, {
+  const toolsResponse = await fetch(`http://127.0.0.1:${port}/mcp`, {
     method: 'POST',
     headers: { accept: 'application/json, text/event-stream', 'content-type': 'application/json' },
     body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }),
-  }).then((response) => response.text());
-  assert.match(tools, /opportunity_scout/);
-  assert.match(tools, /get_entity_profile/);
-  assert.match(tools, /get_service_tiers/);
-  assert.match(tools, /destructiveHint/);
-  assert.match(tools, /readOnlyHint/);
-  console.log('FTN ibis MCP server health + initialize + tools/list passed');
+  }).then(envelope);
+  const tools = toolsResponse.result?.tools || [];
+  const expected = ['search', 'fetch', 'opportunity_scout', 'route_intent', 'get_entity_profile', 'get_service_tiers'];
+  assert.deepEqual(tools.map((tool) => tool.name), expected);
+  for (const tool of tools) {
+    assert.equal(tool.annotations?.readOnlyHint, true);
+    assert.equal(tool.annotations?.destructiveHint, false);
+    assert.equal(tool.annotations?.openWorldHint, false);
+    assert.equal(tool.annotations?.idempotentHint, true);
+  }
+  async function call(id, name, args = {}) {
+    return fetch(`http://127.0.0.1:${port}/mcp`, {
+      method: 'POST',
+      headers: { accept: 'application/json, text/event-stream', 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } }),
+    }).then(envelope);
+  }
+  const search = await call(3, 'search', { query: '', limit: 1 });
+  const record = search.result?.structuredContent?.results?.[0];
+  assert.ok(record?.id, 'search must return an indexed record for the fetch proof');
+  const calls = [
+    search,
+    await call(4, 'fetch', { id: record.id }),
+    await call(5, 'opportunity_scout', { query: '', limit: 1 }),
+    await call(6, 'route_intent', { intent: 'I need official Caribbean statistics.' }),
+    await call(7, 'get_entity_profile', { entity: 'FTN ibis' }),
+    await call(8, 'get_service_tiers', {}),
+  ];
+  for (const response of calls) {
+    assert.ok(response.result?.structuredContent?.provenance?.sourceUrl, 'Every public tool result must carry provenance.');
+    assert.match(response.result.structuredContent.provenance.notice, /verify/i);
+  }
+  console.log('FTN ibis MCP server health + initialize + six read-only tool calls + provenance passed');
 } finally {
   child.kill('SIGTERM');
 }

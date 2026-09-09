@@ -13,10 +13,16 @@
 <link rel="stylesheet" href="/css/components/ibis-presentation.css?v=20260907.1">
 <link rel="stylesheet" href="/css/components/ibis-release-overrides.css?v=20260908.1">
 <link rel="stylesheet" href="/css/components/ibis-headspace-window-manager.css?v=20260909.1">
+<link rel="stylesheet" href="/css/components/ibis-country-themes.css?v=20260909.2">
+<script src="/js/persisted-flag.js"></script>
+<script src="/js/storage.js"></script>
+<script src="/js/country.js"></script>
+<script src="/js/ibis-country-themes.js"></script>
 <script src="/js/charts.js?v=20260907.1" defer></script>
 <script src="/js/ibis-presentation.js?v=20260907.2" defer></script>
 <script src="/js/ibis-headspace-request-state.js?v=20260908.1" defer></script>
 <script src="/js/ibis-headspace-window-manager.js?v=20260909.1" defer></script>
+<script src="/js/ibis-headspace-speech.js?v=20260909.1" defer></script>
 <script src="/js/ibis-headspace-fabric.js?v=20260908.2" defer></script>
 <script src="/js/ibis-headspace-preview.js?v=20260907.3" defer></script>
 <script src="/js/ibis-headspace-statistics.js?v=20260907.1" defer></script>
@@ -146,7 +152,13 @@
       <input id="headspaceQuery" autocomplete="off" value="" placeholder="Ask about Caribbean opportunities, evidence or FTN services" aria-label="Tell ibis anything">
       <button type="button" id="voiceButton" class="icon-button" aria-label="Speak to ibis" title="Speak to ibis">◉</button>
       <button type="submit">Tell ibis</button>
-      <button type="button" id="speakAnswer" class="secondary" aria-label="Read ibis answer aloud">Speak</button>
+      <div class="speech-controls" aria-label="Answer speech controls">
+        <button type="button" id="speechRewind" class="secondary" aria-label="Rewind one line">↶</button>
+        <button type="button" id="speakAnswer" class="secondary" aria-label="Play ibis answer">Play</button>
+        <button type="button" id="speechPause" class="secondary" aria-label="Pause ibis answer" aria-pressed="false">Pause</button>
+        <button type="button" id="speechSpeed" class="secondary" aria-label="Change speech speed">1×</button>
+        <button type="button" id="speechNext" class="secondary" aria-label="Skip to next line">Next</button>
+      </div>
       <button type="button" id="attachButton" class="secondary" aria-label="Add file or input">＋</button>
     </form>
     <input id="filePicker" type="file" hidden>
@@ -155,4 +167,3 @@
 </div>
 </body>
 </html>
-

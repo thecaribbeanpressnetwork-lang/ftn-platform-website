@@ -38,4 +38,21 @@ for (const tool of tools) {
   }
 }
 
-console.log(JSON.stringify({ ok: true, endpoint, health: healthBody, tools: names }));
+async function call(id, name, args = {}) {
+  const response = await request({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } });
+  if (response.status !== 200 || response.json?.error) throw new Error(`${name} failed: ${JSON.stringify(response)}`);
+  const payload = response.json?.result?.structuredContent;
+  if (!payload?.provenance?.sourceUrl || !/verify/i.test(payload.provenance.notice || '')) throw new Error(`${name} omitted provenance/uncertainty: ${JSON.stringify(payload)}`);
+  return payload;
+}
+
+const search = await call(3, 'search', { query: '', limit: 1 });
+const recordId = search.results?.[0]?.id;
+if (!recordId) throw new Error('search returned no record for the live fetch proof');
+await call(4, 'fetch', { id: recordId });
+await call(5, 'opportunity_scout', { query: '', limit: 1 });
+await call(6, 'route_intent', { intent: 'I need official Caribbean statistics.' });
+await call(7, 'get_entity_profile', { entity: 'FTN ibis' });
+await call(8, 'get_service_tiers', {});
+
+console.log(JSON.stringify({ ok: true, endpoint, health: healthBody, tools: names, toolCallsWithProvenance: 6 }));

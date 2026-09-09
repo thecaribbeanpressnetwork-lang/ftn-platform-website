@@ -74,7 +74,7 @@ assert.equal(Eligibility.evaluate('pixverse', 'IMAGE_GENERATION', {}).status, 'I
 assert.equal(Eligibility.evaluate('pixverse', 'INSTRUMENTAL_GENERATION', {}).status, 'INELIGIBLE', 'Capability mismatch must be rejected even if a provider were enabled');
 assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: false }).status, 'USER_AUTH_REQUIRED', 'ibis-query must require sign-in -- this mirrors the CI-enforced boundary in tests/backend-source-audit.mjs');
 assert.equal(Eligibility.evaluate('ibis-query-gemini', 'TEXT', { authenticated: true }).status, 'ELIGIBLE', 'ibis-query becomes eligible once authenticated, with a clean health record');
-assert.equal(Eligibility.evaluate('ibis-assistant-anthropic', 'TEXT', { authenticated: false }).status, 'INELIGIBLE', 'ibis-assistant is not enabled until the function is actually deployed');
+assert.equal(Eligibility.evaluate('ibis-assistant-anthropic', 'TEXT', { authenticated: false }).status, 'ELIGIBLE', 'the public ibis gateway is the guest TEXT route');
 assert.equal(Eligibility.evaluate('cloudflare-workers-ai-text', 'TEXT', { authenticated: false }).status, 'INELIGIBLE', 'cloudflare-workers-ai-text is not enabled until real Cloudflare credentials exist');
 assert.equal(Eligibility.evaluate('cloudflare-workers-ai-image-flux', 'IMAGE_GENERATION', {}).status, 'INELIGIBLE', 'cloudflare-workers-ai-image-flux: the provider itself is now real and execution-verified (Phase 9), but stays ineligible until supabase/functions/ibis-image-cloudflare -- the browser-safe production path -- is actually deployed');
 // Real, execution-verified providers (Phase 9) must carry lifecycleState EXECUTABLE, not a lesser
@@ -117,10 +117,11 @@ assert.equal(Eligibility.evaluate('sadtalker', 'LIP_SYNC', {}).status, 'INELIGIB
 assert.equal(Eligibility.find('LIP_SYNC', {}).length, 0, 'No LIP_SYNC provider is eligible today -- this is the honest current state, not a bug');
 
 // -- find(): only returns providers that pass every gate -------------------
-assert.equal(Eligibility.find('TEXT', { authenticated: false }).length, 0, 'No TEXT provider is eligible for a guest right now -- this is the honest current state, not a bug');
+assert.equal(Eligibility.find('TEXT', { authenticated: false }).length, 1, 'The FTN-owned gateway is the one guest TEXT route');
 const authedText = Eligibility.find('TEXT', { authenticated: true });
-assert.equal(authedText.length, 1, 'Exactly one TEXT provider (ibis-query-gemini) is eligible once authenticated');
-assert.equal(authedText[0].provider.id, 'ibis-query-gemini');
+assert.equal(authedText.length, 2, 'Authenticated users can reach the gateway and the authenticated Gemini route');
+assert(authedText.some((row) => row.provider.id === 'ibis-query-gemini'));
+assert(authedText.some((row) => row.provider.id === 'ibis-assistant-anthropic'));
 
 // -- Health tracking: real observed data, not fabricated scores ------------
 const freshHealth = Eligibility.getHealth('ibis-assistant-anthropic');
