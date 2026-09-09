@@ -34,6 +34,7 @@ await landing.close();
 const page=await browser.newPage({viewport:{width:1440,height:1000}});
 await isolateExternalFonts(page);
 await page.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:function(){return{auth:{getUser:async function(){return{data:{user:null},error:null}},getSession:async function(){return{data:{session:null},error:null}},onAuthStateChange:function(){}},from:function(){throw new Error("fixture database access not expected")},functions:{invoke:async function(){return{data:null,error:new Error("fixture")}}}}}};'}));
+await page.route('https://api.github.com/repos/thecaribbeanpressnetwork-lang/ftn-platform-website/actions/runs?*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({total_count:1,workflow_runs:[{name:'FTN Scout 2.0',event:'schedule',status:'completed',conclusion:'success',run_number:18,run_started_at:'2026-09-09T14:41:22Z'}]})}));
 await page.route('**/functions/v1/ftn-opportunities*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[{id:'fixture-caribbean-ai-grant',title:'Caribbean AI Grant',organization:'Fixture Official Institution',country:'Trinidad and Tobago / Caribbean',type:'Grant / Funding',deadline:'2026-10-05',fee:0,payoutCompatible:true,ownershipImpact:'non-dilutive, no equity',strategicValue:5,probability:.75,amount:'USD 100,000',eligibility:'Trinidad and Tobago registered entities may apply.',summary:'Source-backed browser fixture for the connected funding funnel.',sourceUrl:'https://example.test/caribbean-ai-grant',lastVerified:'2026-09-08T12:00:00Z'}]})}));
 const consoleErrors=[];
 page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text());});
@@ -41,6 +42,10 @@ page.on('pageerror',err=>consoleErrors.push(err.message));
 await page.goto(base+'/ibis-headspace-preview/',{waitUntil:'networkidle'});
 assert.equal(await page.locator('#headspaceQuery').count(),1,'Headspace query input must exist');
 assert.equal(await page.locator('.thought').count()>=10,true,'Headspace thought surfaces must exist');
+await page.waitForFunction(()=>/Scout 2\.0: 9 official discovery sources configured/.test(document.querySelector('#scoutStatus')?.textContent||''));
+assert.match(await page.locator('#scoutStatus').innerText(),/latest observed run #18 success/i,'Headspace must distinguish a completed scheduled Scout run from a currently running scout.');
+assert.match(await page.locator('#scoutStatus').innerText(),/automatic applications off.*automatic spend off.*founder approval required/i,'Scout health must expose the consequential-action safety boundary.');
+assert.equal(await page.locator('#scoutStatus').getAttribute('data-health'),'healthy','Successful latest scheduled run should be represented as healthy, not running.');
 
 async function ask(text){await page.locator('#headspaceQuery').fill(text);await page.locator('#inputOrbit button[type="submit"]').click();await page.waitForTimeout(900);}
 
@@ -91,4 +96,4 @@ await mobile.screenshot({path:'test-artifacts/ibis-headspace-mobile.png',fullPag
 
 assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));
 await browser.close();
-console.log('ibis browser audit: cinematic lander handoff, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, dragging and mobile attention layout verified; screenshots captured.');
+console.log('ibis browser audit: cinematic lander handoff, truthful Scout health, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, dragging and mobile attention layout verified; screenshots captured.');
