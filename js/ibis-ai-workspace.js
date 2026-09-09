@@ -31,12 +31,16 @@
   // understanding, never forcing dialect back. This never dumps a glossary into a prompt: it only
   // ever adds one real, cited note when the detector actually finds a marker in THIS message.
   function ensureCaribbeanLanguageId(){if(global.FTN&&global.FTN.CaribbeanLanguageId)return Promise.resolve();return loadScript('/js/ibis-caribbean-language-id.js');}
-  // Phase 4A fix: serverAI() previously called supabase/functions/ibis-query directly with no
-  // registry check at all -- js/ibis-provider-registry.js's ibis-query-gemini enabled/disabled
-  // flag (the platform's real cost/availability control) never actually gated this call path.
-  // Loading just the eligibility engine (not the full ensureLiveResearch() chain, which also pulls
-  // in source-provenance and live-research modules this path doesn't need) closes that gap.
-  function ensureEligibility(){if(global.FTN&&global.FTN.IbisEligibility)return Promise.resolve();return loadScript('/js/ibis-eligibility.js');}
+  // The public workspace calls the same governed IBIS Client as every other node. Dependencies are
+  // lazy-loaded so first paint remains small; a guest prompt goes to the public gateway and signed-
+  // in users can still use any additional provider made eligible by policy.
+  async function ensureIbisClient(){
+    if(!global.FTN||!global.FTN.NodeRegistry)await loadScript('/js/ftn-node-registry.js');
+    if(!global.FTN||!global.FTN.CapabilityTaxonomy)await loadScript('/js/ibis-capability-taxonomy.js');
+    if(!global.FTN||!global.FTN.IbisEligibility)await loadScript('/js/ibis-eligibility.js');
+    if(!global.FTN||!global.FTN.IbisProvenance)await loadScript('/js/ibis-provenance.js');
+    if(!global.FTN||!global.FTN.IbisClient)await loadScript('/js/ibis-client.js');
+  }
   // Pass 16: IBIS Live Intelligence lazy-load. js/ibis-provider-registry.js is already a static
   // script tag on this page; the eligibility engine and the live-research capability itself are
   // loaded on demand, same pattern as every other ensure* helper here.
@@ -161,29 +165,18 @@
       return answer;
     }catch(e){return null;}
   }
-  var TIMED_OUT={};
   async function serverAI(prompt){
-    if(!(global.FTN&&global.FTN.Auth))return{available:false,reason:'FTN Account did not load.'};
     try{
-      var user=await withTimeout(global.FTN.Auth.getVerifiedUser(),8000,TIMED_OUT);
-      if(user===TIMED_OUT)return{available:false,reason:'ibis AI is temporarily unavailable. Please try again in a moment.'};
-      if(!user)return{available:false,guest:true,reason:'Sign in to use the protected server AI route.'};
-      // Phase 4A fix: this call previously reached supabase/functions/ibis-query with no registry
-      // check at all -- the real cost/availability control (js/ibis-provider-registry.js's
-      // ibis-query-gemini `enabled` flag) never actually gated it. A founder disabling that
-      // provider to stop spend would not have stopped this path from calling it anyway. Fails
-      // closed (same as the rest of this codebase's eligibility engine) if the module can't load,
-      // rather than silently proceeding ungated.
-      await ensureEligibility();
-      if(!global.FTN.IbisEligibility||global.FTN.IbisEligibility.evaluate('ibis-query-gemini','TEXT',{authenticated:true})!=='ELIGIBLE'){
-        return{available:false,reason:'ibis AI is temporarily unavailable. Please try again in a moment.'};
-      }
-      var terms=await caribbeanTerms(prompt);
-      var result=await withTimeout(global.FTN.Auth.invoke('ibis-query',{prompt:prompt,country:country(),caribbeanTerms:terms.length?terms:undefined}),25000,TIMED_OUT);
-      if(result===TIMED_OUT)return{available:false,reason:'ibis AI is temporarily unavailable. Please try again in a moment.'};
-      if(!result||!result.answer)return{available:false,reason:'The server returned no answer.'};
-      return{available:true,answer:result.answer,provider:result.provider||'Configured provider',model:result.model||'',generatedAt:result.generatedAt||new Date().toISOString()};
-    }catch(e){return{available:false,reason:e.message||'The protected server AI route is unavailable.'};}
+      await ensureIbisClient();
+      if(!global.FTN||!global.FTN.IbisClient)return{available:false,reason:'The ibis client did not load.'};
+      var user=null;
+      if(global.FTN.Auth&&global.FTN.Auth.getVerifiedUser)user=await withTimeout(global.FTN.Auth.getVerifiedUser(),4000,null);
+      var products=global.FTN.ProductRegistry&&global.FTN.ProductRegistry.publicProducts?global.FTN.ProductRegistry.publicProducts({includeSupporting:true}).map(function(p){return{name:p.name,route:p.route,tagline:p.tagline};}):[];
+      var response=await global.FTN.IbisClient.request({nodeId:'ibis-ai',capability:'TEXT',context:{authenticated:!!user},payload:{prompt:prompt,products:products}});
+      if(!response||!response.success)return{available:false,reason:(response&&response.reason)||'No eligible ibis answer route is available.'};
+      var result=response.result||{};
+      return{available:true,answer:result.answer,provider:result.provider||response.provenance.provider||'FTN ibis',providerId:response.provenance.provider||null,model:result.model||response.provenance.model||'',generatedAt:result.generatedAt||new Date().toISOString(),confidence:result.confidence||null,uncertainty:result.uncertainty||null,answerClass:result.answerClass||null,provenance:response.provenance};
+    }catch(e){return{available:false,reason:e.message||'The ibis gateway is unavailable.'};}
   }
   // A contextual entry point (e.g. Learn/Opportunities/Screen linking here with ?scope=learn)
   // biases ranking toward its own product without ever hard-filtering out a better FTN match --
@@ -338,12 +331,11 @@
         setStatus('verifying');
         var server=await serverAI(q);
         if(server.available){
-          out.innerHTML='<span class="workspace-kicker">Authenticated server AI · '+esc(server.provider)+'</span><p>'+esc(server.answer).replace(/\n/g,'<br>')+'</p><p class="workspace-muted">Model: '+esc(server.model||'configured server model')+' · Generated '+esc(server.generatedAt)+'</p><hr>'+routeResults(q);
+          out.innerHTML='<span class="workspace-kicker">FTN ibis · '+esc(server.provider)+'</span><p>'+esc(server.answer).replace(/\n/g,'<br>')+'</p><p class="workspace-muted">Model: '+esc(server.model||'governed ibis route')+' · Generated '+esc(server.generatedAt)+(server.uncertainty?' · '+esc(server.uncertainty):'')+'</p><hr>'+routeResults(q);
           await ensureEvidence();
-          var textProviderRecord=global.FTN.IbisProviders&&global.FTN.IbisProviders.get('ibis-query-gemini');
-          mountEvidence(out,{capability:'TEXT',provider:'ibis-query-gemini',model:server.model,sourceRetrievedAt:server.generatedAt,costToIbis:textProviderRecord?textProviderRecord.costToIbis:null,confidenceBasis:'NOT_ASSESSED'},{prompt:q});
+          mountEvidence(out,server.provenance||{capability:'TEXT',provider:server.providerId,model:server.model,sourceRetrievedAt:server.generatedAt,confidenceBasis:server.confidence||'NOT_ASSESSED'},{prompt:q,limitations:server.uncertainty});
         }else{
-          out.innerHTML='<span class="workspace-kicker">FTN deterministic router</span><p>'+esc(server.reason)+'</p>'+(server.guest?'<p><a href="/account/?return=%2Fibis-ai%2F">Sign in for the protected server AI route</a>. Your prompt has not been sent to that provider.</p>':'<p>No server answer was claimed. Your deterministic FTN routes remain available.</p>')+routeResults(q);
+          out.innerHTML='<span class="workspace-kicker">FTN deterministic router</span><p>'+esc(server.reason)+'</p><p>No server answer was claimed. Your deterministic FTN routes remain available.</p>'+routeResults(q);
         }
         setStatus('idle');
         scrollToEnd();
