@@ -90,13 +90,13 @@ var providers=[
   },
   {
     id:'ibis-assistant-anthropic',name:'ibis-widget (Anthropic)',categories:['text'],capabilities:['TEXT','STORY_DEVELOPMENT','LOGLINE','SYNOPSIS','CHARACTER_DEVELOPMENT','WORLD_BUILDING','OUTLINE','BEAT_SHEET','SCREENPLAY','SCENE_BREAKDOWN','PRODUCTION_PLAN','PITCH_MATERIAL','REVISION','CONTINUITY_CHECK'],integration:'NATIVE_API_LIVE',
-    apiStatus:'PENDING_DEPLOYMENT',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:false,costToIbis:'PAID_BY_IBIS_FOUNDER_APPROVED',
+    apiStatus:'LIVE_WITH_ANTHROPIC_OR_GEMINI_FALLBACK',affiliateStatus:'NOT_APPLICABLE',payAsYouGo:null,prepaidRequired:false,enabled:true,costToIbis:'PAID_BY_IBIS_FOUNDER_APPROVED',
     website:'https://www.anthropic.com/',apiUrl:'https://docs.anthropic.com/',pricingUrl:'https://www.anthropic.com/pricing',affiliateProgramUrl:null,
     commercialUse:'FOUNDER_APPROVED_NARROW_SCOPE_2026_08_19',redistribution:'NOT_APPLICABLE',lastVerified:'2026-08-20',
     userAuthorizationRequired:false,
     weightsAvailable:'NOT_APPLICABLE_CLOSED_API',sourceAvailable:'NOT_APPLICABLE_CLOSED_API',selfHostable:false,deploymentMethod:'NATIVE_API',hardwareRequirements:'NOT_APPLICABLE_HOSTED_API',verificationSource:'https://docs.anthropic.com/',
-    lifecycleState:'DEPLOYMENT_READY',
-    note:'Backs the sitewide ibis widget (supabase/functions/ibis-assistant). Guest-accessible by explicit design, not authenticated. enabled stays false here until the function is actually deployed and ANTHROPIC_API_KEY is set -- see IBIS-MAP.md. The widget already tries the free deterministic Product Registry match first and only reaches this provider on fallback.'
+    lifecycleState:'ELIGIBLE',
+    note:'Backs the sitewide ibis widget (supabase/functions/ibis-assistant). Guest-accessible by explicit design, not authenticated. Anthropic is preferred when configured and Gemini is the live fallback, so ordinary questions remain answerable during a provider outage or key rotation. The widget still tries the free deterministic Product Registry match first.'
   },
   {
     // Phase 3 provider discovery, verified 2026-08-20 against official documentation (not SEO
@@ -488,3 +488,4 @@ function withDefaults(p){
 global.FTN=global.FTN||{};
 global.FTN.IbisProviders={all:function(){return providers.map(withDefaults);},byCategory:function(category){return providers.filter(function(p){return p.categories.indexOf(category)>=0;}).map(withDefaults);},byCapability:function(capability){return providers.filter(function(p){return(p.capabilities||[]).indexOf(capability)>=0;}).map(withDefaults);},get:function(id){var p=providers.filter(function(x){return x.id===id;})[0];return p?withDefaults(p):null;},verifiedAt:VERIFIED};
 })(window);
+
