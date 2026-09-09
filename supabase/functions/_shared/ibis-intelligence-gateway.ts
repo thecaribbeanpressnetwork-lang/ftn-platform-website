@@ -15,7 +15,7 @@ const FAILURE_THRESHOLD = 2;
 const CIRCUIT_COOLDOWN_MS = 30_000;
 const TOTAL_BUDGET_MS = 24_000;
 const PROVIDER_BUDGET_MS = 9_000;
-export const GATEWAY_VERSION = "ibis-gateway-2026-09-09.3";
+export const GATEWAY_VERSION = "ibis-gateway-2026-09-09.4";
 
 function normalized(text: string) {
   return text.toLowerCase().replace(/[?.!,]/g, " ").replace(/\s+/g, " ").trim();
@@ -45,6 +45,96 @@ export function deterministicAnswer(text: string, products: IbisProduct[] = []) 
   });
   if (product) return { answer: `${product.name} is available at ${product.route}.${product.tagline ? " " + product.tagline : ""}`, answerClass: "FTN_REGISTRY", evidenceState: "FTN_OWNED_DATA" };
   return null;
+}
+
+type FounderReasoningDomain = "BUSINESS" | "FUNDING" | "MEDIA" | "CIVIC" | "DELIVERY" | "GENERAL";
+
+function founderDomain(q: string): FounderReasoningDomain {
+  if (/fund|grant|invest|capital|pitch|sponsor|revenue|moneti[sz]|finance/.test(q)) return "FUNDING";
+  if (/video|film|music|audio|image|poster|story|screen|creator|media|campaign/.test(q)) return "MEDIA";
+  if (/government|public|civic|community|policy|parliament|citizen|institution/.test(q)) return "CIVIC";
+  if (/deploy|launch|ship|build|implement|fix|test|release|submit|integrat/.test(q)) return "DELIVERY";
+  if (/business|customer|market|product|platform|startup|company|sell|partner/.test(q)) return "BUSINESS";
+  return "GENERAL";
+}
+
+function relevantProducts(text: string, domain: FounderReasoningDomain, products: IbisProduct[]) {
+  const terms = normalized(text).split(" ").filter((term) => term.length > 3);
+  const domainTerms: Record<FounderReasoningDomain, string[]> = {
+    FUNDING: ["opportunit", "grant", "fund", "invest"], BUSINESS: ["business", "market", "commerce", "enterprise"],
+    MEDIA: ["media", "screen", "riddim", "studio", "video", "music"], CIVIC: ["civic", "public", "community", "parliament", "govern"],
+    DELIVERY: ["ibis", "build", "workspace", "deploy"], GENERAL: ["ibis"],
+  };
+  return products.map((product) => {
+    const haystack = normalized(`${product.name} ${product.tagline || ""}`);
+    const direct = terms.reduce((total, term) => total + (haystack.includes(term) ? 1 : 0), 0);
+    const domainMatch = domainTerms[domain].some((term) => haystack.includes(term)) ? 1 : 0;
+    const score = direct + domainMatch;
+    return { product, score };
+  }).filter((row) => row.score > 0).sort((a, b) => b.score - a.score).slice(0, 3).map((row) => row.product);
+}
+
+/**
+ * Owned, zero-provider reasoning for ordinary planning questions. It deliberately makes no
+ * current-world factual claims: the output is a decision framework derived only from the user's
+ * request and FTN-owned product metadata. Providers remain preferred for generative answers.
+ */
+export function founderReasoningAnswer(text: string, products: IbisProduct[] = []) {
+  const q = normalized(text);
+  if (q.length < 4) return null;
+  const domain = founderDomain(q);
+  const matched = relevantProducts(text, domain, products);
+  const guidance: Record<FounderReasoningDomain, { decision: string; objective: string; path: string; risks: string; actions: string[] }> = {
+    FUNDING: {
+      decision: "PREPARE NOW",
+      objective: "Turn the request into an investable, evidence-backed proposition rather than a broad funding appeal.",
+      path: "Choose one buyer or beneficiary, one urgent problem, one measurable outcome, and the smallest funded milestone that proves demand while preserving ownership.",
+      risks: "Unverified market size, unclear use of funds, dependence on one sponsor, and giving away strategic control before evidence exists.",
+      actions: ["Write a one-sentence problem, customer and paid outcome.", "Define a 90-day milestone, budget and proof metric.", "Build a target list split into grants, customers and aligned investors; tailor the ask to each."],
+    },
+    BUSINESS: {
+      decision: "BUILD NOW",
+      objective: "Convert the idea into a testable offer that creates user value and a defensible Caribbean advantage.",
+      path: "Narrow the first customer and job-to-be-done, reuse shared FTN infrastructure, and test willingness to adopt or pay before expanding scope.",
+      risks: "Building for everyone, confusing activity with demand, duplicating infrastructure, and collecting data without a clear trust or ownership policy.",
+      actions: ["Name the first customer and the painful task they already try to solve.", "Define one end-to-end workflow and its success metric.", "Run a reversible pilot with five real users and record adoption, failure points and payment evidence."],
+    },
+    MEDIA: {
+      decision: "BUILD NOW",
+      objective: "Produce one rights-safe media asset that serves a specific audience and distribution goal.",
+      path: "Lock the brief, rights, format and channel first; generate components through eligible providers; then perform human editorial and cultural review before release.",
+      risks: "Unclear source rights, inconsistent characters or branding, provider lock-in, weak Caribbean specificity, and publishing output without review.",
+      actions: ["Write the audience, message, duration, format and call to action.", "List every required asset and confirm ownership or licence for each input.", "Create a short proof, review it for quality and cultural fit, then scale only the approved approach."],
+    },
+    CIVIC: {
+      decision: "PREPARE NOW",
+      objective: "Frame the public-interest outcome, accountable owner and evidence standard before proposing technology.",
+      path: "Start with the affected community, document the decision or service gap, use primary public evidence, and design consent, redress and governance into the pilot.",
+      risks: "Speaking for communities without validation, weak source provenance, privacy harm, inaccessible delivery and no accountable institution.",
+      actions: ["State the public outcome and who is accountable for it.", "Gather primary evidence and identify whose perspective is missing.", "Design a small consent-based pilot with an appeal or correction path and publish its measures."],
+    },
+    DELIVERY: {
+      decision: "BUILD NOW",
+      objective: "Get one complete user journey working in production with observable evidence, then expand.",
+      path: "Define the acceptance test, repair the narrowest end-to-end path, verify it from the public surface, and keep optional providers behind governed fallbacks.",
+      risks: "Counting registry entries as working integrations, testing only mocks, hidden authentication blockers and failure states that reach users as raw errors.",
+      actions: ["Write the exact user action and visible successful result.", "Test every boundary in that path with real production configuration.", "Deploy, run the public acceptance test, and record provider, fallback and failure provenance."],
+    },
+    GENERAL: {
+      decision: "EXPERIMENT",
+      objective: "Translate the request into a decision with a clear beneficiary, constraint and observable result.",
+      path: "Separate known facts from assumptions, choose the smallest reversible action that creates evidence, and preserve future options until the evidence improves.",
+      risks: "An undefined outcome, unsupported assumptions, irreversible commitment and success criteria that cannot be observed.",
+      actions: ["State who benefits and what changes for them.", "List the three assumptions most likely to make the plan fail.", "Run the smallest test that resolves the riskiest assumption and set a date to decide what follows."],
+    },
+  };
+  const selected = guidance[domain];
+  const routes = matched.length ? `\n\nRelevant FTN routes\n${matched.map((p) => `- ${p.name}: ${p.route}${p.tagline ? ` — ${p.tagline}` : ""}`).join("\n")}` : "";
+  return {
+    answer: `Decision: ${selected.decision}\n\nReal objective\n${selected.objective}\n\nStrongest path\n${selected.path}\n\nRisks to control\n${selected.risks}\n\nNext actions\n${selected.actions.map((action, index) => `${index + 1}. ${action}`).join("\n")}${routes}`,
+    answerClass: "FOUNDER_REASONING_FALLBACK",
+    evidenceState: "DETERMINISTIC_REASONING",
+  };
 }
 
 function circuitAllows(id: string, now: number) { const circuit = circuits.get(id); return !circuit || circuit.openUntil <= now; }
@@ -98,5 +188,7 @@ export async function runGateway(input: { text: string; products?: IbisProduct[]
       console.error("ibis provider failed", provider.id, code);
     }
   }
+  const owned = founderReasoningAnswer(input.text, input.products || []);
+  if (owned) return { ...owned, provider: "FTN ibis Founder Reasoning Engine", model: "ibis-founder-rules-v1", generatedAt: new Date().toISOString(), requestId, fallbackUsed: attempted > 0, fallbackState: attempted > 0 ? "SUCCEEDED" : "OWNED_FALLBACK", confidence: "MODERATE", uncertainty: "Planning guidance derived from the request and FTN-owned product metadata; validate current facts and consequential decisions with primary evidence.", providerFailures, gatewayVersion: GATEWAY_VERSION };
   return { answer: "ibis could not reach an answer provider just now. Your question was preserved; please retry shortly.", provider: "FTN ibis gateway", model: "none", answerClass: "DEGRADED", evidenceState: "NO_ANSWER_GENERATED", generatedAt: new Date().toISOString(), requestId, fallbackUsed: attempted > 1, fallbackState: "EXHAUSTED", confidence: "UNAVAILABLE", uncertainty: "No provider produced an answer.", providerFailures, gatewayVersion: GATEWAY_VERSION };
 }

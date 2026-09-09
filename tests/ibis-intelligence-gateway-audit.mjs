@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { deterministicAnswer, gatewayHealth, runGateway } from '../supabase/functions/_shared/ibis-intelligence-gateway.ts';
+import { deterministicAnswer, founderReasoningAnswer, gatewayHealth, runGateway } from '../supabase/functions/_shared/ibis-intelligence-gateway.ts';
 
 assert.equal(deterministicAnswer('What is 2 plus 2?').answer, '2 + 2 = 4.');
 assert.equal(deterministicAnswer('10 divided by 0').answer, 'Division by zero is undefined.');
@@ -40,15 +40,21 @@ await runGateway({ text: 'Unknown request two', requestId: 'circuit-2', provider
 await runGateway({ text: 'Unknown request three', requestId: 'circuit-3', providers: [alwaysFails] });
 assert.equal(skippedCalls, 2, 'provider circuit must open after two consecutive failures');
 
+const ownedReasoning = founderReasoningAnswer('I need funding for a Caribbean media platform.', [{ name: 'FTN Opportunities', route: '/opportunities/', tagline: 'Find grants and opportunities.' }]);
+assert.equal(ownedReasoning.answerClass, 'FOUNDER_REASONING_FALLBACK');
+assert.match(ownedReasoning.answer, /Decision: PREPARE NOW/);
+assert.match(ownedReasoning.answer, /90-day milestone/);
+assert.match(ownedReasoning.answer, /\/opportunities\//);
+
 const unavailable = await runGateway({ text: 'An unhandled question', requestId: 'unavailable-request', providers: [] });
 assert.equal(unavailable.requestId, 'unavailable-request');
-assert.equal(unavailable.answerClass, 'DEGRADED');
-assert.equal(unavailable.evidenceState, 'NO_ANSWER_GENERATED');
-assert.match(unavailable.answer, /could not reach an answer provider/i, 'an outage must return a useful non-empty answer');
-assert.equal(unavailable.provider, 'FTN ibis gateway');
-assert.equal(unavailable.model, 'none');
-assert.equal(unavailable.confidence, 'UNAVAILABLE');
-assert.equal(unavailable.fallbackState, 'EXHAUSTED');
+assert.equal(unavailable.answerClass, 'FOUNDER_REASONING_FALLBACK');
+assert.equal(unavailable.evidenceState, 'DETERMINISTIC_REASONING');
+assert.match(unavailable.answer, /Decision: EXPERIMENT/);
+assert.equal(unavailable.provider, 'FTN ibis Founder Reasoning Engine');
+assert.equal(unavailable.model, 'ibis-founder-rules-v1');
+assert.equal(unavailable.confidence, 'MODERATE');
+assert.equal(unavailable.fallbackState, 'OWNED_FALLBACK');
 assert.deepEqual(unavailable.providerFailures, []);
 
 const diagnosed = await runGateway({
@@ -63,6 +69,7 @@ assert.deepEqual(diagnosed.providerFailures, [
   { provider: 'unauthorized', code: 'HTTP_401' },
   { provider: 'opaque', code: 'PROVIDER_ERROR' },
 ]);
+assert.equal(diagnosed.answerClass, 'FOUNDER_REASONING_FALLBACK');
 assert.doesNotMatch(JSON.stringify(diagnosed), /secret provider response/);
 
 const health = gatewayHealth([
@@ -78,4 +85,4 @@ assert.deepEqual(health.providers, [
   { id: 'disabled', label: 'Disabled', configured: false, available: false, model: null },
 ]);
 
-console.log('ibis-intelligence-gateway-audit: deterministic answers, zero-cost bypass, provider failover, circuit breaker, health summary and honest total-failure contract verified.');
+console.log('ibis-intelligence-gateway-audit: deterministic answers, owned Founder Reasoning fallback, provider failover, circuit breaker and health summary verified.');
