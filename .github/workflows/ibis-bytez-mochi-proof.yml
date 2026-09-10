@@ -1,10 +1,11 @@
-name: ibis Bytez Mochi Proof
+name: ibis Bytez Current Video Proof
 
 on:
   push:
     branches: [ibis-recovery-2026-09-09]
     paths:
       - .github/workflows/ibis-bytez-mochi-proof.yml
+      - tests/ibis-live-recovery-proof.mjs
       - supabase/functions/ibis-video-bytez/**
   workflow_dispatch:
 
@@ -12,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  mochi-proof:
+  current-video-proof:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -24,23 +25,14 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Adapt live proof expectation to current reviewed model
-        run: |
-          node - <<'NODE'
-          const fs=require('fs');
-          const p='tests/ibis-live-recovery-proof.mjs';
-          let s=fs.readFileSync(p,'utf8');
-          s=s.replace("assert.equal(p.body.model,'Wan-AI/Wan2.1-T2V-1.3B');","assert.equal(p.body.model,'genmo/mochi-1-preview');");
-          fs.writeFileSync('tests/ibis-live-recovery-proof-current.mjs',s);
-          NODE
-      - name: Run current-model live proof
+      - name: Run current reviewed-model live proof
         env:
           FTN_TEST_BASE: https://ibis-recovery-2026-09-09.ftn-platform-website.pages.dev
-        run: node tests/ibis-live-recovery-proof-current.mjs
+        run: node tests/ibis-live-recovery-proof.mjs
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ibis-bytez-mochi-proof-${{ github.run_number }}
+          name: ibis-bytez-current-video-proof-${{ github.run_number }}
           path: test-artifacts/
           if-no-files-found: warn
