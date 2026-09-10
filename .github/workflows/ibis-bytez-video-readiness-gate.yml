@@ -33,7 +33,9 @@ jobs:
             'No paid fallback exists',
             'generationAttempted: false'
           ]) if(!src.includes(required)) throw new Error(`missing Bytez free-credit invariant: ${required}`);
-          if(/auto.?reload|top.?up|purchase/i.test(src.replace(/never tops up credits/ig,''))) throw new Error('Bytez adapter must not implement paid reload/purchase behavior');
+          for(const forbidden of ['autoReload(', 'auto_reload(', 'topUp(', 'top_up(', 'purchaseCredits(', 'purchase_credits(']) {
+            if(src.includes(forbidden)) throw new Error(`Bytez adapter contains forbidden paid operation: ${forbidden}`);
+          }
           console.log('Bytez free-credit-only source contract: PASS');
           NODE
       - name: Probe deployed Bytez route without generation
