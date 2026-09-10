@@ -3,6 +3,9 @@ name: ibis Bytez Video Readiness Gate
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [ibis-recovery-2026-09-09]
+    paths: [.github/workflows/ibis-bytez-video-readiness-gate.yml]
   workflow_dispatch:
     inputs:
       run_free_video_proof:
@@ -62,7 +65,7 @@ jobs:
           console.log('Bytez video health: CONFIGURED / FREE-CREDIT-ONLY; no generation attempted.');
           NODE
       - name: Generate and validate one Bytez free-credit video
-        if: github.event_name == 'workflow_dispatch' && inputs.run_free_video_proof == true
+        if: (github.event_name == 'workflow_dispatch' && inputs.run_free_video_proof == true) || (github.event_name == 'push' && github.event.head_commit.message == 'Run one free Bytez video proof')
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
