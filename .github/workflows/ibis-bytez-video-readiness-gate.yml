@@ -1,0 +1,54 @@
+name: ibis Bytez Video Readiness Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bytez-video-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Bytez free-credit-only source contract
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const src=fs.readFileSync('supabase/functions/ibis-video-bytez/index.ts','utf8');
+          for(const required of [
+            'Wan-AI/Wan2.1-T2V-1.3B',
+            'Apache-2.0',
+            'freeCreditOnly: true',
+            'paidFallbackImplemented: false',
+            'confirmFreeCreditUse',
+            'upstream.status === 402',
+            'No paid fallback exists',
+            'generationAttempted: false'
+          ]) if(!src.includes(required)) throw new Error(`missing Bytez free-credit invariant: ${required}`);
+          if(/auto.?reload|top.?up|purchase/i.test(src.replace(/never tops up credits/ig,''))) throw new Error('Bytez adapter must not implement paid reload/purchase behavior');
+          console.log('Bytez free-credit-only source contract: PASS');
+          NODE
+      - name: Probe deployed Bytez route without generation
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
+          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);
+          if(!match)throw new Error('Could not resolve public Supabase publishable key');
+          const key=match[1];
+          const endpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-video-bytez';
+          const response=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'},body:JSON.stringify({action:'health'})});
+          const body=await response.json().catch(()=>({}));
+          if(!response.ok)throw new Error(`Bytez health HTTP ${response.status}: ${body.error||'unknown'}`);
+          if(body.capability!=='VIDEO_GENERATION'||body.provider!=='bytez'||body.model!=='Wan-AI/Wan2.1-T2V-1.3B')throw new Error('Bytez health identity mismatch');
+          if(body.modelLicense!=='Apache-2.0'||body.freeCreditOnly!==true||body.paidFallbackImplemented!==false||body.generationAttempted!==false)throw new Error(`Bytez health policy mismatch: ${JSON.stringify(body)}`);
+          console.log(`Bytez video health: ${body.configured?'CONFIGURED':'AWAITING_KEY'} / FREE-CREDIT-ONLY; no generation attempted.`);
+          NODE
