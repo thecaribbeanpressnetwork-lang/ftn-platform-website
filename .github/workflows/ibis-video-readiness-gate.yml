@@ -49,12 +49,14 @@ jobs:
           const h=await health.json().catch(()=>({}));
           if(!health.ok)throw new Error(`video health HTTP ${health.status}: ${h.error||'unknown'}`);
           if(h.capability!=='VIDEO_GENERATION'||h.provider!=='ltx-api'||h.model!=='ltx-2-3-fast')throw new Error('video health identity mismatch');
+          if(h.configured!==true)throw new Error('rotated LTX API key is not configured in FTN Supabase');
           if(h.readyToQuote!==true||h.generationAttempted!==false)throw new Error('video health must be quote-ready and zero-spend');
           if(h.minimumDuration!==6||h.minimumQuotedCostUsd!==0.18)throw new Error(`unexpected reviewed minimum quote: ${JSON.stringify(h)}`);
           if(h.paidGenerationEnabled!==false)throw new Error('paid generation must remain founder-locked during recovery');
+          if(h.readyToGenerate!==false)throw new Error('video generation must remain physically locked until founder enables paid generation');
           const quote=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action:'quote',duration:6,resolution:'1280x720'})});
           const q=await quote.json().catch(()=>({}));
           if(!quote.ok)throw new Error(`video quote HTTP ${quote.status}: ${q.error||'unknown'}`);
           if(q.maximumCostUsd!==0.18||q.pricePerSecondUsd!==0.03||q.customerFundingRequired!==true||q.generationAttempted!==false)throw new Error(`video quote mismatch: ${JSON.stringify(q)}`);
-          console.log(`LTX video readiness: QUOTE-READY / SPEND-LOCKED ($${q.maximumCostUsd.toFixed(2)} minimum).`);
+          console.log(`LTX video readiness: CONFIGURED / QUOTE-READY / SPEND-LOCKED ($${q.maximumCostUsd.toFixed(2)} minimum).`);
           NODE
