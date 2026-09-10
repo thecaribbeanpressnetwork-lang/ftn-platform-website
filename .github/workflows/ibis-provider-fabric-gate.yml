@@ -9,6 +9,7 @@ on:
       - js/ibis-eligibility.js
       - js/ibis-provider-registry.js
       - js/ibis-capability-taxonomy.js
+      - js/ibis-query-bootstrap.js
       - tests/ibis-provider-fabric-audit.mjs
       - .github/workflows/ibis-provider-fabric-gate.yml
   push:
@@ -19,6 +20,7 @@ on:
       - js/ibis-eligibility.js
       - js/ibis-provider-registry.js
       - js/ibis-capability-taxonomy.js
+      - js/ibis-query-bootstrap.js
       - tests/ibis-provider-fabric-audit.mjs
       - .github/workflows/ibis-provider-fabric-gate.yml
   workflow_dispatch:
