@@ -49,6 +49,44 @@
   fill: var(--color-red);
 }
 
+/* Mobile release gates measure real document scrollWidth, not just visible clipping. Long SVG
+   child paths can extend outside a bounded workspace even when the parent looks correct, and the
+   compact header action cluster can exceed a 390px viewport by a few pixels. Clamp the public
+   shell at the late-loaded utility layer so Riddim and every workspace page fail closed to the
+   viewport instead of leaking horizontal scroll. */
+@media (max-width: 640px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .site-header__bar,
+  .site-header__actions,
+  main,
+  .workspace,
+  #workspace-root,
+  .workspace__content,
+  .workspace__header,
+  .workspace__hero,
+  .riddim-studio-search {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .workspace svg,
+  #workspace-root svg,
+  .riddim-studio-search svg {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .site-header__actions {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+}
+
 /* Card/section modifiers used on dark bands */
 .principle-card--on-dark {
   background: var(--color-charcoal);
