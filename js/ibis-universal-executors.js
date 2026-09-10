@@ -1,0 +1,57 @@
+// FTN ibis — universal provider executors for media capabilities.
+// Extends the shared IbisClient without creating a second eligibility/economics brain.
+// Every request still goes through IbisEligibility.attemptInOrder(); disabled, paid-locked,
+// unconfigured or degraded providers are never called. Success requires a real output artifact.
+(function(global){
+'use strict';
+var FTN=global.FTN=global.FTN||{};
+var KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+var BASE='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/';
+var ENDPOINTS={
+  'cloudflare-workers-ai-image-flux':'ibis-image-cloudflare',
+  'cloudflare-workers-ai-image-sdxl':'ibis-image-cloudflare',
+  'cloudflare-workers-ai-whisper':'ibis-speech-cloudflare',
+  'cloudflare-workers-ai-aura-tts':'ibis-speech-cloudflare',
+  'bytez-wan21-t2v':'ibis-video-bytez',
+  'ltx-video-2-fast-paid':'ibis-video-ltx'
+};
+var MEDIA_CAPS=['IMAGE_GENERATION','VIDEO_GENERATION','TEXT_TO_SPEECH','TRANSCRIPTION'];
+var DEFAULT_TIMEOUT=45000;
+function headers(){return{'content-type':'application/json',apikey:KEY,authorization:'Bearer '+KEY};}
+function base64Artifact(value,mime){if(typeof value!=='string'||value.length<16)return false;if(/^data:[^;]+;base64,/i.test(value))return value.indexOf(',')>20;return /^[A-Za-z0-9+/=\s]+$/.test(value)&&value.replace(/\s/g,'').length>=16&&!!mime;}
+function urlArtifact(value){return typeof value==='string'&&/^https:\/\//i.test(value);}
+function validate(capability,body){if(!body||typeof body!=='object')return null;if(capability==='IMAGE_GENERATION'){
+    if(base64Artifact(body.image,body.mimeType)&&/^image\//.test(body.mimeType||''))return{image:body.image,mimeType:body.mimeType,extension:body.extension||null,model:body.model||null,generatedAt:body.generatedAt||null};
+  }
+  if(capability==='VIDEO_GENERATION'){
+    var value=body.video||body.videoUrl||body.url||body.output;
+    if(Array.isArray(value))value=value[0];
+    if(urlArtifact(value)||base64Artifact(value,body.mimeType||'video/mp4'))return{video:value,mimeType:body.mimeType||(/\.webm(?:\?|$)/i.test(value||'')?'video/webm':'video/mp4'),extension:body.extension||null,model:body.model||body.modelId||null,provider:body.provider||null,generatedAt:body.generatedAt||null,nativeTextToVideo:true};
+  }
+  if(capability==='TEXT_TO_SPEECH'){
+    if(base64Artifact(body.audio,body.mimeType)&&/^audio\//.test(body.mimeType||''))return{audio:body.audio,mimeType:body.mimeType,extension:body.extension||null,model:body.model||null,generatedAt:body.generatedAt||null};
+  }
+  if(capability==='TRANSCRIPTION'){
+    if(typeof body.text==='string')return{text:body.text,segments:Array.isArray(body.segments)?body.segments:[],vtt:body.vtt||null,wordCount:body.wordCount||null,model:body.model||null,generatedAt:body.generatedAt||null};
+  }
+  return null;
+}
+function payloadFor(capability,provider,payload){payload=payload||{};if(capability==='IMAGE_GENERATION')return{prompt:String(payload.prompt||payload.text||'').slice(0,2000),providerId:provider.id};if(capability==='VIDEO_GENERATION')return{action:'generate',prompt:String(payload.prompt||payload.text||'').slice(0,2000),modelId:provider.modelId||undefined,aspectRatio:payload.aspectRatio||payload.aspect_ratio||'16:9',duration:payload.duration||5};if(capability==='TEXT_TO_SPEECH')return{mode:'speak',text:String(payload.text||payload.prompt||'').slice(0,2000)};if(capability==='TRANSCRIPTION')return{mode:'transcribe',audio:payload.audio||''};return payload;}
+function errorType(status){if(status===401||status===403)return'AUTH_FAILURE';if(status===402)return'QUOTA';if(status===404)return'UNSUPPORTED';if(status===408||status===504)return'TIMEOUT';if(status===429)return'RATE_LIMIT';if(status>=500)return'SERVER_ERROR';return'OUTPUT_FAILURE';}
+async function callEndpoint(capability,provider,payload){var endpoint=ENDPOINTS[provider.id];if(!endpoint)return{success:false,errorType:'UNSUPPORTED',latencyMs:0};var started=Date.now(),controller=typeof AbortController!=='undefined'?new AbortController():null,timer=controller?setTimeout(function(){controller.abort();},DEFAULT_TIMEOUT):null;try{
+    var response=await fetch(BASE+endpoint,{method:'POST',headers:headers(),body:JSON.stringify(payloadFor(capability,provider,payload)),signal:controller?controller.signal:undefined});
+    var body=await response.json().catch(function(){return{};});
+    if(timer)clearTimeout(timer);
+    if(!response.ok)return{success:false,errorType:errorType(response.status),latencyMs:Date.now()-started,status:response.status};
+    var artifact=validate(capability,body);
+    if(!artifact)return{success:false,errorType:'OUTPUT_FAILURE',latencyMs:Date.now()-started};
+    return{success:true,latencyMs:Date.now()-started,data:artifact};
+  }catch(e){if(timer)clearTimeout(timer);return{success:false,errorType:e&&e.name==='AbortError'?'TIMEOUT':'NETWORK_ERROR',latencyMs:Date.now()-started};}}
+function browserSpeech(provider,payload){if(provider.id!=='browser-native-speech'||!global.speechSynthesis||typeof global.SpeechSynthesisUtterance!=='function')return Promise.resolve({success:false,errorType:'UNSUPPORTED',latencyMs:0});var text=String(payload&& (payload.text||payload.prompt)||'').trim();if(!text)return Promise.resolve({success:false,errorType:'INVALID_REQUEST',latencyMs:0});var started=Date.now();return new Promise(function(resolve){var u=new global.SpeechSynthesisUtterance(text);u.onend=function(){resolve({success:true,latencyMs:Date.now()-started,data:{spoken:true,artifactDownloadable:false,engine:'browser-native-speech',text:text}});};u.onerror=function(){resolve({success:false,errorType:'OUTPUT_FAILURE',latencyMs:Date.now()-started});};global.speechSynthesis.speak(u);});}
+function executorFor(capability,payload){return function(provider){if(capability==='TEXT_TO_SPEECH'&&provider.id==='browser-native-speech')return browserSpeech(provider,payload);return callEndpoint(capability,provider,payload);};}
+function buildResult(capability,outcome,nodeId,requestedAt){var attempts=(outcome.attempts||[]).map(function(a){return{providerId:a.providerId,success:a.success,errorType:a.errorType||null};});var providers=FTN.IbisProviders,record=outcome.success&&providers?providers.get(outcome.provider.id):null;var fields={nodeId:nodeId||null,capability:capability,requestedAt:requestedAt,respondedAt:new Date().toISOString(),attempts:attempts};if(outcome.success){fields.provider=outcome.provider.id;fields.costToIbis=record?record.costToIbis:outcome.provider.costToIbis;fields.model=outcome.result&&outcome.result.model||record&&record.modelId||null;return{success:true,blocked:false,result:outcome.result,provenance:FTN.IbisProvenance?FTN.IbisProvenance.build(fields):fields};}fields.degradedState=attempts.length?'ALL_PROVIDERS_FAILED':'NO_ELIGIBLE_PROVIDER';return{success:false,blocked:true,code:attempts.length?'ALL_PROVIDERS_FAILED':'NO_ELIGIBLE_PROVIDER',reason:outcome.reason||('No eligible provider for capability '+capability+'.'),nodeId:nodeId||null,capability:capability,provenance:FTN.IbisProvenance?FTN.IbisProvenance.build(fields):fields};}
+function requestMedia(spec){spec=spec||{};var capability=spec.capability,eligibility=FTN.IbisEligibility,taxonomy=FTN.CapabilityTaxonomy;if(!taxonomy||!taxonomy.isRecognized(capability))return Promise.resolve({success:false,blocked:true,code:'UNKNOWN_CAPABILITY',reason:'Unknown capability.'});if(!eligibility)return Promise.resolve({success:false,blocked:true,code:'REGISTRY_NOT_LOADED',reason:'Eligibility engine not loaded.'});var requestedAt=new Date().toISOString();return eligibility.attemptInOrder(capability,spec.context||{},spec.executor||executorFor(capability,spec.payload||{})).then(function(outcome){return buildResult(capability,outcome,spec.nodeId,requestedAt);});}
+function install(){if(!FTN.IbisClient||FTN.IbisClient.__universalExecutorsInstalled)return false;var original=FTN.IbisClient.request;FTN.IbisClient.request=function(spec){var cap=spec&&spec.capability;if(MEDIA_CAPS.indexOf(cap)!==-1)return requestMedia(spec);return original.call(FTN.IbisClient,spec);};FTN.IbisClient.mediaExecutorFor=executorFor;FTN.IbisClient.__universalExecutorsInstalled=true;return true;}
+FTN.IbisUniversalExecutors={executorFor:executorFor,requestMedia:requestMedia,validateArtifact:validate,install:install,endpointMap:Object.assign({},ENDPOINTS)};
+if(!install()){var tries=0,t=setInterval(function(){tries++;if(install()||tries>100)clearInterval(t);},50);}
+})(typeof window!=='undefined'?window:globalThis);
