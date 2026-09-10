@@ -14,10 +14,11 @@
     if(!document.querySelector('script[data-ibis-ltx-video-live]')){
       var video=document.createElement('script');video.src='/js/ibis-ltx-video-live.js?v=20260910.1';video.async=false;video.setAttribute('data-ibis-ltx-video-live','true');document.head.appendChild(video);
     }
-    // Universal executor fabric: this does not make a provider eligible. It only guarantees that
-    // every media capability uses the same central failover loop once policy says a route may run.
     if(!document.querySelector('script[data-ibis-universal-executors]')){
-      var fabric=document.createElement('script');fabric.src='/js/ibis-universal-executors.js?v=20260910.1';fabric.async=false;fabric.setAttribute('data-ibis-universal-executors','true');document.head.appendChild(fabric);
+      var fabric=document.createElement('script');fabric.src='/js/ibis-universal-executors.js?v=20260910.2';fabric.async=false;fabric.setAttribute('data-ibis-universal-executors','true');document.head.appendChild(fabric);
+    }
+    if(!document.querySelector('script[data-ibis-video-intent]')){
+      var intent=document.createElement('script');intent.src='/js/ibis-video-intent-bridge.js?v=20260910.1';intent.async=false;intent.setAttribute('data-ibis-video-intent','true');document.head.appendChild(intent);
     }
   }
   function exposeHeadspace(){
