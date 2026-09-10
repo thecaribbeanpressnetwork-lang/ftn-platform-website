@@ -12,6 +12,8 @@
   async function ensureProviderFabric(){
     await loadScriptOnce('/js/ftn-node-registry.js?v=20260910.1','data-ibis-node-registry');
     await loadScriptOnce('/js/ibis-capability-taxonomy.js?v=20260910.1','data-ibis-capability-taxonomy');
+    await loadScriptOnce('/js/ibis-provider-registry.js?v=20260909.1','data-ibis-provider-registry');
+    await loadScriptOnce('/js/ibis-native-video-activation.js?v=20260910.1','data-ibis-native-video-activation');
     await loadScriptOnce('/js/ibis-eligibility.js?v=20260910.1','data-ibis-eligibility');
     await loadScriptOnce('/js/ibis-provenance.js?v=20260910.1','data-ibis-provenance');
     await loadScriptOnce('/js/ibis-client.js?v=20260910.1','data-ibis-client');
