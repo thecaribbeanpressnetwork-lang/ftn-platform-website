@@ -1,4 +1,5 @@
 // ibis.ai — investor-safe bootstrap + native-provider-first video routing.
+// Recovery preview truth boundary marker: Headspace remains permission/capability gated until live browser acceptance passes.
 // Public truth boundary: IBIS may claim native video only when the live provider returns a native artifact.
 // Otherwise the page must disclose the native attempt and fall back to creator-tool handoff.
 (function(global){
