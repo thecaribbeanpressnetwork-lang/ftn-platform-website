@@ -1,0 +1,29 @@
+name: ibis Universal Failover Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - js/ibis-universal-executors.js
+      - js/ibis-query-bootstrap.js
+      - js/ibis-eligibility.js
+      - js/ibis-provider-registry.js
+      - tests/ibis-universal-failover-audit.mjs
+      - .github/workflows/ibis-universal-failover-gate.yml
+  push:
+    branches: [ibis-universal-failover-2026-09-10]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  universal-failover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify universal capability failover
+        run: node tests/ibis-universal-failover-audit.mjs
