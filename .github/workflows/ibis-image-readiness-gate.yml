@@ -52,6 +52,7 @@ jobs:
           NODE
 
       - name: Generate and validate one real Cloudflare image artifact
+        if: github.event_name == 'workflow_dispatch'
         env:
           IBIS_IMAGE_ENDPOINT: https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-image-cloudflare
           SUPABASE_PUBLISHABLE_KEY: sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z
