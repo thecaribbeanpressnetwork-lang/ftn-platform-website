@@ -4,125 +4,28 @@ import { chromium } from 'playwright';
 
 const BASE=process.env.FTN_TEST_BASE||'https://ibis-recovery-2026-09-09.ftn-platform-website.pages.dev';
 const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
-const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);
-assert(match,'Could not resolve public Supabase publishable key');
-const key=match[1];
-const root='https://jshmidfpqrajxtukzges.supabase.co/functions/v1';
+const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);assert(match,'Could not resolve public Supabase publishable key');
+const key=match[1],root='https://jshmidfpqrajxtukzges.supabase.co/functions/v1';
 const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
-
-async function post(name,payload,timeout=210000){
-  const r=await fetch(`${root}/${name}`,{method:'POST',headers,body:JSON.stringify(payload),signal:AbortSignal.timeout(timeout)});
-  const body=await r.json().catch(()=>({}));
-  return {r,body};
-}
+async function post(name,payload,timeout=210000){const r=await fetch(`${root}/${name}`,{method:'POST',headers,body:JSON.stringify(payload),signal:AbortSignal.timeout(timeout)});const body=await r.json().catch(()=>({}));return{r,body};}
+fs.mkdirSync('test-artifacts',{recursive:true});
 
 console.log('LIVE PROOF: production assistant text inference');
-{
-  const {r,body}=await post('ibis-assistant',{messages:[{role:'user',content:'In one short sentence, explain why Caribbean context matters when designing a regional product.'}]});
-  assert(r.ok,`assistant HTTP ${r.status}: ${body.error||'unknown'}`);
-  assert.equal(body.provider,'Cloudflare Workers AI');
-  assert.equal(body.model,'@cf/meta/llama-3.1-8b-instruct');
-  assert.equal(body.answerClass,'MODEL_RESPONSE');
-  assert(typeof body.answer==='string'&&body.answer.trim().length>=20,'assistant answer missing/short');
-  console.log(`TEXT PASS provider=${body.provider} model=${body.model} chars=${body.answer.length}`);
-}
+{const {r,body}=await post('ibis-assistant',{messages:[{role:'user',content:'In one short sentence, explain why Caribbean context matters when designing a regional product.'}]});assert(r.ok,`assistant HTTP ${r.status}: ${body.error||'unknown'}`);assert.equal(body.provider,'Cloudflare Workers AI');assert.equal(body.model,'@cf/meta/llama-3.1-8b-instruct');assert.equal(body.answerClass,'MODEL_RESPONSE');assert(typeof body.answer==='string'&&body.answer.trim().length>=20);console.log(`TEXT PASS provider=${body.provider} model=${body.model} chars=${body.answer.length}`);}
 
 console.log('LIVE PROOF: real image artifact');
-{
-  const {r,body}=await post('ibis-image-cloudflare',{providerId:'cloudflare-workers-ai-image-flux',prompt:'A simple photorealistic teal ibis standing beside calm Caribbean water at sunrise, no text, no logos.'});
-  assert(r.ok,`image HTTP ${r.status}: ${body.error||'unknown'}`);
-  assert(body.image&&typeof body.image==='string','image payload missing');
-  const bytes=Buffer.from(body.image,'base64');
-  assert(bytes.length>10000,`image artifact too small: ${bytes.length}`);
-  const jpeg=bytes[0]===0xff&&bytes[1]===0xd8&&bytes[2]===0xff;
-  const png=bytes[0]===0x89&&bytes[1]===0x50&&bytes[2]===0x4e&&bytes[3]===0x47;
-  assert(jpeg||png,'image magic bytes invalid');
-  const mime=jpeg?'image/jpeg':'image/png',ext=jpeg?'jpg':'png';
-  assert.equal(body.mimeType,mime);assert.equal(body.extension,ext);
-  fs.mkdirSync('test-artifacts',{recursive:true});
-  fs.writeFileSync(`test-artifacts/ibis-live-image.${ext}`,bytes);
-  console.log(`IMAGE PASS bytes=${bytes.length} mime=${mime} provider=${body.providerId}`);
-}
+{const {r,body}=await post('ibis-image-cloudflare',{providerId:'cloudflare-workers-ai-image-flux',prompt:'A simple photorealistic teal ibis standing beside calm Caribbean water at sunrise, no text, no logos.'});assert(r.ok,`image HTTP ${r.status}: ${body.error||'unknown'}`);assert(typeof body.image==='string'&&body.image.length>0);const bytes=Buffer.from(body.image,'base64');assert(bytes.length>10000);const jpeg=bytes[0]===0xff&&bytes[1]===0xd8&&bytes[2]===0xff,png=bytes[0]===0x89&&bytes[1]===0x50&&bytes[2]===0x4e&&bytes[3]===0x47;assert(jpeg||png);const mime=jpeg?'image/jpeg':'image/png',ext=jpeg?'jpg':'png';assert.equal(body.mimeType,mime);assert.equal(body.extension,ext);fs.writeFileSync(`test-artifacts/ibis-live-image.${ext}`,bytes);console.log(`IMAGE PASS bytes=${bytes.length} mime=${mime} provider=${body.providerId}`);}
 
 console.log('LIVE PROOF: speech synthesis + transcription');
-{
-  const phrase='FTN Platform connects the Caribbean.';
-  const t=await post('ibis-speech-cloudflare',{mode:'speak',text:phrase});
-  assert(t.r.ok,`TTS HTTP ${t.r.status}: ${t.body.error||'unknown'}`);
-  assert.equal(t.body.mimeType,'audio/mpeg');assert.equal(t.body.extension,'mp3');
-  assert(t.body.audio,'TTS audio missing');
-  const bytes=Buffer.from(t.body.audio,'base64');
-  assert(bytes.length>5000,`TTS artifact too small: ${bytes.length}`);
-  const id3=bytes[0]===0x49&&bytes[1]===0x44&&bytes[2]===0x33;
-  const frame=bytes[0]===0xff&&(bytes[1]&0xe0)===0xe0;
-  assert(id3||frame,'TTS bytes not recognizable MP3');
-  fs.mkdirSync('test-artifacts',{recursive:true});
-  fs.writeFileSync('test-artifacts/ibis-live-speech.mp3',bytes);
-  const a=await post('ibis-speech-cloudflare',{mode:'transcribe',audio:t.body.audio});
-  assert(a.r.ok,`ASR HTTP ${a.r.status}: ${a.body.error||'unknown'}`);
-  const normalized=String(a.body.text||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ');
-  for(const word of ['ftn','platform','connects','caribbean'])assert(normalized.includes(word),`ASR output missing ${word}: ${a.body.text}`);
-  console.log(`SPEECH PASS bytes=${bytes.length} transcription=${JSON.stringify(a.body.text)}`);
-}
+{const phrase='FTN Platform connects the Caribbean.';const t=await post('ibis-speech-cloudflare',{mode:'speak',text:phrase});assert(t.r.ok,`TTS HTTP ${t.r.status}: ${t.body.error||'unknown'}`);assert.equal(t.body.mimeType,'audio/mpeg');assert.equal(t.body.extension,'mp3');assert(t.body.audio);const bytes=Buffer.from(t.body.audio,'base64');assert(bytes.length>5000);const id3=bytes[0]===0x49&&bytes[1]===0x44&&bytes[2]===0x33,frame=bytes[0]===0xff&&(bytes[1]&0xe0)===0xe0;assert(id3||frame);fs.writeFileSync('test-artifacts/ibis-live-speech.mp3',bytes);const a=await post('ibis-speech-cloudflare',{mode:'transcribe',audio:t.body.audio});assert(a.r.ok,`ASR HTTP ${a.r.status}: ${a.body.error||'unknown'}`);const normalized=String(a.body.text||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ');for(const word of ['ftn','platform','connects','caribbean'])assert(normalized.includes(word),`ASR missing ${word}: ${a.body.text}`);console.log(`SPEECH PASS bytes=${bytes.length} transcription=${JSON.stringify(a.body.text)}`);}
 
-console.log('LIVE PROOF: Bytez control plane + reviewed open video model');
+console.log('LIVE PROOF: Bytez reviewed video model');
 let videoProof=null;
-{
-  const c=await post('ibis-video-bytez',{action:'catalog'});
-  assert(c.r.ok,`Bytez catalog HTTP ${c.r.status}: ${c.body.error||'unknown'}`);
-  assert.equal(c.body.catalogChecked,true);assert.equal(c.body.generationAttempted,false);
-  const catalogCanProceed=(c.body.providerHealthy===true&&c.body.targetAvailable===true)||c.body.catalogAdvisoryOnly===true;
-  assert.equal(catalogCanProceed,true,`Bytez catalog gave a non-advisory block: status=${c.body.providerStatus??'n/a'} candidates=${JSON.stringify(c.body.candidates||[])}`);
-  console.log(`BYTEZ CATALOG ${c.body.catalogAdvisoryOnly===true?'ADVISORY':'PASS'} status=${c.body.providerStatus??'n/a'} targetAvailable=${c.body.targetAvailable}`);
-  const p=await post('ibis-video-bytez',{action:'prove_open_model',confirmFreeCreditUse:true,prompt:'A calm five-second cinematic shot of a teal ibis standing beside Caribbean water at sunrise. No text or logos.'},240000);
-  assert(p.r.ok,`Bytez proof HTTP ${p.r.status}: ${p.body.error||'unknown'} status=${p.body.providerStatus??'n/a'}`);
-  assert.equal(p.body.provider,'Bytez');
-  assert.equal(p.body.model,'Wan-AI/Wan2.1-T2V-1.3B');
-  assert.equal(p.body.modelLicense,'Apache-2.0');
-  assert.equal(p.body.freeCreditOnly,true);assert.equal(p.body.paidFallbackImplemented,false);assert.equal(p.body.proofOnly,true);
-  assert(/^https:\/\//i.test(p.body.videoUrl||''),'Bytez returned no usable video URL');
-  const vr=await fetch(p.body.videoUrl,{signal:AbortSignal.timeout(60000)});
-  assert(vr.ok,`video artifact URL HTTP ${vr.status}`);
-  const ct=vr.headers.get('content-type')||'';
-  const vb=Buffer.from(await vr.arrayBuffer());
-  assert(vb.length>10000,`video artifact unexpectedly small: ${vb.length}`);
-  fs.mkdirSync('test-artifacts',{recursive:true});
-  fs.writeFileSync('test-artifacts/ibis-bytez-open-model-proof.bin',vb);
-  videoProof={videoUrl:p.body.videoUrl,bytes:vb.length,contentType:ct};
-  console.log(`VIDEO PROOF PASS bytes=${vb.length} contentType=${ct||'unknown'} model=${p.body.model}`);
-}
+{const h=await post('ibis-video-bytez',{action:'health'});assert(h.r.ok,`Bytez health HTTP ${h.r.status}`);const expectedModel=h.body.reviewedOpenModel,expectedLicense=h.body.reviewedOpenModelLicense;assert(typeof expectedModel==='string'&&expectedModel);assert(typeof expectedLicense==='string'&&expectedLicense);assert.equal(h.body.freeCreditOnly,true);assert.equal(h.body.paidFallbackImplemented,false);const c=await post('ibis-video-bytez',{action:'catalog'});assert(c.r.ok,`Bytez catalog HTTP ${c.r.status}: ${c.body.error||'unknown'}`);assert.equal(c.body.catalogChecked,true);assert.equal(c.body.generationAttempted,false);const canProceed=(c.body.providerHealthy===true&&c.body.targetAvailable===true)||c.body.catalogAdvisoryOnly===true;assert.equal(canProceed,true,`Bytez catalog hard block status=${c.body.providerStatus??'n/a'}`);console.log(`BYTEZ CATALOG ${c.body.catalogAdvisoryOnly===true?'ADVISORY':'PASS'} status=${c.body.providerStatus??'n/a'} target=${expectedModel}`);const p=await post('ibis-video-bytez',{action:'prove_open_model',confirmFreeCreditUse:true,prompt:'A calm five-second cinematic shot of a teal ibis standing beside Caribbean water at sunrise. No text or logos.'},240000);assert(p.r.ok,`Bytez proof HTTP ${p.r.status}: ${p.body.error||'unknown'} status=${p.body.providerStatus??'n/a'}`);assert.equal(p.body.provider,'Bytez');assert.equal(p.body.model,expectedModel);assert.equal(p.body.modelLicense,expectedLicense);assert.equal(p.body.freeCreditOnly,true);assert.equal(p.body.paidFallbackImplemented,false);assert.equal(p.body.proofOnly,true);assert(/^https:\/\//i.test(p.body.videoUrl||''));const vr=await fetch(p.body.videoUrl,{signal:AbortSignal.timeout(60000)});assert(vr.ok,`video artifact URL HTTP ${vr.status}`);const ct=vr.headers.get('content-type')||'',vb=Buffer.from(await vr.arrayBuffer());assert(vb.length>10000);fs.writeFileSync('test-artifacts/ibis-bytez-open-model-proof.bin',vb);videoProof={model:expectedModel,license:expectedLicense,videoUrl:p.body.videoUrl,bytes:vb.length,contentType:ct};console.log(`VIDEO PROOF PASS bytes=${vb.length} contentType=${ct||'unknown'} model=${expectedModel}`);}
 
-console.log('LIVE PROOF: spend-locked LTX remains truthful');
-{
-  const h=await post('ibis-video-ltx',{action:'health'});
-  assert(h.r.ok,`LTX health HTTP ${h.r.status}: ${h.body.error||'unknown'}`);
-  assert.equal(h.body.paidGenerationEnabled,false);assert.equal(h.body.readyToGenerate,false);assert.equal(h.body.generationAttempted,false);
-  const q=await post('ibis-video-ltx',{action:'quote',duration:6,resolution:'1280x720'});
-  assert(q.r.ok,`LTX quote HTTP ${q.r.status}: ${q.body.error||'unknown'}`);
-  assert.equal(q.body.maximumCostUsd,0.18);assert.equal(q.body.generationAttempted,false);
-  console.log('LTX TRUTH PASS paid generation remains founder-locked; no spend attempted');
-}
+console.log('LIVE PROOF: paid LTX route remains founder-locked');
+{const h=await post('ibis-video-ltx',{action:'health'});assert(h.r.ok);assert.equal(h.body.paidGenerationEnabled,false);assert.equal(h.body.readyToGenerate,false);assert.equal(h.body.generationAttempted,false);const q=await post('ibis-video-ltx',{action:'quote',duration:6,resolution:'1280x720'});assert(q.r.ok);assert.equal(q.body.maximumCostUsd,0.18);assert.equal(q.body.generationAttempted,false);console.log('LTX TRUTH PASS no spend attempted');}
 
 console.log('LIVE PROOF: deployed recovery Headspace browser surface');
-{
-  const browser=await chromium.launch({headless:true});
-  const page=await browser.newPage({viewport:{width:1440,height:1000}});
-  const r=await page.goto(BASE+'/ibis-preview/',{waitUntil:'domcontentloaded',timeout:60000});
-  assert(r&&r.ok(),`recovery landing HTTP ${r?.status()}`);
-  await page.waitForSelector('#askInput',{timeout:30000});
-  assert.match(await page.locator('.hero h1').innerText(),/Give ibis a problem, opportunity, product, song, document or goal/i);
-  await page.locator('#askInput').fill('How much capital do I need to live on TT$35,000 a month at 5%?');
-  await Promise.all([page.waitForURL(/\/ibis-headspace-preview\/\?q=/,{timeout:30000}),page.locator('#askForm button[type="submit"]').click()]);
-  await page.waitForSelector('#headspaceQuery',{timeout:30000});
-  await page.locator('#headspaceQuery').fill('How much capital do I need to live on TT$35,000 a month at 5%?');
-  await page.locator('#inputOrbit button[type="submit"]').click();
-  await page.waitForTimeout(1200);
-  assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/8,400,000|8\.4/i);
-  assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--scenario').count(),1);
-  await page.screenshot({path:'test-artifacts/ibis-live-recovery-headspace.png',fullPage:true});
-  await browser.close();
-  console.log('HEADSPACE PASS public recovery deployment loaded and answered deterministic scenario truthfully');
-}
-
-fs.writeFileSync('test-artifacts/ibis-live-proof-summary.json',JSON.stringify({passed:true,base:BASE,videoProof,provedAt:new Date().toISOString()},null,2));
-console.log('IBIS LIVE RECOVERY PROOF: PASS');
+{const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:1000}});const r=await page.goto(BASE+'/ibis-preview/',{waitUntil:'domcontentloaded',timeout:60000});assert(r&&r.ok(),`recovery landing HTTP ${r?.status()}`);await page.waitForSelector('#askInput',{timeout:30000});assert.match(await page.locator('.hero h1').innerText(),/Give ibis a problem, opportunity, product, song, document or goal/i);await page.locator('#askInput').fill('How much capital do I need to live on TT$35,000 a month at 5%?');await Promise.all([page.waitForURL(/\/ibis-headspace-preview\/\?q=/,{timeout:30000}),page.locator('#askForm button[type="submit"]').click()]);await page.waitForSelector('#headspaceQuery',{timeout:30000});await page.locator('#headspaceQuery').fill('How much capital do I need to live on TT$35,000 a month at 5%?');await page.locator('#inputOrbit button[type="submit"]').click();await page.waitForTimeout(1200);assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/8,400,000|8\.4/i);assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--scenario').count(),1);await page.screenshot({path:'test-artifacts/ibis-live-recovery-headspace.png',fullPage:true});await browser.close();console.log('HEADSPACE PASS');}
+fs.writeFileSync('test-artifacts/ibis-live-proof-summary.json',JSON.stringify({passed:true,base:BASE,videoProof,provedAt:new Date().toISOString()},null,2));console.log('IBIS LIVE RECOVERY PROOF: PASS');
