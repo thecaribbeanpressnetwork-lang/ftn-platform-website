@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "product": "scarlett",
+  "principle": "Evidence informs bounded interface decisions; it never authorizes fabricated claims, dark patterns or universal conversion promises.",
+  "rules": [
+    {
+      "id": "SC-A11Y-FOCUS",
+      "dimension": "accessibility",
+      "claim": "Keyboard focus must remain visibly identifiable.",
+      "evidence": [
+        {"source": "W3C Web Content Accessibility Guidelines (WCAG) 2.2", "locator": "SC 2.4.7 Focus Visible / 2.4.11 Focus Not Obscured", "url": "https://www.w3.org/TR/WCAG22/", "authority": "standards"}
+      ]
+    },
+    {
+      "id": "SC-READ-WIDTH",
+      "dimension": "readability",
+      "claim": "Scarlett may bound very wide prose to improve reading ergonomics while preserving the text itself.",
+      "evidence": [
+        {"source": "W3C WCAG 2.2 Understanding 1.4.8 Visual Presentation", "locator": "Width is no more than 80 characters or glyphs for blocks of text", "url": "https://www.w3.org/WAI/WCAG22/Understanding/visual-presentation.html", "authority": "standards-guidance"}
+      ]
+    },
+    {
+      "id": "SC-MOTION-CONTINUITY",
+      "dimension": "motion-accessibility",
+      "claim": "Motion must be purposeful and must respect the user's reduced-motion preference.",
+      "evidence": [
+        {"source": "W3C Media Queries Level 5", "locator": "prefers-reduced-motion", "url": "https://www.w3.org/TR/mediaqueries-5/#prefers-reduced-motion", "authority": "standards"}
+      ]
+    },
+    {
+      "id": "SC-CTA-FOCUS",
+      "dimension": "choice-friction",
+      "claim": "Scarlett may visually prioritize a small number of actions that already exist on the source page; it may not invent urgency, scarcity, endorsements or outcomes.",
+      "evidence": [
+        {"source": "Hick, W. E. (1952), On the rate of gain of information", "locator": "Quarterly Journal of Experimental Psychology 4(1), 11–26", "url": "https://doi.org/10.1080/17470215208416600", "authority": "peer-reviewed"}
+      ]
+    },
+    {
+      "id": "SC-TARGET-SALIENCE",
+      "dimension": "interaction",
+      "claim": "Important existing interactive targets may receive stronger visual salience without changing their destination or action.",
+      "evidence": [
+        {"source": "Fitts, P. M. (1954), The information capacity of the human motor system in controlling the amplitude of movement", "locator": "Journal of Experimental Psychology 47(6), 381–391", "url": "https://doi.org/10.1037/h0055392", "authority": "peer-reviewed"}
+      ]
+    },
+    {
+      "id": "SC-TRUST-TRUTH",
+      "dimension": "trust",
+      "claim": "Trust cues can only be surfaced when they are present and attributable in the source; Scarlett never manufactures social proof or security claims.",
+      "evidence": [
+        {"source": "U.S. Federal Trade Commission", "locator": "Bringing Dark Patterns to Light", "url": "https://www.ftc.gov/reports/bringing-dark-patterns-light", "authority": "regulatory-guidance"}
+      ]
+    }
+  ]
+}

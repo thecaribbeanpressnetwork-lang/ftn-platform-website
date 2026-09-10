@@ -1,0 +1,73 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const BASE=process.env.FTN_TEST_BASE||'http://127.0.0.1:3000';
+const manifest=JSON.parse(fs.readFileSync('extensions/scarlett/manifest.json','utf8'));
+assert.equal(manifest.manifest_version,3);
+assert.deepEqual([...manifest.permissions].sort(),['activeTab','scripting','storage'].sort());
+assert.deepEqual(manifest.host_permissions,[]);
+for(const path of ['extensions/scarlett/content.js','extensions/scarlett/popup.js']){
+  const src=fs.readFileSync(path,'utf8');
+  assert(!/\beval\s*\(/.test(src),`${path} may not use eval`);
+  assert(!/XMLHttpRequest/.test(src),`${path} may not use XMLHttpRequest`);
+  assert(!/https?:\/\//.test(src),`${path} may not embed remote network endpoints`);
+}
+const extensionSource=fs.readFileSync('extensions/scarlett/content.js','utf8');
+assert(!/\bfetch\s*\(/.test(extensionSource),'Scarlett content runtime must not exfiltrate page content');
+assert(extensionSource.includes('ftn-scarlett-extension-layer'),'Extension must ship an actual adaptive presentation layer');
+assert(extensionSource.includes("v=v<50?44:56"),'Extension must implement the stable 50% crossover rule');
+
+const browser=await chromium.launch({headless:true});
+const context=await browser.newContext({viewport:{width:390,height:844}});
+const page=await context.newPage();
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+const response=await page.goto(BASE+'/scarlett/',{waitUntil:'domcontentloaded',timeout:30000});
+assert(response?.ok(),`Scarlett returned ${response?.status()}`);
+await page.waitForFunction(()=>Boolean(window.FTN?.Scarlett));
+const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+assert(overflow<=3,`Scarlett mobile horizontal overflow ${overflow}px`);
+await page.click('#scTransform');
+assert.equal(await page.locator('html').getAttribute('data-scarlett'),'on');
+assert.equal(await page.locator('#scarlett-layer').count(),1,'Transform must create one adaptive layer');
+assert.match(await page.locator('#scarlett-layer').innerText(),/SCARLETT · RED IBIS ADAPTIVE VIEW/i);
+assert.match(await page.locator('#scStatus').innerText(),/Adapted locally/i);
+const model=await page.evaluate(()=>window.FTN.Scarlett.analyze());
+assert(Number.isInteger(model.neuralMeshCount)&&model.neuralMeshCount>0,'Neural Mesh should identify live controls');
+assert(['commerce','service','editorial','civic','creator','utility','unknown'].includes(model.purpose));
+await page.locator('#scIntensity').evaluate(el=>{el.value='20';el.dispatchEvent(new Event('input',{bubbles:true}));});
+assert.equal(await page.locator('html').getAttribute('data-scarlett-dominance'),'source');
+let opacities=await page.evaluate(()=>({source:getComputedStyle(document.body.children[0]).opacity,layer:getComputedStyle(document.querySelector('#scarlett-layer')).opacity}));
+assert(Number(opacities.source)>.9&&Number(opacities.layer)<.05,'Low intensity must leave the source dominant');
+await page.locator('#scIntensity').evaluate(el=>{el.value='90';el.dispatchEvent(new Event('input',{bubbles:true}));});
+assert.equal(await page.locator('html').getAttribute('data-scarlett-dominance'),'scarlett');
+opacities=await page.evaluate(()=>({source:getComputedStyle(document.body.children[0]).opacity,layer:getComputedStyle(document.querySelector('#scarlett-layer')).opacity}));
+assert(Number(opacities.layer)>.8&&Number(opacities.source)<.35,'High intensity must make Scarlett visibly dominant');
+await page.locator('#scIntensity').evaluate(el=>{el.value='50';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));});
+await page.waitForTimeout(80);
+const settled=Number(await page.locator('#scIntensity').inputValue());
+assert([44,56].includes(settled),`50% crossover should settle to a stable presentation side, got ${settled}`);
+await page.click('#scRestore');
+assert.equal(await page.locator('html').getAttribute('data-scarlett'),null);
+assert.equal(await page.locator('#scarlett-layer').count(),0,'Restore must remove the adaptive layer');
+assert.match(await page.locator('#scStatus').innerText(),/Original presentation restored/i);
+
+const extensionPage=await context.newPage();
+await extensionPage.setContent('<!doctype html><html><body><main><h1>Book a Caribbean consultation</h1><p>This source page explains a real service and gives visitors a clear way to book a consultation with the team.</p><a id="book" href="/booking">Book now</a><button id="contact">Contact us</button><h2>What we do</h2><p>We provide a focused service using the information already published on this page.</p></main></body></html>');
+await extensionPage.addScriptTag({content:'window.chrome={runtime:{onMessage:{addListener:function(){}}}};'});
+await extensionPage.addScriptTag({content:extensionSource});
+const extModel=await extensionPage.evaluate(()=>window.__FTN_SCARLETT_EXTENSION__.transform({intensity:90}));
+assert.equal(extModel.purpose,'service');
+assert(extModel.neuralMeshCount>=2);
+assert.equal(await extensionPage.locator('#ftn-scarlett-extension-layer').count(),1);
+assert.equal(await extensionPage.locator('html').getAttribute('data-scarlett-dominance'),'scarlett');
+assert.equal(await extensionPage.locator('#ftn-scarlett-extension-layer a[href="/booking"]').count(),1,'Safe real source links must keep their destination');
+const extSettled=await extensionPage.evaluate(()=>window.__FTN_SCARLETT_EXTENSION__.setIntensity(50,true));
+assert([44,56].includes(extSettled));
+await extensionPage.evaluate(()=>window.__FTN_SCARLETT_EXTENSION__.restore());
+assert.equal(await extensionPage.locator('#ftn-scarlett-extension-layer').count(),0);
+assert.equal(await extensionPage.locator('html').getAttribute('data-scarlett-ext'),null);
+
+assert.equal(errors.length,0,errors.join('\n'));
+await browser.close();
+console.log('Scarlett release gate PASS: adaptive crossover, reversible source preservation, extension parity, local-first privacy and mobile safety verified.');
