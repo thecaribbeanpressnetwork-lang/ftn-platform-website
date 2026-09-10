@@ -1,0 +1,47 @@
+/* FTN ibis — premium investor landing treatment */
+:root{--ibis-bg:#030305;--ibis-ink:#f5fff9;--ibis-muted:#b5d9d0;--ibis-teal:#00f5d4;--ibis-red:#ff1238;--ibis-panel:#09060f;--ibis-panel-2:#12091e;--ibis-line:rgba(0,245,212,.22);--ibis-red-line:rgba(255,18,56,.45);}
+body.ibis-investor-landing{background:radial-gradient(circle at 18% 4%,rgba(0,245,212,.16),transparent 26rem),radial-gradient(circle at 82% 18%,rgba(255,18,56,.16),transparent 25rem),linear-gradient(180deg,#020203 0%,#07030d 48%,#020203 100%);color:var(--ibis-ink);}
+body.ibis-investor-landing .site-header{position:sticky;top:0;z-index:50;background:rgba(2,2,3,.78);backdrop-filter:blur(18px);border-bottom:1px solid rgba(0,245,212,.16);}
+body.ibis-investor-landing .site-header__bar{min-height:64px;}
+body.ibis-investor-landing .site-header__logo text{fill:#fff;}
+body.ibis-investor-landing .logo-mark__t{fill:var(--ibis-red)!important;}
+body.ibis-investor-landing .site-nav__list{gap:.15rem;}
+body.ibis-investor-landing .site-nav__item:nth-child(n+6){display:none;}
+body.ibis-investor-landing .site-nav__trigger{color:rgba(245,255,249,.78);font-size:.72rem;letter-spacing:.02em;}
+body.ibis-investor-landing .site-nav__trigger:hover{color:#fff;background:rgba(0,245,212,.08);}
+body.ibis-investor-landing .country-switcher-trigger{border-color:rgba(0,245,212,.28);color:var(--ibis-ink);background:rgba(255,255,255,.03);}
+body.ibis-investor-landing .site-header__actions .btn{background:var(--ibis-red);border-color:var(--ibis-red);box-shadow:0 0 22px rgba(255,18,56,.28);}
+body.ibis-investor-landing .skip-link{color:#001;background:var(--ibis-teal);}
+.ibis-landing{min-height:100vh;overflow:hidden;}
+.ibis-hero{position:relative;min-height:calc(100vh - 64px);display:grid;grid-template-columns:minmax(320px,.82fr) minmax(560px,1.18fr);gap:clamp(1.5rem,4vw,4rem);align-items:center;padding:clamp(2rem,5vw,4.5rem) clamp(1.2rem,5vw,5rem) clamp(2.2rem,5vw,4rem);isolation:isolate;}
+.ibis-hero:before{content:"";position:absolute;inset:9% 5% auto auto;width:42rem;height:42rem;border-radius:50%;background:radial-gradient(circle,rgba(0,245,212,.16),transparent 62%);filter:blur(8px);z-index:-1;}
+.ibis-hero:after{content:"";position:absolute;inset:auto auto 2% 4%;width:38rem;height:26rem;border-radius:50%;background:radial-gradient(circle,rgba(255,18,56,.13),transparent 65%);filter:blur(10px);z-index:-1;}
+.ibis-hero__copy{max-width:760px;}
+.ibis-kicker{display:inline-flex;align-items:center;gap:.55rem;color:var(--ibis-teal);font-size:.78rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase;margin:0 0 1.15rem;}
+.ibis-kicker:before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ibis-red);box-shadow:0 0 18px var(--ibis-red);}
+.ibis-hero h1{font-family:Montserrat,Inter,system-ui,sans-serif;font-size:clamp(3.1rem,7.4vw,7.8rem);line-height:.9;letter-spacing:-.075em;margin:0;color:#f8fff9;text-wrap:balance;}
+.ibis-hero h1 span{display:block;background:linear-gradient(100deg,#fff 0%,#dffdf5 42%,var(--ibis-teal) 76%,#ffb4c0 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.ibis-hero__lede{font-size:clamp(1.05rem,1.45vw,1.38rem);line-height:1.65;color:var(--ibis-muted);max-width:58ch;margin:1.35rem 0 0;}
+.ibis-hero__actions{display:flex;flex-wrap:wrap;gap:.85rem;margin-top:1.65rem;}
+.ibis-hero__actions a{display:inline-flex;align-items:center;justify-content:center;min-height:46px;border-radius:999px;padding:.82rem 1.2rem;font-weight:800;text-decoration:none;}
+.ibis-hero__actions .primary{background:var(--ibis-red);color:#fff;box-shadow:0 0 36px rgba(255,18,56,.32);}
+.ibis-hero__actions .secondary{border:1px solid rgba(0,245,212,.36);color:var(--ibis-teal);background:rgba(0,245,212,.06);}
+.ibis-proof-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin-top:1.8rem;max-width:680px;}
+.ibis-proof-strip div{border:1px solid var(--ibis-line);background:rgba(0,10,12,.42);border-radius:18px;padding:.9rem 1rem;box-shadow:inset 0 0 30px rgba(0,245,212,.04);}
+.ibis-proof-strip strong{display:block;color:#fff;font-size:.95rem;}
+.ibis-proof-strip span{display:block;color:#a7d3c8;font-size:.78rem;margin-top:.22rem;}
+.ibis-product-stage{position:relative;min-width:0;}
+.ibis-product-stage:before{content:"";position:absolute;inset:-2.5rem -1.5rem;border-radius:36px;background:linear-gradient(140deg,rgba(0,245,212,.18),rgba(255,18,56,.14),transparent 64%);filter:blur(22px);z-index:-1;}
+.ibis-product-frame{position:relative;border:1px solid rgba(0,245,212,.32);border-radius:28px;background:linear-gradient(180deg,rgba(13,6,22,.92),rgba(3,3,6,.96));box-shadow:0 36px 90px rgba(0,0,0,.48),0 0 70px rgba(0,245,212,.12),inset 0 0 0 1px rgba(255,255,255,.045);padding:1rem;transform:perspective(1200px) rotateY(-3deg) rotateX(1deg);transform-origin:center;}
+.ibis-product-frame__bar{display:flex;align-items:center;justify-content:space-between;padding:.2rem .35rem .85rem;color:#aee8dd;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;}
+.ibis-product-frame__lights{display:flex;gap:.38rem}.ibis-product-frame__lights i{width:9px;height:9px;border-radius:50%;background:var(--ibis-red);box-shadow:0 0 15px rgba(255,18,56,.7)}.ibis-product-frame__lights i:nth-child(2){background:var(--ibis-teal);box-shadow:0 0 15px rgba(0,245,212,.6)}.ibis-product-frame__lights i:nth-child(3){background:#fff;opacity:.6;box-shadow:none}
+.ibis-product-frame #workspace-root{min-height:610px;border-radius:22px;overflow:hidden;background:#07020c;}
+body.ibis-investor-landing #workspace-root .workspace-shell,body.ibis-investor-landing #workspace-root [class*="workspace"]{border-color:rgba(0,245,212,.22);}
+body.ibis-investor-landing #workspace-root{color:#fff;}
+.ibis-below{border-top:1px solid rgba(0,245,212,.14);padding:clamp(2rem,5vw,4.5rem) clamp(1.2rem,5vw,5rem);background:linear-gradient(180deg,rgba(0,245,212,.04),rgba(0,0,0,0));}
+.ibis-below__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;max-width:1180px;margin:0 auto;}
+.ibis-below article{border:1px solid rgba(0,245,212,.18);background:rgba(8,8,12,.68);border-radius:22px;padding:1.35rem;}
+.ibis-below h2{margin:0 0 .5rem;color:#fff;font-size:1.15rem}.ibis-below p{margin:0;color:#b8d4ce;line-height:1.6;font-size:.95rem;}
+body.ibis-investor-landing .site-footer{border-top:1px solid rgba(255,18,56,.45);background:#020203;}
+@media (max-width:1100px){.ibis-hero{grid-template-columns:1fr;padding-top:2rem}.ibis-product-frame{transform:none}.ibis-product-frame #workspace-root{min-height:560px}.ibis-proof-strip,.ibis-below__grid{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){body.ibis-investor-landing .site-nav{display:none}.ibis-hero h1{font-size:clamp(2.65rem,16vw,4.5rem)}.ibis-hero{padding:1.4rem 1rem 2rem}.ibis-proof-strip,.ibis-below__grid{grid-template-columns:1fr}.ibis-product-frame{padding:.6rem;border-radius:20px}.ibis-product-frame #workspace-root{min-height:520px}.ibis-product-frame__bar{font-size:.62rem}.ibis-hero__actions a{width:100%}}
