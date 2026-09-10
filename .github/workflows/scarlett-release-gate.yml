@@ -1,0 +1,44 @@
+name: Scarlett Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scarlett/**
+      - js/scarlett-engine.js
+      - css/components/scarlett.css
+      - extensions/scarlett/**
+      - docs/scarlett-architecture.md
+      - tests/scarlett-release.mjs
+      - .github/workflows/scarlett-release-gate.yml
+  push:
+    branches: [scarlett-foundation-2026-09-10]
+    paths:
+      - scarlett/**
+      - js/scarlett-engine.js
+      - css/components/scarlett.css
+      - extensions/scarlett/**
+      - docs/scarlett-architecture.md
+      - tests/scarlett-release.mjs
+      - .github/workflows/scarlett-release-gate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scarlett-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Serve repository
+        run: |
+          npx http-server . -p 3000 -c-1 > /tmp/scarlett-server.log 2>&1 &
+          for i in {1..30}; do curl -fsS http://127.0.0.1:3000/scarlett/ >/dev/null && break; sleep 1; done
+      - name: Run Scarlett acceptance gate
+        run: node tests/scarlett-release.mjs
