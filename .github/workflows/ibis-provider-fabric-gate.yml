@@ -1,0 +1,38 @@
+name: IBIS Provider Fabric Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - js/ibis-provider-fabric.js
+      - js/ibis-client.js
+      - js/ibis-eligibility.js
+      - js/ibis-provider-registry.js
+      - js/ibis-capability-taxonomy.js
+      - tests/ibis-provider-fabric-audit.mjs
+      - .github/workflows/ibis-provider-fabric-gate.yml
+  push:
+    branches: [ibis-provider-fabric-2026-09-10]
+    paths:
+      - js/ibis-provider-fabric.js
+      - js/ibis-client.js
+      - js/ibis-eligibility.js
+      - js/ibis-provider-registry.js
+      - js/ibis-capability-taxonomy.js
+      - tests/ibis-provider-fabric-audit.mjs
+      - .github/workflows/ibis-provider-fabric-gate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provider-fabric:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run provider fabric acceptance audit
+        run: node tests/ibis-provider-fabric-audit.mjs
