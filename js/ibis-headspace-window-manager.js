@@ -45,8 +45,9 @@
     function arrange(mode) {
       var nodes = visible();
       if (!nodes.length) return;
-      var cols = columnsFor(mode || 'grid');
-      field.dataset.layout = mode || 'grid';
+      var cleanMode = mode === 'tile' || mode === 'stack' ? mode : 'grid';
+      var cols = columnsFor(cleanMode);
+      field.dataset.layout = cleanMode;
       setFieldColumns(cols);
       nodes.forEach(function (node, i) {
         clearWindow(node);
@@ -55,9 +56,9 @@
         setImportant(node, 'grid-column', String(col));
         setImportant(node, 'grid-row', String(row));
         setImportant(node, 'width', 'auto');
-        if (mode === 'tile') {
+        if (cleanMode === 'tile') {
           setImportant(node, 'min-height', '260px');
-        } else if (mode === 'stack') {
+        } else if (cleanMode === 'stack') {
           setImportant(node, 'min-height', '140px');
         } else {
           setImportant(node, 'min-height', '220px');
@@ -65,7 +66,7 @@
         node.classList.add('hs-arranged');
         setTimeout(function () { node.classList.remove('hs-arranged'); }, 360);
       });
-      announce(mode || 'grid');
+      announce(cleanMode);
     }
     function announce(mode) {
       var hint = document.getElementById('commandHint');
@@ -122,9 +123,10 @@
     var slider = document.getElementById('headspaceOpacity');
     if (!slider || slider.dataset.ibisOpacityReady === 'true') return;
     slider.dataset.ibisOpacityReady = 'true';
-    function apply() {
-      var raw = Number(slider.value || 100);
+    function apply(rawOverride) {
+      var raw = Number(rawOverride || slider.value || 100);
       var value = Math.max(50, Math.min(100, raw)) / 100;
+      slider.value = String(Math.round(value * 100));
       field.style.setProperty('--thought-opacity', String(value));
       document.querySelectorAll('.thought:not(.dematerialized)').forEach(function (node) {
         node.style.setProperty('opacity', String(value), 'important');
@@ -132,9 +134,28 @@
       var hint = document.getElementById('commandHint');
       if (hint) hint.textContent = value < 1 ? 'Focus opacity adjusted: background context remains visible while current surfaces stay readable.' : 'Focus opacity restored to full strength.';
     }
-    slider.addEventListener('input', apply);
-    slider.addEventListener('change', apply);
+    slider.addEventListener('input', function () { apply(); });
+    slider.addEventListener('change', function () { apply(); });
+    field.__ibisSetOpacity = apply;
     apply();
+  }
+
+  function runScenario(api, field) {
+    try {
+      var params = new URLSearchParams(global.location.search || '');
+      var layout = params.get('hsLayout') || params.get('layout');
+      var opacity = params.get('hsOpacity') || params.get('opacity');
+      if (opacity && field.__ibisSetOpacity) field.__ibisSetOpacity(opacity);
+      if (layout === 'tile') api.tile();
+      else if (layout === 'stack') api.stack();
+      else if (layout === 'grid') api.organize();
+      if (params.get('hsScenario') === 'full') {
+        api.organize();
+        setTimeout(function () { api.tile(); }, 500);
+        setTimeout(function () { api.stack(); }, 1000);
+        setTimeout(function () { if (field.__ibisSetOpacity) field.__ibisSetOpacity(65); }, 1500);
+      }
+    } catch (_) {}
   }
 
   function init() {
@@ -162,8 +183,8 @@
       clearTimeout(global.__ibisHeadspaceWindowResize);
       global.__ibisHeadspaceWindowResize = setTimeout(function () { api.arrange(field.dataset.layout || 'grid'); }, 120);
     });
-    setTimeout(function () { api.organize(); }, 200);
-    setTimeout(function () { api.arrange(field.dataset.layout || 'grid'); }, 900);
+    setTimeout(function () { api.organize(); runScenario(api, field); }, 200);
+    setTimeout(function () { api.arrange(field.dataset.layout || 'grid'); runScenario(api, field); }, 900);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })(window);
