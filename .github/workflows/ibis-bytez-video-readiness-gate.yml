@@ -1,19 +1,9 @@
-# One-shot guarded proof marker: 2026-09-10
 name: ibis Bytez Video Readiness Gate
 
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [ibis-recovery-2026-09-09]
-    paths: [.github/workflows/ibis-bytez-video-readiness-gate.yml]
   workflow_dispatch:
-    inputs:
-      run_free_video_proof:
-        description: 'Use Bytez free tier for one Sora-2 video proof'
-        required: true
-        default: false
-        type: boolean
 
 permissions:
   contents: read
@@ -28,27 +18,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify Bytez free-tier source contract
+      - name: Verify Bytez free-credit-only source contract
         run: |
           node <<'NODE'
           const fs=require('fs');
           const src=fs.readFileSync('supabase/functions/ibis-video-bytez/index.ts','utf8');
           for(const required of [
-            'openai/sora-2',
-            'BYTEZ_FREE_TIER',
+            'FREE_CREDIT_FUNDED_OPEN_MODEL_AWAITING_E2E',
+            'Wan-AI/Wan2.1-T2V-1.3B',
+            'Apache-2.0',
             'freeCreditOnly: true',
             'paidFallbackImplemented: false',
+            'closedProviderModelsEnabled: false',
             'productionGenerationEnabled: false',
-            'prove_free_tier',
-            'confirmFreeCreditUse',
-            'upstream.status === 402'
-          ]) if(!src.includes(required)) throw new Error(`missing Bytez invariant: ${required}`);
-          for(const forbidden of ['autoReload(', 'auto_reload(', 'topUp(', 'top_up(', 'purchaseCredits(', 'purchase_credits(', 'payAsYouGo(', 'pay_as_you_go(']) {
-            if(src.includes(forbidden)) throw new Error(`Bytez adapter contains forbidden paid operation: ${forbidden}`);
+            'readyToGenerate: false',
+            'generationAttempted: false'
+          ]) if(!src.includes(required)) throw new Error(`missing Bytez safety invariant: ${required}`);
+          for(const forbidden of ['openai/sora-2','google/veo','autoReload(', 'auto_reload(', 'topUp(', 'top_up(', 'purchaseCredits(', 'purchase_credits(', 'payAsYouGo(', 'pay_as_you_go(']) {
+            if(src.includes(forbidden)) throw new Error(`Bytez adapter contains forbidden route/paid operation: ${forbidden}`);
           }
-          console.log('Bytez free-tier source contract: PASS');
+          console.log('Bytez source contract: FREE-CREDIT FUNDED / OPEN-MODEL ONLY / GENERATION DISABLED pending E2E.');
           NODE
-      - name: Probe deployed Bytez credential state without inference
+      - name: Probe deployed Bytez state without inference
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -61,33 +52,9 @@ jobs:
           const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
           const body=await response.json().catch(()=>({}));
           if(!response.ok)throw new Error(`Bytez health HTTP ${response.status}: ${body.error||'unknown'}`);
-          if(body.capability!=='VIDEO_GENERATION'||body.provider!=='bytez'||body.proofModel!=='openai/sora-2')throw new Error('Bytez health identity mismatch');
+          if(body.capability!=='VIDEO_GENERATION'||body.provider!=='bytez')throw new Error('Bytez health identity mismatch');
           if(body.configured!==true||body.credentialConfigured!==true)throw new Error('Bytez credential is not visible');
-          if(body.freeCreditOnly!==true||body.paidFallbackImplemented!==false||body.productionGenerationEnabled!==false||body.readyToGenerate!==false||body.generationAttempted!==false)throw new Error('Bytez proof-safety state mismatch');
-          console.log('Bytez: CONFIGURED / FREE-TIER PROOF READY / PRODUCTION DISABLED; no inference attempted.');
-          NODE
-      - name: Generate and validate one Bytez free-tier Sora-2 video
-        if: (github.event_name == 'workflow_dispatch' && inputs.run_free_video_proof == true) || (github.event_name == 'push' && github.event.head_commit.message == 'Run one Bytez Sora free-tier proof')
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
-          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);
-          if(!match)throw new Error('Could not resolve public Supabase publishable key');
-          const key=match[1];
-          const endpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-video-bytez';
-          const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
-          const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action:'prove_free_tier',confirmFreeCreditUse:true,prompt:'A cinematic red ibis standing beside turquoise Caribbean water at sunrise, gentle natural feather movement and small ocean waves, realistic documentary style, no text.'})});
-          const body=await response.json().catch(()=>({}));
-          if(response.status===402)throw new Error('Bytez free allocation is exhausted; no paid fallback was attempted.');
-          if(!response.ok)throw new Error(`Bytez proof HTTP ${response.status}: ${body.error||'unknown'} providerStatus=${body.providerStatus??'n/a'}`);
-          if(body.provider!=='Bytez'||body.model!=='openai/sora-2'||body.accessClass!=='BYTEZ_FREE_TIER'||body.freeCreditOnly!==true||body.paidFallbackImplemented!==false||body.proofOnly!==true)throw new Error('Bytez proof provenance mismatch');
-          if(typeof body.videoUrl!=='string'||!/^https:\/\//i.test(body.videoUrl))throw new Error('Bytez returned no HTTPS video URL');
-          const artifact=await fetch(body.videoUrl);
-          if(!artifact.ok)throw new Error(`Returned video URL HTTP ${artifact.status}`);
-          const bytes=new Uint8Array(await artifact.arrayBuffer());
-          const ascii=String.fromCharCode(...bytes.slice(0,16));
-          const contentType=(artifact.headers.get('content-type')||'').toLowerCase();
-          if(bytes.length<10000||(!ascii.includes('ftyp')&&!contentType.startsWith('video/')))throw new Error(`Returned artifact is not a validated video: bytes=${bytes.length} type=${contentType||'none'}`);
-          console.log(`Bytez Sora-2 free-tier proof: PASS (${bytes.length} bytes, ${contentType||'MP4 inferred'}).`);
+          if(body.freeCreditOnly!==true||body.paidFallbackImplemented!==false||body.closedProviderModelsEnabled!==false||body.productionGenerationEnabled!==false||body.readyToGenerate!==false||body.generationAttempted!==false)throw new Error('Bytez safety state mismatch');
+          if(body.status!=='FREE_CREDIT_FUNDED_OPEN_MODEL_AWAITING_E2E')throw new Error(`Unexpected Bytez state: ${body.status}`);
+          console.log('Bytez: CONFIGURED / FREE-CREDIT FUNDED / OPEN-MODEL ONLY / AWAITING E2E; no inference attempted.');
           NODE
