@@ -22,6 +22,23 @@ function systemPrompt(products: IbisProduct[]) {
 function transcript(turns: IbisTurn[]) { return turns.map((turn) => `${turn.role === "assistant" ? "ibis" : "user"}: ${turn.content}`).join("\n"); }
 function timeoutSignal(ms: number) { return AbortSignal.timeout(Math.max(500, ms)); }
 
+function cloudflare(turns: IbisTurn[], system: string): GatewayProvider {
+  const accountId = Deno.env.get("CLOUDFLARE_ACCOUNT_ID") || "";
+  const key = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
+  const model = "@cf/meta/llama-3.1-8b-instruct";
+  return { id: "cloudflare-workers-ai", label: "Cloudflare Workers AI", model, configured: !!(accountId && key), run: async (timeoutMs) => {
+    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+      body: JSON.stringify({ messages: [{ role: "system", content: system }, ...turns] }),
+      signal: timeoutSignal(timeoutMs),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data?.success === false) throw new Error(`HTTP_${response.status}`);
+    return { answer: data?.result?.response || "", model };
+  } };
+}
+
 function anthropic(turns: IbisTurn[], system: string): GatewayProvider {
   const key = Deno.env.get("ANTHROPIC_API_KEY") || "", model = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-4-6";
   return { id: "anthropic", label: "Anthropic", model, configured: !!key, run: async (timeoutMs) => {
@@ -81,7 +98,9 @@ Deno.serve(async (request) => {
   const raw = Array.isArray(payload.messages) ? payload.messages : [];
   const turns: IbisTurn[] = raw.filter((m) => !!m && typeof m === "object").map((m: any) => ({ role: m.role === "assistant" ? "assistant" : "user", content: typeof m.content === "string" ? m.content.trim().slice(0, 2_000) : "" })).filter((m) => m.content).slice(-20);
   const system = systemPrompt(products);
-  const providers = [anthropic(turns, system), gemini(turns, system), openAICompatible("PRIMARY", turns, system), openAICompatible("SECONDARY", turns, system), ollama(turns, system)];
+  // Cost order is intentional: deterministic handling occurs inside runGateway first; among
+  // external models, the proven zero-cost Cloudflare allocation is attempted before paid keys.
+  const providers = [cloudflare(turns, system), anthropic(turns, system), gemini(turns, system), openAICompatible("PRIMARY", turns, system), openAICompatible("SECONDARY", turns, system), ollama(turns, system)];
   if (payload.action === "health") return reply(gatewayHealth(providers), 200, origin);
   if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
   const result = await runGateway({ text: turns[turns.length - 1].content, products, providers });
