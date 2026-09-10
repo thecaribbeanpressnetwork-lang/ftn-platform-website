@@ -12,6 +12,7 @@ body.ibis-investor-landing .site-nav__trigger:hover{color:#fff;background:rgba(0
 body.ibis-investor-landing .country-switcher-trigger{border-color:rgba(0,245,212,.28);color:var(--ibis-ink);background:rgba(255,255,255,.03);}
 body.ibis-investor-landing .site-header__actions .btn{background:var(--ibis-red);border-color:var(--ibis-red);box-shadow:0 0 22px rgba(255,18,56,.28);}
 body.ibis-investor-landing .skip-link{color:#001;background:var(--ibis-teal);}
+body.ibis-investor-landing .workspace-shell>section:first-child:not(.workspace-layout),body.ibis-investor-landing .workspace-shell .workspace-hero,body.ibis-investor-landing .workspace-shell .workspace-intro,body.ibis-investor-landing .workspace-shell [data-ibis-headspace-entry]{display:none!important;}
 .ibis-landing{min-height:100vh;overflow:hidden;}
 .ibis-hero{position:relative;min-height:calc(100vh - 64px);display:grid;grid-template-columns:minmax(320px,.82fr) minmax(560px,1.18fr);gap:clamp(1.5rem,4vw,4rem);align-items:center;padding:clamp(2rem,5vw,4.5rem) clamp(1.2rem,5vw,5rem) clamp(2.2rem,5vw,4rem);isolation:isolate;}
 .ibis-hero:before{content:"";position:absolute;inset:9% 5% auto auto;width:42rem;height:42rem;border-radius:50%;background:radial-gradient(circle,rgba(0,245,212,.16),transparent 62%);filter:blur(8px);z-index:-1;}
