@@ -1,4 +1,5 @@
 // ibis.ai — cross-product task handoff + investor-safe video studio routing.
+// Recovery preview truth boundary marker: Headspace remains permission/capability gated until live browser acceptance passes.
 // Public IBIS does not claim in-platform native video rendering. It prepares the creative package
 // and hands video generation to approved creator tools/partners until a native provider is fully proven.
 (function(global){
