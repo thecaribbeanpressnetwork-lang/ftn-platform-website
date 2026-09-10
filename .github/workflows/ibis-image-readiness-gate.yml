@@ -1,0 +1,22 @@
+name: ibis Image Readiness Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit zero-cost health and artifact truth contract
+        run: node tests/ibis-cloudflare-image-readiness-audit.mjs
