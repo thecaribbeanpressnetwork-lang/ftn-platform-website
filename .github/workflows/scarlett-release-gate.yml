@@ -6,6 +6,7 @@ on:
     paths:
       - scarlett/**
       - js/scarlett-engine.js
+      - js/scarlett-page.js
       - css/components/scarlett.css
       - extensions/scarlett/**
       - docs/scarlett-architecture.md
@@ -17,6 +18,7 @@ on:
     paths:
       - scarlett/**
       - js/scarlett-engine.js
+      - js/scarlett-page.js
       - css/components/scarlett.css
       - extensions/scarlett/**
       - docs/scarlett-architecture.md
