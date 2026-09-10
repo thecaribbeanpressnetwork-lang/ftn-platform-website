@@ -4,7 +4,7 @@
 (function(global){
   'use strict';
   var FTN=global.FTN=global.FTN||{},override={},adapters=new Map();
-  var CANDIDATES=['gmail','google-calendar','google-drive','slack','github','supabase','browser','local-computer','openrouter','perplexity','google-flow','runway','mcp','activepieces','nango','generic-rest'];
+  var CANDIDATES=['gmail','google-calendar','google-drive','slack','github','supabase','browser','local-computer','bytez','openrouter','perplexity','google-flow','runway','mcp','activepieces','nango','generic-rest'];
   function auth(){return override.auth||FTN.Auth||null;} async function user(){var a=auth();return a&&typeof a.getVerifiedUser==='function'?await a.getVerifiedUser():null;} async function client(){var a=auth();return a&&typeof a.ready==='function'?await a.ready():null;}
   function sanitizeMetadata(meta){meta=Object.assign({},meta||{});['access_token','refresh_token','token','secret','apiKey','api_key','password','credential'].forEach(function(k){delete meta[k];});return meta;}
   function registerAdapter(provider,adapter){provider=String(provider||'').trim();if(!provider||!adapter||typeof adapter.invoke!=='function')throw new Error('Provider and adapter.invoke are required.');adapters.set(provider,adapter);return true;}

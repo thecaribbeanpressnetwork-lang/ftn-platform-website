@@ -1,18 +1,5 @@
-// FTN Platform — ibis AUDIO_TRANSCRIPTION + TEXT_TO_SPEECH route via Cloudflare Workers AI.
-// Mirrors supabase/functions/ibis-image-cloudflare's shape exactly -- same CORS/rate-limit/
-// fail-closed pattern, same account and free Neuron allocation, same ZERO_COST_TO_IBIS
-// classification (Neuron-billed like every other Workers AI model already integrated, confirmed
-// against developers.cloudflare.com/workers-ai/platform/pricing/ -- both models fall well within
-// the account's free daily Neuron allocation at the volumes IBIS would send). Registered in
-// js/ibis-provider-registry.js as cloudflare-workers-ai-whisper (@cf/openai/whisper-large-v3-turbo,
-// AUDIO_TRANSCRIPTION -- MIT licensed) and cloudflare-workers-ai-aura-tts (@cf/deepgram/aura-2-en,
-// TEXT_TO_SPEECH). One function serves both -- mode selects the real upstream model, never an
-// arbitrary client-supplied model id.
-//
-// Real, human-verified round-trip test (2026-08-21, see IBIS-MAP.md): aura-2-en synthesized real
-// speech audio for "FTN Platform connects the Caribbean.", whisper-large-v3-turbo transcribed it
-// back to "FTN platform connects the Caribbean." (only a capitalization difference) with real
-// word-level timestamps and a real VTT payload -- both models confirmed EXECUTABLE this way.
+// FTN Platform — ibis AUDIO_TRANSCRIPTION + TEXT_TO_SPEECH via Cloudflare Workers AI.
+// Health is zero-consumption: it checks only whether the required server-side configuration exists.
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 const windows = new Map<string, { count: number; resetAt: number }>();
@@ -32,7 +19,6 @@ function reply(body: unknown, status: number, origin: string | null) {
   return new Response(JSON.stringify(body), { status, headers: cors(origin) });
 }
 
-// Same per-IP window shape as ibis-query, ibis-assistant and ibis-image-cloudflare.
 function withinLimit(ip: string) {
   const now = Date.now();
   const current = windows.get(ip);
@@ -45,10 +31,15 @@ function withinLimit(ip: string) {
   return true;
 }
 
-// Fixed allowlist -- the client picks a registry provider id and a mode, never a raw Cloudflare
-// model string, so this route can never be pointed at an unreviewed model.
 const ASR_MODEL = "@cf/openai/whisper-large-v3-turbo";
 const TTS_MODEL = "@cf/deepgram/aura-2-en";
+
+function looksLikeMp3(bytes: Uint8Array) {
+  if (bytes.length < 4) return false;
+  const id3 = bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33;
+  const frame = bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0;
+  return id3 || frame;
+}
 
 Deno.serve(async (request) => {
   const origin = request.headers.get("origin");
@@ -56,18 +47,32 @@ Deno.serve(async (request) => {
   if (request.method !== "POST") return reply({ error: "Method not allowed" }, 405, origin);
   if (origin && !allowedOrigins.has(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
-  if (!withinLimit(ip)) return reply({ error: "ibis needs a short break. Please wait a few minutes and try again." }, 429, origin);
-
-  let payload: { mode?: unknown; audio?: unknown; text?: unknown };
+  let payload: { action?: unknown; mode?: unknown; audio?: unknown; text?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
-
-  const mode = payload.mode === "transcribe" || payload.mode === "speak" ? payload.mode : null;
-  if (!mode) return reply({ error: "mode must be \"transcribe\" or \"speak\"." }, 400, origin);
 
   const accountId = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
   const apiToken = Deno.env.get("CLOUDFLARE_API_TOKEN");
-  if (!accountId || !apiToken) return reply({ error: "ibis speech is not configured yet on this route. No request was sent and nothing was charged." }, 503, origin);
+  const configured = Boolean(accountId && apiToken);
+
+  if (payload.action === "health") {
+    return reply({
+      capability: ["TEXT_TO_SPEECH", "AUDIO_TRANSCRIPTION"],
+      provider: "cloudflare-workers-ai",
+      configured,
+      ready: configured,
+      ttsModel: TTS_MODEL,
+      asrModel: ASR_MODEL,
+      generationAttempted: false,
+      checkedAt: new Date().toISOString(),
+    }, 200, origin);
+  }
+
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
+  if (!withinLimit(ip)) return reply({ error: "ibis needs a short break. Please wait a few minutes and try again." }, 429, origin);
+
+  const mode = payload.mode === "transcribe" || payload.mode === "speak" ? payload.mode : null;
+  if (!mode) return reply({ error: "mode must be \"transcribe\" or \"speak\"." }, 400, origin);
+  if (!configured) return reply({ error: "ibis speech is not configured yet on this route. No request was sent and nothing was charged." }, 503, origin);
 
   try {
     if (mode === "transcribe") {
@@ -79,7 +84,6 @@ Deno.serve(async (request) => {
         method: "POST",
         headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
         body: JSON.stringify({ audio }),
-        // Phase 4A fix: bounded timeout, same pattern already proven in ibis-query.
         signal: AbortSignal.timeout(20_000),
       });
       const data = await upstream.json().catch(() => ({}));
@@ -99,7 +103,6 @@ Deno.serve(async (request) => {
       }, 200, origin);
     }
 
-    // mode === "speak"
     const text = typeof payload.text === "string" ? payload.text.trim().slice(0, 2_000) : "";
     if (!text) return reply({ error: "Provide text to speak." }, 400, origin);
 
@@ -107,7 +110,6 @@ Deno.serve(async (request) => {
       method: "POST",
       headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
       body: JSON.stringify({ text, speaker: "luna", encoding: "mp3" }),
-      // Phase 4A fix: bounded timeout, same pattern already proven in ibis-query.
       signal: AbortSignal.timeout(20_000),
     });
     if (!upstream.ok) {
@@ -116,10 +118,11 @@ Deno.serve(async (request) => {
       return reply({ error: "ibis speech synthesis is temporarily unavailable on this route. Please try again shortly." }, 502, origin);
     }
     const bytes = new Uint8Array(await upstream.arrayBuffer());
+    if (!looksLikeMp3(bytes)) return reply({ error: "ibis received an unrecognized speech artifact and refused to label it as MP3." }, 502, origin);
     let binary = "";
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     const audio = btoa(binary);
-    return reply({ audio, mimeType: "audio/mpeg", model: TTS_MODEL, generatedAt: new Date().toISOString() }, 200, origin);
+    return reply({ audio, mimeType: "audio/mpeg", extension: "mp3", model: TTS_MODEL, generatedAt: new Date().toISOString() }, 200, origin);
   } catch (error) {
     console.error("ibis-speech-cloudflare server error", error);
     return reply({ error: "ibis speech is temporarily unavailable on this route. Please try again shortly." }, 502, origin);

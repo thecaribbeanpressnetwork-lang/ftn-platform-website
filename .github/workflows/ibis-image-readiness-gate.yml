@@ -1,0 +1,91 @@
+name: ibis Image Readiness Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Audit zero-cost health and artifact truth contract
+        run: node tests/ibis-cloudflare-image-readiness-audit.mjs
+
+      - name: Probe deployed image route without generation
+        env:
+          IBIS_IMAGE_ENDPOINT: https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-image-cloudflare
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z
+        run: |
+          node <<'NODE'
+          const endpoint = process.env.IBIS_IMAGE_ENDPOINT;
+          const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              apikey: key,
+              authorization: `Bearer ${key}`,
+              origin: 'https://ftnplatform.org'
+            },
+            body: JSON.stringify({ action: 'health' })
+          });
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(`health HTTP ${response.status}: ${body.error || 'unknown error'}`);
+          if (body.capability !== 'IMAGE_GENERATION') throw new Error('health capability mismatch');
+          if (body.provider !== 'cloudflare-workers-ai') throw new Error('health provider mismatch');
+          if (body.configured !== true || body.ready !== true) throw new Error('Cloudflare image route is deployed but required secrets are not configured');
+          if (body.generationAttempted !== false) throw new Error('health probe must never consume generation quota');
+          if (!Array.isArray(body.providerIds) || body.providerIds.length < 2) throw new Error('expected both reviewed Cloudflare image providers');
+          console.log('Live image health: READY; no generation attempted.');
+          NODE
+
+      - name: Generate and validate one real Cloudflare image artifact
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          IBIS_IMAGE_ENDPOINT: https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-image-cloudflare
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z
+        run: |
+          node <<'NODE'
+          const endpoint = process.env.IBIS_IMAGE_ENDPOINT;
+          const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              apikey: key,
+              authorization: `Bearer ${key}`,
+              origin: 'https://ftnplatform.org'
+            },
+            body: JSON.stringify({
+              providerId: 'cloudflare-workers-ai-image-flux',
+              prompt: 'A simple photorealistic red ibis standing beside calm Caribbean water at sunrise, no text, no logos.'
+            })
+          });
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(`generation HTTP ${response.status}: ${body.error || 'unknown error'}`);
+          if (body.providerId !== 'cloudflare-workers-ai-image-flux') throw new Error('provider id mismatch');
+          if (body.model !== '@cf/black-forest-labs/flux-1-schnell') throw new Error('model mismatch');
+          if (!body.image || typeof body.image !== 'string') throw new Error('missing base64 image artifact');
+          const bytes = Buffer.from(body.image, 'base64');
+          if (bytes.length < 10_000) throw new Error(`image artifact unexpectedly small: ${bytes.length} bytes`);
+          const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+          const png = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+          if (!jpeg && !png) throw new Error('artifact magic bytes are neither JPEG nor PNG');
+          const expectedMime = jpeg ? 'image/jpeg' : 'image/png';
+          const expectedExt = jpeg ? 'jpg' : 'png';
+          if (body.mimeType !== expectedMime) throw new Error(`mime mismatch: ${body.mimeType} != ${expectedMime}`);
+          if (body.extension !== expectedExt) throw new Error(`extension mismatch: ${body.extension} != ${expectedExt}`);
+          console.log(`Live image generation: PASS (${bytes.length} bytes, ${expectedMime}, ${body.providerId}).`);
+          NODE

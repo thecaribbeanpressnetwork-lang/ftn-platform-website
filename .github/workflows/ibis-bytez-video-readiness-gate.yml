@@ -1,0 +1,76 @@
+name: ibis Bytez Video Readiness Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [ibis-recovery-2026-09-09]
+    paths:
+      - .github/workflows/ibis-bytez-video-readiness-gate.yml
+      - supabase/functions/ibis-video-bytez/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bytez-video-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Bytez zero-spend source contract
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const src=fs.readFileSync('supabase/functions/ibis-video-bytez/index.ts','utf8');
+          for(const required of [
+            'REVIEWED_OPEN_MODEL',
+            'REVIEWED_OPEN_MODEL_LICENSE',
+            'FREE_CREDIT_FUNDED_OPEN_MODEL_AWAITING_E2E',
+            'Authorization:`Key ${apiKey}`',
+            'lang:"javascript"',
+            'freeCreditOnly:true',
+            'paidFallbackImplemented:false',
+            'closedProviderModelsEnabled:false',
+            'productionGenerationEnabled:false'
+          ]) if(!src.includes(required)) throw new Error(`missing Bytez safety invariant: ${required}`);
+          for(const forbidden of ['openai/sora-2','google/veo','autoReload(', 'auto_reload(', 'topUp(', 'top_up(', 'purchaseCredits(', 'purchase_credits(', 'payAsYouGo(', 'pay_as_you_go(']) {
+            if(src.includes(forbidden)) throw new Error(`Bytez adapter contains forbidden route/paid operation: ${forbidden}`);
+          }
+          console.log('Bytez video source contract: reviewed model / free-credit only / paid fallback absent / production generation disabled pending E2E.');
+          NODE
+      - name: Probe deployed Bytez video health without inference
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
+          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/); if(!match)throw new Error('Could not resolve public Supabase publishable key');
+          const key=match[1],endpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-video-bytez';
+          const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
+          const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
+          const body=await response.json().catch(()=>({}));
+          if(!response.ok)throw new Error(`Bytez health HTTP ${response.status}: ${body.error||'unknown'}`);
+          if(body.configured!==true||body.credentialConfigured!==true||body.authScheme!=='KEY_PREFIX')throw new Error('Bytez credential/auth scheme mismatch');
+          if(!body.reviewedOpenModel||!body.reviewedOpenModelLicense)throw new Error('Reviewed model identity/license missing');
+          if(body.freeCreditOnly!==true||body.paidFallbackImplemented!==false||body.closedProviderModelsEnabled!==false||body.productionGenerationEnabled!==false||body.readyToGenerate!==false||body.generationAttempted!==false)throw new Error('Bytez safety state mismatch');
+          console.log('BYTEZ_VIDEO_HEALTH='+JSON.stringify({model:body.reviewedOpenModel,license:body.reviewedOpenModelLicense,status:body.status}));
+          NODE
+      - name: Probe live Bytez video catalog without inference
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
+          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/); if(!match)throw new Error('Could not resolve public Supabase publishable key');
+          const key=match[1],endpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-video-bytez';
+          const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
+          const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action:'catalog'})});
+          const body=await response.json().catch(()=>({}));
+          if(!response.ok)throw new Error(`FTN Bytez catalog HTTP ${response.status}: ${body.error||'unknown'}`);
+          if(body.catalogChecked!==true||body.generationAttempted!==false)throw new Error('Catalog probe must remain zero-inference');
+          console.log('BYTEZ_VIDEO_PREFLIGHT='+JSON.stringify({providerHealthy:body.providerHealthy,providerStatus:body.providerStatus,targetAvailable:body.targetAvailable,catalogAdvisoryOnly:body.catalogAdvisoryOnly,readyForProof:body.readyForProof,candidateCount:Array.isArray(body.candidates)?body.candidates.length:0}));
+          NODE
