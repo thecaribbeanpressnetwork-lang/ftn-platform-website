@@ -42,6 +42,24 @@
       if (mode === 'tile') return width >= 980 ? 2 : 1;
       return width >= 1180 ? 3 : width >= 760 ? 2 : 1;
     }
+    function snapNode(node, i, cols, cleanMode) {
+      clearWindow(node);
+      var col = (i % cols) + 1;
+      var row = Math.floor(i / cols) + 1;
+      setImportant(node, 'grid-column', String(col));
+      setImportant(node, 'grid-row', String(row));
+      setImportant(node, 'width', 'auto');
+      if (cleanMode === 'tile') {
+        setImportant(node, 'min-height', '260px');
+      } else if (cleanMode === 'stack') {
+        setImportant(node, 'min-height', '140px');
+      } else {
+        setImportant(node, 'min-height', '220px');
+      }
+      node.classList.add('hs-arranged');
+      setTimeout(function () { node.classList.remove('hs-arranged'); }, 360);
+      return { column: col, row: row };
+    }
     function arrange(mode) {
       var nodes = visible();
       if (!nodes.length) return;
@@ -49,23 +67,7 @@
       var cols = columnsFor(cleanMode);
       field.dataset.layout = cleanMode;
       setFieldColumns(cols);
-      nodes.forEach(function (node, i) {
-        clearWindow(node);
-        var col = (i % cols) + 1;
-        var row = Math.floor(i / cols) + 1;
-        setImportant(node, 'grid-column', String(col));
-        setImportant(node, 'grid-row', String(row));
-        setImportant(node, 'width', 'auto');
-        if (cleanMode === 'tile') {
-          setImportant(node, 'min-height', '260px');
-        } else if (cleanMode === 'stack') {
-          setImportant(node, 'min-height', '140px');
-        } else {
-          setImportant(node, 'min-height', '220px');
-        }
-        node.classList.add('hs-arranged');
-        setTimeout(function () { node.classList.remove('hs-arranged'); }, 360);
-      });
+      nodes.forEach(function (node, i) { snapNode(node, i, cols, cleanMode); });
       announce(cleanMode);
     }
     function announce(mode) {
@@ -106,16 +108,21 @@
       if (shelf && !shelf.children.length) shelf.hidden = true;
       arrange(field.dataset.layout || 'grid');
     }
+    function snap() { arrange('grid'); }
+    function organize() { arrange('grid'); }
+    function tile() { arrange('tile'); }
+    function stack() { arrange('stack'); }
     return {
       place: place,
-      snap: function () { arrange('grid'); },
-      organize: function () { arrange('grid'); },
-      tile: function () { arrange('tile'); },
-      stack: function () { arrange('stack'); },
+      snap: snap,
+      organize: organize,
+      tile: tile,
+      stack: stack,
       minimize: minimize,
       restore: restore,
       visible: visible,
-      arrange: arrange
+      arrange: arrange,
+      snapNode: snapNode
     };
   }
 
