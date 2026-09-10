@@ -62,3 +62,4 @@ jobs:
           if(body.output===null||body.output===undefined)throw new Error('Bytez core proof returned no output');
           console.log('Bytez open-model inference proof: PASS.');
           NODE
+# one-shot free-credit proof marker
