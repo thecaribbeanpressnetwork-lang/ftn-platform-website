@@ -1,11 +1,12 @@
 // FTN Platform — Bytez free-credit-only text-to-video adapter.
-// Uses only the Apache-2.0 Wan2.1-T2V-1.3B model. No paid fallback is implemented.
+// Uses only reviewed open models. No paid fallback is implemented.
 // A 402/credit exhaustion response fails closed. This function never tops up credits.
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 const MODEL = "Wan-AI/Wan2.1-T2V-1.3B";
 const MODEL_LICENSE = "Apache-2.0";
-const API_URL = "https://api.bytez.com/models/v2/Wan-AI/Wan2.1-T2V-1.3B";
+const API_URL = `https://api.bytez.com/models/v2/${MODEL}`;
+const CATALOG_URL = "https://api.bytez.com/models/v2/list/models?task=text-to-video";
 const windows = new Map<string, { count: number; resetAt: number }>();
 
 function cors(origin: string | null) {
@@ -54,12 +55,56 @@ Deno.serve(async (request) => {
       freeCreditOnly: true,
       paidFallbackImplemented: false,
       readyToGenerate: Boolean(apiKey),
+      catalogChecked: false,
       generationAttempted: false,
       checkedAt: new Date().toISOString(),
     }, 200, origin);
   }
 
-  if (payload.action !== "generate") return reply({ error: "action must be health or generate." }, 400, origin);
+  if (payload.action === "catalog") {
+    if (!apiKey) return reply({ error: "Bytez is not configured.", generationAttempted: false }, 503, origin);
+    try {
+      const upstream = await fetch(CATALOG_URL, {
+        headers: { Authorization: apiKey },
+        signal: AbortSignal.timeout(15_000),
+      });
+      const data = await upstream.json().catch(() => ({}));
+      if (!upstream.ok) {
+        return reply({ error: "Bytez catalog is temporarily unavailable.", providerStatus: upstream.status, generationAttempted: false }, 502, origin);
+      }
+      const rows = Array.isArray(data?.output) ? data.output : [];
+      const candidates = rows
+        .filter((row: any) => row && row.task === "text-to-video" && Number(row.params) <= 7)
+        .slice(0, 30)
+        .map((row: any) => ({
+          modelId: typeof row.modelId === "string" ? row.modelId : null,
+          params: Number.isFinite(Number(row.params)) ? Number(row.params) : null,
+          meter: typeof row.meter === "string" ? row.meter : null,
+          meterPrice: typeof row.meterPrice === "string" ? row.meterPrice : null,
+        }))
+        .filter((row: any) => row.modelId);
+      const target = candidates.find((row: any) => row.modelId === MODEL) || null;
+      return reply({
+        capability: "VIDEO_GENERATION",
+        provider: "bytez",
+        configured: true,
+        freeCreditOnly: true,
+        paidFallbackImplemented: false,
+        catalogChecked: true,
+        targetModel: MODEL,
+        targetAvailable: Boolean(target),
+        target,
+        candidates,
+        generationAttempted: false,
+        checkedAt: new Date().toISOString(),
+      }, 200, origin);
+    } catch (error) {
+      console.error("ibis-video-bytez catalog error", error);
+      return reply({ error: "Bytez catalog is temporarily unavailable.", generationAttempted: false }, 502, origin);
+    }
+  }
+
+  if (payload.action !== "generate") return reply({ error: "action must be health, catalog or generate." }, 400, origin);
   const prompt = typeof payload.prompt === "string" ? payload.prompt.trim().slice(0, 2_000) : "";
   if (!prompt) return reply({ error: "Describe the video first." }, 400, origin);
   if (!apiKey) return reply({ error: "Bytez video is not configured. No request was made." }, 503, origin);
@@ -83,8 +128,12 @@ Deno.serve(async (request) => {
       console.error("ibis-video-bytez upstream failed", upstream.status, JSON.stringify(data));
       return reply({ error: "Bytez video generation is temporarily unavailable.", providerStatus: upstream.status }, 502, origin);
     }
+    if (data?.error) {
+      console.error("ibis-video-bytez model error", JSON.stringify(data.error));
+      return reply({ error: "Bytez model returned an inference error.", providerStatus: 200, providerError: String(data.error).slice(0, 240) }, 502, origin);
+    }
     const videoUrl = typeof data.output === "string" && /^https:\/\//i.test(data.output) ? data.output : "";
-    if (!videoUrl) return reply({ error: "Bytez returned no usable video URL." }, 502, origin);
+    if (!videoUrl) return reply({ error: "Bytez returned no usable video URL.", providerStatus: 200, outputType: Array.isArray(data.output) ? "array" : typeof data.output }, 502, origin);
     return reply({
       videoUrl,
       provider: "Bytez",
