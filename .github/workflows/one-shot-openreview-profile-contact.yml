@@ -1,0 +1,42 @@
+name: One-shot OpenReview profile contact update
+
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-openreview-profile-contact.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-profile-contact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Add public email to Ricardo Gill profile
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('ricardogill/index.html')
+          text = path.read_text(encoding='utf-8')
+          old = '''<section class="contact" id="contact"><div class="wrap"><span class="eyebrow">Contact & collaboration</span><h2>The Caribbean is not too small for large ideas.</h2><p>I am interested in serious collaborators, researchers, founders, investors and institutions willing to think beyond isolated projects toward systems with durable Caribbean value.</p><div class="hero-actions"><a class="btn primary" href="/contact/">Contact through FTN</a><a class="btn" href="/">Explore the platform</a></div></div></section>'''
+          new = '''<section class="contact" id="contact"><div class="wrap"><span class="eyebrow">Contact & collaboration</span><h2>The Caribbean is not too small for large ideas.</h2><p>I am interested in serious collaborators, researchers, founders, investors and institutions willing to think beyond isolated projects toward systems with durable Caribbean value.</p><p class="meta"><strong>Public contact:</strong> <a href="mailto:facethenationtt@gmail.com">facethenationtt@gmail.com</a></p><div class="hero-actions"><a class="btn primary" href="mailto:facethenationtt@gmail.com">Email Ricardo</a><a class="btn" href="/contact/">FTN contact</a><a class="btn" href="/">Explore the platform</a></div></div></section>'''
+          if old not in text:
+              raise SystemExit('Expected contact section not found; refusing edit.')
+          if 'facethenationtt@gmail.com' in text:
+              raise SystemExit('Public email already present; refusing duplicate edit.')
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+      - name: Verify and commit
+        shell: bash
+        run: |
+          grep -q 'Public contact:' ricardogill/index.html
+          grep -q 'mailto:facethenationtt@gmail.com' ricardogill/index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ricardogill/index.html
+          git commit -m 'Expose public contact email on Ricardo Gill profile'
+          git push origin HEAD:main
