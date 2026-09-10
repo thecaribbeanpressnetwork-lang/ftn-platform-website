@@ -28,6 +28,7 @@ await scenario('ibis-provider-transparent-studio',async page=>{
 });
 
 await scenario('ibis-live-cloudflare-image-generation',async page=>{
+  await page.addInitScript(()=>{window.__FTN_ALLOW_EXTERNAL_HEALTH_TEST__=true;});
   const jpeg=Buffer.concat([Buffer.from([0xff,0xd8,0xff,0xe0]),Buffer.alloc(12000,7)]).toString('base64');
   let healthCalls=0,generationCalls=0;
   await page.route('**/functions/v1/ibis-image-cloudflare',async route=>{
