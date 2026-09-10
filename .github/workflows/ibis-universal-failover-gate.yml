@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - js/ibis-universal-executors.js
+      - js/ibis-video-intent-bridge.js
       - js/ibis-query-bootstrap.js
       - js/ibis-eligibility.js
       - js/ibis-provider-registry.js
