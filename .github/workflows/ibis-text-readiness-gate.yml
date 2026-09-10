@@ -30,7 +30,7 @@ jobs:
           if(!gateway.includes('const providers = [cloudflare(turns, system), anthropic('))throw new Error('production gateway must attempt proven zero-cost Cloudflare before paid external models');
           console.log('Text source and gateway ordering contract: PASS');
           NODE
-      - name: Probe deployed text route without inference
+      - name: Probe deployed text and assistant gateway without inference
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -38,17 +38,22 @@ jobs:
           const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);
           if(!match)throw new Error('Could not resolve public Supabase publishable key from existing client source');
           const key=match[1];
-          const endpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-text-cloudflare';
           const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
-          const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
+          const textEndpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-text-cloudflare';
+          const response=await fetch(textEndpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
           const body=await response.json().catch(()=>({}));
           if(!response.ok)throw new Error(`text health HTTP ${response.status}: ${body.error||'unknown'}`);
-          if(body.capability!=='TEXT'||body.provider!=='cloudflare-workers-ai')throw new Error('text health identity mismatch');
-          if(body.configured!==true||body.ready!==true)throw new Error('text route is not configured/ready');
-          if(body.inferenceAttempted!==false)throw new Error('text health must not consume inference quota');
-          console.log('Live text health: READY; no inference attempted.');
+          if(body.capability!=='TEXT'||body.provider!=='cloudflare-workers-ai'||body.configured!==true||body.ready!==true||body.inferenceAttempted!==false)throw new Error('standalone text route health mismatch');
+          const gatewayEndpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
+          const health=await fetch(gatewayEndpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
+          const h=await health.json().catch(()=>({}));
+          if(!health.ok)throw new Error(`gateway health HTTP ${health.status}`);
+          const cf=(h.providers||[]).find(p=>p.id==='cloudflare-workers-ai');
+          if(!cf||cf.configured!==true||cf.available!==true)throw new Error(`Cloudflare missing/unavailable from production gateway health: ${JSON.stringify(cf)}`);
+          console.log('Live text + production gateway health: READY; no inference attempted.');
           NODE
       - name: Prove production assistant gateway selects Cloudflare
+        if: github.event_name == 'workflow_dispatch'
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -58,16 +63,10 @@ jobs:
           const key=match[1];
           const endpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
           const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
-          const health=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
-          const h=await health.json().catch(()=>({}));
-          if(!health.ok)throw new Error(`gateway health HTTP ${health.status}`);
-          const cf=(h.providers||[]).find(p=>p.id==='cloudflare-workers-ai');
-          if(!cf||cf.configured!==true||cf.available!==true)throw new Error(`Cloudflare missing/unavailable from production gateway health: ${JSON.stringify(cf)}`);
           const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({messages:[{role:'user',content:'Explain in one short sentence why Caribbean context matters when designing a regional product.'}]})});
           const body=await response.json().catch(()=>({}));
           if(!response.ok)throw new Error(`gateway inference HTTP ${response.status}: ${body.error||'unknown'}`);
-          if(body.provider!=='Cloudflare Workers AI')throw new Error(`expected production gateway to select Cloudflare first, got ${body.provider}`);
-          if(body.model!=='@cf/meta/llama-3.1-8b-instruct')throw new Error(`unexpected gateway model ${body.model}`);
+          if(body.provider!=='Cloudflare Workers AI'||body.model!=='@cf/meta/llama-3.1-8b-instruct')throw new Error(`unexpected production gateway provider/model: ${body.provider} ${body.model}`);
           if(body.answerClass!=='MODEL_RESPONSE'||typeof body.answer!=='string'||body.answer.trim().length<20)throw new Error('gateway model response missing/invalid');
           console.log(`Production assistant Cloudflare integration: PASS (${body.answer.length} chars).`);
           NODE
