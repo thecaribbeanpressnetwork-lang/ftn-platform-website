@@ -52,5 +52,6 @@ jobs:
           if(!response.ok)throw new Error(`Bytez health HTTP ${response.status}: ${body.error||'unknown'}`);
           if(body.capability!=='VIDEO_GENERATION'||body.provider!=='bytez'||body.model!=='Wan-AI/Wan2.1-T2V-1.3B')throw new Error('Bytez health identity mismatch');
           if(body.modelLicense!=='Apache-2.0'||body.freeCreditOnly!==true||body.paidFallbackImplemented!==false||body.generationAttempted!==false)throw new Error(`Bytez health policy mismatch: ${JSON.stringify(body)}`);
-          console.log(`Bytez video health: ${body.configured?'CONFIGURED':'AWAITING_KEY'} / FREE-CREDIT-ONLY; no generation attempted.`);
+          if(body.configured!==true||body.readyToGenerate!==true)throw new Error(`Bytez key is not visible to the deployed function: ${JSON.stringify(body)}`);
+          console.log('Bytez video health: CONFIGURED / FREE-CREDIT-ONLY; no generation attempted.');
           NODE
