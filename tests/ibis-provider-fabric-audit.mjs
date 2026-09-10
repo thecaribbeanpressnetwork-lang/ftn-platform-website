@@ -20,6 +20,10 @@ function loadBase(fetchImpl) {
   return context;
 }
 
+function sameJson(actual, expected, message) {
+  assert.equal(JSON.stringify(actual), JSON.stringify(expected), message);
+}
+
 function installRegistry(context, providers) {
   const all = () => providers.map(p => Object.assign({ timeoutMs: 20000, userAuthorizationRequired: false }, p));
   context.window.FTN.IbisProviders = {
@@ -64,7 +68,7 @@ const video = 'v'.repeat(2048);
   const result = await context.window.FTN.IbisClient.request({ nodeId: 'ibis-ai', capability: 'IMAGE_GENERATION', payload: { prompt: 'red ibis over Tobago' } });
   assert.equal(result.success, true);
   assert.equal(result.provenance.provider, 'cloudflare-workers-ai-image-sdxl');
-  assert.deepEqual(result.provenance.attempts.map(a => [a.providerId, a.success]), [
+  sameJson(result.provenance.attempts.map(a => [a.providerId, a.success]), [
     ['cloudflare-workers-ai-image-flux', false],
     ['cloudflare-workers-ai-image-sdxl', true],
   ]);
@@ -120,7 +124,7 @@ const video = 'v'.repeat(2048);
   const result = await context.window.FTN.IbisClient.request({ nodeId: 'ibis-ai', capability: 'VIDEO_GENERATION', payload: { prompt: 'scarlet ibis over Buccoo Reef', confirmFreeCreditUse: true } });
   assert.equal(result.success, true);
   assert.equal(result.provenance.provider, 'ltx-video-api');
-  assert.deepEqual(result.provenance.attempts.map(a => [a.providerId, a.success]), [
+  sameJson(result.provenance.attempts.map(a => [a.providerId, a.success]), [
     ['ibis-video-bytez', false],
     ['ltx-video-api', true],
   ]);
@@ -138,7 +142,7 @@ const video = 'v'.repeat(2048);
   const result = await context.window.FTN.IbisClient.request({ nodeId: 'ibis-ai', capability: 'VIDEO_GENERATION', payload: { prompt: 'scarlet ibis over Tobago', confirmFreeCreditUse: true } });
   assert.equal(result.success, false);
   assert.equal(result.code, 'ALL_PROVIDERS_FAILED');
-  assert.deepEqual(result.provenance.attempts.map(a => a.providerId), ['ibis-video-bytez', 'ltx-video-api']);
+  sameJson(result.provenance.attempts.map(a => a.providerId), ['ibis-video-bytez', 'ltx-video-api']);
 }
 
 // Unsupported provider ids must not be relabeled as working just because the capability is known.
