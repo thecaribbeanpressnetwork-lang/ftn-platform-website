@@ -33,8 +33,8 @@ jobs:
 
       - name: Probe and round-trip deployed speech route
         run: |
-          node <<'NODE'
-          const fs=require('fs');
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
           const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
           const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);
           if(!match)throw new Error('Could not resolve the public Supabase publishable key from the existing client source');
