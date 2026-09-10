@@ -5,7 +5,9 @@ on:
     branches: [main]
   push:
     branches: [ibis-recovery-2026-09-09]
-    paths: [.github/workflows/ibis-bytez-video-readiness-gate.yml]
+    paths:
+      - .github/workflows/ibis-bytez-video-readiness-gate.yml
+      - supabase/functions/ibis-video-bytez/**
   workflow_dispatch:
 
 permissions:
@@ -35,15 +37,14 @@ jobs:
             'freeCreditOnly: true',
             'paidFallbackImplemented: false',
             'closedProviderModelsEnabled: false',
-            'productionGenerationEnabled: false',
-            'prove_open_model'
+            'productionGenerationEnabled: false'
           ]) if(!src.includes(required)) throw new Error(`missing Bytez safety invariant: ${required}`);
           for(const forbidden of ['openai/sora-2','google/veo','autoReload(', 'auto_reload(', 'topUp(', 'top_up(', 'purchaseCredits(', 'purchase_credits(', 'payAsYouGo(', 'pay_as_you_go(']) {
             if(src.includes(forbidden)) throw new Error(`Bytez adapter contains forbidden route/paid operation: ${forbidden}`);
           }
-          console.log('Bytez source contract: corrected Key auth / free-credit only / open-model only.');
+          console.log('Bytez video source contract: FREE-CREDIT ONLY / OPEN-MODEL ONLY / production generation disabled.');
           NODE
-      - name: Probe deployed Bytez state without inference
+      - name: Probe deployed Bytez video state without inference
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -56,7 +57,7 @@ jobs:
           if(!response.ok)throw new Error(`Bytez health HTTP ${response.status}: ${body.error||'unknown'}`);
           if(body.configured!==true||body.credentialConfigured!==true||body.authScheme!=='KEY_PREFIX')throw new Error('Bytez credential/auth scheme mismatch');
           if(body.freeCreditOnly!==true||body.paidFallbackImplemented!==false||body.closedProviderModelsEnabled!==false||body.productionGenerationEnabled!==false||body.readyToGenerate!==false||body.generationAttempted!==false)throw new Error('Bytez safety state mismatch');
-          console.log('Bytez health: CONFIGURED / KEY-PREFIX AUTH / FREE-CREDIT ONLY; no inference attempted.');
+          console.log('Bytez video health: CONFIGURED / FREE-CREDIT ONLY / GENERATION DISABLED pending E2E.');
           NODE
       - name: Probe live Bytez text-to-video catalog without inference
         run: |
@@ -71,23 +72,5 @@ jobs:
           if(!response.ok)throw new Error(`FTN Bytez catalog HTTP ${response.status}: ${body.error||'unknown'}`);
           if(body.catalogChecked!==true||body.generationAttempted!==false)throw new Error('Catalog probe must remain zero-inference');
           console.log('BYTEZ_VIDEO_PREFLIGHT='+JSON.stringify({providerHealthy:body.providerHealthy,providerStatus:body.providerStatus,targetAvailable:body.targetAvailable,target:body.target,candidateCount:Array.isArray(body.candidates)?body.candidates.length:0}));
-          NODE
-      - name: Generate and validate one Bytez Wan free-credit video
-        if: github.event_name == 'push' && github.event.head_commit.message == 'Run one Bytez Wan free proof'
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
-          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/); if(!match)throw new Error('Could not resolve public Supabase publishable key');
-          const key=match[1],endpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-video-bytez';
-          const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
-          const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action:'prove_open_model',confirmFreeCreditUse:true,prompt:'A cinematic red ibis beside turquoise Caribbean water at sunrise, subtle feather movement and natural ocean waves, realistic documentary style, no text.'})});
-          const body=await response.json().catch(()=>({}));
-          if(response.status===402)throw new Error('Bytez free credits exhausted; no paid fallback attempted.');
-          if(!response.ok)throw new Error(`Bytez proof HTTP ${response.status}: ${body.error||'unknown'} providerStatus=${body.providerStatus??'n/a'}`);
-          if(body.provider!=='Bytez'||body.model!=='Wan-AI/Wan2.1-T2V-1.3B'||body.modelLicense!=='Apache-2.0'||body.freeCreditOnly!==true||body.proofOnly!==true)throw new Error('Bytez proof provenance mismatch');
-          const artifact=await fetch(body.videoUrl); if(!artifact.ok)throw new Error(`Returned video URL HTTP ${artifact.status}`);
-          const bytes=new Uint8Array(await artifact.arrayBuffer()),ascii=String.fromCharCode(...bytes.slice(0,16)),contentType=(artifact.headers.get('content-type')||'').toLowerCase();
-          if(bytes.length<10000||(!ascii.includes('ftyp')&&!contentType.startsWith('video/')))throw new Error(`Returned artifact is not validated video: bytes=${bytes.length} type=${contentType||'none'}`);
-          console.log(`Bytez Wan free-credit video proof: PASS (${bytes.length} bytes, ${contentType||'MP4 inferred'}).`);
+          console.log('Bytez video generation remains UNVERIFIED and unavailable until a reviewed open model passes E2E.');
           NODE
