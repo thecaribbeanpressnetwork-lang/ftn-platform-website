@@ -47,7 +47,6 @@ jobs:
           console.log('Live text health: READY; no inference attempted.');
           NODE
       - name: Run one real Cloudflare text inference
-        if: github.event_name == 'workflow_dispatch'
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
