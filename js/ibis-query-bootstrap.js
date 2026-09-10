@@ -6,13 +6,19 @@
 // passes; exposing the route must never promote prototype-only controls to LIVE.
 (function(global){
   'use strict';
-  function chooseMode(prompt){var p=prompt.toLowerCase();if(/image|visual|poster|flyer|graphic|thumbnail|social card|cover/.test(p))return'visual';if(/analy[sz]e|compare|correlat|indicator|data|trend|what changed/.test(p))return'analyze';if(/find|search|watch|movie|film|music|track|video|episode/.test(p))return'find';return'ask';}
+  function chooseMode(prompt){var p=prompt.toLowerCase();if(/image|visual|poster|flyer|graphic|thumbnail|social card|cover/.test(p))return'visual';if(/analy[sz]e|compare|correlat|indicator|data|trend|what changed/.test(p))return'analyze';if(/find|search|watch|movie|film|music|track|episode/.test(p))return'find';return'ask';}
   function loadHealthModules(){
     if(!document.querySelector('script[data-ibis-cloudflare-image-live]')){
       var image=document.createElement('script');image.src='/js/ibis-cloudflare-image-live.js?v=20260909.2';image.async=false;image.setAttribute('data-ibis-cloudflare-image-live','true');document.head.appendChild(image);
     }
     if(!document.querySelector('script[data-ibis-ltx-video-live]')){
       var video=document.createElement('script');video.src='/js/ibis-ltx-video-live.js?v=20260910.1';video.async=false;video.setAttribute('data-ibis-ltx-video-live','true');document.head.appendChild(video);
+    }
+    if(!document.querySelector('script[data-ibis-universal-executors]')){
+      var fabric=document.createElement('script');fabric.src='/js/ibis-universal-executors.js?v=20260910.2';fabric.async=false;fabric.setAttribute('data-ibis-universal-executors','true');document.head.appendChild(fabric);
+    }
+    if(!document.querySelector('script[data-ibis-video-intent]')){
+      var intent=document.createElement('script');intent.src='/js/ibis-video-intent-bridge.js?v=20260910.1';intent.async=false;intent.setAttribute('data-ibis-video-intent','true');document.head.appendChild(intent);
     }
   }
   function exposeHeadspace(){
