@@ -1,0 +1,36 @@
+name: ibis Provider Health Inventory
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provider-health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Report configured production gateway providers without secrets
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
+          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);
+          if(!match)throw new Error('Could not resolve public Supabase publishable key');
+          const key=match[1];
+          const endpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
+          const response=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'},body:JSON.stringify({action:'health'})});
+          const body=await response.json().catch(()=>({}));
+          if(!response.ok)throw new Error(`gateway health HTTP ${response.status}`);
+          const rows=(body.providers||[]).map(p=>({id:p.id,label:p.label,model:p.model,configured:Boolean(p.configured),available:Boolean(p.available)}));
+          console.log('GATEWAY_PROVIDER_HEALTH='+JSON.stringify(rows));
+          if(!rows.some(p=>p.id==='cloudflare-workers-ai'&&p.configured&&p.available))throw new Error('Cloudflare production fallback missing');
+          NODE
