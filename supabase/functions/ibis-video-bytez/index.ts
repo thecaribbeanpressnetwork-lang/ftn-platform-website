@@ -68,6 +68,13 @@ async function probeCatalog(apiKey: string) {
   }
 }
 
+function catalogFailureAllowsDirectProof(state: { providerHealthy: boolean; providerStatus: number | null }) {
+  // Bytez's task-filtered catalog has returned upstream HTTP 500 while the core API remains healthy.
+  // A catalog server error must not be treated as evidence that a reviewed model is unavailable.
+  // We may therefore attempt exactly the explicitly reviewed model; inference itself remains the truth gate.
+  return state.providerHealthy === false && (state.providerStatus === 500 || state.providerStatus === null);
+}
+
 Deno.serve(async (request) => {
   const origin = request.headers.get("origin");
   if (request.method === "OPTIONS") return new Response(null, { headers: cors(origin) });
@@ -112,7 +119,8 @@ Deno.serve(async (request) => {
       closedProviderModelsEnabled: false,
       catalogChecked: true,
       ...state,
-      readyForProof: state.providerHealthy && state.targetAvailable,
+      readyForProof: (state.providerHealthy && state.targetAvailable) || catalogFailureAllowsDirectProof(state),
+      catalogAdvisoryOnly: catalogFailureAllowsDirectProof(state),
       generationAttempted: false,
       checkedAt: new Date().toISOString(),
     }, 200, origin);
@@ -136,7 +144,8 @@ Deno.serve(async (request) => {
   if (payload.confirmFreeCreditUse !== true) return reply({ error: "Explicit confirmation to use Bytez free credits is required. No request was made." }, 409, origin);
 
   const preflight = await probeCatalog(apiKey);
-  if (!preflight.providerHealthy || !preflight.targetAvailable) {
+  const catalogAllowsProof = catalogFailureAllowsDirectProof(preflight);
+  if ((!preflight.providerHealthy || !preflight.targetAvailable) && !catalogAllowsProof) {
     return reply({
       error: "Bytez reviewed open video model is not currently available. No inference request was sent.",
       providerStatus: preflight.providerStatus,
@@ -177,6 +186,8 @@ Deno.serve(async (request) => {
       freeCreditOnly: true,
       paidFallbackImplemented: false,
       proofOnly: true,
+      catalogPreflightStatus: preflight.providerStatus,
+      catalogAdvisoryOnly: catalogAllowsProof,
       generatedAt: new Date().toISOString(),
     }, 200, origin);
   } catch (error) {
