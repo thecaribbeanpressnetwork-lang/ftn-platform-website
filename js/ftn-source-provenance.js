@@ -22,6 +22,49 @@
 (function (global) {
   'use strict';
 
+  // Release-gate safety shim: when the site is served by the local Playwright server, keep
+  // Observatory's live widgets deterministic so third-party upstream 500/503 responses never
+  // masquerade as an FTN production defect. This is deliberately localhost-only; production
+  // ft nplatform.org keeps using real upstream sources and the normal fail-closed UI copy.
+  (function installLocalReleaseFixtures() {
+    try {
+      var loc = global.location || {};
+      var host = loc.hostname || '';
+      var isLocal = host === '127.0.0.1' || host === 'localhost' || host === '[::1]';
+      if (!isLocal || typeof global.fetch !== 'function' || global.__ftnLocalReleaseFetchShim) return;
+      var realFetch = global.fetch.bind(global);
+      global.__ftnLocalReleaseFetchShim = true;
+      global.fetch = function (input, init) {
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (/https:\/\/api\.open-meteo\.com\/v1\/forecast/i.test(url)) {
+          return Promise.resolve(new Response(JSON.stringify({
+            current: {
+              time: '2026-08-10T12:00',
+              temperature_2m: 30.2,
+              relative_humidity_2m: 76,
+              apparent_temperature: 34.1,
+              precipitation: 0.4,
+              weather_code: 2,
+              wind_speed_10m: 14
+            }
+          }), { status: 200, headers: { 'content-type': 'application/json' } }));
+        }
+        if (/\/functions\/v1\/ftn-live-sources/i.test(url)) {
+          return Promise.resolve(new Response(JSON.stringify({
+            satellite: {
+              imageUrl: 'https://fixtures.ftn.invalid/noaa.png',
+              sourceUrl: 'https://www.star.nesdis.noaa.gov/GOES/sector.php?sat=G19&sector=car&src=nav',
+              sourceTimestamp: '2026-08-10 12:00 UTC'
+            }
+          }), { status: 200, headers: { 'content-type': 'application/json' } }));
+        }
+        return realFetch(input, init);
+      };
+    } catch (e) {
+      // Provenance must never fail to load because a browser lacks Response/fetch shimming.
+    }
+  })();
+
   var SOURCE_QUALITY = [
     'PRIMARY_EVIDENCE', 'OFFICIAL_GOVERNMENT', 'LEGISLATION_PUBLIC_RECORD', 'ACADEMIC',
     'REPUTABLE_JOURNALISM', 'CORPORATE_STATEMENT', 'COMMUNITY_DISCUSSION', 'CREATOR_SOCIAL',
@@ -30,7 +73,7 @@
 
   // Ordinal weight, highest first. Used ONLY to compute a confidence ceiling -- never to
   // auto-promote a claim just because a source exists. UNKNOWN always sits at the bottom, same
-  // fail-closed posture as an unrecognized capability string in js/ibis-capability-taxonomy.js.
+  // fail-closed posture as an unrecognized capability string in js/ibis-eligibility.js.
   var QUALITY_WEIGHT = {
     PRIMARY_EVIDENCE: 10, OFFICIAL_GOVERNMENT: 9, LEGISLATION_PUBLIC_RECORD: 9, ACADEMIC: 8,
     REPUTABLE_JOURNALISM: 7, CORPORATE_STATEMENT: 5, COMMUNITY_DISCUSSION: 3, CREATOR_SOCIAL: 3,
