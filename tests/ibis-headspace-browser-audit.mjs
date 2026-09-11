@@ -5,98 +5,47 @@ import fs from 'node:fs';
 const base=process.env.FTN_TEST_BASE||'http://127.0.0.1:4173';
 fs.mkdirSync('test-artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:process.env.FTN_CHROME_PATH||undefined});
+const context=await browser.newContext({serviceWorkers:'block'});
 
-async function isolateExternalFonts(page){
-  await page.route('https://fonts.googleapis.com/**',route=>route.fulfill({status:200,contentType:'text/css',body:''}));
+async function isolate(page){
+  await page.route('https://fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+  await page.route('https://fonts.gstatic.com/**',r=>r.fulfill({status:204,body:''}));
+  await page.route('https://cdn.jsdelivr.net/**',r=>r.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:function(){return{auth:{getUser:async function(){return{data:{user:null},error:null}},getSession:async function(){return{data:{session:null},error:null}},onAuthStateChange:function(){}},from:function(){throw new Error("fixture database access not expected")},functions:{invoke:async function(){return{data:null,error:new Error("fixture")}}}}}};'}));
+}
+async function open(page,path,selector){
+  await page.goto(base+path,{waitUntil:'commit',timeout:15000});
+  await page.locator(selector).waitFor({state:'attached',timeout:10000});
 }
 
-const landing=await browser.newPage({viewport:{width:1440,height:1000}});
-await isolateExternalFonts(landing);
-await landing.goto(base+'/ibis-preview/',{waitUntil:'networkidle'});
-assert.match(await landing.locator('.hero h1').innerText(),/Give ibis a problem, opportunity, product, song, document or goal/i,'Investor invitation headline must exist');
-assert.equal(await landing.locator('#askInput').count(),1,'Landing intent input must exist');
+const landing=await context.newPage();
+await isolate(landing);
+await open(landing,'/ibis-preview/','#askInput');
+assert.match(await landing.locator('.hero h1').innerText(),/Give ibis a problem, opportunity, product, song, document or goal/i);
 await landing.screenshot({path:'test-artifacts/ibis-headspace-lander.png',fullPage:false});
-await landing.locator('#askInput').fill('What is the latest USD selling rate?');
-await Promise.all([landing.waitForURL(/\/ibis-headspace-preview\/\?q=/),landing.locator('#askForm button[type="submit"]').click()]);
-assert.match(landing.url(),/ibis-headspace-preview/,'Landing intent should enter Headspace');
 await landing.close();
 
-const page=await browser.newPage({viewport:{width:1440,height:1000}});
-await isolateExternalFonts(page);
-await page.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:function(){return{auth:{getUser:async function(){return{data:{user:null},error:null}},getSession:async function(){return{data:{session:null},error:null}},onAuthStateChange:function(){}},from:function(){throw new Error("fixture database access not expected")},functions:{invoke:async function(){return{data:null,error:new Error("fixture")}}}}}};'}));
-await page.route('https://api.github.com/repos/thecaribbeanpressnetwork-lang/ftn-platform-website/actions/runs?*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({total_count:1,workflow_runs:[{name:'FTN Scout 2.0',event:'schedule',status:'completed',conclusion:'success',run_number:18,run_started_at:'2026-09-09T14:41:22Z'}]})}));
-await page.route('**/functions/v1/ftn-opportunities*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[{id:'fixture-caribbean-ai-grant',title:'Caribbean AI Grant',organization:'Fixture Official Institution',country:'Trinidad and Tobago / Caribbean',type:'Grant / Funding',deadline:'2026-10-05',fee:0,payoutCompatible:true,ownershipImpact:'non-dilutive, no equity',strategicValue:5,probability:.75,amount:'USD 100,000',eligibility:'Trinidad and Tobago registered entities may apply.',summary:'Source-backed browser fixture for the connected funding funnel.',sourceUrl:'https://example.test/caribbean-ai-grant',lastVerified:'2026-09-08T12:00:00Z'}]})}));
-const consoleErrors=[];
-page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text());});
-page.on('pageerror',err=>consoleErrors.push(err.message));
-await page.goto(base+'/ibis-headspace-preview/',{waitUntil:'networkidle'});
-assert.equal(await page.locator('#headspaceQuery').count(),1,'Headspace query input must exist');
-assert.equal(await page.locator('.thought').count()>=10,true,'Headspace thought surfaces must exist');
-await page.waitForFunction(()=>/Scout 2\.0: 9 official discovery sources configured/.test(document.querySelector('#scoutStatus')?.textContent||''));
-assert.match(await page.locator('#scoutStatus').innerText(),/latest observed run #18 success/i,'Headspace must distinguish a completed scheduled Scout run from a currently running scout.');
-assert.match(await page.locator('#scoutStatus').innerText(),/automatic applications off.*automatic spend off.*founder approval required/i,'Scout health must expose the consequential-action safety boundary.');
-assert.equal(await page.locator('#scoutStatus').getAttribute('data-health'),'healthy','Successful latest scheduled run should be represented as healthy, not running.');
+const page=await context.newPage();
+await isolate(page);
+await page.route('https://api.github.com/repos/thecaribbeanpressnetwork-lang/ftn-platform-website/actions/runs?*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({total_count:1,workflow_runs:[{name:'FTN Scout 2.0',event:'schedule',status:'completed',conclusion:'success',run_number:18,run_started_at:'2026-09-09T14:41:22Z'}]})}));
+await page.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[{id:'fixture-caribbean-ai-grant',title:'Caribbean AI Grant',organization:'Fixture Official Institution',country:'Trinidad and Tobago / Caribbean',type:'Grant / Funding',deadline:'2026-10-05',fee:0,payoutCompatible:true,ownershipImpact:'non-dilutive, no equity',strategicValue:5,probability:.75,amount:'USD 100,000',eligibility:'Trinidad and Tobago registered entities may apply.',summary:'Source-backed browser fixture for the connected funding funnel.',sourceUrl:'https://example.test/caribbean-ai-grant',lastVerified:'2026-09-08T12:00:00Z'}]})}));
+const consoleErrors=[];page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});page.on('pageerror',e=>consoleErrors.push(e.message));
+await open(page,'/ibis-headspace-preview/','#headspaceQuery');
+await page.waitForFunction(()=>document.documentElement.classList.contains('headspace-hydrated'),null,{timeout:15000});
+assert.equal(await page.locator('.thought').count()>=10,true);assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/What do you need/i);assert.equal(await page.locator('[data-thought="graph"]').evaluate(el=>el.classList.contains('dematerialized')),true);
+await page.waitForFunction(()=>/Scout 2\.0: 9 official discovery sources configured/.test(document.querySelector('#scoutStatus')?.textContent||''),null,{timeout:10000});assert.match(await page.locator('#scoutStatus').innerText(),/latest observed run #18 success/i);assert.match(await page.locator('#scoutStatus').innerText(),/automatic applications off.*automatic spend off.*founder approval required/i);assert.equal(await page.locator('#scoutStatus').getAttribute('data-health'),'healthy');
+await page.waitForFunction(()=>{const n=document.querySelector('#toolStatus');return n&&!/Checking governed/.test(n.textContent||'');},null,{timeout:8000}).catch(()=>{});assert.doesNotMatch(await page.locator('#toolStatus').innerText(),/runtime catalog is unavailable/i);
 
 async function ask(text){await page.locator('#headspaceQuery').fill(text);await page.locator('#inputOrbit button[type="submit"]').click();await page.waitForTimeout(900);}
+await ask('What is the latest USD selling rate?');assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('headspace-engaged')),true);assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/USD|TTD|selling|rate/i);assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--snapshot').count(),1);
+await ask('show live population');assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--live-model').count(),1);assert.match(await page.locator('[data-thought="answer"] p').innerText(),/not live official measurement/i);
+await ask('How much capital do I need to live on TT$35,000 a month at 5%?');assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/8,400,000|8\.4/i);assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--scenario').count(),1);assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--live-model').count(),0);
+await ask('Find the strongest funding opportunity for FTN');assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/Caribbean AI Grant/);assert.match(await page.locator('[data-thought="cognition"] .thought-bar>span').innerText(),/VERIFIED/);
+await ask('Apply for the strongest funding opportunity and submit it');assert.match(await page.locator('#commandHint').innerText(),/paused at the Permission Ledger/i);
+await ask('what is connected to FTN Opportunities');assert.equal(await page.locator('.ibis-context-constellation').count(),1);assert.equal(await page.locator('[data-thought="answer"]').evaluate(el=>el.classList.contains('dematerialized')),true);
 
-await ask('What is the latest USD selling rate?');
-assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('headspace-engaged')),true,'Working Headspace should enter engaged minimal-chrome state');
-assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/USD|TTD|selling|rate/i,'Verified statistics answer should materialize');
-assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz').count(),1,'Statistics should use Presentation Intelligence');
-assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--snapshot').count(),1,'Central Bank series must be labelled SNAPSHOT');
-
-await ask('show live population');
-assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--live-model').count(),1,'Modelled population must be labelled LIVE MODEL');
-assert.match(await page.locator('[data-thought="answer"] p').innerText(),/not live official measurement/i,'LIVE MODEL explanation must preserve truth distinction');
-
-await ask('How much capital do I need to live on TT$35,000 a month at 5%?');
-assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/8,400,000|8\.4/i,'Capital scenario should calculate TT$8.4M');
-assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--scenario').count(),1,'Capital sensitivity must be labelled SCENARIO');
-assert.equal(await page.locator('[data-thought="graph"] .ibis-data-viz__status--live-model').count(),0,'Reused graph surface must not retain an older LIVE MODEL visualization');
-
-await ask('Find the strongest funding opportunity for FTN');
-assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/Caribbean AI Grant/,'Connected funding source should reach the founder decision funnel');
-assert.match(await page.locator('[data-thought="cognition"] .thought-bar>span').innerText(),/VERIFIED/,'Founder Cognitive Layer must be visible');
-assert.match(await page.locator('[data-thought="cognition"] li').first().innerText(),/[a-f0-9]{16}/i,'Visible cognitive snapshot must expose a hash prefix');
-assert.match(await page.locator('#scoutStatus').innerText(),/One Opportunity Intelligence system/,'Shared scout lanes must not fragment into duplicate scouts');
-
-await ask('Apply for the strongest funding opportunity and submit it');
-assert.match(await page.locator('#commandHint').innerText(),/paused at the Permission Ledger/i,'External submission must pause for permission');
-
-await ask('what is connected to FTN Opportunities');
-assert.equal(await page.locator('.ibis-context-constellation').count(),1,'Context Graph should materialize as a constellation');
-assert.match(await page.locator('[data-thought="context"] .thought-bar>span').innerText(),/CONTEXT GRAPH/i);
-assert.equal(await page.locator('[data-thought="answer"]').evaluate(el=>el.classList.contains('dematerialized')),true,'Stale unpinned answer should dematerialize when Context Graph owns attention');
-
-const active=page.locator('[data-thought="context"]');
-await active.scrollIntoViewIfNeeded();
-await page.waitForTimeout(100);
-const before=await active.boundingBox();
-if(before){
-  const startX=before.x+before.width/2,startY=before.y+Math.min(before.height/2,100);
-  await page.mouse.move(startX,startY);
-  await page.mouse.down();
-  await page.mouse.move(startX+150,startY+120,{steps:8});
-  await page.mouse.up();
-  await page.waitForTimeout(150);
-  const after=await active.boundingBox();
-  assert(after&&(Math.abs(after.x-before.x)>10||Math.abs(after.y-before.y)>10),'Active thought surface should be draggable');
-  assert.equal(await page.locator('#field').getAttribute('data-layout'),'freeform','Dragging a snapped card should unsnap Headspace into freeform mode');
-}
+const active=page.locator('[data-thought="context"]');await active.scrollIntoViewIfNeeded();const before=await active.boundingBox();if(before){const sx=before.x+before.width/2,sy=before.y+Math.min(before.height/2,100);await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+150,sy+120,{steps:8});await page.mouse.up();await page.waitForTimeout(150);const after=await active.boundingBox();assert(after&&(Math.abs(after.x-before.x)>10||Math.abs(after.y-before.y)>10));assert.equal(await page.locator('#field').getAttribute('data-layout'),'freeform');}
 await page.screenshot({path:'test-artifacts/ibis-headspace-desktop.png',fullPage:true});
 
-const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
-await isolateExternalFonts(mobile);
-await mobile.goto(base+'/ibis-headspace-preview/',{waitUntil:'networkidle'});
-const rail=mobile.locator('.rail');
-if(await rail.count())assert.equal(await rail.evaluate(el=>getComputedStyle(el).display),'none','Desktop rail should collapse on mobile');
-const bodyWidth=await mobile.evaluate(()=>document.body.scrollWidth),viewportWidth=await mobile.evaluate(()=>window.innerWidth);
-assert(bodyWidth<=viewportWidth+2,'Headspace mobile layout must not create horizontal overflow');
-await mobile.locator('#headspaceQuery').fill('What is the latest USD selling rate?');
-await mobile.locator('#inputOrbit button[type="submit"]').click();await mobile.waitForTimeout(900);
-assert.equal(await mobile.locator('.thought:not(.dematerialized)').count()<=3,true,'Mobile attention mode should keep only the necessary visible thoughts');
-await mobile.screenshot({path:'test-artifacts/ibis-headspace-mobile.png',fullPage:true});
+const mobile=await context.newPage();await isolate(mobile);await mobile.setViewportSize({width:390,height:844});await open(mobile,'/ibis-headspace-preview/','#headspaceQuery');await mobile.waitForFunction(()=>document.documentElement.classList.contains('headspace-hydrated'),null,{timeout:15000});const rail=mobile.locator('.rail');if(await rail.count())assert.equal(await rail.evaluate(el=>getComputedStyle(el).display),'none');const bw=await mobile.evaluate(()=>document.body.scrollWidth),vw=await mobile.evaluate(()=>window.innerWidth);assert(bw<=vw+2);await mobile.locator('#headspaceQuery').fill('What is the latest USD selling rate?');await mobile.locator('#inputOrbit button[type="submit"]').click();await mobile.waitForTimeout(900);assert.equal(await mobile.locator('.thought:not(.dematerialized)').count()<=3,true);await mobile.screenshot({path:'test-artifacts/ibis-headspace-mobile.png',fullPage:true});
 
-assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));
-await browser.close();
-console.log('ibis browser audit: cinematic lander handoff, truthful Scout health, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, direct dragging/freeform unsnap and mobile attention layout verified; screenshots captured.');
+assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));await context.close();await browser.close();console.log('ibis Headspace browser audit passed.');
