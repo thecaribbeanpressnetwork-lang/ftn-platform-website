@@ -5,6 +5,8 @@ const html = fs.readFileSync('ibis-headspace-preview/index.html', 'utf8');
 const preview = fs.readFileSync('js/ibis-headspace-preview.js', 'utf8');
 const fabric = fs.readFileSync('js/ibis-headspace-fabric.js', 'utf8');
 const universal = fs.readFileSync('js/ibis-headspace-universal.js', 'utf8');
+const assistantEdge = fs.readFileSync('supabase/functions/ibis-assistant/index.ts', 'utf8');
+const cloudflareEdge = fs.readFileSync('supabase/functions/ibis-text-cloudflare/index.ts', 'utf8');
 
 const fabricIndex = html.indexOf('/js/ibis-headspace-fabric.js');
 const universalIndex = html.indexOf('/js/ibis-headspace-universal.js');
@@ -26,5 +28,11 @@ assert.match(universal, /isPlainAnswer\(route\).*HeadspaceFabric\.request\('TEXT
   'Plain read-only questions must use the canonical TEXT provider without the multi-agent wrapper.');
 assert.match(universal, /var direct=result&&\(result\.data\|\|result\.result\)\|\|\{\};if\(direct\.answer\)return direct\.answer/,
   'Headspace must render answers returned directly by the canonical TEXT provider.');
+[assistantEdge, cloudflareEdge].forEach((source) => {
+  assert.match(source, /ftn-platform-website\\\.pages\\\.dev/,
+    'IBIS text gateways must allow the owned Cloudflare Pages preview domain.');
+  assert.match(source, /url\.protocol === "https:"/,
+    'Preview-origin access must remain HTTPS-only.');
+});
 
 console.log('IBIS Headspace routing: spatial commands stay local, plain questions use canonical TEXT, and specialist requests reach the universal runtime.');

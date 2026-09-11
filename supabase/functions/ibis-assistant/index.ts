@@ -1,12 +1,20 @@
 import { gatewayHealth, runGateway, type GatewayProvider, type IbisProduct, type IbisTurn } from "../_shared/ibis-intelligence-gateway.ts";
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
+function originAllowed(origin: string | null) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+  try {
+    const url = new URL(origin);
+    return url.protocol === "https:" && /^(?:[a-z0-9-]+\.)?ftn-platform-website\.pages\.dev$/i.test(url.hostname);
+  } catch { return false; }
+}
 const windows = new Map<string, { count: number; resetAt: number }>();
 const FOUNDER_REASONING_INSTRUCTION = "Use the governed Ricardo Founder Reasoning Model for every response: identify the real objective; evaluate user value, ecosystem value, ownership, data value, economic value, execution cost and future optionality; challenge weak ideas; distinguish evidence from assumptions; consider second-order effects; prefer reversible experiments under uncertainty and shared FTN infrastructure where useful; protect Caribbean relevance, ownership and public trust; finish with the clearest useful next action. This is a reasoning model, not Ricardo's consciousness, identity or authorization.";
 const BASE_INSTRUCTION = `You are ibis, FTN Platform's intelligent Caribbean assistant. Help citizens, creators, investors and institutions navigate the Caribbean ecosystem. Be warm, precise and Caribbean-first. Never fabricate. If evidence is incomplete, say so. Mission Control is private institutional infrastructure. Keep answers concise.\n${FOUNDER_REASONING_INSTRUCTION}`;
 
 function cors(origin: string | null) {
-  return { "Access-Control-Allow-Origin": origin && allowedOrigins.has(origin) ? origin : "https://ftnplatform.org", "Access-Control-Allow-Headers": "authorization, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS", "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Vary": "Origin" };
+  return { "Access-Control-Allow-Origin": origin && originAllowed(origin) ? origin : "https://ftnplatform.org", "Access-Control-Allow-Headers": "authorization, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS", "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Vary": "Origin" };
 }
 function reply(body: unknown, status: number, origin: string | null) { return new Response(JSON.stringify(body), { status, headers: cors(origin) }); }
 function withinLimit(ip: string) {
@@ -88,7 +96,7 @@ Deno.serve(async (request) => {
   const origin = request.headers.get("origin");
   if (request.method === "OPTIONS") return new Response(null, { headers: cors(origin) });
   if (request.method !== "POST") return reply({ error: "Method not allowed" }, 405, origin);
-  if (origin && !allowedOrigins.has(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
+  if (!originAllowed(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
   if (!withinLimit(ip)) return reply({ error: "ibis needs a short break. Please wait a few minutes and try again." }, 429, origin);
 
