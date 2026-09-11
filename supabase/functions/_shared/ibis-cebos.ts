@@ -56,7 +56,7 @@ export type CebosReasoningState = {
   nextBottleneck: string | null;
 };
 
-export const CEBOS_VERSION = "cebos-2026-09-11.1";
+export const CEBOS_VERSION = "cebos-2026-09-11.2";
 
 const AUTHORITY: Record<CebosSourceClass, number> = {
   PRIMARY_EVIDENCE: 100,
@@ -72,9 +72,6 @@ const AUTHORITY: Record<CebosSourceClass, number> = {
   UNKNOWN: 0,
 };
 
-// Discovery utility is deliberately not the same as authority. Social/community material can be
-// excellent for finding names, phone numbers, aliases, historical traces and non-indexed activity
-// even when it is not strong enough to support a transaction-grade conclusion.
 const DISCOVERY: Record<CebosSourceClass, number> = {
   PRIMARY_EVIDENCE: 85,
   OFFICIAL_GOVERNMENT: 70,
@@ -96,8 +93,10 @@ export function sourceScores(sourceClass: CebosSourceClass) {
 export function classifyRequest(text: string): CebosRequestClass {
   const q = String(text || "").toLowerCase();
   if (/\b(create|generate|design|draw|write|compose|render|make)\b/.test(q) && /\b(image|video|audio|song|poster|graphic|file|document|spreadsheet|presentation|logo|website)\b/.test(q)) return "CREATIVE";
+  // Decision language takes precedence over embedded action verbs. "Should I open..." is a
+  // decision request, not an execution request merely because it contains the verb "open".
+  if (/\b(should i|which is better|compare|worth it|buy or|invest or|finance or|mortgage|decision|recommend|best option|viable|feasible)\b/.test(q)) return "DECISION";
   if (/\b(open|send|submit|apply|book|buy|download|upload|convert|transcribe|translate|edit|fix|deploy|publish|schedule|connect|call|email)\b/.test(q)) return "TASK";
-  if (/\b(should i|which is better|compare|worth it|buy|invest|finance|mortgage|decision|recommend|best option|viable|feasible)\b/.test(q)) return "DECISION";
   return "INFORMATION";
 }
 
@@ -140,8 +139,6 @@ export function addExpectedTrace(state: CebosReasoningState, hypothesis: string,
 }
 
 export function recordOpportunity(state: CebosReasoningState, signal: CebosOpportunitySignal) {
-  // Opportunity scanning is intentionally low-priority: it records without changing the current
-  // objective or next bottleneck. The caller decides whether/when to surface it later.
   state.opportunitySignals.push(signal);
   return signal;
 }
