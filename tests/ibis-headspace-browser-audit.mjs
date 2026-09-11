@@ -7,14 +7,7 @@ fs.mkdirSync('test-artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:process.env.FTN_CHROME_PATH||undefined});
 
 async function isolateExternalFonts(page){
-  // The interface already has system-font fallbacks. Keep the browser gate
-  // deterministic when CI or a local sandbox cannot reach Google Fonts,
-  // without hiding failures from any FTN-owned script, stylesheet or data.
-  await page.route('https://fonts.googleapis.com/**',route=>route.fulfill({
-    status:200,
-    contentType:'text/css',
-    body:''
-  }));
+  await page.route('https://fonts.googleapis.com/**',route=>route.fulfill({status:200,contentType:'text/css',body:''}));
 }
 
 const landing=await browser.newPage({viewport:{width:1440,height:1000}});
@@ -24,10 +17,7 @@ assert.match(await landing.locator('.hero h1').innerText(),/Give ibis a problem,
 assert.equal(await landing.locator('#askInput').count(),1,'Landing intent input must exist');
 await landing.screenshot({path:'test-artifacts/ibis-headspace-lander.png',fullPage:false});
 await landing.locator('#askInput').fill('What is the latest USD selling rate?');
-await Promise.all([
-  landing.waitForURL(/\/ibis-headspace-preview\/\?q=/),
-  landing.locator('#askForm button[type="submit"]').click()
-]);
+await Promise.all([landing.waitForURL(/\/ibis-headspace-preview\/\?q=/),landing.locator('#askForm button[type="submit"]').click()]);
 assert.match(landing.url(),/ibis-headspace-preview/,'Landing intent should enter Headspace');
 await landing.close();
 
@@ -79,6 +69,8 @@ assert.match(await page.locator('[data-thought="context"] .thought-bar>span').in
 assert.equal(await page.locator('[data-thought="answer"]').evaluate(el=>el.classList.contains('dematerialized')),true,'Stale unpinned answer should dematerialize when Context Graph owns attention');
 
 const active=page.locator('[data-thought="context"]');
+await active.scrollIntoViewIfNeeded();
+await page.waitForTimeout(100);
 const before=await active.boundingBox();
 if(before){
   const startX=before.x+before.width/2,startY=before.y+Math.min(before.height/2,100);
