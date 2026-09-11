@@ -3,8 +3,27 @@
 // candidate/source-ready tools to live and never exposes credentials or private connection data.
 (function(global){
   'use strict';
-  var FTN=global.FTN=global.FTN||{};
+  var FTN=global.FTN=global.FTN||{},loads={};
   function statusNode(){return typeof document!=='undefined'?document.getElementById('toolStatus'):null;}
+  function load(src,test){
+    if(test())return Promise.resolve();
+    if(loads[src])return loads[src];
+    loads[src]=new Promise(function(resolve,reject){
+      var s=document.createElement('script');s.src=src;s.defer=true;
+      s.onload=function(){test()?resolve():reject(new Error('Loaded '+src+' but the required capability did not register.'));};
+      s.onerror=function(){reject(new Error('Could not load '+src));};
+      document.head.appendChild(s);
+    });
+    return loads[src];
+  }
+  async function ensureToolHealthCore(){
+    // Tool health must not depend on the entire IBIS runtime booting successfully. An unrelated
+    // optional module must never make the tool catalog look dead. Load only the primitives this
+    // surface actually needs, then verify them directly.
+    await load('/js/ibis-tool-catalog.js',function(){return !!FTN.IbisToolCatalog;});
+    await load('/js/ibis-connection-fabric.js',function(){return !!FTN.ConnectionFabric;});
+    await load('/js/ibis-native-connections.js',function(){return !!(FTN.ConnectionFabric&&FTN.ConnectionFabric.gateway&&FTN.ConnectionFabric.gateway('REST'));});
+  }
   function gatewayText(row){
     if(!row)return'';
     if(row.ready)return row.id+' ready';
@@ -16,13 +35,14 @@
     if(!node)return null;
     node.textContent='Checking governed tool and connection health…';
     try{
-      if(FTN.IbisRuntimeReady)await FTN.IbisRuntimeReady;
-      if(!FTN.IbisToolCatalog||!FTN.ConnectionFabric)throw new Error('ibis runtime catalog is unavailable.');
+      await ensureToolHealthCore();
+      if(!FTN.IbisToolCatalog||!FTN.ConnectionFabric)throw new Error('ibis tool-health core is unavailable.');
       var registry=await FTN.IbisToolCatalog.load('/data/ibis-capability-registry.json');
       var catalog=FTN.IbisToolCatalog.status();
       var fabric=await FTN.ConnectionFabric.health();
-      var ready=(fabric.gateways||[]).filter(function(row){return row.ready;});
-      node.textContent='Governed registry: '+catalog.total+' tools · '+catalog.enabled+' enabled · '+catalog.adapterCount+' registered tool adapters. Connection fabric: '+(fabric.gateways||[]).map(gatewayText).join(' · ')+'.';
+      var gateways=fabric.gateways||[];
+      var ready=gateways.filter(function(row){return row.ready;});
+      node.textContent='Governed registry: '+catalog.total+' tools · '+catalog.enabled+' enabled · '+catalog.adapterCount+' registered adapters'+(gateways.length?'. Connections: '+gateways.map(gatewayText).join(' · ')+'.':'. No external connection gateway reported ready.');
       node.dataset.health='ready';
       node.dataset.toolCount=String(catalog.total);
       node.dataset.enabledCount=String(catalog.enabled);
@@ -34,7 +54,7 @@
       return null;
     }
   }
-  FTN.HeadspaceToolHealth={refresh:refresh};
+  FTN.HeadspaceToolHealth={refresh:refresh,ensureToolHealthCore:ensureToolHealthCore};
   if(typeof document!=='undefined'){
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});
     else refresh();
