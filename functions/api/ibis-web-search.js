@@ -1,8 +1,8 @@
 // FTN Platform — IBIS owned web-search retrieval gateway.
 // Retrieval only: no LLM synthesis and no secrets. This gives IBIS a same-origin search path that
 // can fail over across public search surfaces without coupling reasoning/provenance to one vendor.
-// FTN-owned verified datasets are injected ahead of general web results when they directly answer
-// a query (for example official CBTT FX statistics). They remain labelled with their source/date.
+// FTN-owned verified datasets and governed official-source seeds are injected ahead of general web
+// results when they directly answer a query. They remain labelled with source and evidence limits.
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36';
 
 function text(value) {
@@ -116,6 +116,21 @@ async function verifiedFtnFacts(request, q) {
         }
       }
     } catch {}
+  }
+  const fundingIntent = /\b(?:grant|grants|funding|funded|finance|financing)\b/i.test(q) && /\b(?:trinidad|tobago|small business|sme|micro business|entrepreneur)\b/i.test(q);
+  if (fundingIntent) {
+    out.push({
+      title: 'Ministry of Trade, Investment & Tourism — Grant Fund Facility',
+      url: 'https://tradeind.gov.tt/grant-fund-facility/',
+      snippet: 'Official Trinidad and Tobago Ministry source describing the Grant Fund Facility for eligible SMEs, administered through exporTT. Open the official page to verify current intake, eligible sectors, matching-fund requirements and application instructions before applying.',
+      engine: 'ftn-governed-official-source',
+    });
+    out.push({
+      title: 'NEDCO — Grants & Programmes / Micro and Small Business Grant',
+      url: 'https://nedco.gov.tt/grants-programmes',
+      snippet: 'Official NEDCO source for Trinidad and Tobago grants and programmes, including the Micro and Small Business Grant. Open the source to verify whether applications are currently being accepted, current eligibility, required documents and any programme changes.',
+      engine: 'ftn-governed-official-source',
+    });
   }
   return out;
 }
