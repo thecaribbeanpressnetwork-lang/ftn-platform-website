@@ -36,7 +36,7 @@
     function endDrag(e){if(!drag||e.pointerId!==drag.id)return;drag.node.classList.remove('dragging');drag=null;hint('Card moved. Headspace remains freeform until you choose Snap Grid, Tile or Stack.');}
     field.addEventListener('pointerdown',startDrag,true);field.addEventListener('pointermove',moveDrag,true);field.addEventListener('pointerup',endDrag,true);field.addEventListener('pointercancel',endDrag,true);
 
-    return{place:place,snap:function(){arrange('grid');},snapNode:snapNode,organize:function(){arrange('grid');},tile:tile,stack:stack,freeform:freeform,minimize:minimize,restore:restore,visible:visible,arrange:arrange,getMode:function(){return mode;}};
+    return{place:place,snap:function(node){if(node&&mode==='freeform')return;arrange('grid');},snapNode:snapNode,organize:function(){arrange('grid');},tile:tile,stack:stack,freeform:freeform,minimize:minimize,restore:restore,visible:visible,arrange:arrange,getMode:function(){return mode;}};
   }
 
   function wireOpacity(field){var slider=document.getElementById('headspaceOpacity');if(!slider||slider.dataset.ibisOpacityReady==='true')return;slider.dataset.ibisOpacityReady='true';function apply(raw){var value=Math.max(50,Math.min(100,Number(raw||slider.value||100)))/100;slider.value=String(Math.round(value*100));field.style.setProperty('--thought-opacity',String(value));document.querySelectorAll('.thought:not(.dematerialized)').forEach(function(n){n.style.setProperty('opacity',String(value),'important');});}slider.addEventListener('input',function(){apply();});slider.addEventListener('change',function(){apply();});field.__ibisSetOpacity=apply;apply();}
