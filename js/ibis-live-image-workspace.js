@@ -1,8 +1,7 @@
 // FTN ibis — authoritative semantic output contracts for the public workspace.
-// This file began as the real-image guard. It now also owns current-source policy at the same
-// document-capture boundary so a generic model or unrelated community feed cannot satisfy a task
-// whose contract requires evidence. Production succeeds only when the requested artifact/source
-// class is actually returned; otherwise IBIS fails closed.
+// Real image and governed Caribbean-news contracts stay here; broader evidence-dependent ASK
+// requests are delegated to the universal CEBOS web-research workspace rather than generic model
+// memory or narrow software-community feeds.
 (function(global){
   'use strict';
   var SUPABASE='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/';
@@ -13,13 +12,17 @@
   var LOCAL_FIXTURE_PNG='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
   var LIVE_PHRASES=['right now','happening now','currently','as of today','latest on','latest news','current news','recent news','this week','up to date','up-to-date','today','this month'];
 
+  // Transitional loader: ibis-ai/index.html already loads this contract bridge on every public
+  // workspace. Keep the universal research module separate, but ensure it is present without
+  // duplicating research logic inside this file. A later bundling pass can move the script tag.
+  (function loadUniversalResearch(){if(document.querySelector('script[src^="/js/ibis-web-research-workspace.js"]'))return;var s=document.createElement('script');s.src='/js/ibis-web-research-workspace.js?v=20260911.1';s.async=false;document.head.appendChild(s);})();
+
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function localFixtureHost(){return location.hostname==='127.0.0.1'||location.hostname==='localhost';}
   function activeVisual(){var b=document.querySelector('#ibis-form [data-mode="visual"]');return Boolean(b&&b.getAttribute('aria-pressed')==='true');}
   function imageIntent(text){var q=String(text||'').toLowerCase();return activeVisual()||(/\b(create|generate|make|render|draw|illustrate|design)\b/.test(q)&&/\b(image|picture|photo|photograph|visual|poster|graphic|thumbnail|cover|flyer|scene|portrait|landscape|logo|ibis|bird)\b/.test(q));}
   function currentIntent(text){var q=String(text||'').toLowerCase();return LIVE_PHRASES.some(function(p){return q.indexOf(p)!==-1;})||/\b(news|headlines|breaking|what(?:'s| is) happening)\b/.test(q);}
   function caribbeanNewsIntent(text){var q=String(text||'').toLowerCase();return currentIntent(q)&&(/\b(news|headlines|happening|current|latest|today)\b/.test(q))&&/\b(trinidad|tobago|trinidad and tobago|t&t|caribbean|caricom|local)\b/.test(q);}
-  function techCurrentIntent(text){var q=String(text||'').toLowerCase();return /\b(github|repository|repo|software|developer|programming|coding|open source|open-source|ai model|llm|javascript|python|api)\b/.test(q);}
   function append(kind,html){var log=document.getElementById('ibis-conversation');if(!log)return null;var welcome=document.getElementById('ibis-chat-welcome');if(welcome)welcome.remove();var row=document.createElement('div');row.className='ibis-msg ibis-msg--'+kind;var bubble=document.createElement('div');bubble.className='ibis-msg__bubble'+(kind==='ibis'?' ibis-msg__bubble--ibis':'');bubble.innerHTML=html;row.appendChild(bubble);log.appendChild(row);log.scrollTop=log.scrollHeight;return bubble;}
   function status(state){try{var host=document.getElementById('ibis-ai-status');if(host&&global.FTN&&global.FTN.IbisVisualState)global.FTN.IbisVisualState.set(host,state);}catch(_){} }
 
@@ -43,15 +46,14 @@
     out.innerHTML='<span class="workspace-kicker ibis-live-kicker">CURRENT CARIBBEAN SOURCES · publisher/institutional evidence</span><p>Here are the most recent source-attributed headlines ibis can verify from its configured Caribbean source set. Open the original source for the full report.</p><div class="ibis-live-sources">'+fresh.map(sourceRow).join('')+'</div><p class="workspace-muted">Retrieved '+esc(new Date(b.fetchedAt||Date.now()).toLocaleString())+' · '+esc(b.notice||'Headline metadata is source discovery, not independent FTN verification.')+'</p>';
     status('idle');return true;
   }
-  function renderUnsupportedCurrent(out){out.innerHTML='<span class="workspace-kicker">LIVE EVIDENCE REQUIRED</span><p>This request needs current-source evidence, but ibis does not have an eligible source set for this domain yet. It will not use software repositories, community feeds or model memory as a substitute for relevant live evidence.</p>';status('idle');}
 
   document.addEventListener('submit',function(e){
     var form=e.target;if(!form||form.id!=='ibis-form')return;
     var input=document.getElementById('ibis-goal'),prompt=input&&input.value.trim();if(!prompt)return;
-    var kind=imageIntent(prompt)?'image':caribbeanNewsIntent(prompt)?'caribbean-news':(currentIntent(prompt)&&!techCurrentIntent(prompt)?'unsupported-current':'');
+    var kind=imageIntent(prompt)?'image':caribbeanNewsIntent(prompt)?'caribbean-news':'';
     if(!kind)return;
     e.preventDefault();e.stopImmediatePropagation();append('user',esc(prompt));var out=append('ibis','<p class="ibis-msg__thinking">ibis is matching the request to an evidence/output contract…</p>');if(input)input.value='';
-    if(!out)return;if(kind==='image')generate(prompt,out);else if(kind==='caribbean-news')renderCaribbeanNews(prompt,out);else{status('verifying');renderUnsupportedCurrent(out);}
+    if(!out)return;if(kind==='image')generate(prompt,out);else renderCaribbeanNews(prompt,out);
   },true);
 
   global.FTN=global.FTN||{};
