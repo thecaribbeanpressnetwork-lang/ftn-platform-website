@@ -156,13 +156,41 @@ function dedupe(items) {
   return out;
 }
 
+function personSearchQueries(q) {
+  const raw = String(q || '').trim();
+  const name = raw.replace(/^['"“”]+|['"“”]+$/g, '').trim();
+  const words = name.split(/\s+/).filter(Boolean);
+  const nameLike = words.length >= 2 && words.length <= 6 && words.every((word) => /^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’-]*$/.test(word));
+  if (!nameLike) return [raw];
+  return Array.from(new Set([
+    `"${name}"`,
+    `${name} Trinidad Tobago`,
+    `${name} Caribbean`,
+    `${name} biography profile credits`,
+  ]));
+}
+
+async function multiSearch(q) {
+  const plans = personSearchQueries(q);
+  const batches = await Promise.all(plans.map(async (plan) => {
+    const [b, s, d] = await Promise.all([bing(plan), searx(plan), ddg(plan)]);
+    return { b, s, d };
+  }));
+  return {
+    bing: dedupe(batches.flatMap((x) => x.b)),
+    searx: dedupe(batches.flatMap((x) => x.s)),
+    ddg: dedupe(batches.flatMap((x) => x.d)),
+    plans,
+  };
+}
+
 export async function onRequestGet({ request }) {
   const u = new URL(request.url);
   const q = (u.searchParams.get('q') || '').trim().slice(0, 500);
   if (!q) return Response.json({ error: 'q required', results: [] }, { status: 400, headers: { 'cache-control': 'no-store' } });
-  const [facts, b, s, d] = await Promise.all([verifiedFtnFacts(request, q), bing(q), searx(q), ddg(q)]);
-  const results = dedupe([...facts, ...s, ...b, ...d]).filter((item) => localityRelevant(q, item)).slice(0, 20);
-  return Response.json({ query: q, results, engines: { ftnVerified: facts.length, searxng: s.length, bing: b.length, duckduckgo: d.length }, retrievedAt: new Date().toISOString() }, {
+  const [facts, web] = await Promise.all([verifiedFtnFacts(request, q), multiSearch(q)]);
+  const results = dedupe([...facts, ...web.searx, ...web.bing, ...web.ddg]).filter((item) => localityRelevant(q, item)).slice(0, 30);
+  return Response.json({ query: q, results, queryPlans: web.plans, engines: { ftnVerified: facts.length, searxng: web.searx.length, bing: web.bing.length, duckduckgo: web.ddg.length }, retrievedAt: new Date().toISOString() }, {
     headers: { 'cache-control': 'public, max-age=60', 'x-robots-tag': 'noindex' },
   });
 }
