@@ -16,16 +16,20 @@ for (const id of ['speakAnswer','speechPause','speechRewind','speechSpeed','spee
 assert.match(html, /ibis-headspace-speech\.js/);
 for (const operation of ['speechSynthesis','.pause(','.resume(','move(-1)','move(1)','utterance.rate']) assert.ok(speech.includes(operation), `Missing speech operation ${operation}`);
 for (const action of ['place','snapNode','minimize','restore','tile','stack']) assert.match(manager, new RegExp(`function ${action}\\b`));
+assert.match(manager,/function freeform\b/,'Headspace must expose a genuine unsnapped freeform layout.');
+assert.match(manager,/mode!=='freeform'\)freeform\(\)/,'Dragging a snapped card must implicitly unsnap Headspace rather than snapping it back.');
 for (const code of ['TT','JM','BB','GY','LC','VE']) assert.match(themes, new RegExp(`${code}: \\{`));
 assert.match(themes, /VE:.*primary: '#f2c94c'.*secondary: '#1f5ca8'.*tertiary: '#d71920'/);
 assert.match(themes, /GY:.*secondary: '#2f8f48'.*tertiary: '#d71920'.*ink: '#08090b'.*muted: '#ffffff'/);
 assert.match(themes, /ibis-native.*primary: '#55d6d0'.*secondary: '#ef5b4f'.*tertiary: '#f7f8fa'/);
 
 // Regression gate: the public compatibility workspace must not make Headspace disappear again.
+// The truth boundary is behavioral: the public entry still targets the explicit preview route and
+// tells users that live tools remain capability/health/permission gated.
 assert.match(publicHtml, /ibis-query-bootstrap\.js/,'Public ibis workspace must load the recovery entry bootstrap.');
 assert.match(publicBootstrap, /data-ibis-headspace-entry/,'Public ibis workspace must expose a visible Headspace entry.');
-assert.match(publicBootstrap, /href="\/ibis-headspace-preview\/"/,'Public Headspace entry must target the connected Headspace route.');
-assert.match(publicBootstrap, /recovery preview/i,'Until browser acceptance passes, the public entry must preserve the preview truth boundary.');
+assert.match(publicBootstrap, /href="\/ibis-headspace-preview\/"/,'Public Headspace entry must target the connected Headspace preview route.');
+assert.match(publicBootstrap, /Live tools remain capability, health and permission gated/i,'Until browser acceptance passes, the public entry must preserve the preview truth boundary in user-visible copy.');
 
 // Truthful tools surface: load the governed registry/runtime and display actual health instead of
 // the old blanket prototype-only message. Candidate tools must not be promoted by this surface.
@@ -49,4 +53,4 @@ assert.equal(scoutRegistry.policy.automaticSpend,false,'Scout 2.0 must not auto-
 assert.equal(scoutRegistry.policy.founderApprovalRequired,true,'Scout 2.0 must preserve founder approval.');
 assert.doesNotMatch(scoutHealth, /API[_ -]?KEY|SECRET|TOKEN\s*=/i,'Scout health must not embed credential material.');
 
-console.log('ibis Headspace source audit: window arrangements, minimize/restore, six country themes, speech controls, public recovery entry, truthful tool health and Scout Network truth-state verified.');
+console.log('ibis Headspace source audit: freeform unsnap, window arrangements, minimize/restore, six country themes, speech controls, public preview boundary, truthful tool health and Scout Network truth-state verified.');
