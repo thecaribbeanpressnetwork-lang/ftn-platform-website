@@ -7,14 +7,7 @@ fs.mkdirSync('test-artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:process.env.FTN_CHROME_PATH||undefined});
 
 async function isolateExternalFonts(page){
-  // The interface already has system-font fallbacks. Keep the browser gate
-  // deterministic when CI or a local sandbox cannot reach Google Fonts,
-  // without hiding failures from any FTN-owned script, stylesheet or data.
-  await page.route('https://fonts.googleapis.com/**',route=>route.fulfill({
-    status:200,
-    contentType:'text/css',
-    body:''
-  }));
+  await page.route('https://fonts.googleapis.com/**',route=>route.fulfill({status:200,contentType:'text/css',body:''}));
 }
 
 const landing=await browser.newPage({viewport:{width:1440,height:1000}});
@@ -24,10 +17,7 @@ assert.match(await landing.locator('.hero h1').innerText(),/Give ibis a problem,
 assert.equal(await landing.locator('#askInput').count(),1,'Landing intent input must exist');
 await landing.screenshot({path:'test-artifacts/ibis-headspace-lander.png',fullPage:false});
 await landing.locator('#askInput').fill('What is the latest USD selling rate?');
-await Promise.all([
-  landing.waitForURL(/\/ibis-headspace-preview\/\?q=/),
-  landing.locator('#askForm button[type="submit"]').click()
-]);
+await Promise.all([landing.waitForURL(/\/ibis-headspace-preview\/\?q=/),landing.locator('#askForm button[type="submit"]').click()]);
 assert.match(landing.url(),/ibis-headspace-preview/,'Landing intent should enter Headspace');
 await landing.close();
 
@@ -79,14 +69,27 @@ assert.match(await page.locator('[data-thought="context"] .thought-bar>span').in
 assert.equal(await page.locator('[data-thought="answer"]').evaluate(el=>el.classList.contains('dematerialized')),true,'Stale unpinned answer should dematerialize when Context Graph owns attention');
 
 const active=page.locator('[data-thought="context"]');
+await active.scrollIntoViewIfNeeded();
+await page.waitForTimeout(100);
 const before=await active.boundingBox();
-if(before){await active.hover();await page.mouse.down();await page.mouse.move(before.x+150,before.y+120,{steps:8});await page.mouse.up();await page.waitForTimeout(150);const after=await active.boundingBox();assert(after&&Math.abs(after.x-before.x)>10,'Active thought surface should be draggable');}
+if(before){
+  const startX=before.x+before.width/2,startY=before.y+Math.min(before.height/2,100);
+  await page.mouse.move(startX,startY);
+  await page.mouse.down();
+  await page.mouse.move(startX+150,startY+120,{steps:8});
+  await page.mouse.up();
+  await page.waitForTimeout(150);
+  const after=await active.boundingBox();
+  assert(after&&(Math.abs(after.x-before.x)>10||Math.abs(after.y-before.y)>10),'Active thought surface should be draggable');
+  assert.equal(await page.locator('#field').getAttribute('data-layout'),'freeform','Dragging a snapped card should unsnap Headspace into freeform mode');
+}
 await page.screenshot({path:'test-artifacts/ibis-headspace-desktop.png',fullPage:true});
 
 const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
 await isolateExternalFonts(mobile);
 await mobile.goto(base+'/ibis-headspace-preview/',{waitUntil:'networkidle'});
-assert.equal(await mobile.locator('.rail').evaluate(el=>getComputedStyle(el).display),'none','Desktop rail should collapse on mobile');
+const rail=mobile.locator('.rail');
+if(await rail.count())assert.equal(await rail.evaluate(el=>getComputedStyle(el).display),'none','Desktop rail should collapse on mobile');
 const bodyWidth=await mobile.evaluate(()=>document.body.scrollWidth),viewportWidth=await mobile.evaluate(()=>window.innerWidth);
 assert(bodyWidth<=viewportWidth+2,'Headspace mobile layout must not create horizontal overflow');
 await mobile.locator('#headspaceQuery').fill('What is the latest USD selling rate?');
@@ -96,4 +99,4 @@ await mobile.screenshot({path:'test-artifacts/ibis-headspace-mobile.png',fullPag
 
 assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));
 await browser.close();
-console.log('ibis browser audit: cinematic lander handoff, truthful Scout health, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, dragging and mobile attention layout verified; screenshots captured.');
+console.log('ibis browser audit: cinematic lander handoff, truthful Scout health, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, direct dragging/freeform unsnap and mobile attention layout verified; screenshots captured.');

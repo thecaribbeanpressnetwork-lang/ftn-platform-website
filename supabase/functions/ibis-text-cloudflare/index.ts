@@ -2,11 +2,19 @@
 // Health is zero-consumption: it reports server configuration only and never invokes the model.
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
+function originAllowed(origin: string | null) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+  try {
+    const url = new URL(origin);
+    return url.protocol === "https:" && /^(?:[a-z0-9-]+\.)?ftn-platform-website\.pages\.dev$/i.test(url.hostname);
+  } catch { return false; }
+}
 const windows = new Map<string, { count: number; resetAt: number }>();
 
 function cors(origin: string | null) {
   return {
-    "Access-Control-Allow-Origin": origin && allowedOrigins.has(origin) ? origin : "https://ftnplatform.org",
+    "Access-Control-Allow-Origin": origin && originAllowed(origin) ? origin : "https://ftnplatform.org",
     "Access-Control-Allow-Headers": "authorization, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Content-Type": "application/json; charset=utf-8",
@@ -32,7 +40,18 @@ function withinLimit(ip: string) {
 }
 
 const MODEL = "@cf/meta/llama-3.1-8b-instruct";
-const BASE_INSTRUCTION = "You are ibis, FTN Platform's intelligent Caribbean assistant. You help citizens, creators, investors and institutions navigate the Caribbean ecosystem. You are precise and Caribbean-first. You never fabricate. When you don't know something, you say so. Mission Control is private institutional infrastructure, not a public product -- do not offer it as a destination. Keep answers concise unless the user asks for detail.";
+const BASE_INSTRUCTION = [
+  "You are ibis, FTN Platform's Caribbean-first intelligence assistant.",
+  "Answer the user's actual question directly and naturally. Do not expose internal evaluation frameworks, scorecards, chain-of-thought, planning labels, or headings such as User Value, Ecosystem Value, Ownership, Data Value, Economic Value, Execution Cost, Future Optionality, Challenge Weak Ideas, Assumptions, Reversible Experiments, Shared Infrastructure, or Second-Order Effects unless the user explicitly asks for that framework.",
+  "Do not fabricate names, professions, biographies, credits, organizations, statistics, links, current events, product capabilities, or actions.",
+  "If the user asks about a person and the supplied context does not contain verified facts about that person, say that you do not have enough verified information rather than guessing.",
+  "If the user asks for current news, live facts, or local evidence, do not answer from model memory. State that a live-source route is required unless live-source evidence is included in the prompt.",
+  "Never claim an FTN product can do something unless that capability is explicitly present in the supplied FTN product registry/context.",
+  "Do not say that you searched the web, opened a page, accessed private data, generated an artifact, or executed an action unless the supplied context proves it happened.",
+  "Mission Control is private institutional infrastructure, not a public product -- do not offer it as a public destination.",
+  "Use Caribbean context when relevant, but do not force regional references into unrelated answers.",
+  "For ordinary advice, be practical and concise. Ask for missing business-specific inputs rather than pretending you can see sales, inventory, customers, finances or analytics that were not provided.",
+].join(" ");
 
 type Turn = { role: "user" | "assistant"; content: string };
 type ProductSummary = { name: string; route: string; tagline: string };
@@ -44,14 +63,14 @@ function buildSystemPrompt(products: unknown): string {
     .slice(0, 30)
     .map((p) => `${p.name} (${p.route})${p.tagline ? " -- " + String(p.tagline).slice(0, 120) : ""}`);
   if (!lines.length) return BASE_INSTRUCTION;
-  return BASE_INSTRUCTION + " Current FTN products:\n" + lines.join("\n");
+  return BASE_INSTRUCTION + " Current FTN products (registry evidence only; do not infer extra capabilities):\n" + lines.join("\n");
 }
 
 Deno.serve(async (request) => {
   const origin = request.headers.get("origin");
   if (request.method === "OPTIONS") return new Response(null, { headers: cors(origin) });
   if (request.method !== "POST") return reply({ error: "Method not allowed" }, 405, origin);
-  if (origin && !allowedOrigins.has(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
+  if (!originAllowed(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
 
   let payload: { action?: unknown; messages?: unknown; products?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
@@ -61,15 +80,7 @@ Deno.serve(async (request) => {
   const configured = Boolean(accountId && apiToken);
 
   if (payload.action === "health") {
-    return reply({
-      capability: "TEXT",
-      provider: "cloudflare-workers-ai",
-      model: MODEL,
-      configured,
-      ready: configured,
-      inferenceAttempted: false,
-      checkedAt: new Date().toISOString(),
-    }, 200, origin);
+    return reply({ capability: "TEXT", provider: "cloudflare-workers-ai", model: MODEL, configured, ready: configured, inferenceAttempted: false, checkedAt: new Date().toISOString() }, 200, origin);
   }
 
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
@@ -78,10 +89,7 @@ Deno.serve(async (request) => {
   const raw = Array.isArray(payload.messages) ? payload.messages : [];
   const turns: Turn[] = raw
     .filter((m): m is { role: unknown; content: unknown } => !!m && typeof m === "object")
-    .map((m) => ({
-      role: m.role === "assistant" ? "assistant" : "user",
-      content: typeof m.content === "string" ? m.content.trim().slice(0, 2_000) : "",
-    }))
+    .map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: typeof m.content === "string" ? m.content.trim().slice(0, 2_000) : "" }))
     .filter((m) => m.content.length > 0)
     .slice(-20);
 
@@ -93,12 +101,7 @@ Deno.serve(async (request) => {
     const upstream = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${MODEL}`, {
       method: "POST",
       headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
-      body: JSON.stringify({
-        messages: [
-          { role: "system", content: buildSystemPrompt(payload.products) },
-          ...turns.map((t) => ({ role: t.role, content: t.content })),
-        ],
-      }),
+      body: JSON.stringify({ messages: [{ role: "system", content: buildSystemPrompt(payload.products) }, ...turns.map((t) => ({ role: t.role, content: t.content }))], temperature: 0.2 }),
       signal: AbortSignal.timeout(20_000),
     });
     const data = await upstream.json().catch(() => ({}));

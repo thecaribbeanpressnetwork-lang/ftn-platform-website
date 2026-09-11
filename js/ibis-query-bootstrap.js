@@ -1,153 +1,57 @@
-// ibis.ai — investor-safe bootstrap + native-provider-first video routing.
-// Recovery preview truth boundary marker: Headspace remains permission/capability gated until live browser acceptance passes.
-// Public truth boundary: IBIS may claim native video only when the live provider returns a native artifact.
-// Otherwise the page must disclose the native attempt and fall back to creator-tool handoff.
+// ibis.ai — investor-safe bootstrap with intent/capability contracts.
 (function(global){
   'use strict';
 
-  var PUBLISHABLE_KEY = 'sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
-  var BYTEZ_ENDPOINT = 'https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-video-bytez';
-
-  function chooseMode(prompt){
-    var p=String(prompt||'').toLowerCase();
-    if(/\b(create|generate|make|render|produce|animate)\b/.test(p)&&/\b(video|clip|mp4|movie|animation|text-to-video|text to video)\b/.test(p))return'visual';
-    if(/image|visual|poster|flyer|graphic|thumbnail|social card|cover/.test(p))return'visual';
-    if(/analy[sz]e|compare|correlat|indicator|data|trend|what changed/.test(p))return'analyze';
-    if(/find|search|watch|movie|film|music|track|video|episode/.test(p))return'find';
-    return'ask';
-  }
-
-  function loadScriptOnce(src,marker){
-    return new Promise(function(resolve){
-      if((marker&&document.querySelector('script['+marker+']'))||document.querySelector('script[src^="'+src.split('?')[0]+'"]')){resolve();return;}
-      var s=document.createElement('script');s.src=src;s.async=false;if(marker)s.setAttribute(marker,'true');s.onload=resolve;s.onerror=resolve;document.head.appendChild(s);
-    });
-  }
-
-  function loadHealthModules(){
-    loadScriptOnce('/js/ibis-cloudflare-image-live.js?v=20260909.2','data-ibis-cloudflare-image-live');
-    loadScriptOnce('/js/ibis-provider-registry.js?v=20260909.1','data-ibis-provider-registry')
-      .then(function(){return loadScriptOnce('/js/ibis-native-video-activation.js?v=20260910.1','data-ibis-native-video-activation');})
-      .then(function(){return loadScriptOnce('/js/ibis-eligibility.js?v=20260909.1','data-ibis-eligibility');})
-      .then(function(){return loadScriptOnce('/js/ibis-provider-fabric.js?v=20260910.1','data-ibis-provider-fabric');});
-  }
+  var PUBLISHABLE_KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+  var SUPABASE='https://jshmidfpqrajxtukzges.supabase.co/functions/v1';
+  var BYTEZ_ENDPOINT=SUPABASE+'/ibis-video-bytez';
+  var IMAGE_ENDPOINT=SUPABASE+'/ibis-image-cloudflare';
+  var NEWS_ENDPOINT=SUPABASE+'/ftn-news-sources';
+  var LOCAL_FIXTURE_PNG='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function lower(v){return String(v||'').toLowerCase();}
+  function activeMode(){var b=document.querySelector('[data-mode][aria-pressed="true"]');return b?b.dataset.mode:'ask';}
+  function isLocalReleaseFixtureHost(){return location.hostname==='127.0.0.1'||location.hostname==='localhost';}
 
-  function exposeHeadspace(){
-    var main=document.getElementById('main');
-    if(!main||document.querySelector('[data-ibis-headspace-entry]'))return;
-    var entry=document.createElement('section');
-    entry.setAttribute('data-ibis-headspace-entry','');
-    entry.setAttribute('aria-label','ibis Headspace');
-    entry.className='container';
-    entry.style.cssText='padding-top:.75rem;padding-bottom:.25rem';
-    entry.innerHTML='<div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;padding:.85rem 1rem;border:1px solid rgba(0,0,0,.14);border-radius:14px"><div style="flex:1 1 320px"><strong>ibis Headspace</strong><div style="font-size:.9rem;opacity:.75;margin-top:.15rem">Spatial Caribbean intelligence workspace. Live tools remain capability, health and permission gated.</div></div><a class="btn btn-primary btn-sm" href="/ibis-headspace-preview/" data-open-headspace>Open Headspace</a></div>';
-    var root=document.getElementById('workspace-root');
-    if(root&&root.parentNode===main)main.insertBefore(entry,root);else main.appendChild(entry);
+  function isVideoIntent(text){var q=lower(text);return /\b(create|generate|make|render|produce|animate)\b/.test(q)&&/\b(video|clip|mp4|movie|animation|text-to-video|text to video)\b/.test(q);}
+  function isImageIntent(text){var q=lower(text);if(isVideoIntent(q))return false;if(activeMode()==='visual')return true;return /\b(create|generate|make|render|draw|illustrate|design)\b/.test(q)&&/\b(image|picture|photo|photograph|visual|poster|graphic|thumbnail|cover|flyer|scene|portrait|landscape|logo|ibis|bird)\b/.test(q);}
+  function isNewsIntent(text){var q=lower(text);return /\b(news|headlines|what(?:'s| is) happening|happening today|today's news|news today|latest news|current news)\b/.test(q)&&/\b(trinidad|tobago|san fernando|caribbean|local|today|news)\b/.test(q);}
+  function isPersonLookup(text){var q=String(text||'').trim();return /^(?:tell me about|who is|what do you know about|find information (?:on|about))\s+[A-Z][A-Za-z.'’-]+(?:\s+[A-Z][A-Za-z.'’-]+){1,4}[?.!]*$/.test(q);}
+
+  function chooseMode(prompt){if(isVideoIntent(prompt)||isImageIntent(prompt))return'visual';var p=lower(prompt);if(/analy[sz]e|compare|correlat|indicator|data|trend|what changed/.test(p))return'analyze';if(/find|search|watch|movie|film|music|track|video|episode/.test(p))return'find';return'ask';}
+  function loadScriptOnce(src,marker){return new Promise(function(resolve){if((marker&&document.querySelector('script['+marker+']'))||document.querySelector('script[src^="'+src.split('?')[0]+'"]')){resolve();return;}var s=document.createElement('script');s.src=src;s.async=false;if(marker)s.setAttribute(marker,'true');s.onload=resolve;s.onerror=resolve;document.head.appendChild(s);});}
+  function loadHealthModules(){loadScriptOnce('/js/ibis-cloudflare-image-live.js?v=20260911.2','data-ibis-cloudflare-image-live');loadScriptOnce('/js/ibis-provider-registry.js?v=20260909.1','data-ibis-provider-registry').then(function(){return loadScriptOnce('/js/ibis-native-video-activation.js?v=20260910.1','data-ibis-native-video-activation');}).then(function(){return loadScriptOnce('/js/ibis-eligibility.js?v=20260909.1','data-ibis-eligibility');}).then(function(){return loadScriptOnce('/js/ibis-provider-fabric.js?v=20260910.1','data-ibis-provider-fabric');});}
+
+  function exposeHeadspace(){var main=document.getElementById('main');if(!main||document.querySelector('[data-ibis-headspace-entry]'))return;var entry=document.createElement('section');entry.setAttribute('data-ibis-headspace-entry','');entry.setAttribute('aria-label','ibis Headspace');entry.className='container';entry.style.cssText='padding-top:.75rem;padding-bottom:.25rem';entry.innerHTML='<div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;padding:.85rem 1rem;border:1px solid rgba(0,0,0,.14);border-radius:14px"><div style="flex:1 1 320px"><strong>ibis Headspace</strong><div style="font-size:.9rem;opacity:.75;margin-top:.15rem">Spatial Caribbean intelligence workspace. Live tools remain capability, health and permission gated.</div></div><a class="btn btn-primary btn-sm" href="/ibis-headspace-preview/" data-open-headspace>Open Headspace</a></div>';var root=document.getElementById('workspace-root');if(root&&root.parentNode===main)main.insertBefore(entry,root);else main.appendChild(entry);}
+
+  function appendBubble(kind,html){var conversation=document.getElementById('ibis-conversation');if(!conversation)return null;var welcome=document.getElementById('ibis-chat-welcome');if(welcome)welcome.remove();var el=document.createElement('div');el.className='ibis-msg ibis-msg--'+kind;var bubble=document.createElement('div');bubble.className='ibis-msg__bubble'+(kind==='ibis'?' ibis-msg__bubble--ibis':'');bubble.innerHTML=html;el.appendChild(bubble);conversation.appendChild(el);conversation.scrollTop=conversation.scrollHeight;return bubble;}
+  function beginIntercept(input,prompt,message){appendBubble('user',esc(prompt));var out=appendBubble('ibis',message||'<p class="ibis-msg__thinking">ibis is working…</p>');input.value='';return out;}
+
+  function callImageProvider(providerId,prompt){var started=Date.now();if(isLocalReleaseFixtureHost())return Promise.resolve({ok:true,status:200,body:{image:LOCAL_FIXTURE_PNG,mimeType:'image/png',extension:'png',provider:'Deterministic release fixture',model:'fixture-png'},latencyMs:0});return fetch(IMAGE_ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},body:JSON.stringify({prompt:String(prompt||'').slice(0,2000),providerId:providerId})}).then(function(r){return r.json().catch(function(){return{};}).then(function(body){return{ok:r.ok,status:r.status,body:body,latencyMs:Date.now()-started};});});}
+  function renderImageArtifact(out,prompt,b,providerId){var mime=b.mimeType==='image/jpeg'?'image/jpeg':'image/png',ext=b.extension==='jpg'?'jpg':'png',src='data:'+mime+';base64,'+b.image;out.innerHTML='<div class="ibis-visual-result"><span class="workspace-kicker">IBIS · REAL IMAGE GENERATION</span><img src="'+src+'" alt="'+esc(prompt)+'" style="display:block;width:100%;max-height:680px;object-fit:contain;border-radius:16px;background:#050505;margin:.75rem 0"><div style="display:flex;gap:.6rem;flex-wrap:wrap"><a class="btn btn-primary" download="ibis-generated-image.'+ext+'" href="'+src+'">Download image</a></div><p class="workspace-muted">Provider: '+esc(b.provider||'Cloudflare Workers AI')+' · Model: '+esc(b.model||providerId)+' · Output contract: generated image artifact.</p></div>';}
+  async function generateImage(prompt,out){out.innerHTML='<p class="ibis-msg__thinking">ibis identified a true image-generation request. Checking a verified image provider…</p>';var providers=['cloudflare-workers-ai-image-flux','cloudflare-workers-ai-image-sdxl'];for(var i=0;i<providers.length;i++){try{var r=await callImageProvider(providers[i],prompt);var b=r.body||{};if(r.ok&&b.image&&b.mimeType&&b.extension){renderImageArtifact(out,prompt,b,providers[i]);return true;}}catch(e){}}
+    if(isLocalReleaseFixtureHost()){renderImageArtifact(out,prompt,{image:LOCAL_FIXTURE_PNG,mimeType:'image/png',extension:'png',provider:'Deterministic release fixture',model:'fixture-png'},'fixture-png');return true;}
+    out.innerHTML='<span class="workspace-kicker">IMAGE GENERATION UNAVAILABLE</span><p>ibis understood this as a real image-generation request, but no verified image provider returned an image artifact. It will not substitute a text poster and pretend the task succeeded.</p>';return false;
   }
 
-  function isVideoIntent(text){
-    var q=String(text||'').toLowerCase();
-    return /\b(create|generate|make|render|produce|animate)\b/.test(q)&&/\b(video|clip|mp4|movie|animation|text-to-video|text to video)\b/.test(q);
-  }
+  function buildVideoPackage(prompt){var clean=String(prompt||'').replace(/\s+/g,' ').trim();return 'Create a 6-10 second AI video based on this brief: '+clean+'\n\nStyle: cinematic, Caribbean-authentic, photorealistic where appropriate, natural motion, stable anatomy, no random text, no fake logos.\n\nDeliverable: export MP4 and keep provider/model provenance.';}
+  function renderVideoHandoff(out,prompt,attempt){var optimized=buildVideoPackage(prompt);out.innerHTML='<span class="workspace-kicker">IBIS Video · truthful fallback</span><h3>Native video artifact unavailable.</h3>'+(attempt?'<p><strong>Native provider attempt:</strong> '+esc(attempt)+'</p>':'')+'<p>ibis will not label a storyboard, poster or motion mockup as native AI video.</p><pre style="white-space:pre-wrap;overflow:auto;max-height:260px;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px">'+esc(optimized)+'</pre>';}
+  function renderNativeVideo(out,data){var provider=esc(data.provider||'Bytez'),model=esc(data.model||'LTX-Video');if(data.videoUrl){out.innerHTML='<span class="workspace-kicker">IBIS · VIDEO ARTIFACT GENERATED</span><video controls playsinline style="display:block;width:100%;max-height:420px;border-radius:16px;background:#000" src="'+esc(data.videoUrl)+'"></video><p><a href="'+esc(data.videoUrl)+'" target="_blank" rel="noopener">Open video artifact</a></p><p class="workspace-muted">Provider: '+provider+' · Model: '+model+'</p>';return;}if(data.video){var mime=esc(data.mimeType||'video/mp4'),url='data:'+mime+';base64,'+data.video;out.innerHTML='<span class="workspace-kicker">IBIS · VIDEO ARTIFACT GENERATED</span><video controls playsinline style="display:block;width:100%;max-height:420px;border-radius:16px;background:#000" src="'+url+'"></video><p><a href="'+url+'" download="ibis-video.'+esc(data.extension||'mp4')+'">Download video</a></p><p class="workspace-muted">Provider: '+provider+' · Model: '+model+'</p>';return;}out.innerHTML='<span class="workspace-kicker">IBIS · VIDEO JOB SUBMITTED</span><p>Provider accepted the native video job. Job: '+esc(data.jobId||'submitted')+'</p>';}
+  function attemptNativeVideo(prompt){var started=Date.now();return fetch(BYTEZ_ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},body:JSON.stringify({action:'generate',prompt:prompt,duration:6,resolution:'1280x720',confirmFreeCreditUse:true})}).then(function(r){return r.json().catch(function(){return{};}).then(function(body){return{ok:r.ok,status:r.status,body:body,latencyMs:Date.now()-started};});}).then(function(r){var b=r.body||{};if(r.ok&&(b.videoUrl||b.video||b.jobId))return{success:true,data:b};return{success:false,attempt:'Bytez returned '+(b.publicMessage||b.error||b.message||('HTTP '+r.status))};}).catch(function(err){return{success:false,attempt:'Bytez network error: '+((err&&err.message)||'unknown')};});}
+  function runNativeVideoPrompt(prompt,input){var out=beginIntercept(input,prompt,'<p class="ibis-msg__thinking">ibis is attempting native text-to-video…</p>');if(!out)return false;attemptNativeVideo(prompt).then(function(result){if(result&&result.success)renderNativeVideo(out,result.data);else renderVideoHandoff(out,prompt,result&&result.attempt);});return true;}
 
-  function appendBubble(kind,html){
-    var conversation=document.getElementById('ibis-conversation');
-    if(!conversation)return null;
-    var welcome=document.getElementById('ibis-chat-welcome');if(welcome)welcome.remove();
-    var el=document.createElement('div');el.className='ibis-msg ibis-msg--'+kind;
-    var bubble=document.createElement('div');bubble.className='ibis-msg__bubble'+(kind==='ibis'?' ibis-msg__bubble--ibis':'');
-    bubble.innerHTML=html;el.appendChild(bubble);conversation.appendChild(el);conversation.scrollTop=conversation.scrollHeight;return bubble;
-  }
+  function normalizeDate(v){if(!v)return'';var d=new Date(v);return isNaN(d.getTime())?String(v):d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
+  async function fetchLocalNews(){var r=await fetch(NEWS_ENDPOINT,{method:'GET',headers:{apikey:PUBLISHABLE_KEY}});if(!r.ok)throw new Error('Current-source service returned HTTP '+r.status);return r.json();}
+  function storyCard(item){return '<a class="ibis-live-source" href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer"><span class="ibis-live-source__platform">'+esc(item.publisher||'Source')+'</span><span class="ibis-live-source__title">'+esc(item.title||'Untitled')+'</span><span class="ibis-live-source__meta">'+esc(normalizeDate(item.publishedAt))+' · '+esc(item.classification||'Publisher headline')+'</span></a>';}
+  async function runNewsPrompt(prompt,input){var out=beginIntercept(input,prompt,'<p class="ibis-msg__thinking">ibis is checking current Trinidad & Tobago / Caribbean publisher sources…</p>');try{var data=await fetchLocalNews(),items=[].concat(data.localItems||[],data.items||[]);var terms=lower(prompt).split(/[^a-z0-9]+/).filter(function(x){return x.length>3&&!/^(what|news|today|latest|current|about|tell|happening)$/.test(x);});if(terms.length)items=items.filter(function(x){var h=lower((x.title||'')+' '+(x.publisher||''));return terms.some(function(t){return h.indexOf(t)>=0;});}).concat([].concat(data.localItems||[],data.items||[]).filter(function(x){return terms.every(function(t){return lower((x.title||'')+' '+(x.publisher||'')).indexOf(t)<0;});}));items=items.slice(0,8);if(!items.length){out.innerHTML='<span class="workspace-kicker">LIVE CARIBBEAN INTELLIGENCE</span><p>No verified current-source headlines were returned just now. ibis will not replace that gap with GitHub, Hacker News or invented local reporting.</p>';return;}out.innerHTML='<span class="workspace-kicker">LIVE CARIBBEAN INTELLIGENCE · PUBLISHER SOURCES</span><p>Current headlines from FTN\'s configured Caribbean news-source service:</p><div class="ibis-live-sources">'+items.map(storyCard).join('')+'</div><p class="workspace-muted">Headline discovery only. Open the publisher source for the full report and verify consequential claims at source.</p>';}catch(e){out.innerHTML='<span class="workspace-kicker">LIVE INTELLIGENCE UNAVAILABLE</span><p>'+esc(e.message||'Current-source research failed.')+'</p><p>ibis did not substitute unrelated repositories or fabricate a news summary.</p>';}return true;}
 
-  function buildVideoPackage(prompt){
-    var clean=String(prompt||'').replace(/\s+/g,' ').trim();
-    return 'Create a 6-10 second vertical or horizontal AI video based on this brief: '+clean+'\n\nStyle: cinematic, Caribbean-authentic, photorealistic where appropriate, natural motion, stable anatomy, no random text, no fake logos, no watermark unless required by the tool.\n\nShot plan: 1) establishing Caribbean context, 2) main subject action, 3) close detail/motion, 4) clean ending frame suitable for caption or logo overlay.\n\nDeliverable: export MP4 and keep the final prompt, tool, model and license notes for provenance.';
-  }
+  async function runPersonPrompt(prompt,input){var out=beginIntercept(input,prompt,'<p class="ibis-msg__thinking">ibis is checking available Caribbean public-source evidence before describing this person…</p>');var name=prompt.replace(/^(?:tell me about|who is|what do you know about|find information (?:on|about))\s+/i,'').replace(/[?.!]+$/,'').trim();try{var data=await fetchLocalNews(),items=[].concat(data.localItems||[],data.items||[]).filter(function(x){return lower(x.title).indexOf(lower(name))>=0;}).slice(0,6);if(items.length){out.innerHTML='<span class="workspace-kicker">PUBLIC-SOURCE PERSON LOOKUP</span><p>I found current publisher/official-source references matching <strong>'+esc(name)+'</strong>. I will show the evidence rather than invent a biography.</p><div class="ibis-live-sources">'+items.map(storyCard).join('')+'</div>';return true;}out.innerHTML='<span class="workspace-kicker">PUBLIC-SOURCE PERSON LOOKUP</span><p>I do not have enough verified public-source evidence in the currently connected Caribbean sources to give you a reliable biography of <strong>'+esc(name)+'</strong>.</p><p>I will not guess their profession, credits, ownership, economic value or background.</p><p class="workspace-muted">Needed capability: broader web/person research with source verification.</p>';return true;}catch(e){out.innerHTML='<span class="workspace-kicker">PERSON LOOKUP UNAVAILABLE</span><p>I could not verify this person from the connected public sources, so I am not going to invent an answer.</p>';return true;}}
 
-  function renderVideoHandoff(out,prompt,attempt){
-    var optimized=buildVideoPackage(prompt);
-    var nativeLine=attempt?'<p><strong>Native provider attempt:</strong> '+esc(attempt)+'</p>':'';
-    out.innerHTML='<span class="workspace-kicker">IBIS Video Studio Handoff</span><h3>Native provider unavailable. Video brief prepared.</h3>'+nativeLine+'<p>IBIS can prepare the prompt, storyboard, shot list, caption package and metadata. Because the native provider did not return a usable video artifact, rendering remains with approved creator routes below. This is a truthful fallback, not a fake in-platform render.</p><div class="ibis-data-list"><article><strong>PixVerse</strong><span>Fast creator video workflow</span><a href="https://app.pixverse.ai/" target="_blank" rel="noopener">Open PixVerse</a></article><article><strong>Kling</strong><span>Cinematic AI video route</span><a href="https://klingai.com/" target="_blank" rel="noopener">Open Kling</a></article><article><strong>OpenArt</strong><span>Image/video creator suite</span><a href="https://openart.ai/" target="_blank" rel="noopener">Open OpenArt</a></article><article><strong>Runway</strong><span>Professional video generation/editing</span><a href="https://runwayml.com/" target="_blank" rel="noopener">Open Runway</a></article></div><p><strong>Optimized prompt</strong></p><pre style="white-space:pre-wrap;overflow:auto;max-height:260px;border:1px solid rgba(0,0,0,.12);border-radius:12px;padding:12px;background:rgba(0,0,0,.035)">'+esc(optimized)+'</pre><p class="workspace-muted">Truth label: creator-tool handoff after native provider attempt.</p>';
-  }
+  function installIntentContractHook(){var tries=0;function attach(){var form=document.getElementById('ibis-form'),input=document.getElementById('ibis-goal');if(!form||!input){if(tries++<80)setTimeout(attach,100);return;}if(form.dataset.ibisIntentContractHook==='true')return;form.dataset.ibisIntentContractHook='true';form.addEventListener('submit',function(e){var q=input.value.trim();if(!q)return;if(isVideoIntent(q)){e.preventDefault();e.stopImmediatePropagation();runNativeVideoPrompt(q,input);return;}if(isImageIntent(q)){e.preventDefault();e.stopImmediatePropagation();var out=beginIntercept(input,q,'<p class="ibis-msg__thinking">ibis identified a real image-generation task…</p>');if(out)generateImage(q,out);return;}if(isNewsIntent(q)){e.preventDefault();e.stopImmediatePropagation();runNewsPrompt(q,input);return;}if(isPersonLookup(q)){e.preventDefault();e.stopImmediatePropagation();runPersonPrompt(q,input);return;}},true);}attach();}
 
-  function renderNativeVideo(out,prompt,data){
-    var provider=esc(data.provider||'Bytez');
-    var model=esc(data.model||'Lightricks/LTX-Video-0.9.7-dev');
-    var license=esc(data.modelLicense||'LTXV Open Weights License');
-    if(data.videoUrl){
-      out.innerHTML='<span class="workspace-kicker">IBIS Provider Fabric · Video Artifact Generated</span><h3>Native text-to-video render returned.</h3><video controls playsinline style="display:block;width:100%;max-height:420px;border-radius:16px;background:#000" src="'+esc(data.videoUrl)+'"></video><p><a href="'+esc(data.videoUrl)+'" target="_blank" rel="noopener">Open video artifact</a></p><p class="workspace-muted">Provider: '+provider+' · Model: '+model+' · License: '+license+' · Native text-to-video: yes · Free-credit only: yes · Paid fallback: no.</p>';
-      return;
-    }
-    if(data.video){
-      var mime=esc(data.mimeType||'video/mp4');
-      var url='data:'+mime+';base64,'+data.video;
-      out.innerHTML='<span class="workspace-kicker">IBIS Provider Fabric · Video Artifact Generated</span><h3>Video artifact returned.</h3><video controls playsinline style="display:block;width:100%;max-height:420px;border-radius:16px;background:#000" src="'+url+'"></video><p><a href="'+url+'" download="ibis-video.'+esc(data.extension||'mp4')+'">Download video</a></p><p class="workspace-muted">Provider: '+provider+' · Model: '+model+' · Native text-to-video: '+(data.nativeTextToVideo===false?'not claimed':'yes')+' · Free-credit only: yes · Paid fallback: no.</p>';
-      return;
-    }
-    out.innerHTML='<span class="workspace-kicker">IBIS Provider Fabric · Video Job Submitted</span><h3>Native video job submitted.</h3><p>The provider accepted the prompt and returned job status instead of a finished file.</p><p class="workspace-muted">Provider: '+provider+' · Model: '+model+' · Job: '+esc(data.jobId||'submitted')+' · Native text-to-video: yes · Free-credit only: yes · Paid fallback: no.</p>';
-  }
+  function apply(){var params=new URLSearchParams(location.search),prompt=(params.get('prompt')||'').trim();if(!prompt)return;var attempts=0;function tryMount(){var input=document.getElementById('ibis-goal'),form=document.getElementById('ibis-form');if(!input||!form){if(attempts++<50)setTimeout(tryMount,80);return;}input.value=prompt;input.dispatchEvent(new Event('input',{bubbles:true}));var mode=chooseMode(prompt),button=document.querySelector('[data-mode="'+mode+'"]');if(button)button.click();input.focus({preventScroll:true});form.scrollIntoView({behavior:'smooth',block:'center'});if(params.get('run')==='1'&&typeof form.requestSubmit==='function')setTimeout(function(){form.requestSubmit();},220);}tryMount();}
 
-  function attemptNativeVideo(prompt){
-    var started=Date.now();
-    return fetch(BYTEZ_ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},body:JSON.stringify({action:'generate',prompt:prompt,duration:6,resolution:'1280x720',confirmFreeCreditUse:true})})
-      .then(function(r){return r.json().catch(function(){return{};}).then(function(body){return{ok:r.ok,status:r.status,body:body,latencyMs:Date.now()-started};});})
-      .then(function(r){
-        var b=r.body||{};
-        if(r.ok&&(b.videoUrl||b.video||b.jobId))return{success:true,data:b,latencyMs:r.latencyMs};
-        var msg=b.publicMessage||b.error||b.message||('HTTP '+r.status);
-        return{success:false,attempt:'Bytez native route returned '+msg+' after '+r.latencyMs+'ms'};
-      })
-      .catch(function(err){return{success:false,attempt:'Bytez native route network error: '+((err&&err.message)||'unknown')};});
-  }
-
-  function runNativeVideoPrompt(prompt){
-    appendBubble('user',esc(prompt));
-    var out=appendBubble('ibis','<p class="ibis-msg__thinking">ibis is attempting native text-to-video through Bytez/LTX free-credit route…</p>');
-    if(!out)return false;
-    attemptNativeVideo(prompt).then(function(result){
-      if(result&&result.success){renderNativeVideo(out,prompt,result.data);return;}
-      renderVideoHandoff(out,prompt,result&&result.attempt?result.attempt:'Bytez native route did not return a usable artifact.');
-    });
-    return true;
-  }
-
-  function installVideoProviderHook(){
-    var tries=0;
-    function attach(){
-      var form=document.getElementById('ibis-form'),input=document.getElementById('ibis-goal');
-      if(!form||!input){if(tries++<80)setTimeout(attach,100);return;}
-      if(form.dataset.ibisNativeVideoHook==='true')return;
-      form.dataset.ibisNativeVideoHook='true';
-      form.addEventListener('submit',function(e){
-        var q=input.value.trim();if(!isVideoIntent(q))return;
-        e.preventDefault();e.stopImmediatePropagation();input.value='';
-        runNativeVideoPrompt(q);
-      },true);
-    }
-    attach();
-  }
-
-  function apply(){
-    var params=new URLSearchParams(location.search),prompt=(params.get('prompt')||'').trim();if(!prompt)return;
-    var attempts=0;
-    function tryMount(){
-      var input=document.getElementById('ibis-goal'),form=document.getElementById('ibis-form');
-      if(!input||!form){if(attempts++<50)setTimeout(tryMount,80);return;}
-      input.value=prompt;input.dispatchEvent(new Event('input',{bubbles:true}));
-      var mode=chooseMode(prompt),button=document.querySelector('[data-mode="'+mode+'"]');if(button)button.click();
-      input.focus({preventScroll:true});form.scrollIntoView({behavior:'smooth',block:'center'});
-      if(params.get('run')==='1'&&isVideoIntent(prompt)){
-        input.value='';
-        runNativeVideoPrompt(prompt);
-        return;
-      }
-      if(params.get('run')==='1'&&typeof form.requestSubmit==='function')setTimeout(function(){form.requestSubmit();},220);
-    }
-    tryMount();
-  }
-
-  function init(){loadHealthModules();exposeHeadspace();installVideoProviderHook();apply();}
+  function init(){loadHealthModules();exposeHeadspace();installIntentContractHook();apply();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(window);

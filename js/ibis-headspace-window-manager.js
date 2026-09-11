@@ -1,197 +1,65 @@
 // FTN Platform — ibis Headspace spatial window manager.
-// Investor-safe behavior: Snap grid, Tile and Stack visibly reorganize windows without overlap.
-(function (global) {
+// Investor recovery: cards can snap, tile, stack AND return to genuine freeform spatial movement.
+(function(global){
   'use strict';
+  var GAP=18,MIN_W=260,MOBILE='(max-width:760px)';
 
-  var GAP = 18;
-  var MIN_W = 260;
-  var MOBILE = '(max-width:760px)';
+  function manager(field){
+    var mode='grid',drag=null,z=30;
+    function visible(){return Array.from(field.querySelectorAll('.thought:not(.dematerialized):not(.hs-minimized)'));}
+    function imp(node,prop,value){node.style.setProperty(prop,value,'important');}
+    function hint(text){var h=document.getElementById('commandHint');if(h)h.textContent=text;}
+    function clearSpatial(node){['left','right','top','bottom','width','height','max-width','max-height','grid-column','grid-row','transform'].forEach(function(p){node.style.removeProperty(p);});}
+    function gridColumns(count){field.style.setProperty('display','grid','important');field.style.setProperty('position','relative','important');field.style.setProperty('gap',GAP+'px','important');field.style.setProperty('align-items','stretch','important');field.style.setProperty('overflow','visible','important');field.style.setProperty('grid-template-columns','repeat('+count+', minmax('+MIN_W+'px, 1fr))','important');field.style.removeProperty('min-height');}
+    function colsFor(layout){if(global.matchMedia&&global.matchMedia(MOBILE).matches)return 1;var width=field.clientWidth||global.innerWidth||1200;if(layout==='stack')return 1;if(layout==='tile')return width>=980?2:1;return width>=1180?3:width>=760?2:1;}
 
-  function manager(field) {
-    function visible() {
-      return Array.from(field.querySelectorAll('.thought:not(.dematerialized):not(.hs-minimized)'));
+    function snapNode(node,i,cols,layout){
+      clearSpatial(node);imp(node,'position','relative');imp(node,'inset','auto');imp(node,'overflow','visible');imp(node,'resize','none');imp(node,'min-width','0');imp(node,'width','auto');imp(node,'height','auto');imp(node,'max-height','none');imp(node,'min-height',layout==='tile'?'260px':layout==='stack'?'140px':'220px');node.style.removeProperty('touch-action');imp(node,'grid-column',String((i%cols)+1));imp(node,'grid-row',String(Math.floor(i/cols)+1));node.style.zIndex=String(++z);return node;
     }
-    function setImportant(node, prop, value) {
-      node.style.setProperty(prop, value, 'important');
-    }
-    function clearWindow(node) {
-      ['left','right','top','bottom','width','height','max-width','max-height','grid-column','grid-row','transform'].forEach(function (prop) {
-        node.style.removeProperty(prop);
-      });
-      setImportant(node, 'position', 'relative');
-      setImportant(node, 'inset', 'auto');
-      setImportant(node, 'overflow', 'visible');
-      setImportant(node, 'resize', 'none');
-      setImportant(node, 'min-width', '0');
-      setImportant(node, 'height', 'auto');
-      setImportant(node, 'max-height', 'none');
-      node.style.zIndex = String(++global.__ibisHeadspaceTopZ);
-    }
-    function setFieldColumns(count) {
-      field.style.setProperty('display', 'grid', 'important');
-      field.style.setProperty('position', 'relative', 'important');
-      field.style.setProperty('gap', GAP + 'px', 'important');
-      field.style.setProperty('align-items', 'stretch', 'important');
-      field.style.setProperty('overflow', 'visible', 'important');
-      field.style.setProperty('grid-template-columns', 'repeat(' + count + ', minmax(' + MIN_W + 'px, 1fr))', 'important');
-    }
-    function columnsFor(mode) {
-      if (global.matchMedia && global.matchMedia(MOBILE).matches) return 1;
-      var width = field.clientWidth || global.innerWidth || 1200;
-      if (mode === 'stack') return 1;
-      if (mode === 'tile') return width >= 980 ? 2 : 1;
-      return width >= 1180 ? 3 : width >= 760 ? 2 : 1;
-    }
-    function snapNode(node, i, cols, cleanMode) {
-      clearWindow(node);
-      var col = (i % cols) + 1;
-      var row = Math.floor(i / cols) + 1;
-      setImportant(node, 'grid-column', String(col));
-      setImportant(node, 'grid-row', String(row));
-      setImportant(node, 'width', 'auto');
-      if (cleanMode === 'tile') {
-        setImportant(node, 'min-height', '260px');
-      } else if (cleanMode === 'stack') {
-        setImportant(node, 'min-height', '140px');
-      } else {
-        setImportant(node, 'min-height', '220px');
+    function arrange(layout){mode=layout==='tile'||layout==='stack'?layout:'grid';field.dataset.layout=mode;var nodes=visible(),cols=colsFor(mode);gridColumns(cols);nodes.forEach(function(node,i){snapNode(node,i,cols,mode);});hint(mode==='tile'?'Tiled Headspace. Drag any card to unsnap, or choose Freeform.':mode==='stack'?'Stacked Headspace. Drag any card to unsnap, or choose Freeform.':'Snapped Headspace to grid. Drag any card to unsnap, or choose Freeform.');}
+    function freeform(){if(global.matchMedia&&global.matchMedia(MOBILE).matches){arrange('stack');return;}var nodes=visible(),fr=field.getBoundingClientRect();mode='freeform';field.dataset.layout='freeform';field.style.setProperty('display','block','important');field.style.setProperty('position','relative','important');field.style.removeProperty('grid-template-columns');field.style.setProperty('min-height',Math.max(760,Math.ceil(nodes.length/3)*330)+'px','important');nodes.forEach(function(node,i){var r=node.getBoundingClientRect(),w=Math.max(260,Math.min(r.width||360,Math.max(280,fr.width*.34))),col=i%3,row=Math.floor(i/3),left=Math.min(Math.max(0,col*(fr.width/3)+10),Math.max(0,fr.width-w)),top=row*310+10;clearSpatial(node);imp(node,'position','absolute');imp(node,'inset','auto');imp(node,'left',left+'px');imp(node,'top',top+'px');imp(node,'width',w+'px');imp(node,'height','auto');imp(node,'max-height','none');imp(node,'overflow','visible');imp(node,'resize','both');imp(node,'touch-action','none');node.style.zIndex=String(++z);});hint('Freeform Headspace is active. Drag any card directly; resize from its lower-right edge. Snap Grid returns to alignment.');}
+    function preserveDraggedPosition(node){if(!node||global.matchMedia&&global.matchMedia(MOBILE).matches){arrange('grid');return;}if(mode==='freeform')return;var nr=node.getBoundingClientRect(),fr=field.getBoundingClientRect(),left=Math.max(0,nr.left-fr.left),top=Math.max(0,nr.top-fr.top),w=nr.width;freeform();imp(node,'left',Math.min(left,Math.max(0,field.clientWidth-node.offsetWidth))+'px');imp(node,'top',Math.max(0,top)+'px');imp(node,'width',Math.max(260,Math.min(w,field.clientWidth))+'px');node.style.zIndex=String(++z);hint('Card moved out of the snapped layout. Headspace is now freeform.');}
+    function place(node){if(mode==='freeform'){node.classList.remove('dematerialized','hs-minimized');var fr=field.getBoundingClientRect();clearSpatial(node);imp(node,'position','absolute');imp(node,'inset','auto');imp(node,'left',Math.max(10,(fr.width-360)/2)+'px');imp(node,'top','30px');imp(node,'width',Math.min(420,Math.max(280,fr.width-20))+'px');imp(node,'height','auto');imp(node,'resize','both');imp(node,'touch-action','none');node.style.zIndex=String(++z);return;}arrange(mode);}
+    function minimize(node){node.classList.add('hs-minimized');node.setAttribute('aria-hidden','true');var shelf=document.getElementById('windowShelf');if(shelf){var b=shelf.querySelector('[data-restore="'+node.dataset.thought+'"]');if(!b){b=document.createElement('button');b.type='button';b.dataset.restore=node.dataset.thought;b.textContent=node.dataset.thought;b.onclick=function(){restore(node);};shelf.appendChild(b);}shelf.hidden=false;}if(mode!=='freeform')arrange(mode);}
+    function restore(node){node.classList.remove('hs-minimized','dematerialized');node.removeAttribute('aria-hidden');var b=document.querySelector('[data-restore="'+node.dataset.thought+'"]');if(b)b.remove();var shelf=document.getElementById('windowShelf');if(shelf&&!shelf.children.length)shelf.hidden=true;place(node);}
+    function tile(){arrange('tile');}
+    function stack(){arrange('stack');}
+
+    function startDrag(e){
+      if(global.matchMedia&&global.matchMedia(MOBILE).matches)return;
+      if(e.button!=null&&e.button!==0)return;
+      if(e.target.closest('button,a,input,select,textarea,[contenteditable="true"]'))return;
+      var node=e.target.closest('.thought');if(!node||!field.contains(node))return;
+      var original=node.getBoundingClientRect(),fr=field.getBoundingClientRect(),startLeft=Math.max(0,original.left-fr.left),startTop=Math.max(0,original.top-fr.top),startWidth=original.width;
+      if(mode!=='freeform'){
+        freeform();
+        imp(node,'left',Math.min(startLeft,Math.max(0,field.clientWidth-startWidth))+'px');
+        imp(node,'top',startTop+'px');
+        imp(node,'width',Math.max(260,Math.min(startWidth,field.clientWidth))+'px');
       }
-      node.classList.add('hs-arranged');
-      setTimeout(function () { node.classList.remove('hs-arranged'); }, 360);
-      return { column: col, row: row };
+      e.preventDefault();e.stopImmediatePropagation();
+      var nr=node.getBoundingClientRect();
+      drag={node:node,id:e.pointerId,sx:e.clientX,sy:e.clientY,left:nr.left-fr.left,top:nr.top-fr.top};
+      node.style.zIndex=String(++z);node.classList.add('dragging');
+      try{node.setPointerCapture&&node.setPointerCapture(e.pointerId);}catch(_){}
     }
-    function arrange(mode) {
-      var nodes = visible();
-      if (!nodes.length) return;
-      var cleanMode = mode === 'tile' || mode === 'stack' ? mode : 'grid';
-      var cols = columnsFor(cleanMode);
-      field.dataset.layout = cleanMode;
-      setFieldColumns(cols);
-      nodes.forEach(function (node, i) { snapNode(node, i, cols, cleanMode); });
-      announce(cleanMode);
-    }
-    function announce(mode) {
-      var hint = document.getElementById('commandHint');
-      if (!hint) return;
-      var label = mode === 'tile' ? 'Tiled Headspace into larger non-overlapping work panels.' : mode === 'stack' ? 'Stacked Headspace into a readable single-column flow without overlap.' : 'Snapped Headspace into a non-overlapping grid.';
-      hint.textContent = label;
-    }
-    function place(node) {
-      arrange(field.dataset.layout || 'grid');
-      return { left: 0, top: 0 };
-    }
-    function minimize(node) {
-      node.classList.add('hs-minimized');
-      node.setAttribute('aria-hidden', 'true');
-      var shelf = document.getElementById('windowShelf');
-      if (shelf) {
-        var button = shelf.querySelector('[data-restore="' + node.dataset.thought + '"]');
-        if (!button) {
-          button = document.createElement('button');
-          button.type = 'button';
-          button.dataset.restore = node.dataset.thought;
-          button.textContent = node.dataset.thought;
-          button.title = 'Restore ' + node.dataset.thought;
-          button.addEventListener('click', function () { restore(node); });
-          shelf.appendChild(button);
-        }
-        shelf.hidden = false;
-      }
-      arrange(field.dataset.layout || 'grid');
-    }
-    function restore(node) {
-      node.classList.remove('hs-minimized', 'dematerialized');
-      node.removeAttribute('aria-hidden');
-      var b = document.querySelector('[data-restore="' + node.dataset.thought + '"]');
-      if (b) b.remove();
-      var shelf = document.getElementById('windowShelf');
-      if (shelf && !shelf.children.length) shelf.hidden = true;
-      arrange(field.dataset.layout || 'grid');
-    }
-    function snap() { arrange('grid'); }
-    function organize() { arrange('grid'); }
-    function tile() { arrange('tile'); }
-    function stack() { arrange('stack'); }
-    return {
-      place: place,
-      snap: snap,
-      organize: organize,
-      tile: tile,
-      stack: stack,
-      minimize: minimize,
-      restore: restore,
-      visible: visible,
-      arrange: arrange,
-      snapNode: snapNode
-    };
+    function moveDrag(e){if(!drag||e.pointerId!==drag.id)return;e.preventDefault();var node=drag.node,maxX=Math.max(0,field.clientWidth-node.offsetWidth),maxY=Math.max(0,field.scrollHeight-node.offsetHeight),left=Math.max(0,Math.min(maxX,drag.left+e.clientX-drag.sx)),top=Math.max(0,Math.min(maxY,drag.top+e.clientY-drag.sy));imp(node,'left',left+'px');imp(node,'top',top+'px');}
+    function endDrag(e){if(!drag||e.pointerId!==drag.id)return;var node=drag.node;node.classList.remove('dragging');try{node.releasePointerCapture&&node.hasPointerCapture&&node.hasPointerCapture(e.pointerId)&&node.releasePointerCapture(e.pointerId);}catch(_){}drag=null;hint('Card moved. Headspace remains freeform until you choose Snap Grid, Tile or Stack.');}
+    field.addEventListener('pointerdown',startDrag,true);
+    document.addEventListener('pointermove',moveDrag,true);
+    document.addEventListener('pointerup',endDrag,true);
+    document.addEventListener('pointercancel',endDrag,true);
+
+    return{place:place,snap:function(node){if(node){preserveDraggedPosition(node);return;}arrange('grid');},snapNode:snapNode,organize:function(){arrange('grid');},tile:tile,stack:stack,freeform:freeform,minimize:minimize,restore:restore,visible:visible,arrange:arrange,getMode:function(){return mode;}};
   }
 
-  function wireOpacity(field) {
-    var slider = document.getElementById('headspaceOpacity');
-    if (!slider || slider.dataset.ibisOpacityReady === 'true') return;
-    slider.dataset.ibisOpacityReady = 'true';
-    function apply(rawOverride) {
-      var raw = Number(rawOverride || slider.value || 100);
-      var value = Math.max(50, Math.min(100, raw)) / 100;
-      slider.value = String(Math.round(value * 100));
-      field.style.setProperty('--thought-opacity', String(value));
-      document.querySelectorAll('.thought:not(.dematerialized)').forEach(function (node) {
-        node.style.setProperty('opacity', String(value), 'important');
-      });
-      var hint = document.getElementById('commandHint');
-      if (hint) hint.textContent = value < 1 ? 'Focus opacity adjusted: background context remains visible while current surfaces stay readable.' : 'Focus opacity restored to full strength.';
-    }
-    slider.addEventListener('input', function () { apply(); });
-    slider.addEventListener('change', function () { apply(); });
-    field.__ibisSetOpacity = apply;
-    apply();
-  }
+  function wireOpacity(field){var slider=document.getElementById('headspaceOpacity');if(!slider||slider.dataset.ibisOpacityReady==='true')return;slider.dataset.ibisOpacityReady='true';function apply(raw){var value=Math.max(50,Math.min(100,Number(raw||slider.value||100)))/100;slider.value=String(Math.round(value*100));field.style.setProperty('--thought-opacity',String(value));document.querySelectorAll('.thought:not(.dematerialized)').forEach(function(n){n.style.setProperty('opacity',String(value),'important');});}slider.addEventListener('input',function(){apply();});slider.addEventListener('change',function(){apply();});field.__ibisSetOpacity=apply;apply();}
 
-  function runScenario(api, field) {
-    try {
-      var params = new URLSearchParams(global.location.search || '');
-      var layout = params.get('hsLayout') || params.get('layout');
-      var opacity = params.get('hsOpacity') || params.get('opacity');
-      if (opacity && field.__ibisSetOpacity) field.__ibisSetOpacity(opacity);
-      if (layout === 'tile') api.tile();
-      else if (layout === 'stack') api.stack();
-      else if (layout === 'grid') api.organize();
-      if (params.get('hsScenario') === 'full') {
-        api.organize();
-        setTimeout(function () { api.tile(); }, 500);
-        setTimeout(function () { api.stack(); }, 1000);
-        setTimeout(function () { if (field.__ibisSetOpacity) field.__ibisSetOpacity(65); }, 1500);
-      }
-    } catch (_) {}
+  function init(){var field=document.getElementById('field');if(!field)return;var api=manager(field);global.FTN=global.FTN||{};global.FTN.HeadspaceWindowManager=api;
+    var stackBtn=document.querySelector('[data-arrange="stack"]');if(stackBtn&&!document.querySelector('[data-arrange="freeform"]')){var free=document.createElement('button');free.type='button';free.dataset.arrange='freeform';free.textContent='Freeform';free.title='Unsnap cards and move them freely';stackBtn.insertAdjacentElement('afterend',free);}
+    document.querySelectorAll('[data-arrange]').forEach(function(button){button.addEventListener('click',function(e){e.preventDefault();var a=button.dataset.arrange;if(a==='tile')api.tile();else if(a==='stack')api.stack();else if(a==='freeform')api.freeform();else api.organize();});});
+    document.querySelectorAll('[data-minimize]').forEach(function(button){button.addEventListener('click',function(e){e.stopPropagation();var n=button.closest('.thought');if(n)api.minimize(n);});});wireOpacity(field);
+    global.addEventListener('resize',function(){if(api.getMode()==='freeform'||global.matchMedia&&global.matchMedia(MOBILE).matches)return;clearTimeout(global.__ibisHeadspaceWindowResize);global.__ibisHeadspaceWindowResize=setTimeout(function(){api.arrange(api.getMode());},120);});setTimeout(function(){api.organize();},150);
   }
-
-  function init() {
-    var field = document.getElementById('field'); if (!field) return;
-    global.__ibisHeadspaceTopZ = global.__ibisHeadspaceTopZ || 10;
-    var api = manager(field); global.FTN = global.FTN || {}; global.FTN.HeadspaceWindowManager = api;
-    document.querySelectorAll('[data-arrange]').forEach(function (button) {
-      if (button.dataset.ibisArrangeReady === 'true') return;
-      button.dataset.ibisArrangeReady = 'true';
-      button.addEventListener('click', function () {
-        var action = button.dataset.arrange;
-        if (action === 'tile') api.tile();
-        else if (action === 'stack') api.stack();
-        else api.organize();
-      });
-    });
-    document.querySelectorAll('[data-minimize]').forEach(function (button) {
-      if (button.dataset.ibisMinimizeReady === 'true') return;
-      button.dataset.ibisMinimizeReady = 'true';
-      button.addEventListener('click', function (event) { event.stopPropagation(); var node = button.closest('.thought'); if (node) api.minimize(node); });
-    });
-    wireOpacity(field);
-    global.addEventListener('resize', function () {
-      if (global.matchMedia && global.matchMedia(MOBILE).matches) return;
-      clearTimeout(global.__ibisHeadspaceWindowResize);
-      global.__ibisHeadspaceWindowResize = setTimeout(function () { api.arrange(field.dataset.layout || 'grid'); }, 120);
-    });
-    setTimeout(function () { api.organize(); runScenario(api, field); }, 200);
-    setTimeout(function () { api.arrange(field.dataset.layout || 'grid'); runScenario(api, field); }, 900);
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(window);

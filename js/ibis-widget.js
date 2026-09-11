@@ -8,6 +8,7 @@
 // in memory for this page view only; nothing is written to localStorage or sent anywhere else.
 (function (global) {
   'use strict';
+  if (/^\/ibis-ai\/?$/.test(global.location.pathname)) return; // the full IBIS workspace is already present
   if (document.getElementById('ibis-widget-trigger')) return; // already mounted (e.g. double-load)
 
   function esc(s) {

@@ -142,15 +142,16 @@
   }
   function answerHTML(text){
     var lines=String(text||'').split(/\r?\n/),html='',list=null;
+    function inline(value){return esc(value).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');}
     function closeList(){if(list){html+='</'+list+'>';list=null;}}
     lines.forEach(function(raw){
       var line=raw.trim();
       if(!line){closeList();return;}
-      if(/^Decision:\s*/.test(line)){closeList();html+='<p class="ibis-answer-decision">'+esc(line)+'</p>';return;}
+      if(/^Decision:\s*/.test(line)){closeList();html+='<p class="ibis-answer-decision">'+inline(line)+'</p>';return;}
       if(/^(Real objective|Strongest path|Risks to control|Next actions|Relevant FTN routes)$/.test(line)){closeList();html+='<h3 class="ibis-answer-heading">'+esc(line)+'</h3>';return;}
-      if(/^\d+\.\s+/.test(line)){if(list!=='ol'){closeList();list='ol';html+='<ol class="ibis-answer-list">';}html+='<li>'+esc(line.replace(/^\d+\.\s+/,''))+'</li>';return;}
-      if(/^-\s+/.test(line)){if(list!=='ul'){closeList();list='ul';html+='<ul class="ibis-answer-list">';}html+='<li>'+esc(line.replace(/^-\s+/,''))+'</li>';return;}
-      closeList();html+='<p>'+esc(line)+'</p>';
+      if(/^\d+\.\s+/.test(line)){if(list!=='ol'){closeList();list='ol';html+='<ol class="ibis-answer-list">';}html+='<li>'+inline(line.replace(/^\d+\.\s+/,''))+'</li>';return;}
+      if(/^[-*]\s+/.test(line)){if(list!=='ul'){closeList();list='ul';html+='<ul class="ibis-answer-list">';}html+='<li>'+inline(line.replace(/^[-*]\s+/,''))+'</li>';return;}
+      closeList();html+='<p>'+inline(line)+'</p>';
     });
     closeList();return html;
   }
@@ -217,7 +218,7 @@
     ['Create a visual','Create a visual for a Caribbean digital infrastructure campaign'],
   ];
 
-  function injectStyle(){if(document.querySelector('link[data-ibis-style]'))return;var l=document.createElement('link');l.rel='stylesheet';l.href='/css/components/ibis-ai.css?v=20260909.2';l.setAttribute('data-ibis-style','true');document.head.appendChild(l);}
+  function injectStyle(){if(document.querySelector('link[data-ibis-style]'))return;var l=document.createElement('link');l.rel='stylesheet';l.href='/css/components/ibis-ai.css?v=20260911.1';l.setAttribute('data-ibis-style','true');document.head.appendChild(l);}
 
   async function init(){injectStyle();await ensureData();global.FTN.WorkspaceShell.init({productId:'ibis-ai',mountId:'workspace-root',accentSmallVar:'--color-ibis-on-dark',build:function(content){
       content.innerHTML='<div class="ibis-chat">'
@@ -233,7 +234,7 @@
           +'<div class="ibis-chat__conversation" id="ibis-conversation" role="log" aria-live="polite">'
             +'<div class="ibis-chat__welcome" id="ibis-chat-welcome"><h2>What do you need done?</h2><p>Ask ibis in plain language — find Caribbean films, analyze what changed, help with a grant, create a visual, route me to the right FTN tool…</p></div>'
           +'</div>'
-          +'<form class="ibis-chat__composer" id="ibis-form">'
+          +'<form class="ibis-chat__composer" id="ibis-form" data-ftn-no-draft="true">'
             +'<div class="ibis-mode-row"><button type="button" data-mode="ask" aria-pressed="true">ASK</button><button type="button" data-mode="find">FIND</button><button type="button" data-mode="analyze">ANALYZE FTN</button><button type="button" data-mode="visual">CREATE VISUAL</button></div>'
             +'<div class="ibis-chat__input-row"><textarea id="ibis-goal" rows="1" placeholder="Message ibis…" required></textarea><button type="submit" class="btn btn-primary ibis-chat__send" aria-label="Send">&rarr;</button></div>'
           +'</form>'
@@ -257,6 +258,11 @@
       ensureVisualState().then(function(){setStatus('idle');});
       function setStatus(state){if(!statusHost||!global.FTN||!global.FTN.IbisVisualState)return;global.FTN.IbisVisualState.set(statusHost,state);}
       function scrollToEnd(){conversation.scrollTop=conversation.scrollHeight;}
+      function revealAnswer(out){
+        var message=out&&out.closest?out.closest('.ibis-msg'):null;
+        if(!message)return;
+        global.requestAnimationFrame(function(){conversation.scrollTop=Math.max(0,message.offsetTop-conversation.offsetTop-12);});
+      }
 
       function appendUserMessage(text){
         if(welcome){welcome.remove();welcome=null;}
@@ -313,27 +319,27 @@
           setStatus('working');
           await renderLiveResearch(q,out);
           setStatus('idle');
-          scrollToEnd();
+          revealAnswer(out);
           return;
         }
         if(mode==='visual'||/create|generate|make/.test(q.toLowerCase())&&/image|visual|poster|graphic/.test(q.toLowerCase())){
           setStatus('generating');
           await createVisual(q,out);
           setStatus('idle');
-          scrollToEnd();
+          revealAnswer(out);
           return;
         }
         if(mode==='find'||/find|search|movie|film|song|music|youtube/.test(q.toLowerCase())){
           setStatus('working');
           await renderMedia(q,out);
           setStatus('idle');
-          scrollToEnd();
+          revealAnswer(out);
           return;
         }
         if(mode==='analyze'||/what changed|correlat|indicator|econom|inflation|weather|pressure/.test(q.toLowerCase())){
           out.innerHTML=renderAnalysis(q);
           setStatus('idle');
-          scrollToEnd();
+          revealAnswer(out);
           return;
         }
         var answer=await localAI(q);
@@ -359,7 +365,7 @@
           out.innerHTML='<span class="workspace-kicker">FTN deterministic router</span><p>'+esc(server.reason)+'</p><p>No server answer was claimed. Your deterministic FTN routes remain available.</p>'+routeResults(q);
         }
         setStatus('idle');
-        scrollToEnd();
+        revealAnswer(out);
       });
 
       input.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit();}});
