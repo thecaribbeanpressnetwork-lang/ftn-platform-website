@@ -102,6 +102,17 @@
       .catch(function(err){return{success:false,attempt:'Bytez native route network error: '+((err&&err.message)||'unknown')};});
   }
 
+  function runNativeVideoPrompt(prompt){
+    appendBubble('user',esc(prompt));
+    var out=appendBubble('ibis','<p class="ibis-msg__thinking">ibis is attempting native text-to-video through Bytez/LTX free-credit route…</p>');
+    if(!out)return false;
+    attemptNativeVideo(prompt).then(function(result){
+      if(result&&result.success){renderNativeVideo(out,prompt,result.data);return;}
+      renderVideoHandoff(out,prompt,result&&result.attempt?result.attempt:'Bytez native route did not return a usable artifact.');
+    });
+    return true;
+  }
+
   function installVideoProviderHook(){
     var tries=0;
     function attach(){
@@ -112,12 +123,7 @@
       form.addEventListener('submit',function(e){
         var q=input.value.trim();if(!isVideoIntent(q))return;
         e.preventDefault();e.stopImmediatePropagation();input.value='';
-        appendBubble('user',esc(q));
-        var out=appendBubble('ibis','<p class="ibis-msg__thinking">ibis is attempting native text-to-video through Bytez/LTX free-credit route…</p>');
-        attemptNativeVideo(q).then(function(result){
-          if(result&&result.success){renderNativeVideo(out,q,result.data);return;}
-          renderVideoHandoff(out,q,result&&result.attempt?result.attempt:'Bytez native route did not return a usable artifact.');
-        });
+        runNativeVideoPrompt(q);
       },true);
     }
     attach();
@@ -132,6 +138,11 @@
       input.value=prompt;input.dispatchEvent(new Event('input',{bubbles:true}));
       var mode=chooseMode(prompt),button=document.querySelector('[data-mode="'+mode+'"]');if(button)button.click();
       input.focus({preventScroll:true});form.scrollIntoView({behavior:'smooth',block:'center'});
+      if(params.get('run')==='1'&&isVideoIntent(prompt)){
+        input.value='';
+        runNativeVideoPrompt(prompt);
+        return;
+      }
       if(params.get('run')==='1'&&typeof form.requestSubmit==='function')setTimeout(function(){form.requestSubmit();},220);
     }
     tryMount();
