@@ -80,7 +80,17 @@ assert.equal(await page.locator('[data-thought="answer"]').evaluate(el=>el.class
 
 const active=page.locator('[data-thought="context"]');
 const before=await active.boundingBox();
-if(before){await active.hover();await page.mouse.down();await page.mouse.move(before.x+150,before.y+120,{steps:8});await page.mouse.up();await page.waitForTimeout(150);const after=await active.boundingBox();assert(after&&Math.abs(after.x-before.x)>10,'Active thought surface should be draggable');}
+if(before){
+  const startX=before.x+before.width/2,startY=before.y+Math.min(before.height/2,100);
+  await page.mouse.move(startX,startY);
+  await page.mouse.down();
+  await page.mouse.move(startX+150,startY+120,{steps:8});
+  await page.mouse.up();
+  await page.waitForTimeout(150);
+  const after=await active.boundingBox();
+  assert(after&&(Math.abs(after.x-before.x)>10||Math.abs(after.y-before.y)>10),'Active thought surface should be draggable');
+  assert.equal(await page.locator('#field').getAttribute('data-layout'),'freeform','Dragging a snapped card should unsnap Headspace into freeform mode');
+}
 await page.screenshot({path:'test-artifacts/ibis-headspace-desktop.png',fullPage:true});
 
 const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
@@ -96,4 +106,4 @@ await mobile.screenshot({path:'test-artifacts/ibis-headspace-mobile.png',fullPag
 
 assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));
 await browser.close();
-console.log('ibis browser audit: cinematic lander handoff, truthful Scout health, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, dragging and mobile attention layout verified; screenshots captured.');
+console.log('ibis browser audit: cinematic lander handoff, truthful Scout health, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, direct dragging/freeform unsnap and mobile attention layout verified; screenshots captured.');
