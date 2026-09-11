@@ -14,12 +14,12 @@
     function colsFor(layout){if(global.matchMedia&&global.matchMedia(MOBILE).matches)return 1;var width=field.clientWidth||global.innerWidth||1200;if(layout==='stack')return 1;if(layout==='tile')return width>=980?2:1;return width>=1180?3:width>=760?2:1;}
 
     function snapNode(node,i,cols,layout){
-      clearSpatial(node);imp(node,'position','relative');imp(node,'inset','auto');imp(node,'overflow','visible');imp(node,'resize','none');imp(node,'min-width','0');imp(node,'width','auto');imp(node,'height','auto');imp(node,'max-height','none');imp(node,'min-height',layout==='tile'?'260px':layout==='stack'?'140px':'220px');imp(node,'grid-column',String((i%cols)+1));imp(node,'grid-row',String(Math.floor(i/cols)+1));node.style.zIndex=String(++z);return node;
+      clearSpatial(node);imp(node,'position','relative');imp(node,'inset','auto');imp(node,'overflow','visible');imp(node,'resize','none');imp(node,'min-width','0');imp(node,'width','auto');imp(node,'height','auto');imp(node,'max-height','none');imp(node,'min-height',layout==='tile'?'260px':layout==='stack'?'140px':'220px');node.style.removeProperty('touch-action');imp(node,'grid-column',String((i%cols)+1));imp(node,'grid-row',String(Math.floor(i/cols)+1));node.style.zIndex=String(++z);return node;
     }
     function arrange(layout){mode=layout==='tile'||layout==='stack'?layout:'grid';field.dataset.layout=mode;var nodes=visible(),cols=colsFor(mode);gridColumns(cols);nodes.forEach(function(node,i){snapNode(node,i,cols,mode);});hint(mode==='tile'?'Tiled Headspace. Drag any card to unsnap, or choose Freeform.':mode==='stack'?'Stacked Headspace. Drag any card to unsnap, or choose Freeform.':'Snapped Headspace to grid. Drag any card to unsnap, or choose Freeform.');}
-    function freeform(){if(global.matchMedia&&global.matchMedia(MOBILE).matches){arrange('stack');return;}var nodes=visible(),fr=field.getBoundingClientRect();mode='freeform';field.dataset.layout='freeform';field.style.setProperty('display','block','important');field.style.setProperty('position','relative','important');field.style.removeProperty('grid-template-columns');field.style.setProperty('min-height',Math.max(760,Math.ceil(nodes.length/3)*330)+'px','important');nodes.forEach(function(node,i){var r=node.getBoundingClientRect(),w=Math.max(260,Math.min(r.width||360,Math.max(280,fr.width*.34))),col=i%3,row=Math.floor(i/3),left=Math.min(Math.max(0,col*(fr.width/3)+10),Math.max(0,fr.width-w)),top=row*310+10;clearSpatial(node);imp(node,'position','absolute');imp(node,'inset','auto');imp(node,'left',left+'px');imp(node,'top',top+'px');imp(node,'width',w+'px');imp(node,'height','auto');imp(node,'max-height','none');imp(node,'overflow','visible');imp(node,'resize','both');node.style.zIndex=String(++z);});hint('Freeform Headspace is active. Drag any card directly; resize from its lower-right edge. Snap Grid returns to alignment.');}
+    function freeform(){if(global.matchMedia&&global.matchMedia(MOBILE).matches){arrange('stack');return;}var nodes=visible(),fr=field.getBoundingClientRect();mode='freeform';field.dataset.layout='freeform';field.style.setProperty('display','block','important');field.style.setProperty('position','relative','important');field.style.removeProperty('grid-template-columns');field.style.setProperty('min-height',Math.max(760,Math.ceil(nodes.length/3)*330)+'px','important');nodes.forEach(function(node,i){var r=node.getBoundingClientRect(),w=Math.max(260,Math.min(r.width||360,Math.max(280,fr.width*.34))),col=i%3,row=Math.floor(i/3),left=Math.min(Math.max(0,col*(fr.width/3)+10),Math.max(0,fr.width-w)),top=row*310+10;clearSpatial(node);imp(node,'position','absolute');imp(node,'inset','auto');imp(node,'left',left+'px');imp(node,'top',top+'px');imp(node,'width',w+'px');imp(node,'height','auto');imp(node,'max-height','none');imp(node,'overflow','visible');imp(node,'resize','both');imp(node,'touch-action','none');node.style.zIndex=String(++z);});hint('Freeform Headspace is active. Drag any card directly; resize from its lower-right edge. Snap Grid returns to alignment.');}
     function preserveDraggedPosition(node){if(!node||global.matchMedia&&global.matchMedia(MOBILE).matches){arrange('grid');return;}if(mode==='freeform')return;var nr=node.getBoundingClientRect(),fr=field.getBoundingClientRect(),left=Math.max(0,nr.left-fr.left),top=Math.max(0,nr.top-fr.top),w=nr.width;freeform();imp(node,'left',Math.min(left,Math.max(0,field.clientWidth-node.offsetWidth))+'px');imp(node,'top',Math.max(0,top)+'px');imp(node,'width',Math.max(260,Math.min(w,field.clientWidth))+'px');node.style.zIndex=String(++z);hint('Card moved out of the snapped layout. Headspace is now freeform.');}
-    function place(node){if(mode==='freeform'){node.classList.remove('dematerialized','hs-minimized');var fr=field.getBoundingClientRect();clearSpatial(node);imp(node,'position','absolute');imp(node,'inset','auto');imp(node,'left',Math.max(10,(fr.width-360)/2)+'px');imp(node,'top','30px');imp(node,'width',Math.min(420,Math.max(280,fr.width-20))+'px');imp(node,'height','auto');imp(node,'resize','both');node.style.zIndex=String(++z);return;}arrange(mode);}
+    function place(node){if(mode==='freeform'){node.classList.remove('dematerialized','hs-minimized');var fr=field.getBoundingClientRect();clearSpatial(node);imp(node,'position','absolute');imp(node,'inset','auto');imp(node,'left',Math.max(10,(fr.width-360)/2)+'px');imp(node,'top','30px');imp(node,'width',Math.min(420,Math.max(280,fr.width-20))+'px');imp(node,'height','auto');imp(node,'resize','both');imp(node,'touch-action','none');node.style.zIndex=String(++z);return;}arrange(mode);}
     function minimize(node){node.classList.add('hs-minimized');node.setAttribute('aria-hidden','true');var shelf=document.getElementById('windowShelf');if(shelf){var b=shelf.querySelector('[data-restore="'+node.dataset.thought+'"]');if(!b){b=document.createElement('button');b.type='button';b.dataset.restore=node.dataset.thought;b.textContent=node.dataset.thought;b.onclick=function(){restore(node);};shelf.appendChild(b);}shelf.hidden=false;}if(mode!=='freeform')arrange(mode);}
     function restore(node){node.classList.remove('hs-minimized','dematerialized');node.removeAttribute('aria-hidden');var b=document.querySelector('[data-restore="'+node.dataset.thought+'"]');if(b)b.remove();var shelf=document.getElementById('windowShelf');if(shelf&&!shelf.children.length)shelf.hidden=true;place(node);}
     function tile(){arrange('tile');}
@@ -27,14 +27,28 @@
 
     function startDrag(e){
       if(global.matchMedia&&global.matchMedia(MOBILE).matches)return;
+      if(e.button!=null&&e.button!==0)return;
       if(e.target.closest('button,a,input,select,textarea,[contenteditable="true"]'))return;
       var node=e.target.closest('.thought');if(!node||!field.contains(node))return;
-      if(mode!=='freeform')freeform();
-      e.preventDefault();e.stopImmediatePropagation();var nr=node.getBoundingClientRect(),fr=field.getBoundingClientRect();drag={node:node,id:e.pointerId,sx:e.clientX,sy:e.clientY,left:nr.left-fr.left,top:nr.top-fr.top};node.style.zIndex=String(++z);node.classList.add('dragging');field.setPointerCapture&&field.setPointerCapture(e.pointerId);
+      var original=node.getBoundingClientRect(),fr=field.getBoundingClientRect(),startLeft=Math.max(0,original.left-fr.left),startTop=Math.max(0,original.top-fr.top),startWidth=original.width;
+      if(mode!=='freeform'){
+        freeform();
+        imp(node,'left',Math.min(startLeft,Math.max(0,field.clientWidth-startWidth))+'px');
+        imp(node,'top',startTop+'px');
+        imp(node,'width',Math.max(260,Math.min(startWidth,field.clientWidth))+'px');
+      }
+      e.preventDefault();e.stopImmediatePropagation();
+      var nr=node.getBoundingClientRect();
+      drag={node:node,id:e.pointerId,sx:e.clientX,sy:e.clientY,left:nr.left-fr.left,top:nr.top-fr.top};
+      node.style.zIndex=String(++z);node.classList.add('dragging');
+      try{node.setPointerCapture&&node.setPointerCapture(e.pointerId);}catch(_){}
     }
     function moveDrag(e){if(!drag||e.pointerId!==drag.id)return;e.preventDefault();var node=drag.node,maxX=Math.max(0,field.clientWidth-node.offsetWidth),maxY=Math.max(0,field.scrollHeight-node.offsetHeight),left=Math.max(0,Math.min(maxX,drag.left+e.clientX-drag.sx)),top=Math.max(0,Math.min(maxY,drag.top+e.clientY-drag.sy));imp(node,'left',left+'px');imp(node,'top',top+'px');}
-    function endDrag(e){if(!drag||e.pointerId!==drag.id)return;drag.node.classList.remove('dragging');drag=null;hint('Card moved. Headspace remains freeform until you choose Snap Grid, Tile or Stack.');}
-    field.addEventListener('pointerdown',startDrag,true);field.addEventListener('pointermove',moveDrag,true);field.addEventListener('pointerup',endDrag,true);field.addEventListener('pointercancel',endDrag,true);
+    function endDrag(e){if(!drag||e.pointerId!==drag.id)return;var node=drag.node;node.classList.remove('dragging');try{node.releasePointerCapture&&node.hasPointerCapture&&node.hasPointerCapture(e.pointerId)&&node.releasePointerCapture(e.pointerId);}catch(_){}drag=null;hint('Card moved. Headspace remains freeform until you choose Snap Grid, Tile or Stack.');}
+    field.addEventListener('pointerdown',startDrag,true);
+    document.addEventListener('pointermove',moveDrag,true);
+    document.addEventListener('pointerup',endDrag,true);
+    document.addEventListener('pointercancel',endDrag,true);
 
     return{place:place,snap:function(node){if(node){preserveDraggedPosition(node);return;}arrange('grid');},snapNode:snapNode,organize:function(){arrange('grid');},tile:tile,stack:stack,freeform:freeform,minimize:minimize,restore:restore,visible:visible,arrange:arrange,getMode:function(){return mode;}};
   }
