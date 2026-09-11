@@ -51,15 +51,15 @@ Deno.serve(async (req) => {
     "Work backward from the user's objective. Search for both confirming and contradicting evidence and expected traces when useful.",
     "For Caribbean subjects, do not stop at conventional databases: local newspapers, government pages/PDFs, registries, tourism/business directories, reviews, maps and public social traces can be valuable discovery leads. Do not treat lack of indexing as lack of activity.",
     "Prefer primary/official records for consequential claims. Use weaker sources to discover stronger evidence. Distinguish what a source directly supports from inference.",
-    "Return a concise answer useful to the user. Do not expose chain-of-thought or internal CEBOS labels. Do not invent facts when search evidence is weak or contradictory."
+    "Return a concise but complete answer useful to the user, with the important context, caveats and next step when one is clear. Do not expose chain-of-thought or internal CEBOS labels. Do not invent facts when search evidence is weak or contradictory."
   ].join(" ");
   try {
     const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: searchInstruction }] }, contents: [{ role: "user", parts: [{ text: query }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.15, maxOutputTokens: 1200 } }), signal: AbortSignal.timeout(25000),
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: searchInstruction }] }, contents: [{ role: "user", parts: [{ text: query }] }], tools: [{ google_search: {} }], generationConfig: { temperature: 0.15, maxOutputTokens: 1600 } }), signal: AbortSignal.timeout(30000),
     });
     const data = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) return reply(origin, { error: "Web research provider failed.", providerStatus: upstream.status }, 502);
+    if (!upstream.ok) return reply(origin, { error: "Web research provider failed.", providerStatus: upstream.status, providerCode: data?.error?.status || null }, 502);
     const candidate = data?.candidates?.[0] || {};
     const answer = Array.isArray(candidate?.content?.parts) ? candidate.content.parts.map((p: any) => typeof p?.text === "string" ? p.text : "").join("").trim() : "";
     const chunks = Array.isArray(candidate?.groundingMetadata?.groundingChunks) ? candidate.groundingMetadata.groundingChunks : [];
