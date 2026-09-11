@@ -8,12 +8,14 @@ for(const p of [
   'supabase/functions/_shared/ibis-intelligence-gateway.ts',
   'supabase/functions/ibis-web-research/index.ts',
   'supabase/functions/ibis-assistant/index.ts',
+  'functions/api/ibis-web-search.js',
   'js/ftn-source-provenance.js',
   'js/ibis-provenance.js',
   'js/ibis-cebos-evidence.js',
   'js/ibis-web-research-workspace.js',
   'js/ibis-task-partner-workspace.js',
   'js/ibis-provider-registry.js',
+  'tests/ibis-caribbean-query-battery.json',
 ]) assert(fs.existsSync(p),`Missing CEBOS architecture component: ${p}`);
 
 const core=read('supabase/functions/_shared/ibis-cebos.ts');
@@ -34,11 +36,20 @@ assert.match(assistant,/sanitizedEvidence/,'Assistant must validate incoming evi
 assert.match(assistant,/locationContext/,'Assistant must carry location context without treating it as a universal filter');
 
 const research=read('supabase/functions/ibis-web-research/index.ts');
-assert.match(research,/tools:\s*\[\{\s*googleSearch:\s*\{\}/,'Universal research must use a real broad-web search tool rather than model memory');
+assert.match(research,/google_search\s*:\s*\{\}/,'Universal research must attempt a real Google-grounded search tool rather than model memory');
+assert.match(research,/bingSearch/,'Universal research must have an independent search fallback');
+assert.match(research,/searxSearch/,'Universal research must support open metasearch retrieval');
+assert.match(research,/ddgSearch/,'Universal research must support a second independent public-search fallback');
 assert.match(research,/sourceClassFor/,'Research results must be classified before synthesis');
 assert.match(research,/sourceScores/,'Research must distinguish discovery utility from decision authority');
 assert.match(research,/scanOpportunitySignals/,'Research must run the low-priority economic-shadow scanner');
-assert.match(research,/state\.evidence\.length/,'Universal research must fail closed when grounding evidence is absent');
+assert.match(research,/Web research completed without enough relevant evidence/,'Universal research must fail closed when grounding evidence is absent');
+assert.doesNotMatch(research,/GEMINI_MODEL/,'Web research must not inherit an unrelated generic Gemini model setting');
+
+const edgeSearch=read('functions/api/ibis-web-search.js');
+assert.match(edgeSearch,/onRequestGet/,'Cloudflare Pages must expose an owned same-origin retrieval gateway');
+assert.match(edgeSearch,/Promise\.all\(\[bing\(q\), searx\(q\), ddg\(q\)\]\)/,'Owned retrieval gateway must query multiple engines rather than one fragile scraper');
+assert.match(edgeSearch,/results, engines/,'Owned gateway must expose normalized results plus engine health evidence');
 
 const source=read('js/ftn-source-provenance.js');
 const adapter=read('js/ibis-cebos-evidence.js');
@@ -63,4 +74,14 @@ const opp=read('supabase/functions/_shared/ibis-opportunity-scanner.ts');
 assert.match(opp,/recordOpportunity/,'Economic-shadow scanning must write structured opportunity signals');
 assert.match(opp,/controllable:\s*true/,'Opportunity signals must be tied to a controllable mechanism');
 
-console.log('CEBOS architecture gate passed: state, evidence, provenance, research, opportunity scanning and task partner orchestration are structural and reuse canonical FTN systems.');
+const battery=JSON.parse(read('tests/ibis-caribbean-query-battery.json'));
+assert.equal(battery.length,30,'Investor-readiness battery must contain exactly 30 representative Caribbean queries');
+assert.equal(new Set(battery.map(x=>x.id)).size,30,'Battery IDs must be unique');
+for(const cls of ['INFORMATION','TASK','DECISION','CREATIVE']) assert(battery.some(x=>x.requestClass===cls),`Battery missing ${cls} requests`);
+for(const category of ['person_lookup','national_news','local_news','weather_hazard','fx_rate','small_business_advice','decision_support','funding_discovery','government_procedure','provider_ranking','job_discovery','travel_planning','place_recommendation','events','education','law_regulation','public_service','purchase_decision','shopping','local_recommendation','image_generation','video_generation','speech','language_context','music_discovery','tool_selection','navigation','rumor_verification']) assert(battery.some(x=>x.category===category),`Battery missing coverage category ${category}`);
+assert(battery.filter(x=>x.requiresLiveEvidence).length>=18,'Battery must materially stress live research rather than mostly static model knowledge');
+assert(battery.some(x=>x.forbidden?.includes('ftn.to')),'Battery must permanently regress the fabricated FTN-domain failure');
+assert(battery.some(x=>x.forbidden?.includes('GitHub')),'Battery must permanently regress irrelevant GitHub-as-local-news behavior');
+assert(battery.some(x=>x.artifactContract?.includes('Actual image artifact')),'Battery must enforce semantic image success rather than poster substitution');
+
+console.log('CEBOS architecture gate passed: structural reasoning/evidence, resilient research, provenance, opportunity scanning, task orchestration and the 30-query Caribbean battery are release-enforced.');
