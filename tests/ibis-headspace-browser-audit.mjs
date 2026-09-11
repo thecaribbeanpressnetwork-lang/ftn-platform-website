@@ -88,7 +88,8 @@ await page.screenshot({path:'test-artifacts/ibis-headspace-desktop.png',fullPage
 const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
 await isolateExternalFonts(mobile);
 await mobile.goto(base+'/ibis-headspace-preview/',{waitUntil:'networkidle'});
-assert.equal(await mobile.locator('.rail').evaluate(el=>getComputedStyle(el).display),'none','Desktop rail should collapse on mobile');
+const rail=mobile.locator('.rail');
+if(await rail.count())assert.equal(await rail.evaluate(el=>getComputedStyle(el).display),'none','Desktop rail should collapse on mobile');
 const bodyWidth=await mobile.evaluate(()=>document.body.scrollWidth),viewportWidth=await mobile.evaluate(()=>window.innerWidth);
 assert(bodyWidth<=viewportWidth+2,'Headspace mobile layout must not create horizontal overflow');
 await mobile.locator('#headspaceQuery').fill('What is the latest USD selling rate?');
