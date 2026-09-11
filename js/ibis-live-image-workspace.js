@@ -15,12 +15,13 @@
   // Transitional loader: ibis-ai/index.html already loads this contract bridge on every public
   // workspace. Keep the universal research module separate, but ensure it is present without
   // duplicating research logic inside this file. A later bundling pass can move the script tag.
-  (function loadUniversalResearch(){if(document.querySelector('script[src^="/js/ibis-web-research-workspace.js"]'))return;var s=document.createElement('script');s.src='/js/ibis-web-research-workspace.js?v=20260911.1';s.async=false;document.head.appendChild(s);})();
+  (function loadUniversalResearch(){if(document.querySelector('script[src^="/js/ibis-web-research-workspace.js"]'))return;var s=document.createElement('script');s.src='/js/ibis-web-research-workspace.js?v=20260911.2';s.async=false;document.head.appendChild(s);})();
 
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function localFixtureHost(){return location.hostname==='127.0.0.1'||location.hostname==='localhost';}
   function activeVisual(){var b=document.querySelector('#ibis-form [data-mode="visual"]');return Boolean(b&&b.getAttribute('aria-pressed')==='true');}
   function imageIntent(text){var q=String(text||'').toLowerCase();return activeVisual()||(/\b(create|generate|make|render|draw|illustrate|design)\b/.test(q)&&/\b(image|picture|photo|photograph|visual|poster|graphic|thumbnail|cover|flyer|scene|portrait|landscape|logo|ibis|bird)\b/.test(q));}
+  function personIntent(text){var q=String(text||'').trim();return /^(?:tell me about|who is|who was|what do you know about|give me (?:information|info) (?:about|on)|find information (?:on|about))\s+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ.'’-]+(?:\s+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ.'’-]+){1,5}[?.!]*$/.test(q);}
   function currentIntent(text){var q=String(text||'').toLowerCase();return LIVE_PHRASES.some(function(p){return q.indexOf(p)!==-1;})||/\b(news|headlines|breaking|what(?:'s| is) happening)\b/.test(q);}
   function caribbeanNewsIntent(text){var q=String(text||'').toLowerCase();return currentIntent(q)&&(/\b(news|headlines|happening|current|latest|today)\b/.test(q))&&/\b(trinidad|tobago|trinidad and tobago|t&t|caribbean|caricom|local)\b/.test(q);}
   function append(kind,html){var log=document.getElementById('ibis-conversation');if(!log)return null;var welcome=document.getElementById('ibis-chat-welcome');if(welcome)welcome.remove();var row=document.createElement('div');row.className='ibis-msg ibis-msg--'+kind;var bubble=document.createElement('div');bubble.className='ibis-msg__bubble'+(kind==='ibis'?' ibis-msg__bubble--ibis':'');bubble.innerHTML=html;row.appendChild(bubble);log.appendChild(row);log.scrollTop=log.scrollHeight;return bubble;}
@@ -47,15 +48,20 @@
     status('idle');return true;
   }
 
+  function routePersonResearch(prompt,out){
+    status('working');out.innerHTML='<p class="ibis-msg__thinking">ibis is researching the public web and checking evidence…</p>';
+    var tries=0;(function useResearch(){var workspace=global.FTN&&global.FTN.IbisWebResearchWorkspace;if(workspace&&typeof workspace.research==='function'){workspace.research(prompt,out);return;}if(tries++<80){setTimeout(useResearch,50);return;}out.innerHTML='<span class="workspace-kicker">WEB RESEARCH UNAVAILABLE</span><p>The universal research module did not become available in time. No biography was substituted from model memory.</p>';status('idle');})();
+  }
+
   document.addEventListener('submit',function(e){
     var form=e.target;if(!form||form.id!=='ibis-form')return;
     var input=document.getElementById('ibis-goal'),prompt=input&&input.value.trim();if(!prompt)return;
-    var kind=imageIntent(prompt)?'image':caribbeanNewsIntent(prompt)?'caribbean-news':'';
+    var kind=imageIntent(prompt)?'image':personIntent(prompt)?'person':caribbeanNewsIntent(prompt)?'caribbean-news':'';
     if(!kind)return;
     e.preventDefault();e.stopImmediatePropagation();append('user',esc(prompt));var out=append('ibis','<p class="ibis-msg__thinking">ibis is matching the request to an evidence/output contract…</p>');if(input)input.value='';
-    if(!out)return;if(kind==='image')generate(prompt,out);else renderCaribbeanNews(prompt,out);
+    if(!out)return;if(kind==='image')generate(prompt,out);else if(kind==='person')routePersonResearch(prompt,out);else renderCaribbeanNews(prompt,out);
   },true);
 
   global.FTN=global.FTN||{};
-  global.FTN.IbisLiveContracts={generateImage:generate,renderCaribbeanNews:renderCaribbeanNews,providers:PROVIDERS.slice(),imageEndpoint:IMAGE_ENDPOINT,newsEndpoint:NEWS_ENDPOINT};
+  global.FTN.IbisLiveContracts={generateImage:generate,renderCaribbeanNews:renderCaribbeanNews,routePersonResearch:routePersonResearch,providers:PROVIDERS.slice(),imageEndpoint:IMAGE_ENDPOINT,newsEndpoint:NEWS_ENDPOINT};
 })(window);
