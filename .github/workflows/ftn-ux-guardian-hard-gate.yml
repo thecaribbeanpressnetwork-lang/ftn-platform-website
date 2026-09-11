@@ -1,0 +1,56 @@
+name: FTN UX Guardian Hard Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ux-guardian:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0
+          npx playwright install chromium
+
+      - name: Start static FTN server
+        run: |
+          python3 -m http.server 3000 --bind 127.0.0.1 > /tmp/ftn-ux-guardian.log 2>&1 &
+          echo $! > /tmp/ftn-ux-guardian.pid
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:3000/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ftn-ux-guardian.log
+          exit 1
+
+      - name: Run FTN UX Guardian as a blocking acceptance gate
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node scripts/ftn-ux-guardian.mjs --base http://127.0.0.1:3000 --routes "/,/account/,/ibis-ai/,/ibis-headspace-preview/,/observatory/,/display-network/,/radio/,/riddim/dj/,/riddim/daw/,/riddim/fire/,/applications/,/screen/" --out ux-guardian-report/report.md
+
+      - name: Upload UX Guardian report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftn-ux-guardian-hard-gate-report
+          path: ux-guardian-report/*
+          if-no-files-found: ignore
