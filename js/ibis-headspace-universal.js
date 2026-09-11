@@ -33,9 +33,10 @@
   async function ask(text,context,route){var FTN=global.FTN=global.FTN||{};if(isPlainAnswer(route))return{kind:'DIRECT_TEXT',data:await directText(text)};if(FTN.IbisRuntimeReady)await FTN.IbisRuntimeReady;if(!FTN.IbisRuntime)throw new Error('Universal runtime is unavailable.');return{kind:'RUNTIME',data:await FTN.IbisRuntime.ask(text,context)};}
   function bestText(result){var direct=result&&(result.data||result.result)||{};if(direct.answer)return direct.answer;var outputs=result&&result.run&&result.run.result&&result.run.result.outputs||[];for(var i=outputs.length-1;i>=0;i--){var o=outputs[i].output||{},d=o.data||o.result||{};if(d.answer)return d.answer;if(o.result&&o.result.answer)return o.result.answer;if(typeof d==='string')return d;}return null;}
 
+  // Bubble-phase fallback is deliberate: specialist Headspace capabilities register capture
+  // handlers and may stop propagation first. The universal route only owns requests nobody else claimed.
   form.addEventListener('submit',async function(e){
     var text=input.value.trim();if(!text)return;
-    // UI commands are intentionally allowed to pass to the earlier Headspace command handler.
     if(/^(go )?back$|^undo$|^redo$|^forward$|put (that|it) back|restore|save (this )?(headspace|space)|recall (headspace|space)$/i.test(text))return;
     e.preventDefault();e.stopImmediatePropagation();var FTN=global.FTN=global.FTN||{},token=FTN.HeadspaceRequestState&&FTN.HeadspaceRequestState.snapshot();if(hint)hint.textContent='ibis is routing the request to a real intelligence capability…';input.value='';
     try{
@@ -45,5 +46,5 @@
       if(wrapped.kind==='DIRECT_TEXT'){renderAnswer(wrapped.data.answer,wrapped.data);return;}
       var result=wrapped.data;if(result&&result.status==='WAITING_PERMISSION'){renderWaiting(result);return;}var answer=bestText(result);if(answer)renderAnswer(answer,result);else renderFailure('The selected capability returned no usable answer.');
     }catch(err){if(FTN.HeadspaceRequestState&&!FTN.HeadspaceRequestState.active(token))return;renderFailure(esc(err&&err.message||'The intelligence route failed.'));}
-  },true);
+  });
 })(typeof window!=='undefined'?window:globalThis);
