@@ -14,8 +14,11 @@ async function isolate(page){
 }
 async function mountHeadspace(page){
   let html=fs.readFileSync('ibis-headspace-preview/index.html','utf8');
+  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"[^>]*><\/script>/g)].map(m=>m[1]);
+  html=html.replace(/<script[^>]*src="[^"]+"[^>]*><\/script>/g,'');
   html=html.replace('<head>','<head><base href="'+base+'/">');
-  await page.setContent(html,{waitUntil:'domcontentloaded',timeout:15000});
+  await page.setContent(html,{waitUntil:'domcontentloaded',timeout:10000});
+  for(const src of scripts)await page.addScriptTag({url:new URL(src,base+'/').href});
   await page.locator('#headspaceQuery').waitFor({state:'attached',timeout:10000});
 }
 
