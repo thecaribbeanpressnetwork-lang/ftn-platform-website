@@ -5,31 +5,22 @@
   'use strict';
   var ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-web-research';
   var KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
-  (function loadPartnerExchange(){if(document.querySelector('script[src^="/js/ibis-task-partner-workspace.js"]'))return;var s=document.createElement('script');s.src='/js/ibis-task-partner-workspace.js?v=20260911.1';s.async=false;document.head.appendChild(s);})();
+  function load(src){if(document.querySelector('script[src^="'+src+'"]'))return;var s=document.createElement('script');s.src=src+'?v=20260911.1';s.async=false;document.head.appendChild(s);}
+  load('/js/ibis-cebos-evidence.js');load('/js/ibis-task-partner-workspace.js');
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function currentMode(){var pressed=document.querySelector('#ibis-form [data-mode][aria-pressed="true"]');return pressed?pressed.getAttribute('data-mode'):'ask';}
   function personLike(q){var m=String(q||'').trim().match(/^(?:tell me about|who is|who was|what do you know about|give me (?:information|info) (?:about|on))\s+(.+?)[?.!]*$/i);if(!m)return false;var words=m[1].trim().split(/\s+/);return words.length>=1&&words.length<=6&&words.every(function(w){return /^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’-]*$/.test(w);});}
-  function researchIntent(text){
-    var q=String(text||'').trim();
-    if(currentMode()!=='ask')return false;
-    if(personLike(q))return true;
-    if(/\b(search (?:the )?web|web search|google|look up|research|find information|find info)\b/i.test(q))return true;
-    if(/\b(today|latest|current|currently|right now|recent|news|price|rate|weather|election|law|regulation|court|lawsuit|company record|owner|director|biography|credits)\b/i.test(q))return true;
-    if(/^(?:what|who|where|when)\s+(?:is|are|was|were|did|does)\s+/i.test(q)&&/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b/.test(q))return true;
-    return false;
-  }
+  function researchIntent(text){var q=String(text||'').trim();if(currentMode()!=='ask')return false;if(personLike(q))return true;if(/\b(search (?:the )?web|web search|google|look up|research|find information|find info)\b/i.test(q))return true;if(/\b(today|latest|current|currently|right now|recent|news|price|rate|weather|election|law|regulation|court|lawsuit|company record|owner|director|biography|credits)\b/i.test(q))return true;if(/^(?:what|who|where|when)\s+(?:is|are|was|were|did|does)\s+/i.test(q)&&/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b/.test(q))return true;return false;}
   function append(kind,html){var log=document.getElementById('ibis-conversation');if(!log)return null;var welcome=document.getElementById('ibis-chat-welcome');if(welcome)welcome.remove();var row=document.createElement('div');row.className='ibis-msg ibis-msg--'+kind;var bubble=document.createElement('div');bubble.className='ibis-msg__bubble'+(kind==='ibis'?' ibis-msg__bubble--ibis':'');bubble.innerHTML=html;row.appendChild(bubble);log.appendChild(row);log.scrollTop=log.scrollHeight;return bubble;}
   function status(state){try{var host=document.getElementById('ibis-ai-status');if(host&&global.FTN&&global.FTN.IbisVisualState)global.FTN.IbisVisualState.set(host,state);}catch(_){} }
-  function sourceHTML(s){return '<a class="ibis-live-source" href="'+esc(s.url||'#')+'" target="_blank" rel="noopener noreferrer"><span class="ibis-live-source__platform">'+esc(s.sourceClass||'Source')+'</span><span class="ibis-live-source__title">'+esc(s.title||s.publisher||s.url||'Source')+'</span><span class="ibis-live-source__meta">'+esc(s.evidenceStatus||'UNRESOLVED')+' · authority '+esc(s.decisionAuthority==null?'n/a':s.decisionAuthority)+'</span></a>';}
+  function sourceHTML(s){var statusLabel=s.evidenceStatus||'UNRESOLVED',authority=s.decisionAuthority;if(global.FTN&&global.FTN.CebosEvidence){var rec=global.FTN.CebosEvidence.evidenceRecord({claim:s.title||s.publisher||s.url,sourceClass:s.sourceClass,url:s.url,platform:s.publisher,status:statusLabel,decisionAuthority:authority,discoveryUtility:s.discoveryUtility});statusLabel=rec.evidenceStatus;authority=rec.decisionAuthority;}return '<a class="ibis-live-source" href="'+esc(s.url||'#')+'" target="_blank" rel="noopener noreferrer"><span class="ibis-live-source__platform">'+esc(s.sourceClass||'Source')+'</span><span class="ibis-live-source__title">'+esc(s.title||s.publisher||s.url||'Source')+'</span><span class="ibis-live-source__meta">'+esc(statusLabel)+' · authority '+esc(authority==null?'n/a':authority)+'</span></a>';}
   async function research(query,out){
     status('working');out.innerHTML='<p class="ibis-msg__thinking">ibis is researching the public web and checking evidence…</p>';
     var locationContext='';try{locationContext=global.FTN&&global.FTN.Country&&global.FTN.Country.get?global.FTN.Country.get().name||'':'';}catch(_){}
     try{
-      var r=await fetch(ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:KEY,authorization:'Bearer '+KEY},body:JSON.stringify({query:query,locationContext:locationContext})});
-      var b=await r.json().catch(function(){return{};});
+      var r=await fetch(ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:KEY,authorization:'Bearer '+KEY},body:JSON.stringify({query:query,locationContext:locationContext})});var b=await r.json().catch(function(){return{};});
       if(!r.ok||!b.answer||!Array.isArray(b.sources)||!b.sources.length){out.innerHTML='<span class="workspace-kicker">WEB RESEARCH UNAVAILABLE</span><p>'+esc(b.error||'ibis could not obtain enough grounded public-web evidence for this request.')+'</p><p class="workspace-muted">No factual answer was substituted from model memory.</p>';status('idle');return false;}
-      out.innerHTML='<span class="workspace-kicker">IBIS · GROUNDED WEB RESEARCH</span><div class="ibis-grounded-answer">'+String(b.answer).split(/\n+/).filter(Boolean).map(function(p){return'<p>'+esc(p)+'</p>';}).join('')+'</div><div class="ibis-live-sources">'+b.sources.slice(0,12).map(sourceHTML).join('')+'</div><p class="workspace-muted">'+esc(b.provider||'Web research')+(b.model?' · '+esc(b.model):'')+' · '+esc(b.retrievedAt||'')+'</p>';
-      status('idle');return true;
+      out.innerHTML='<span class="workspace-kicker">IBIS · GROUNDED WEB RESEARCH</span><div class="ibis-grounded-answer">'+String(b.answer).split(/\n+/).filter(Boolean).map(function(p){return'<p>'+esc(p)+'</p>';}).join('')+'</div><div class="ibis-live-sources">'+b.sources.slice(0,12).map(sourceHTML).join('')+'</div><p class="workspace-muted">'+esc(b.provider||'Web research')+(b.model?' · '+esc(b.model):'')+' · '+esc(b.retrievedAt||'')+'</p>';status('idle');return true;
     }catch(e){out.innerHTML='<span class="workspace-kicker">WEB RESEARCH UNAVAILABLE</span><p>ibis could not reach its grounded web-research route. No answer was invented in its place.</p>';status('idle');return false;}
   }
   document.addEventListener('submit',function(e){var form=e.target;if(!form||form.id!=='ibis-form')return;var input=document.getElementById('ibis-goal'),query=input&&input.value.trim();if(!query||!researchIntent(query))return;e.preventDefault();e.stopImmediatePropagation();append('user',esc(query));var out=append('ibis','<p class="ibis-msg__thinking">ibis is researching the public web and checking evidence…</p>');if(input)input.value='';if(out)research(query,out);},true);
