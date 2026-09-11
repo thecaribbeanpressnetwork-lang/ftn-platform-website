@@ -120,6 +120,16 @@ async function verifiedFtnFacts(request, q) {
   return out;
 }
 
+function localityRelevant(q, item) {
+  const query = String(q || '').toLowerCase();
+  if (!query.includes('san fernando')) return true;
+  let host = '';
+  try { host = new URL(item.url).hostname.toLowerCase(); } catch {}
+  const hay = `${item.title || ''} ${item.snippet || ''} ${host}`.toLowerCase();
+  const trinidadSource = /\.tt$/.test(host) || /guardian\.co\.tt|newsday\.co\.tt|trinidadexpress\.com|loopnews\.com/.test(host);
+  return trinidadSource || /\btrinidad\b|\btobago\b|\btrinbago\b/.test(hay);
+}
+
 function dedupe(items) {
   const seen = new Set(), out = [];
   for (const item of items) {
@@ -136,7 +146,7 @@ export async function onRequestGet({ request }) {
   const q = (u.searchParams.get('q') || '').trim().slice(0, 500);
   if (!q) return Response.json({ error: 'q required', results: [] }, { status: 400, headers: { 'cache-control': 'no-store' } });
   const [facts, b, s, d] = await Promise.all([verifiedFtnFacts(request, q), bing(q), searx(q), ddg(q)]);
-  const results = dedupe([...facts, ...s, ...b, ...d]).slice(0, 20);
+  const results = dedupe([...facts, ...s, ...b, ...d]).filter((item) => localityRelevant(q, item)).slice(0, 20);
   return Response.json({ query: q, results, engines: { ftnVerified: facts.length, searxng: s.length, bing: b.length, duckduckgo: d.length }, retrievedAt: new Date().toISOString() }, {
     headers: { 'cache-control': 'public, max-age=60', 'x-robots-tag': 'noindex' },
   });
