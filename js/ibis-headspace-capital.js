@@ -2,7 +2,7 @@
 (function(global){
   'use strict';
   var form=document.getElementById('inputOrbit'),input=document.getElementById('headspaceQuery'),hint=document.getElementById('commandHint');
-  function relevant(text){return /\b(live off|live on|interest income|investment income|capital do i need|money do i need|invested to|principal)\b/i.test(text||'');}
+  function relevant(text){return /\b(live off|live on|interest income|investment income|(?:how much\s+)?capital\s+do i need|money do i need|invested to|principal)\b/i.test(text||'');}
   function amount(text){var m=String(text).match(/(?:TT\$|TTD\s*|\$)\s*([0-9][0-9,]*(?:\.\d+)?)/i);return m?Number(m[1].replace(/,/g,'')):null;}
   function yieldPercent(text){var all=[...String(text).matchAll(/([0-9]+(?:\.\d+)?)\s*%/g)].map(function(m){return Number(m[1]);});return all.length?all[0]:null;}
   function inflationPercent(text){var m=String(text).match(/inflation(?:\s+(?:of|at))?\s*([0-9]+(?:\.\d+)?)\s*%/i);return m?Number(m[1]):null;}
