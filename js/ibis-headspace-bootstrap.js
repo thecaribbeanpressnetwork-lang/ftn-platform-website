@@ -31,6 +31,14 @@
     node.dataset.state = state || '';
   }
 
+  function focusFirstPaint() {
+    // Investor first paint should be an objective field, not an infrastructure dashboard.
+    // Tool/context/evidence surfaces materialize only when a task actually calls for them.
+    document.querySelectorAll('.thought').forEach(function (node) {
+      if (node.dataset.thought !== 'answer') node.classList.add('dematerialized');
+    });
+  }
+
   function load(src) {
     return new Promise(function (resolve, reject) {
       var base = src.split('?')[0];
@@ -45,6 +53,7 @@
   }
 
   async function start() {
+    focusFirstPaint();
     bootStatus('Connecting ibis capabilities…', 'loading');
     var failures = [];
     for (var i = 0; i < modules.length; i += 1) {
