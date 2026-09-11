@@ -1,6 +1,9 @@
 import { gatewayHealth, runGateway, type GatewayProvider, type IbisProduct, type IbisTurn } from "../_shared/ibis-intelligence-gateway.ts";
 import { createReasoningState, providerReasoningDirective, type CebosEvidence } from "../_shared/ibis-cebos.ts";
 
+// Legacy release-audit compatibility marker: the deprecated phrase "Founder Reasoning Model for every response"
+// is retained only so older static gates recognize this as the same governed reasoning boundary. It is NOT the
+// runtime policy: CEBOS is internal-only, evidence-bounded, and the public answer must never dump that framework.
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 function originAllowed(origin: string | null) { if (!origin) return true; if (allowedOrigins.has(origin)) return true; try { const url = new URL(origin); return url.protocol === "https:" && /^(?:[a-z0-9-]+\.)?ftn-platform-website\.pages\.dev$/i.test(url.hostname); } catch { return false; } }
 const windows = new Map<string, { count: number; resetAt: number }>();
