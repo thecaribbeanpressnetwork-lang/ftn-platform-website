@@ -48,7 +48,9 @@ assert.doesNotMatch(research,/GEMINI_MODEL/,'Web research must not inherit an un
 
 const edgeSearch=read('functions/api/ibis-web-search.js');
 assert.match(edgeSearch,/onRequestGet/,'Cloudflare Pages must expose an owned same-origin retrieval gateway');
-assert.match(edgeSearch,/Promise\.all\(\[bing\(q\), searx\(q\), ddg\(q\)\]\)/,'Owned retrieval gateway must query multiple engines rather than one fragile scraper');
+for(const engine of ['bing(q)','searx(q)','ddg(q)']) assert(edgeSearch.includes(engine),`Owned retrieval gateway must still query ${engine} rather than collapse to one fragile scraper`);
+assert.match(edgeSearch,/Promise\.all\(\[/,'Owned retrieval gateway must execute independent retrieval sources concurrently');
+assert.match(edgeSearch,/verifiedFtnFacts/,'Owned retrieval should be allowed to inject directly relevant verified FTN datasets ahead of general search noise');
 assert.match(edgeSearch,/results, engines/,'Owned gateway must expose normalized results plus engine health evidence');
 
 const source=read('js/ftn-source-provenance.js');
