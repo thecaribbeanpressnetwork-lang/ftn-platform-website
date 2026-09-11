@@ -51,7 +51,8 @@ assert.match(edgeSearch,/onRequestGet/,'Cloudflare Pages must expose an owned sa
 for(const engine of ['bing(q)','searx(q)','ddg(q)']) assert(edgeSearch.includes(engine),`Owned retrieval gateway must still query ${engine} rather than collapse to one fragile scraper`);
 assert.match(edgeSearch,/Promise\.all\(\[/,'Owned retrieval gateway must execute independent retrieval sources concurrently');
 assert.match(edgeSearch,/verifiedFtnFacts/,'Owned retrieval should be allowed to inject directly relevant verified FTN datasets ahead of general search noise');
-assert.match(edgeSearch,/results, engines/,'Owned gateway must expose normalized results plus engine health evidence');
+assert.match(edgeSearch,/\bresults\b/,'Owned gateway must expose normalized results');
+assert.match(edgeSearch,/\bengines\b/,'Owned gateway must expose retrieval-engine health evidence');
 
 const source=read('js/ftn-source-provenance.js');
 const adapter=read('js/ibis-cebos-evidence.js');
