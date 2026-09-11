@@ -12,12 +12,13 @@ async function isolateExternalFonts(page){
 
 const landing=await browser.newPage({viewport:{width:1440,height:1000}});
 await isolateExternalFonts(landing);
-await landing.goto(base+'/ibis-preview/',{waitUntil:'networkidle'});
+await landing.goto(base+'/ibis-preview/',{waitUntil:'domcontentloaded'});
+await landing.locator('#askInput').waitFor({state:'visible'});
 assert.match(await landing.locator('.hero h1').innerText(),/Give ibis a problem, opportunity, product, song, document or goal/i,'Investor invitation headline must exist');
 assert.equal(await landing.locator('#askInput').count(),1,'Landing intent input must exist');
 await landing.screenshot({path:'test-artifacts/ibis-headspace-lander.png',fullPage:false});
 await landing.locator('#askInput').fill('What is the latest USD selling rate?');
-await Promise.all([landing.waitForURL(/\/ibis-headspace-preview\/\?q=/),landing.locator('#askForm button[type="submit"]').click()]);
+await Promise.all([landing.waitForURL(/\/ibis-headspace-preview\/\?q=/,{waitUntil:'domcontentloaded'}),landing.locator('#askForm button[type="submit"]').click()]);
 assert.match(landing.url(),/ibis-headspace-preview/,'Landing intent should enter Headspace');
 await landing.close();
 
@@ -29,13 +30,18 @@ await page.route('**/functions/v1/ftn-opportunities*',route=>route.fulfill({stat
 const consoleErrors=[];
 page.on('console',msg=>{if(msg.type()==='error')consoleErrors.push(msg.text());});
 page.on('pageerror',err=>consoleErrors.push(err.message));
-await page.goto(base+'/ibis-headspace-preview/',{waitUntil:'networkidle'});
+await page.goto(base+'/ibis-headspace-preview/',{waitUntil:'domcontentloaded'});
+await page.locator('#headspaceQuery').waitFor({state:'visible'});
 assert.equal(await page.locator('#headspaceQuery').count(),1,'Headspace query input must exist');
 assert.equal(await page.locator('.thought').count()>=10,true,'Headspace thought surfaces must exist');
+assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/What do you need/i,'Investor Headspace should open neutral, not with a canned conclusion.');
+assert.equal(await page.locator('[data-thought="graph"]').evaluate(el=>el.classList.contains('dematerialized')),true,'Placeholder graph must stay out of the initial investor surface.');
 await page.waitForFunction(()=>/Scout 2\.0: 9 official discovery sources configured/.test(document.querySelector('#scoutStatus')?.textContent||''));
 assert.match(await page.locator('#scoutStatus').innerText(),/latest observed run #18 success/i,'Headspace must distinguish a completed scheduled Scout run from a currently running scout.');
 assert.match(await page.locator('#scoutStatus').innerText(),/automatic applications off.*automatic spend off.*founder approval required/i,'Scout health must expose the consequential-action safety boundary.');
 assert.equal(await page.locator('#scoutStatus').getAttribute('data-health'),'healthy','Successful latest scheduled run should be represented as healthy, not running.');
+await page.waitForFunction(()=>{const n=document.querySelector('#toolStatus');return n&&!/Checking governed/.test(n.textContent||'');},{timeout:8000}).catch(()=>{});
+assert.doesNotMatch(await page.locator('#toolStatus').innerText(),/runtime catalog is unavailable/i,'Tool-health surface must verify its own dependencies rather than fail on unrelated runtime boot.');
 
 async function ask(text){await page.locator('#headspaceQuery').fill(text);await page.locator('#inputOrbit button[type="submit"]').click();await page.waitForTimeout(900);}
 
@@ -87,7 +93,8 @@ await page.screenshot({path:'test-artifacts/ibis-headspace-desktop.png',fullPage
 
 const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
 await isolateExternalFonts(mobile);
-await mobile.goto(base+'/ibis-headspace-preview/',{waitUntil:'networkidle'});
+await mobile.goto(base+'/ibis-headspace-preview/',{waitUntil:'domcontentloaded'});
+await mobile.locator('#headspaceQuery').waitFor({state:'visible'});
 const rail=mobile.locator('.rail');
 if(await rail.count())assert.equal(await rail.evaluate(el=>getComputedStyle(el).display),'none','Desktop rail should collapse on mobile');
 const bodyWidth=await mobile.evaluate(()=>document.body.scrollWidth),viewportWidth=await mobile.evaluate(()=>window.innerWidth);
@@ -99,4 +106,4 @@ await mobile.screenshot({path:'test-artifacts/ibis-headspace-mobile.png',fullPag
 
 assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));
 await browser.close();
-console.log('ibis browser audit: cinematic lander handoff, truthful Scout health, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, direct dragging/freeform unsnap and mobile attention layout verified; screenshots captured.');
+console.log('ibis browser audit: semantic-ready cinematic handoff, truthful initial Headspace, truthful tool and Scout health, minimal engaged Headspace, statistics, LIVE MODEL, capital scenario, clean surface reuse, attention dematerialization, Context Graph, direct dragging/freeform unsnap and mobile attention layout verified; screenshots captured.');
