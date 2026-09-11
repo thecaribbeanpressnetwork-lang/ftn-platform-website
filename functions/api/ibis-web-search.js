@@ -1,6 +1,8 @@
 // FTN Platform — IBIS owned web-search retrieval gateway.
 // Retrieval only: no LLM synthesis and no secrets. This gives IBIS a same-origin search path that
 // can fail over across public search surfaces without coupling reasoning/provenance to one vendor.
+// FTN-owned verified datasets are injected ahead of general web results when they directly answer
+// a query (for example official CBTT FX statistics). They remain labelled with their source/date.
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36';
 
 function text(value) {
@@ -93,6 +95,31 @@ async function ddg(q) {
   } catch { return []; }
 }
 
+async function verifiedFtnFacts(request, q) {
+  const out = [];
+  const fxIntent = /\b(?:usd|us dollar|u\.s\. dollar|foreign exchange|forex|fx)\b/i.test(q) && /\b(?:rate|selling|buying|exchange|ttd|tt\$)\b/i.test(q);
+  if (fxIntent) {
+    try {
+      const dataUrl = new URL('/data/fx-usd-ttd.json', request.url);
+      const r = await fetch(dataUrl, { headers: { accept: 'application/json' } });
+      if (r.ok) {
+        const data = await r.json();
+        const rows = Array.isArray(data?.monthly) ? data.monthly.filter((x) => x && typeof x.usdSelling === 'number') : [];
+        const latest = rows[rows.length - 1];
+        if (latest) {
+          out.push({
+            title: `Central Bank of Trinidad and Tobago — USD/TTD monthly exchange-rate snapshot (${latest.period})`,
+            url: data?.source?.url || 'https://www.central-bank.org.tt/exchange-rates-monthly/',
+            snippet: `Official CBTT monthly series. Latest observation in the FTN verified dataset: ${latest.period}; USD buying ${latest.usdBuying} TTD and USD selling ${latest.usdSelling} TTD per USD. Dataset retrieved ${data?.source?.retrieved || 'date unavailable'}. This is a monthly official statistical observation, not necessarily a bank's live retail counter/card rate today.`,
+            engine: 'ftn-verified-statistics',
+          });
+        }
+      }
+    } catch {}
+  }
+  return out;
+}
+
 function dedupe(items) {
   const seen = new Set(), out = [];
   for (const item of items) {
@@ -108,9 +135,9 @@ export async function onRequestGet({ request }) {
   const u = new URL(request.url);
   const q = (u.searchParams.get('q') || '').trim().slice(0, 500);
   if (!q) return Response.json({ error: 'q required', results: [] }, { status: 400, headers: { 'cache-control': 'no-store' } });
-  const [b, s, d] = await Promise.all([bing(q), searx(q), ddg(q)]);
-  const results = dedupe([...s, ...b, ...d]).slice(0, 20);
-  return Response.json({ query: q, results, engines: { searxng: s.length, bing: b.length, duckduckgo: d.length }, retrievedAt: new Date().toISOString() }, {
+  const [facts, b, s, d] = await Promise.all([verifiedFtnFacts(request, q), bing(q), searx(q), ddg(q)]);
+  const results = dedupe([...facts, ...s, ...b, ...d]).slice(0, 20);
+  return Response.json({ query: q, results, engines: { ftnVerified: facts.length, searxng: s.length, bing: b.length, duckduckgo: d.length }, retrievedAt: new Date().toISOString() }, {
     headers: { 'cache-control': 'public, max-age=60', 'x-robots-tag': 'noindex' },
   });
 }
