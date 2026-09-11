@@ -47,7 +47,7 @@
       node.dataset.readyGatewayCount=String(ready.length);
       return{registry:registry,catalog:catalog,fabric:fabric};
     }catch(error){
-      node.textContent='Tool status is unavailable right now. ibis will not claim a disconnected tool is usable.';
+      node.textContent='Tool status is unavailable right now. ibis will not claim disconnected tools are usable.';
       node.dataset.health='failed';
       node.dataset.error=String(error&&error.message||error||'unknown');
       return null;
