@@ -9,13 +9,13 @@ function originAllowed(origin: string | null) { if (!origin) return true; if (al
 const windows = new Map<string, { count: number; resetAt: number }>();
 const BASE_INSTRUCTION = [
   "You are ibis, FTN Platform's intelligent Caribbean assistant.",
-  "Answer the user's actual question directly and naturally. Strategic reasoning is internal: never expose scorecards, hidden planning labels, chain-of-thought, or internal frameworks unless the user explicitly asks for methodology.",
-  "Never fabricate names, professions, biographies, credits, organizations, statistics, links, current events, product capabilities, data access, or actions.",
+  "Answer the user's actual question directly and naturally. Strategic reasoning is internal: never expose scorecards, hidden planning labels, request classes, chain-of-thought, CEBOS, EBR, or internal frameworks unless the user explicitly asks for methodology.",
+  "Never fabricate names, professions, biographies, credits, organizations, statistics, links, current events, product capabilities, data access, actions, or private business facts not supplied by the user.",
   "A model's memory is not evidence. Factual claims about people, current events, businesses, institutions or other externally verifiable subjects must be bounded by supplied evidence; otherwise state what remains unverified.",
   "Never claim an FTN product can perform an action unless that capability is explicitly present in supplied registry/context.",
   "Mission Control is private institutional infrastructure, not a public product.",
   "For planning/business advice, use only user-supplied facts and grounded evidence; never pretend to see private sales, inventory, customers, finances, analytics, messages, files or accounts.",
-  "Be concise, useful, explicit about uncertainty, and end on the highest-value next action when one is clear."
+  "Be useful, explicit about uncertainty, and end on the highest-value next action when one is clear."
 ].join(" ");
 
 function cors(origin: string | null) { return { "Access-Control-Allow-Origin": origin && originAllowed(origin) ? origin : "https://ftnplatform.org", "Access-Control-Allow-Headers": "authorization, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS", "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Vary": "Origin" }; }
@@ -23,6 +23,19 @@ function reply(body: unknown, status: number, origin: string | null) { return ne
 function withinLimit(ip: string) { const now = Date.now(), current = windows.get(ip); if (!current || current.resetAt <= now) { windows.set(ip, { count: 1, resetAt: now + 5 * 60_000 }); return true; } if (current.count >= 24) return false; current.count += 1; return true; }
 function transcript(turns: IbisTurn[]) { return turns.map((turn) => `${turn.role === "assistant" ? "ibis" : "user"}: ${turn.content}`).join("\n"); }
 function timeoutSignal(ms: number) { return AbortSignal.timeout(Math.max(500, ms)); }
+function sanitizePublicAnswer(value: unknown) {
+  const text = typeof value === "string" ? value : "";
+  return text.split(/\n/).map((line) => line.trimEnd())
+    .filter((line) => !/^\s*(?:CLASS|REQUEST CLASS|CEBOS CLASS|REQUEST TYPE)\s*:/i.test(line))
+    .filter((line) => !/^\s*Request class\s*:/i.test(line))
+    .filter((line) => !/^\s*(?:CEBOS|EBR)\s+(?:STATE|REASONING|ANALYSIS)\s*:/i.test(line))
+    .join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+function sanitizeGatewayResult(result: any) {
+  if (!result || typeof result !== "object") return result;
+  if (typeof result.answer === "string") return { ...result, answer: sanitizePublicAnswer(result.answer) };
+  return result;
+}
 function sanitizedEvidence(raw: unknown): CebosEvidence[] {
   if (!Array.isArray(raw)) return [];
   return raw.filter((x) => !!x && typeof x === "object" && typeof (x as any).claim === "string" && typeof (x as any).sourceClass === "string")
@@ -83,5 +96,5 @@ Deno.serve(async (request) => {
   if (payload.action === "health") return reply(gatewayHealth(providers), 200, origin);
   if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
   const result = await runGateway({ text: currentText, products, providers, evidence, locationContext });
-  return reply(result, 200, origin);
+  return reply(sanitizeGatewayResult(result), 200, origin);
 });
