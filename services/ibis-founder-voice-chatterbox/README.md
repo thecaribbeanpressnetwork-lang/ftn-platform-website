@@ -1,3 +1,14 @@
+---
+title: IBIS Founder Voice
+emoji: 🐦
+colorFrom: teal
+colorTo: gray
+sdk: docker
+app_port: 8080
+pinned: false
+license: mit
+---
+
 # IBIS Founder Voice — Chatterbox Nano
 
 This is the FTN-owned primary founder-voice synthesis service. It uses the MIT-licensed Resemble AI Chatterbox Nano model and zero-shot voice cloning from the founder-authorized reference recording.
@@ -14,6 +25,7 @@ The service also requires a private bearer token via `IBIS_FOUNDER_VOICE_SERVICE
 
 - `IBIS_FOUNDER_VOICE_SERVICE_TOKEN` — long random server-to-server token
 - `IBIS_FOUNDER_VOICE_REFERENCE_PATH` — mounted private reference file path; defaults to `/run/secrets/ibis-founder-voice/reference.ogg`
+- `IBIS_FOUNDER_VOICE_REFERENCE_B64` — alternative private secret containing the approved six-second derived reference clip; preferred on Hugging Face Spaces
 - `PORT` — default `8080`
 - optional `TORCH_NUM_THREADS`
 
@@ -24,7 +36,9 @@ The service also requires a private bearer token via `IBIS_FOUNDER_VOICE_SERVICE
 
 ## Deployment
 
-The image is deliberately portable across ordinary CPU container hosts. Chatterbox Nano is selected with `ChatterboxTurboTTS.from_pretrained(device="cpu", nano=True)`. Model weights download at first model load unless the host supplies a persistent Hugging Face cache.
+The image is deliberately portable across CPU container hosts with enough memory for the model. Chatterbox Nano is selected with `ChatterboxTurboTTS.from_pretrained(device="cpu", nano=True)`. The private reference is verified and the model is loaded during application startup, so `/health` cannot report ready before the runtime is genuinely usable. Model weights download at startup unless the host supplies a persistent Hugging Face cache.
+
+For a Hugging Face Docker Space, add `IBIS_FOUNDER_VOICE_SERVICE_TOKEN` and `IBIS_FOUNDER_VOICE_REFERENCE_B64` as **Secrets**, never Variables or repository files. The public Space URL remains protected by the bearer token.
 
 The edge gateway should be configured with:
 

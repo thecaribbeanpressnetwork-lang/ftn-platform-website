@@ -4,6 +4,7 @@ import inspect
 import io
 import os
 import subprocess
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import soundfile as sf
@@ -28,7 +29,6 @@ SOURCE_WINDOW_SECONDS = REFERENCE_WINDOW_SECONDS
 AUTH_TOKEN = os.getenv("IBIS_FOUNDER_VOICE_SERVICE_TOKEN", "")
 MAX_TEXT_CHARS = int(os.getenv("IBIS_FOUNDER_VOICE_MAX_TEXT_CHARS", "2500"))
 
-app = FastAPI(title="IBIS Founder Voice — Chatterbox Nano", docs_url=None, redoc_url=None)
 _model = None
 _reference_verified = False
 _nano_runtime_compatible = "nano" in inspect.signature(ChatterboxTurboTTS.from_pretrained).parameters
@@ -108,19 +108,40 @@ def get_model():
     return _model
 
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Do not accept health traffic until the private voice and model are usable."""
+    if not AUTH_TOKEN:
+        raise RuntimeError("Service authentication is not configured")
+    if not verify_reference():
+        raise RuntimeError("Founder voice reference is unavailable")
+    get_model()
+    yield
+
+
+app = FastAPI(
+    title="IBIS Founder Voice — Chatterbox Nano",
+    docs_url=None,
+    redoc_url=None,
+    lifespan=lifespan,
+)
+
+
 @app.get("/health")
 def health(authorization: str | None = Header(default=None)):
     require_auth(authorization)
     reference_ready = verify_reference()
-    ready = bool(AUTH_TOKEN and reference_ready and _nano_runtime_compatible)
+    configured = bool(AUTH_TOKEN and reference_ready and _nano_runtime_compatible)
+    ready = bool(configured and _model is not None)
     return {
         "capability": "FOUNDER_TEXT_TO_SPEECH",
         "provider": PROVIDER,
         "model": MODEL,
         "openSource": True,
         "license": "MIT",
-        "configured": bool(AUTH_TOKEN and reference_ready and _nano_runtime_compatible),
+        "configured": configured,
         "ready": ready,
+        "modelLoaded": _model is not None,
         "voiceEnrolled": reference_ready,
         "runtimeCompatible": _nano_runtime_compatible,
         "founderVoiceRequired": True,
