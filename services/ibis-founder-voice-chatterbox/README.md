@@ -40,6 +40,15 @@ The image is deliberately portable across CPU container hosts with enough memory
 
 For a Hugging Face Docker Space, add `IBIS_FOUNDER_VOICE_SERVICE_TOKEN` and `IBIS_FOUNDER_VOICE_REFERENCE_B64` as **Secrets**, never Variables or repository files. The public Space URL remains protected by the bearer token.
 
+Generate the compact secret from the authorized full recording with:
+
+```bash
+bash derive-reference.sh /private/path/founder-reference.ogg /private/path/founder-reference-6s.ogg
+base64 -w 0 /private/path/founder-reference-6s.ogg
+```
+
+The derivation script refuses a different source recording and produces a deterministic artifact matching the SHA-256 pinned in `app.py`.
+
 The edge gateway should be configured with:
 
 - `IBIS_FOUNDER_VOICE_OPEN_URL=https://<private-or-protected-service>`
