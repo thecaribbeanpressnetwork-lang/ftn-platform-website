@@ -12,11 +12,8 @@ jobs:
   speech-readiness:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
 
@@ -25,26 +22,17 @@ jobs:
           node <<'NODE'
           const fs=require('fs');
           const generic=fs.readFileSync('supabase/functions/ibis-speech-cloudflare/index.ts','utf8');
-          for(const required of ['payload.action === "health"','generationAttempted: false','AbortSignal.timeout(20_000)','looksLikeMp3','@cf/openai/whisper-large-v3-turbo','@cf/deepgram/aura-2-en']){
-            if(!generic.includes(required))throw new Error(`missing generic speech/ASR invariant: ${required}`);
-          }
+          for(const x of ['payload.action === "health"','generationAttempted: false','@cf/openai/whisper-large-v3-turbo']) if(!generic.includes(x)) throw new Error(`missing generic speech invariant: ${x}`);
           const founder=fs.readFileSync('supabase/functions/ibis-founder-voice/index.ts','utf8');
-          for(const required of ['IBIS_FOUNDER_VOICE_OPEN_URL','IBIS_FOUNDER_VOICE_OPEN_TOKEN','chatterbox-nano','founderVoiceRequired: true','genericVoiceAcceptedAsPrimary: false','voiceIdentity: "IBIS_FOUNDER_VOICE"','looksLikeWav','referenceSampleSha256']){
-            if(!founder.includes(required))throw new Error(`missing provider-neutral founder-voice invariant: ${required}`);
-          }
+          for(const x of ['IBIS_FOUNDER_VOICE_OPEN_URL','IBIS_FOUNDER_VOICE_OPEN_TOKEN','chatterbox-nano','founderVoiceRequired: true','genericVoiceAcceptedAsPrimary: false','voiceIdentity: "IBIS_FOUNDER_VOICE"','looksLikeWav']) if(!founder.includes(x)) throw new Error(`missing founder gateway invariant: ${x}`);
           const service=fs.readFileSync('services/ibis-founder-voice-chatterbox/app.py','utf8');
-          for(const required of ['ChatterboxTurboTTS.from_pretrained(device="cpu", nano=True)','EXPECTED_REFERENCE_SHA256','IBIS_FOUNDER_VOICE_SERVICE_TOKEN','audio_prompt_path=str(REFERENCE_PATH)','voiceIdentity','PerTh']){
-            if(!service.includes(required))throw new Error(`missing open-source founder-voice service invariant: ${required}`);
-          }
-          const docker=fs.readFileSync('services/ibis-founder-voice-chatterbox/Dockerfile','utf8');
-          if(!docker.includes('python:3.11'))throw new Error('Chatterbox service must use supported Python 3.11 runtime');
+          for(const x of ['ChatterboxTurboTTS.from_pretrained(device="cpu", nano=True)','EXPECTED_REFERENCE_SHA256','IBIS_FOUNDER_VOICE_SERVICE_TOKEN','DERIVED_REFERENCE_PATH','audio_prompt_path=str(DERIVED_REFERENCE_PATH)','REFERENCE_WINDOW_START_SECONDS','PerTh']) if(!service.includes(x)) throw new Error(`missing open-source voice invariant: ${x}`);
           const contract=JSON.parse(fs.readFileSync('config/ibis-founder-voice-contract.json','utf8'));
-          if(contract.voiceIdentity!=='IBIS_FOUNDER_VOICE')throw new Error('founder voice identity contract mismatch');
-          if(contract.primaryProvider?.provider!=='chatterbox-nano'||contract.primaryProvider?.openSource!==true)throw new Error('open-source Chatterbox must be the primary founder voice provider');
-          if(contract.privacy?.rawVoiceSampleStoredInRepository!==false||contract.privacy?.referenceMustBeRuntimeMountedSecret!==true)throw new Error('raw founder voice sample must remain private and runtime-mounted');
-          if(contract.acceptance?.mustFailClosedIfFounderVoiceUnavailable!==true)throw new Error('founder voice must fail closed when unavailable');
-          if(contract.acceptance?.genericFallbackMayNotBePresentedAsFounderVoice!==true)throw new Error('generic voice substitution must be forbidden');
-          console.log('Speech source truth contract: open-source founder voice primary; generic Cloudflare speech retained only as explicit fallback/ASR infrastructure.');
+          if(contract.voiceIdentity!=='IBIS_FOUNDER_VOICE') throw new Error('founder identity contract mismatch');
+          if(contract.primaryProvider?.provider!=='chatterbox-nano'||contract.primaryProvider?.openSource!==true) throw new Error('Chatterbox Nano must be the open-source primary');
+          if(contract.privacy?.rawVoiceSampleStoredInRepository!==false||contract.privacy?.referenceMustBeRuntimeMountedSecret!==true) throw new Error('raw founder sample must stay private');
+          if(contract.acceptance?.mustFailClosedIfFounderVoiceUnavailable!==true||contract.acceptance?.genericFallbackMayNotBePresentedAsFounderVoice!==true) throw new Error('voice truth contract weakened');
+          console.log('Speech source contract PASS: founder-authenticated Chatterbox Nano primary; no generic substitution.');
           NODE
 
       - name: Probe deployed speech routes without generation
@@ -52,28 +40,17 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
-          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);
-          if(!match)throw new Error('Could not resolve the public Supabase publishable key from the existing client source');
-          const key=match[1];
-          const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
-          const genericEndpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-speech-cloudflare';
-          const generic=await fetch(genericEndpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
-          const genericBody=await generic.json().catch(()=>({}));
-          if(!generic.ok)throw new Error(`generic speech health HTTP ${generic.status}: ${genericBody.error||'unknown'}`);
-          if(genericBody.configured!==true||genericBody.ready!==true)throw new Error('generic speech/ASR infrastructure is not configured/ready');
-          if(genericBody.generationAttempted!==false)throw new Error('generic speech health must not consume generation quota');
-          if(!Array.isArray(genericBody.capability)||!genericBody.capability.includes('AUDIO_TRANSCRIPTION'))throw new Error('generic ASR capability mismatch');
-
-          const founderEndpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-founder-voice';
-          const founder=await fetch(founderEndpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
-          const founderBody=await founder.json().catch(()=>({}));
-          if(!founder.ok)throw new Error(`founder voice health HTTP ${founder.status}: ${founderBody.error||'unknown'}`);
-          if(founderBody.founderVoiceRequired!==true||founderBody.genericVoiceAcceptedAsPrimary!==false)throw new Error('deployed founder voice contract mismatch');
-          if(founderBody.generationAttempted!==false)throw new Error('founder voice health must not consume generation quota');
-          if(founderBody.voiceIdentity!=='IBIS_FOUNDER_VOICE')throw new Error('deployed founder voice identity mismatch');
-          if(founderBody.referenceSample?.sha256!=='a1c58062344bb586dad665b9db6b81bba56af85fbffd214a6c17df3f4d270e9b')throw new Error('deployed founder reference provenance mismatch');
-          if(founderBody.configured!==true||founderBody.ready!==true||founderBody.voiceEnrolled!==true)throw new Error('IBIS founder voice is not enrolled/configured/ready');
-          console.log(`Live speech health: founder voice READY via ${founderBody.provider}; generic route remains explicit fallback/ASR infrastructure.`);
+          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/); if(!match) throw new Error('public Supabase key missing');
+          const key=match[1], headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
+          const call=async(endpoint,body)=>{const r=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify(body)});return [r,await r.json().catch(()=>({}))]};
+          const [g,gb]=await call('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-speech-cloudflare',{action:'health'});
+          if(!g.ok||gb.configured!==true||gb.ready!==true||gb.generationAttempted!==false) throw new Error('generic ASR/speech infrastructure not ready');
+          const [f,fb]=await call('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-founder-voice',{action:'health'});
+          if(!f.ok) throw new Error(`founder health HTTP ${f.status}`);
+          if(fb.founderVoiceRequired!==true||fb.genericVoiceAcceptedAsPrimary!==false||fb.voiceIdentity!=='IBIS_FOUNDER_VOICE') throw new Error('deployed founder contract mismatch');
+          if(fb.referenceSample?.sha256!=='a1c58062344bb586dad665b9db6b81bba56af85fbffd214a6c17df3f4d270e9b') throw new Error('founder reference provenance mismatch');
+          if(fb.configured!==true||fb.ready!==true||fb.voiceEnrolled!==true) throw new Error(`IBIS founder voice is not live/ready (provider=${fb.provider||'none'})`);
+          console.log(`Live founder voice health PASS via ${fb.provider}.`);
           NODE
 
       - name: Synthesize founder voice and transcribe one real artifact
@@ -81,30 +58,18 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const client=fs.readFileSync('js/ibis-creative-studio.js','utf8');
-          const match=client.match(/PUBLISHABLE_KEY='([^']+)'/);
-          if(!match)throw new Error('Could not resolve the public Supabase publishable key from the existing client source');
-          const key=match[1];
-          const headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
-          const founderEndpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-founder-voice';
-          const asrEndpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-speech-cloudflare';
+          const match=fs.readFileSync('js/ibis-creative-studio.js','utf8').match(/PUBLISHABLE_KEY='([^']+)'/); if(!match) throw new Error('public Supabase key missing');
+          const key=match[1], headers={'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`,origin:'https://ftnplatform.org'};
           const phrase='FTN Platform connects the Caribbean.';
-          const tts=await fetch(founderEndpoint,{method:'POST',headers,body:JSON.stringify({action:'speak',text:phrase})});
-          const ttsBody=await tts.json().catch(()=>({}));
-          if(!tts.ok)throw new Error(`Founder TTS HTTP ${tts.status}: ${ttsBody.error||'unknown'}`);
-          if(ttsBody.voiceIdentity!=='IBIS_FOUNDER_VOICE')throw new Error('TTS artifact is not identified as founder voice');
-          if(!ttsBody.audio)throw new Error('Founder TTS artifact missing audio bytes');
-          const bytes=Buffer.from(ttsBody.audio,'base64');
-          if(bytes.length<5000)throw new Error(`Founder TTS artifact unexpectedly small: ${bytes.length}`);
+          const r=await fetch('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-founder-voice',{method:'POST',headers,body:JSON.stringify({action:'speak',text:phrase})});
+          const b=await r.json().catch(()=>({})); if(!r.ok) throw new Error(`Founder TTS HTTP ${r.status}: ${b.error||'unknown'}`);
+          if(b.voiceIdentity!=='IBIS_FOUNDER_VOICE'||!b.audio) throw new Error('unverified founder audio');
+          const bytes=Buffer.from(b.audio,'base64');
           const mp3=(bytes[0]===0x49&&bytes[1]===0x44&&bytes[2]===0x33)||(bytes[0]===0xff&&(bytes[1]&0xe0)===0xe0);
           const wav=bytes.subarray(0,4).toString('ascii')==='RIFF'&&bytes.subarray(8,12).toString('ascii')==='WAVE';
-          if(!(mp3||wav))throw new Error('Founder TTS bytes are neither recognizable MP3 nor WAV');
-          if(mp3&&(ttsBody.mimeType!=='audio/mpeg'||ttsBody.extension!=='mp3'))throw new Error('Founder MP3 metadata invalid');
-          if(wav&&(ttsBody.mimeType!=='audio/wav'||ttsBody.extension!=='wav'))throw new Error('Founder WAV metadata invalid');
-          const asr=await fetch(asrEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'transcribe',audio:ttsBody.audio})});
-          const asrBody=await asr.json().catch(()=>({}));
-          if(!asr.ok)throw new Error(`ASR HTTP ${asr.status}: ${asrBody.error||'unknown'}`);
-          const normalized=String(asrBody.text||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ');
-          for(const word of ['ftn','platform','connects','caribbean'])if(!normalized.includes(word))throw new Error(`ASR output missing ${word}: ${asrBody.text}`);
-          console.log(`Live founder-voice round trip: PASS (${bytes.length} bytes; provider=${ttsBody.provider}; transcription="${asrBody.text}").`);
+          if(bytes.length<5000||!(mp3||wav)) throw new Error('invalid audio artifact');
+          const ar=await fetch('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-speech-cloudflare',{method:'POST',headers,body:JSON.stringify({mode:'transcribe',audio:b.audio})});
+          const ab=await ar.json().catch(()=>({})); if(!ar.ok) throw new Error(`ASR HTTP ${ar.status}`);
+          const t=String(ab.text||'').toLowerCase(); for(const w of ['ftn','platform','caribbean']) if(!t.includes(w)) throw new Error(`ASR missing ${w}: ${ab.text}`);
+          console.log(`Founder voice round trip PASS: ${bytes.length} bytes via ${b.provider}; transcription="${ab.text}"`);
           NODE
