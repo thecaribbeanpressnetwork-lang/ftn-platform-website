@@ -172,20 +172,32 @@ function personRelevant(identity, item) {
   return identity.words.every((word) => hay.includes(word));
 }
 
-function personSearchQueries(q) {
-  const identity = personIdentity(q);
-  if (!identity) return [String(q || '').trim()];
-  const name = identity.name;
-  return Array.from(new Set([
-    `"${name}"`,
-    `"${name}" Trinidad Tobago`,
-    `"${name}" Caribbean`,
-    `"${name}" biography profile credits`,
-  ]));
+function searchPlans(q) {
+  const raw = String(q || '').trim();
+  const identity = personIdentity(raw);
+  if (identity) {
+    const name = identity.name;
+    return Array.from(new Set([
+      `"${name}"`,
+      `"${name}" Trinidad Tobago`,
+      `"${name}" Caribbean`,
+      `"${name}" biography profile credits`,
+    ]));
+  }
+  if (/\bsan fernando\b/i.test(raw)) {
+    return Array.from(new Set([
+      raw,
+      `"San Fernando" Trinidad site:newsday.co.tt`,
+      `"San Fernando" Trinidad site:guardian.co.tt`,
+      `"San Fernando" Trinidad site:trinidadexpress.com`,
+      `"San Fernando" Trinidad site:loopnews.com`,
+    ]));
+  }
+  return [raw];
 }
 
 async function multiSearch(q) {
-  const plans = personSearchQueries(q);
+  const plans = searchPlans(q);
   const batches = await Promise.all(plans.map(async (plan) => {
     const [b, s, d] = await Promise.all([bing(plan), searx(plan), ddg(plan)]);
     return { b, s, d };
