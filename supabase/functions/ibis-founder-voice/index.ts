@@ -74,9 +74,50 @@ type OpenHealth = {
   license?: string;
   watermark?: string;
 };
+
+function isHuggingFaceSpace(base: string) {
+  try { return new URL(base).hostname.endsWith(".hf.space"); } catch { return false; }
+}
+
+async function callGradio(base: string, apiName: "health" | "speak", data: unknown[], timeoutMs: number) {
+  const root = base.replace(/\/$/, "");
+  const queued = await fetch(`${root}/gradio_api/call/${apiName}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({ data }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  const queuedBody = await queued.json().catch(() => ({})) as { event_id?: unknown };
+  const eventId = typeof queuedBody.event_id === "string" ? queuedBody.event_id : "";
+  if (!queued.ok || !eventId) throw new Error(`Gradio ${apiName} queue failed (${queued.status})`);
+
+  const completed = await fetch(`${root}/gradio_api/call/${apiName}/${encodeURIComponent(eventId)}`, {
+    headers: { accept: "text/event-stream" },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!completed.ok) throw new Error(`Gradio ${apiName} result failed (${completed.status})`);
+  const stream = await completed.text();
+  for (const block of stream.split(/\r?\n\r?\n/)) {
+    const event = block.split(/\r?\n/).find((line) => line.startsWith("event:"))?.slice(6).trim();
+    const encoded = block.split(/\r?\n/).filter((line) => line.startsWith("data:")).map((line) => line.slice(5).trim()).join("\n");
+    if (event === "error") throw new Error(`Gradio ${apiName} generation failed`);
+    if (event === "complete" && encoded) {
+      const values = JSON.parse(encoded) as unknown;
+      if (!Array.isArray(values) || !values.length) throw new Error(`Gradio ${apiName} returned no result`);
+      return values[0];
+    }
+  }
+  throw new Error(`Gradio ${apiName} did not complete`);
+}
+
 async function openVoiceHealth(base: string, token: string): Promise<OpenHealth | null> {
   if (!base || !token) return null;
   try {
+    if (isHuggingFaceSpace(base)) {
+      const body = await callGradio(base, "health", [token], 20_000) as OpenHealth | null;
+      if (!body || body.voiceIdentity !== "IBIS_FOUNDER_VOICE" || body.referenceSampleSha256 !== SAMPLE_SHA256) return null;
+      return body;
+    }
     const response = await fetch(`${base.replace(/\/$/, "")}/health`, {
       headers: { authorization: `Bearer ${token}`, accept: "application/json" },
       signal: AbortSignal.timeout(8_000),
@@ -155,16 +196,21 @@ Deno.serve(async (request) => {
 
   if (openReady) {
     try {
-      const upstream = await fetch(`${openUrl.replace(/\/$/, "")}/speak`, {
-        method: "POST",
-        headers: { authorization: `Bearer ${openToken}`, "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ text }),
-        signal: AbortSignal.timeout(90_000),
-      });
-      const body = await upstream.json().catch(() => ({})) as Record<string, unknown>;
-      if (!upstream.ok) {
-        console.error("ibis-founder-voice open-source upstream error", upstream.status);
-        return reply({ error: "IBIS founder voice synthesis is temporarily unavailable.", providerStatus: upstream.status }, 502, origin);
+      let body: Record<string, unknown>;
+      if (isHuggingFaceSpace(openUrl)) {
+        body = await callGradio(openUrl, "speak", [openToken, text], 125_000) as Record<string, unknown>;
+      } else {
+        const upstream = await fetch(`${openUrl.replace(/\/$/, "")}/speak`, {
+          method: "POST",
+          headers: { authorization: `Bearer ${openToken}`, "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify({ text }),
+          signal: AbortSignal.timeout(90_000),
+        });
+        body = await upstream.json().catch(() => ({})) as Record<string, unknown>;
+        if (!upstream.ok) {
+          console.error("ibis-founder-voice open-source upstream error", upstream.status);
+          return reply({ error: "IBIS founder voice synthesis is temporarily unavailable.", providerStatus: upstream.status }, 502, origin);
+        }
       }
       const encoded = typeof body.audio === "string" ? body.audio : "";
       const mimeType = typeof body.mimeType === "string" ? body.mimeType : "";

@@ -1,10 +1,12 @@
 ---
 title: IBIS Founder Voice
 emoji: 🐦
-colorFrom: teal
+colorFrom: green
 colorTo: gray
-sdk: docker
-app_port: 8080
+sdk: gradio
+app_file: space_app.py
+pytorch_version: 2.8.0
+python_version: 3.12
 pinned: false
 license: mit
 ---
@@ -38,7 +40,7 @@ The service also requires a private bearer token via `IBIS_FOUNDER_VOICE_SERVICE
 
 The image is deliberately portable across CPU container hosts with enough memory for the model. Chatterbox Nano is selected with `ChatterboxTurboTTS.from_pretrained(device="cpu", nano=True)`. The private reference is verified and the model is loaded during application startup, so `/health` cannot report ready before the runtime is genuinely usable. Model weights download at startup unless the host supplies a persistent Hugging Face cache.
 
-For a Hugging Face Docker Space, add `IBIS_FOUNDER_VOICE_SERVICE_TOKEN` and `IBIS_FOUNDER_VOICE_REFERENCE_B64` as **Secrets**, never Variables or repository files. The public Space URL remains protected by the bearer token.
+For a Hugging Face ZeroGPU Gradio Space, add `IBIS_FOUNDER_VOICE_SERVICE_TOKEN` and `IBIS_FOUNDER_VOICE_REFERENCE_B64` as **Secrets**, never Variables or repository files. `space_app.py` exposes hidden authenticated Gradio API endpoints and requests GPU capacity only for synthesis. The public Space contains no founder audio or credential.
 
 Generate the compact secret from the authorized full recording with:
 

@@ -30,6 +30,16 @@ jobs:
           const dockerfile=fs.readFileSync('services/ibis-founder-voice-chatterbox/Dockerfile','utf8');
           if(!dockerfile.includes('resemble-ai/chatterbox.git@5de7a54aa4e5e2baadb0182dde554908b48b85c2')) throw new Error('Chatterbox Nano runtime must be pinned to the verified upstream commit');
           if(!dockerfile.includes('HF_HUB_DISABLE_XET=1')) throw new Error('portable CPU runtime must use the standard Hub download path');
+          const spaceReadme=fs.readFileSync('services/ibis-founder-voice-chatterbox/README.md','utf8');
+          const spaceRequirements=fs.readFileSync('services/ibis-founder-voice-chatterbox/requirements.txt','utf8');
+          const spaceApp=fs.readFileSync('services/ibis-founder-voice-chatterbox/space_app.py','utf8');
+          const wheelNotice=fs.readFileSync('services/ibis-founder-voice-chatterbox/CHATTERBOX_RUNTIME.md','utf8');
+          const spaceWheel=fs.readFileSync('services/ibis-founder-voice-chatterbox/chatterbox_tts-0.1.7-py3-none-any.whl');
+          if(!spaceReadme.includes('sdk: gradio')||!spaceReadme.includes('app_file: space_app.py')) throw new Error('free Hugging Face Space runtime metadata missing');
+          if(!spaceRequirements.includes('https://huggingface.co/spaces/bossbeats/ibis-founder-voice/resolve/main/chatterbox_tts-0.1.7-py3-none-any.whl')) throw new Error('Space must install the audited Nano runtime wheel');
+          if(!wheelNotice.includes('5de7a54aa4e5e2baadb0182dde554908b48b85c2')) throw new Error('Space runtime provenance missing');
+          if(require('crypto').createHash('sha256').update(spaceWheel).digest('hex')!=='57188a041b03398aeaae335f6095edf9cad6bde2c6cffbf9f2ec31cf544616ab') throw new Error('Space runtime wheel integrity mismatch');
+          for(const x of ['@spaces.GPU(duration=120)','api_name="health"','api_name="speak"','hmac.compare_digest','ChatterboxTurboTTS.from_pretrained(device="cuda", nano=True)']) if(!spaceApp.includes(x)) throw new Error(`missing ZeroGPU invariant: ${x}`);
           const contract=JSON.parse(fs.readFileSync('config/ibis-founder-voice-contract.json','utf8'));
           if(contract.voiceIdentity!=='IBIS_FOUNDER_VOICE') throw new Error('founder identity contract mismatch');
           if(contract.primaryProvider?.provider!=='chatterbox-nano'||contract.primaryProvider?.openSource!==true) throw new Error('Chatterbox Nano must be the open-source primary');
