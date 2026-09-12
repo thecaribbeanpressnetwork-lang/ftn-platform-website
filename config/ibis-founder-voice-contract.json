@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "voiceIdentity": "IBIS_FOUNDER_VOICE",
+  "publicVoiceRequirement": "Founder voice required; generic narrator is not an acceptable primary IBIS voice.",
+  "referenceSample": {
+    "sha256": "a1c58062344bb586dad665b9db6b81bba56af85fbffd214a6c17df3f4d270e9b",
+    "durationSeconds": 546.6265,
+    "codec": "opus",
+    "sampleRateHz": 48000,
+    "channels": 1
+  },
+  "privacy": {
+    "rawVoiceSampleStoredInRepository": false,
+    "rawVoiceSampleMayBeExposedPublicly": false,
+    "providerEnrollmentMustRemainPrivate": true
+  },
+  "acceptance": {
+    "mustReturnRealAudioArtifact": true,
+    "mustPublishVoiceIdentityProvenance": true,
+    "mustFailClosedIfFounderVoiceUnavailable": true,
+    "genericFallbackMayNotBePresentedAsFounderVoice": true
+  }
+}
