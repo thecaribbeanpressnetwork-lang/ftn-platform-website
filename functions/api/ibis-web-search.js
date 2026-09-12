@@ -95,8 +95,37 @@ async function ddg(q) {
   } catch { return []; }
 }
 
+async function governedNewsFacts(request, q) {
+  if (!/\b(?:news|latest|today|headline|headlines|happening)\b/i.test(q) || !/\b(?:trinidad|tobago|san fernando)\b/i.test(q)) return [];
+  try {
+    const runtime = await fetch(new URL('/config/public-runtime.json', request.url), { headers: { accept: 'application/json' } }).then((r) => r.ok ? r.json() : null);
+    const key = runtime?.supabase?.publishableKey;
+    const base = runtime?.supabase?.url;
+    if (!key || !base) return [];
+    const origin = new URL(request.url).origin;
+    const upstream = await fetch(`${base}/functions/v1/ftn-news-sources`, {
+      headers: { apikey: key, origin, accept: 'application/json' },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!upstream.ok) return [];
+    const data = await upstream.json().catch(() => ({}));
+    const rows = Array.isArray(data?.localItems) ? data.localItems : [];
+    const wantsSanFernando = /\bsan fernando\b/i.test(q);
+    return rows.filter((item) => {
+      if (!item?.title || !item?.url) return false;
+      if (!wantsSanFernando) return true;
+      return /\bsan fernando\b/i.test(`${item.title || ''} ${item.excerpt || ''}`);
+    }).slice(0, 12).map((item) => ({
+      title: `${item.publisher || 'Trinidad & Tobago publisher'} — ${item.title}`,
+      url: item.url,
+      snippet: `${item.publishedAt ? `Published ${item.publishedAt}. ` : ''}${item.verificationState || 'Publisher-attributed headline; review the source for full context.'}`,
+      engine: 'ftn-governed-news',
+    }));
+  } catch { return []; }
+}
+
 async function verifiedFtnFacts(request, q) {
-  const out = [];
+  const out = [...await governedNewsFacts(request, q)];
   const fxIntent = /\b(?:usd|us dollar|u\.s\. dollar|foreign exchange|forex|fx)\b/i.test(q) && /\b(?:rate|selling|buying|exchange|ttd|tt\$)\b/i.test(q);
   if (fxIntent) {
     try {
