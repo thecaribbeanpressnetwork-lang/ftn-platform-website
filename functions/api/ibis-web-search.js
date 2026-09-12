@@ -156,17 +156,31 @@ function dedupe(items) {
   return out;
 }
 
-function personSearchQueries(q) {
+function personIdentity(q) {
   const raw = String(q || '').trim();
   const name = raw.replace(/^['"“”]+|['"“”]+$/g, '').trim();
   const words = name.split(/\s+/).filter(Boolean);
   const nameLike = words.length >= 2 && words.length <= 6 && words.every((word) => /^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’-]*$/.test(word));
-  if (!nameLike) return [raw];
+  return nameLike ? { name, words: words.map((word) => word.toLowerCase()) } : null;
+}
+
+function personRelevant(identity, item) {
+  if (!identity) return true;
+  const hay = `${item.title || ''} ${item.snippet || ''} ${item.url || ''}`.toLowerCase();
+  const full = identity.name.toLowerCase();
+  if (hay.includes(full)) return true;
+  return identity.words.every((word) => hay.includes(word));
+}
+
+function personSearchQueries(q) {
+  const identity = personIdentity(q);
+  if (!identity) return [String(q || '').trim()];
+  const name = identity.name;
   return Array.from(new Set([
     `"${name}"`,
-    `${name} Trinidad Tobago`,
-    `${name} Caribbean`,
-    `${name} biography profile credits`,
+    `"${name}" Trinidad Tobago`,
+    `"${name}" Caribbean`,
+    `"${name}" biography profile credits`,
   ]));
 }
 
@@ -188,9 +202,12 @@ export async function onRequestGet({ request }) {
   const u = new URL(request.url);
   const q = (u.searchParams.get('q') || '').trim().slice(0, 500);
   if (!q) return Response.json({ error: 'q required', results: [] }, { status: 400, headers: { 'cache-control': 'no-store' } });
+  const identity = personIdentity(q);
   const [facts, web] = await Promise.all([verifiedFtnFacts(request, q), multiSearch(q)]);
-  const results = dedupe([...facts, ...web.searx, ...web.bing, ...web.ddg]).filter((item) => localityRelevant(q, item)).slice(0, 30);
-  return Response.json({ query: q, results, queryPlans: web.plans, engines: { ftnVerified: facts.length, searxng: web.searx.length, bing: web.bing.length, duckduckgo: web.ddg.length }, retrievedAt: new Date().toISOString() }, {
+  const raw = dedupe([...facts, ...web.searx, ...web.bing, ...web.ddg]);
+  const results = raw.filter((item) => localityRelevant(q, item) && personRelevant(identity, item)).slice(0, 30);
+  const rejectedIrrelevant = identity ? raw.length - results.length : 0;
+  return Response.json({ query: q, results, queryPlans: web.plans, engines: { ftnVerified: facts.length, searxng: web.searx.length, bing: web.bing.length, duckduckgo: web.ddg.length }, rejectedIrrelevant, retrievedAt: new Date().toISOString() }, {
     headers: { 'cache-control': 'public, max-age=60', 'x-robots-tag': 'noindex' },
   });
 }
