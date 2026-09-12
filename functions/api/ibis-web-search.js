@@ -1,266 +1,34 @@
-// FTN Platform — IBIS owned web-search retrieval gateway.
-// Retrieval only: no LLM synthesis and no secrets. This gives IBIS a same-origin search path that
-// can fail over across public search surfaces without coupling reasoning/provenance to one vendor.
-// FTN-owned verified datasets and governed official-source seeds are injected ahead of general web
-// results when they directly answer a query. They remain labelled with source and evidence limits.
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36';
+// FTN Platform — IBIS owned broad-web retrieval fallback.
+// This endpoint retrieves and filters evidence. It does not synthesize factual answers.
+const UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36';
 
-function text(value) {
-  return String(value || '')
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'")
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
-    .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-}
+function clean(v){return String(v||'').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#x27;|&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();}
+function xmlTag(block,name){const m=String(block||'').match(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${name}>`,'i'));return clean(m?.[1]||'');}
+function decodeBing(raw){try{const u=new URL(raw,'https://www.bing.com');const e=u.searchParams.get('u');if(e&&/^a1/i.test(e)){let b=e.slice(2).replace(/-/g,'+').replace(/_/g,'/');while(b.length%4)b+='=';const d=atob(b);if(/^https?:\/\//i.test(d))return d;}return u.href;}catch{return raw;}}
+function resolveDdg(raw){try{const u=new URL(raw.startsWith('//')?`https:${raw}`:raw,'https://html.duckduckgo.com');const t=u.searchParams.get('uddg');return t?decodeURIComponent(t):u.href;}catch{return raw;}}
 
-function resolveDdg(raw) {
-  try {
-    const u = new URL(raw.startsWith('//') ? `https:${raw}` : raw, 'https://html.duckduckgo.com');
-    const target = u.searchParams.get('uddg');
-    return target ? decodeURIComponent(target) : u.href;
-  } catch { return raw; }
-}
+async function bing(q){try{const r=await fetch(`https://www.bing.com/search?q=${encodeURIComponent(q)}&count=12`,{headers:{'user-agent':UA,accept:'text/html'}});if(!r.ok)return[];const html=await r.text();const blocks=html.match(/<li[^>]+class=["'][^"']*\bb_algo\b[^"']*["'][^>]*>[\s\S]*?<\/li>/gi)||[];const out=[];for(const b of blocks.slice(0,12)){const a=b.match(/<h2[^>]*>[\s\S]*?<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h2>/i);if(!a)continue;const p=b.match(/<p[^>]*>([\s\S]*?)<\/p>/i);const url=decodeBing(clean(a[1]));if(/^https?:\/\//i.test(url))out.push({title:clean(a[2]),url,snippet:clean(p?.[1]||''),engine:'bing'});}return out;}catch{return[];}}
+async function ddg(q){try{const r=await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`,{headers:{'user-agent':UA,accept:'text/html'}});if(!r.ok)return[];const html=await r.text();const blocks=html.match(/<div[^>]+class="[^"]*result[^"]*results_links[^"]*"[\s\S]*?(?=<div[^>]+class="[^"]*result[^"]*results_links|<div id="links"|$)/gi)||[];const out=[];for(const b of blocks.slice(0,10)){const a=b.match(/<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);if(!a)continue;const s=b.match(/class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)(?:<\/a>|<\/div>)/i);const url=resolveDdg(clean(a[1]));if(/^https?:\/\//i.test(url))out.push({title:clean(a[2]),url,snippet:clean(s?.[1]||''),engine:'duckduckgo'});}return out;}catch{return[];}}
+async function googleNews(q){try{const query=/\bsan fernando\b/i.test(q)?`"San Fernando" Trinidad Tobago when:14d`:q;const url=`https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en&gl=TT&ceid=TT:en`;const r=await fetch(url,{headers:{'user-agent':UA,accept:'application/rss+xml,application/xml,text/xml'}});if(!r.ok)return[];const xml=await r.text();const items=xml.match(/<item>[\s\S]*?<\/item>/gi)||[];const out=[];for(const item of items.slice(0,20)){const title=xmlTag(item,'title'),link=xmlTag(item,'link'),publishedAt=xmlTag(item,'pubDate'),source=xmlTag(item,'source');if(!title||!/^https?:\/\//i.test(link))continue;out.push({title:source?`${source} — ${title}`:title,url:link,snippet:publishedAt?`Google News discovery result. Published ${publishedAt}. Open the linked publisher result for full context and verification.`:'Google News discovery result; open the publisher result for full context and verification.',engine:'google-news-rss'});}return out;}catch{return[];}}
 
-function decodeBing(raw) {
-  try {
-    const u = new URL(raw, 'https://www.bing.com');
-    const encoded = u.searchParams.get('u');
-    if (!encoded) return u.href;
-    if (/^a1/i.test(encoded)) {
-      let b64 = encoded.slice(2).replace(/-/g, '+').replace(/_/g, '/');
-      while (b64.length % 4) b64 += '=';
-      const decoded = atob(b64);
-      if (/^https?:\/\//i.test(decoded)) return decoded;
-    }
-    return u.href;
-  } catch { return raw; }
-}
+async function governedNews(request,q){if(!/\b(?:news|latest|today|headline|headlines|happening|announced|announcement)\b/i.test(q)||!/\b(?:trinidad|tobago|san fernando|prime minister)\b/i.test(q))return[];try{const runtime=await fetch(new URL('/config/public-runtime.json',request.url),{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():null);const key=runtime?.supabase?.publishableKey,base=runtime?.supabase?.url;if(!key||!base)return[];const upstream=await fetch(`${base}/functions/v1/ftn-news-sources`,{headers:{apikey:key,origin:new URL(request.url).origin,accept:'application/json'},signal:AbortSignal.timeout(10_000)});if(!upstream.ok)return[];const data=await upstream.json().catch(()=>({}));const rows=[...(Array.isArray(data?.localItems)?data.localItems:[]),...(Array.isArray(data?.institutional)?data.institutional:[])];const sf=/\bsan fernando\b/i.test(q);return rows.filter(x=>x?.title&&x?.url&&(!sf||/\bsan fernando\b/i.test(`${x.title} ${x.excerpt||''}`))).slice(0,12).map(x=>({title:`${x.publisher||x.source||'Caribbean source'} — ${x.title}`,url:x.url,snippet:`${x.publishedAt?`Published ${x.publishedAt}. `:''}${x.verificationState||'Publisher/institution-attributed item; review source for full context.'}`,engine:'ftn-governed-news'}));}catch{return[];}}
 
-async function bing(q) {
-  try {
-    const r = await fetch(`https://www.bing.com/search?q=${encodeURIComponent(q)}&count=12`, {
-      headers: { 'user-agent': UA, accept: 'text/html,application/xhtml+xml' },
-    });
-    if (!r.ok) return [];
-    const html = await r.text();
-    const blocks = html.match(/<li[^>]+class=["'][^"']*\bb_algo\b[^"']*["'][^>]*>[\s\S]*?<\/li>/gi) || [];
-    const out = [];
-    for (const block of blocks.slice(0, 12)) {
-      const a = block.match(/<h2[^>]*>[\s\S]*?<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h2>/i);
-      if (!a) continue;
-      const p = block.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
-      const url = decodeBing(text(a[1]));
-      if (/^https?:\/\//i.test(url)) out.push({ title: text(a[2]), url, snippet: text(p?.[1] || ''), engine: 'bing' });
-    }
-    return out;
-  } catch { return []; }
-}
+async function officialSeeds(request,q){const out=[...await governedNews(request,q)];
+  const fx=/\b(?:usd|us dollar|foreign exchange|forex|fx)\b/i.test(q)&&/\b(?:rate|selling|buying|exchange|ttd|tt\$)\b/i.test(q);if(fx){try{const r=await fetch(new URL('/data/fx-usd-ttd.json',request.url),{headers:{accept:'application/json'}});if(r.ok){const d=await r.json(),rows=(Array.isArray(d?.monthly)?d.monthly:[]).filter(x=>x&&typeof x.usdSelling==='number'),x=rows.at(-1);if(x)out.push({title:`Central Bank of Trinidad and Tobago — USD/TTD monthly exchange-rate snapshot (${x.period})`,url:d?.source?.url||'https://www.central-bank.org.tt/exchange-rates-monthly/',snippet:`Official CBTT monthly series. ${x.period}: USD buying ${x.usdBuying} TTD and USD selling ${x.usdSelling} TTD per USD. This is a monthly official statistical observation, not necessarily a live commercial-bank/card rate.`,engine:'ftn-verified-statistics'});}}catch{}}
+  if(/\b(?:grant|grants|funding|finance|financing)\b/i.test(q)&&/\b(?:trinidad|tobago|small business|sme|entrepreneur)\b/i.test(q)){out.push({title:'Ministry of Trade, Investment & Tourism — Grant Fund Facility',url:'https://tradeind.gov.tt/grant-fund-facility/',snippet:'Official Trinidad and Tobago Ministry programme source. Verify current intake, sector eligibility, matching-fund requirements and application instructions on the official page before applying.',engine:'ftn-governed-official-source'},{title:'NEDCO — Grants & Programmes / Micro and Small Business Grant',url:'https://nedco.gov.tt/grants-programmes',snippet:'Official NEDCO grants/programmes source. Verify current intake, eligibility and required documents on the official page.',engine:'ftn-governed-official-source'});}
+  if(/\b(?:register|registration|incorporat|business name)\b/i.test(q)&&/\b(?:business|company)\b/i.test(q)&&/\b(?:trinidad|tobago)\b/i.test(q)){out.push({title:'Companies Registry — Register a Business Name',url:'https://legalaffairs.gov.tt/registerbusiness.php',snippet:'Official Registrar General source. Business-name registration uses a Companies Registry Account/CROS, name reservation, an electronic application and the prescribed fee. The official page lists identity/account requirements and current steps.',engine:'ftn-governed-official-source'});}
+  if(/\b(?:lost|stolen|replace|replacement)\b/i.test(q)&&/\b(?:id|identification)\b/i.test(q)&&/\b(?:trinidad|tobago)\b/i.test(q)){out.push({title:'Elections and Boundaries Commission — Renewals, Lost/Stolen ID cards and Change of Name/Address',url:'https://ebctt.com/identification-card/renewals-lost-and-change-of-nameaddress/',snippet:'Official EBC procedure for lost/stolen National ID cards, including police report, Registration Area Office process, declaration/voucher, replacement fee and proof-of-address requirements.',engine:'ftn-governed-official-source'});}
+  if(/\b(?:weather|flood|flooding|rain|storm|warning)\b/i.test(q)&&/\b(?:trinidad|tobago)\b/i.test(q)){out.push({title:'Trinidad and Tobago Meteorological Service',url:'https://www.metoffice.gov.tt/',snippet:'Official meteorological source for Trinidad and Tobago forecasts, warnings and adverse-weather information. Use the latest bulletin timestamp before making a current-safety claim.',engine:'ftn-governed-official-source'});}
+  if(/\b(?:prime minister|government announcement|government announced)\b/i.test(q)&&/\b(?:trinidad|tobago)\b/i.test(q)){out.push({title:'Office of the Prime Minister — Trinidad and Tobago',url:'https://www.opm.gov.tt/',snippet:'Official Office of the Prime Minister source. Use current releases/official biography to establish office-holder identity and recent announcements; corroborate time-sensitive claims with dated releases.',engine:'ftn-governed-official-source'});}
+  return out;}
 
-async function searx(q) {
-  try {
-    const base = 'https://search.inetol.net';
-    const r = await fetch(`${base}/search?q=${encodeURIComponent(q)}`, { headers: { 'user-agent': UA, accept: 'text/html' } });
-    if (!r.ok) return [];
-    const html = await r.text();
-    const articles = html.match(/<article\b[\s\S]*?<\/article>/gi) || [];
-    const out = [];
-    for (const article of articles.slice(0, 12)) {
-      const a = article.match(/<h3[^>]*>[\s\S]*?<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h3>/i);
-      if (!a) continue;
-      let url = text(a[1]);
-      try { url = new URL(url, base).href; } catch {}
-      if (!/^https?:\/\//i.test(url) || url.startsWith(base)) continue;
-      const p = article.match(/<p[^>]+class=["'][^"']*(?:content|result-content)[^"']*["'][^>]*>([\s\S]*?)<\/p>/i) || article.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
-      out.push({ title: text(a[2]), url, snippet: text(p?.[1] || ''), engine: 'searxng' });
-    }
-    return out;
-  } catch { return []; }
-}
+function dedupe(items){const seen=new Set(),out=[];for(const x of items){if(!x?.title||!x?.url)continue;let k=x.url;try{const u=new URL(x.url);u.hash='';k=`${u.hostname}${u.pathname}`.toLowerCase();}catch{}if(seen.has(k))continue;seen.add(k);out.push(x);}return out;}
+function personIdentity(q){const raw=String(q||'').trim(),name=raw.replace(/^['"“”]+|['"“”]+$/g,'').trim(),words=name.split(/\s+/).filter(Boolean);return words.length>=2&&words.length<=6&&words.every(w=>/^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’-]*$/.test(w))?{name,words:words.map(w=>w.toLowerCase())}:null;}
+function personRelevant(id,x){if(!id)return true;const h=`${x.title||''} ${x.snippet||''} ${x.url||''}`.toLowerCase();return h.includes(id.name.toLowerCase())||id.words.every(w=>h.includes(w));}
+function localityRelevant(q,x){if(!/\bsan fernando\b/i.test(q))return true;const h=`${x.title||''} ${x.snippet||''}`.toLowerCase();let host='';try{host=new URL(x.url).hostname.toLowerCase();}catch{}return /\bsan fernando\b/i.test(h)||/\btrinidad\b|\btobago\b|\btrinbago\b/.test(h)||/\.tt$|guardian\.co\.tt|newsday\.co\.tt|trinidadexpress\.com|loopnews\.com/.test(host);}
+const STOP=new Set(['about','after','again','available','best','could','current','find','from','give','have','latest','news','small','tell','that','their','there','these','this','today','what','when','where','which','with','would','week']);
+function relevant(q,x){if(String(x.engine||'').startsWith('ftn-')||x.engine==='google-news-rss')return true;const h=`${x.title||''} ${x.snippet||''} ${x.url||''}`.toLowerCase();const terms=Array.from(new Set((String(q||'').toLowerCase().match(/[a-z0-9]+/g)||[]).filter(t=>t.length>=4&&!STOP.has(t))));if(!terms.length)return false;let hits=0;for(const t of terms)if(h.includes(t))hits++;const need=terms.length<=2?1:2;return hits>=need;}
+function plans(q){const raw=String(q||'').trim(),id=personIdentity(raw);if(id)return[`"${id.name}"`,`"${id.name}" Trinidad Tobago`,`"${id.name}" Caribbean`,`"${id.name}" biography profile credits`];const p=[raw];if(/\bsan fernando\b/i.test(raw))p.push('"San Fernando" Trinidad news','"San Fernando" Trinidad site:newsday.co.tt','"San Fernando" Trinidad site:guardian.co.tt');if(/\bprime minister\b/i.test(raw))p.push('"Prime Minister" Trinidad Tobago site:opm.gov.tt','Trinidad Tobago Prime Minister announcement');return Array.from(new Set(p));}
+async function webSearch(q){const qs=plans(q),batches=await Promise.all(qs.map(async p=>{const [b,d]=await Promise.all([bing(p),ddg(p)]);return[...b,...d];}));const news=/\b(?:news|latest|today|week|announc|weather|flood|event)\b/i.test(q)?await googleNews(q):[];return{items:dedupe([...news,...batches.flat()]),plans:qs};}
 
-async function ddg(q) {
-  try {
-    const r = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`, { headers: { 'user-agent': UA, accept: 'text/html' } });
-    if (!r.ok) return [];
-    const html = await r.text();
-    const blocks = html.match(/<div[^>]+class="[^"]*result[^"]*results_links[^"]*"[\s\S]*?(?=<div[^>]+class="[^"]*result[^"]*results_links|<div id="links"|$)/gi) || [];
-    const out = [];
-    for (const block of blocks.slice(0, 10)) {
-      const a = block.match(/<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
-      if (!a) continue;
-      const sn = block.match(/class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/i) || block.match(/class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
-      const url = resolveDdg(text(a[1]));
-      if (/^https?:\/\//i.test(url)) out.push({ title: text(a[2]), url, snippet: text(sn?.[1] || ''), engine: 'duckduckgo' });
-    }
-    return out;
-  } catch { return []; }
-}
-
-async function governedNewsFacts(request, q) {
-  if (!/\b(?:news|latest|today|headline|headlines|happening)\b/i.test(q) || !/\b(?:trinidad|tobago|san fernando)\b/i.test(q)) return [];
-  try {
-    const runtime = await fetch(new URL('/config/public-runtime.json', request.url), { headers: { accept: 'application/json' } }).then((r) => r.ok ? r.json() : null);
-    const key = runtime?.supabase?.publishableKey;
-    const base = runtime?.supabase?.url;
-    if (!key || !base) return [];
-    const origin = new URL(request.url).origin;
-    const upstream = await fetch(`${base}/functions/v1/ftn-news-sources`, {
-      headers: { apikey: key, origin, accept: 'application/json' },
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!upstream.ok) return [];
-    const data = await upstream.json().catch(() => ({}));
-    const rows = Array.isArray(data?.localItems) ? data.localItems : [];
-    const wantsSanFernando = /\bsan fernando\b/i.test(q);
-    return rows.filter((item) => {
-      if (!item?.title || !item?.url) return false;
-      if (!wantsSanFernando) return true;
-      return /\bsan fernando\b/i.test(`${item.title || ''} ${item.excerpt || ''}`);
-    }).slice(0, 12).map((item) => ({
-      title: `${item.publisher || 'Trinidad & Tobago publisher'} — ${item.title}`,
-      url: item.url,
-      snippet: `${item.publishedAt ? `Published ${item.publishedAt}. ` : ''}${item.verificationState || 'Publisher-attributed headline; review the source for full context.'}`,
-      engine: 'ftn-governed-news',
-    }));
-  } catch { return []; }
-}
-
-async function verifiedFtnFacts(request, q) {
-  const out = [...await governedNewsFacts(request, q)];
-  const fxIntent = /\b(?:usd|us dollar|u\.s\. dollar|foreign exchange|forex|fx)\b/i.test(q) && /\b(?:rate|selling|buying|exchange|ttd|tt\$)\b/i.test(q);
-  if (fxIntent) {
-    try {
-      const dataUrl = new URL('/data/fx-usd-ttd.json', request.url);
-      const r = await fetch(dataUrl, { headers: { accept: 'application/json' } });
-      if (r.ok) {
-        const data = await r.json();
-        const rows = Array.isArray(data?.monthly) ? data.monthly.filter((x) => x && typeof x.usdSelling === 'number') : [];
-        const latest = rows[rows.length - 1];
-        if (latest) {
-          out.push({
-            title: `Central Bank of Trinidad and Tobago — USD/TTD monthly exchange-rate snapshot (${latest.period})`,
-            url: data?.source?.url || 'https://www.central-bank.org.tt/exchange-rates-monthly/',
-            snippet: `Official CBTT monthly series. Latest observation in the FTN verified dataset: ${latest.period}; USD buying ${latest.usdBuying} TTD and USD selling ${latest.usdSelling} TTD per USD. Dataset retrieved ${data?.source?.retrieved || 'date unavailable'}. This is a monthly official statistical observation, not necessarily a bank's live retail counter/card rate today.`,
-            engine: 'ftn-verified-statistics',
-          });
-        }
-      }
-    } catch {}
-  }
-  const fundingIntent = /\b(?:grant|grants|funding|funded|finance|financing)\b/i.test(q) && /\b(?:trinidad|tobago|small business|sme|micro business|entrepreneur)\b/i.test(q);
-  if (fundingIntent) {
-    out.push({
-      title: 'Ministry of Trade, Investment & Tourism — Grant Fund Facility',
-      url: 'https://tradeind.gov.tt/grant-fund-facility/',
-      snippet: 'Official Trinidad and Tobago Ministry source describing the Grant Fund Facility for eligible SMEs, administered through exporTT. Open the official page to verify current intake, eligible sectors, matching-fund requirements and application instructions before applying.',
-      engine: 'ftn-governed-official-source',
-    });
-    out.push({
-      title: 'NEDCO — Grants & Programmes / Micro and Small Business Grant',
-      url: 'https://nedco.gov.tt/grants-programmes',
-      snippet: 'Official NEDCO source for Trinidad and Tobago grants and programmes, including the Micro and Small Business Grant. Open the source to verify whether applications are currently being accepted, current eligibility, required documents and any programme changes.',
-      engine: 'ftn-governed-official-source',
-    });
-  }
-  return out;
-}
-
-function localityRelevant(q, item) {
-  const query = String(q || '').toLowerCase();
-  if (!query.includes('san fernando')) return true;
-  let host = '';
-  try { host = new URL(item.url).hostname.toLowerCase(); } catch {}
-  const hay = `${item.title || ''} ${item.snippet || ''} ${host}`.toLowerCase();
-  const trinidadSource = /\.tt$/.test(host) || /guardian\.co\.tt|newsday\.co\.tt|trinidadexpress\.com|loopnews\.com/.test(host);
-  return trinidadSource || /\btrinidad\b|\btobago\b|\btrinbago\b/.test(hay);
-}
-
-function dedupe(items) {
-  const seen = new Set(), out = [];
-  for (const item of items) {
-    let key = item.url;
-    try { const u = new URL(item.url); u.hash = ''; key = `${u.hostname}${u.pathname}`.toLowerCase(); } catch {}
-    if (!item.title || !item.url || seen.has(key)) continue;
-    seen.add(key); out.push(item);
-  }
-  return out;
-}
-
-function personIdentity(q) {
-  const raw = String(q || '').trim();
-  const name = raw.replace(/^['"“”]+|['"“”]+$/g, '').trim();
-  const words = name.split(/\s+/).filter(Boolean);
-  const nameLike = words.length >= 2 && words.length <= 6 && words.every((word) => /^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’-]*$/.test(word));
-  return nameLike ? { name, words: words.map((word) => word.toLowerCase()) } : null;
-}
-
-function personRelevant(identity, item) {
-  if (!identity) return true;
-  const hay = `${item.title || ''} ${item.snippet || ''} ${item.url || ''}`.toLowerCase();
-  const full = identity.name.toLowerCase();
-  if (hay.includes(full)) return true;
-  return identity.words.every((word) => hay.includes(word));
-}
-
-const RELEVANCE_STOPWORDS = new Set(['about','after','again','available','best','could','find','from','give','have','latest','news','small','tell','that','their','there','these','this','today','what','when','where','which','with','would']);
-function evidenceRelevant(q, item, governedEvidencePresent) {
-  if (!governedEvidencePresent || String(item.engine || '').startsWith('ftn-')) return true;
-  const hay = `${item.title || ''} ${item.snippet || ''} ${item.url || ''}`.toLowerCase();
-  const terms = Array.from(new Set(String(q || '').toLowerCase().match(/[a-z0-9]+/g) || []))
-    .filter((term) => term.length >= 4 && !RELEVANCE_STOPWORDS.has(term));
-  if (!terms.length) return false;
-  let hits = 0;
-  for (const term of terms) if (hay.includes(term)) hits += 1;
-  return hits >= Math.min(2, terms.length);
-}
-
-function searchPlans(q) {
-  const raw = String(q || '').trim();
-  const identity = personIdentity(raw);
-  if (identity) {
-    const name = identity.name;
-    return Array.from(new Set([
-      `"${name}"`,
-      `"${name}" Trinidad Tobago`,
-      `"${name}" Caribbean`,
-      `"${name}" biography profile credits`,
-    ]));
-  }
-  if (/\bsan fernando\b/i.test(raw)) {
-    return Array.from(new Set([
-      raw,
-      `"San Fernando" Trinidad site:newsday.co.tt`,
-      `"San Fernando" Trinidad site:guardian.co.tt`,
-      `"San Fernando" Trinidad site:trinidadexpress.com`,
-      `"San Fernando" Trinidad site:loopnews.com`,
-    ]));
-  }
-  return [raw];
-}
-
-async function multiSearch(q) {
-  const plans = searchPlans(q);
-  const batches = await Promise.all(plans.map(async (plan) => {
-    const [b, s, d] = await Promise.all([bing(plan), searx(plan), ddg(plan)]);
-    return { b, s, d };
-  }));
-  return {
-    bing: dedupe(batches.flatMap((x) => x.b)),
-    searx: dedupe(batches.flatMap((x) => x.s)),
-    ddg: dedupe(batches.flatMap((x) => x.d)),
-    plans,
-  };
-}
-
-export async function onRequestGet({ request }) {
-  const u = new URL(request.url);
-  const q = (u.searchParams.get('q') || '').trim().slice(0, 500);
-  if (!q) return Response.json({ error: 'q required', results: [] }, { status: 400, headers: { 'cache-control': 'no-store' } });
-  const identity = personIdentity(q);
-  const [facts, web] = await Promise.all([verifiedFtnFacts(request, q), multiSearch(q)]);
-  const raw = dedupe([...facts, ...web.searx, ...web.bing, ...web.ddg]);
-  const results = raw.filter((item) => localityRelevant(q, item) && personRelevant(identity, item) && evidenceRelevant(q, item, facts.length > 0)).slice(0, 30);
-  const rejectedIrrelevant = raw.length - results.length;
-  return Response.json({ query: q, results, queryPlans: web.plans, engines: { ftnVerified: facts.length, searxng: web.searx.length, bing: web.bing.length, duckduckgo: web.ddg.length }, rejectedIrrelevant, retrievedAt: new Date().toISOString() }, {
-    headers: { 'cache-control': 'public, max-age=60', 'x-robots-tag': 'noindex' },
-  });
-}
+export async function onRequestGet({request}){const u=new URL(request.url),q=(u.searchParams.get('q')||'').trim().slice(0,500);if(!q)return Response.json({error:'q required',results:[]},{status:400,headers:{'cache-control':'no-store'}});const id=personIdentity(q);const [facts,web]=await Promise.all([officialSeeds(request,q),webSearch(q)]);const raw=dedupe([...facts,...web.items]);const results=raw.filter(x=>personRelevant(id,x)&&localityRelevant(q,x)&&relevant(q,x)).slice(0,30);return Response.json({query:q,results,queryPlans:web.plans,engines:{ftnVerified:facts.length,web:Math.max(0,raw.length-facts.length)},rejectedIrrelevant:raw.length-results.length,retrievedAt:new Date().toISOString()},{headers:{'cache-control':'public, max-age=60','x-robots-tag':'noindex'}});}
