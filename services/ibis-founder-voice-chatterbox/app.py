@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import inspect
 import io
 import os
 import subprocess
@@ -30,6 +31,7 @@ MAX_TEXT_CHARS = int(os.getenv("IBIS_FOUNDER_VOICE_MAX_TEXT_CHARS", "2500"))
 app = FastAPI(title="IBIS Founder Voice — Chatterbox Nano", docs_url=None, redoc_url=None)
 _model = None
 _reference_verified = False
+_nano_runtime_compatible = "nano" in inspect.signature(ChatterboxTurboTTS.from_pretrained).parameters
 
 
 class SpeakRequest(BaseModel):
@@ -97,6 +99,8 @@ def verify_reference() -> bool:
 
 def get_model():
     global _model
+    if not _nano_runtime_compatible:
+        raise RuntimeError("Installed Chatterbox runtime does not support the Nano model")
     if _model is None:
         # Chatterbox Nano is CPU-capable and uses the Turbo class with nano=True.
         torch.set_num_threads(max(1, int(os.getenv("TORCH_NUM_THREADS", str(os.cpu_count() or 4)))))
@@ -108,15 +112,17 @@ def get_model():
 def health(authorization: str | None = Header(default=None)):
     require_auth(authorization)
     reference_ready = verify_reference()
+    ready = bool(AUTH_TOKEN and reference_ready and _nano_runtime_compatible)
     return {
         "capability": "FOUNDER_TEXT_TO_SPEECH",
         "provider": PROVIDER,
         "model": MODEL,
         "openSource": True,
         "license": "MIT",
-        "configured": bool(AUTH_TOKEN and reference_ready),
-        "ready": bool(AUTH_TOKEN and reference_ready),
+        "configured": bool(AUTH_TOKEN and reference_ready and _nano_runtime_compatible),
+        "ready": ready,
         "voiceEnrolled": reference_ready,
+        "runtimeCompatible": _nano_runtime_compatible,
         "founderVoiceRequired": True,
         "genericVoiceAcceptedAsPrimary": False,
         "voiceIdentity": VOICE_IDENTITY,
