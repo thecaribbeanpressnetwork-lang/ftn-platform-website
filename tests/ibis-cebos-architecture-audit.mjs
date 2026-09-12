@@ -48,9 +48,13 @@ assert.doesNotMatch(research,/GEMINI_MODEL/,'Web research must not inherit an un
 
 const edgeSearch=read('functions/api/ibis-web-search.js');
 assert.match(edgeSearch,/onRequestGet/,'Cloudflare Pages must expose an owned same-origin retrieval gateway');
-for(const engine of ['bing(q)','searx(q)','ddg(q)']) assert(edgeSearch.includes(engine),`Owned retrieval gateway must still query ${engine} rather than collapse to one fragile scraper`);
+for(const engine of ['bing','searx','ddg']){
+  assert.match(edgeSearch,new RegExp(`async function ${engine}\\(`),`Owned retrieval gateway must implement ${engine} as an independent source`);
+  assert.match(edgeSearch,new RegExp(`${engine}\\(p\\)`),`Owned retrieval gateway must execute ${engine} for each search plan`);
+}
+assert.match(edgeSearch,/googleNews/,'Owned retrieval gateway must retain a fresh-news discovery path');
 assert.match(edgeSearch,/Promise\.all\(\[/,'Owned retrieval gateway must execute independent retrieval sources concurrently');
-assert.match(edgeSearch,/verifiedFtnFacts/,'Owned retrieval should be allowed to inject directly relevant verified FTN datasets ahead of general search noise');
+assert.match(edgeSearch,/officialSeeds/,'Owned retrieval should inject directly relevant governed/official FTN evidence ahead of general search noise');
 assert.match(edgeSearch,/\bresults\b/,'Owned gateway must expose normalized results');
 assert.match(edgeSearch,/\bengines\b/,'Owned gateway must expose retrieval-engine health evidence');
 
