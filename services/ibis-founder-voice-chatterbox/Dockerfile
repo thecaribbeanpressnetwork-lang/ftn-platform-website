@@ -15,7 +15,7 @@ RUN pip install --upgrade pip \
     && pip install --index-url https://download.pytorch.org/whl/cpu \
       torch==2.6.0 torchaudio==2.6.0 \
     && pip install -r requirements.txt \
-    && pip install --no-deps 'git+https://github.com/resemble-ai/chatterbox.git@5de7a54aa4e5e2baadb0182dde554908b48b85c2' \
+    && pip install --force-reinstall --no-deps 'git+https://github.com/resemble-ai/chatterbox.git@5de7a54aa4e5e2baadb0182dde554908b48b85c2' \
     && python -c 'import inspect; from chatterbox.tts_turbo import ChatterboxTurboTTS; assert "nano" in inspect.signature(ChatterboxTurboTTS.from_pretrained).parameters'
 COPY app.py ./
 
