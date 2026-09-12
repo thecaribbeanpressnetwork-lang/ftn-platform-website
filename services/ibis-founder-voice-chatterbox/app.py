@@ -2,6 +2,7 @@ import base64
 import hashlib
 import io
 import os
+import subprocess
 from pathlib import Path
 
 import soundfile as sf
@@ -15,6 +16,9 @@ PROVIDER = "chatterbox-nano"
 MODEL = "ResembleAI/chatterbox-nano"
 EXPECTED_REFERENCE_SHA256 = "a1c58062344bb586dad665b9db6b81bba56af85fbffd214a6c17df3f4d270e9b"
 REFERENCE_PATH = Path(os.getenv("IBIS_FOUNDER_VOICE_REFERENCE_PATH", "/run/secrets/ibis-founder-voice/reference.ogg"))
+DERIVED_REFERENCE_PATH = Path("/tmp/ibis-founder-reference-10s.wav")
+REFERENCE_WINDOW_START_SECONDS = float(os.getenv("IBIS_FOUNDER_VOICE_REFERENCE_START_SECONDS", "100"))
+REFERENCE_WINDOW_SECONDS = float(os.getenv("IBIS_FOUNDER_VOICE_REFERENCE_WINDOW_SECONDS", "10"))
 AUTH_TOKEN = os.getenv("IBIS_FOUNDER_VOICE_SERVICE_TOKEN", "")
 MAX_TEXT_CHARS = int(os.getenv("IBIS_FOUNDER_VOICE_MAX_TEXT_CHARS", "2500"))
 
@@ -36,13 +40,23 @@ def require_auth(authorization: str | None) -> None:
 
 def verify_reference() -> bool:
     global _reference_verified
-    if _reference_verified:
+    if _reference_verified and DERIVED_REFERENCE_PATH.is_file():
         return True
     if not REFERENCE_PATH.is_file():
         return False
     digest = hashlib.sha256(REFERENCE_PATH.read_bytes()).hexdigest()
     if digest != EXPECTED_REFERENCE_SHA256:
         raise RuntimeError("Founder voice reference SHA-256 mismatch; refusing to synthesize")
+    # Chatterbox is designed to clone from a short reference clip. Derive a private 10s speech-rich
+    # window only after the full founder-authorized recording has passed its immutable SHA check.
+    subprocess.run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-ss", str(REFERENCE_WINDOW_START_SECONDS), "-i", str(REFERENCE_PATH),
+        "-t", str(REFERENCE_WINDOW_SECONDS), "-ac", "1", "-ar", "24000",
+        str(DERIVED_REFERENCE_PATH),
+    ], check=True, timeout=30)
+    if not DERIVED_REFERENCE_PATH.is_file() or DERIVED_REFERENCE_PATH.stat().st_size < 10_000:
+        raise RuntimeError("Could not derive founder voice reference window")
     _reference_verified = True
     return True
 
@@ -73,6 +87,7 @@ def health(authorization: str | None = Header(default=None)):
         "genericVoiceAcceptedAsPrimary": False,
         "voiceIdentity": VOICE_IDENTITY,
         "referenceSampleSha256": EXPECTED_REFERENCE_SHA256,
+        "referenceWindow": {"startSeconds": REFERENCE_WINDOW_START_SECONDS, "durationSeconds": REFERENCE_WINDOW_SECONDS},
         "watermark": "PerTh",
         "generationAttempted": False,
     }
@@ -88,7 +103,7 @@ def speak(body: SpeakRequest, authorization: str | None = Header(default=None)):
         raise HTTPException(status_code=400, detail="Provide text to speak")
     model = get_model()
     with torch.inference_mode():
-        wav = model.generate(text, audio_prompt_path=str(REFERENCE_PATH))
+        wav = model.generate(text, audio_prompt_path=str(DERIVED_REFERENCE_PATH))
     if hasattr(wav, "detach"):
         wav = wav.detach().cpu().numpy()
     if getattr(wav, "ndim", 1) > 1:
@@ -108,5 +123,6 @@ def speak(body: SpeakRequest, authorization: str | None = Header(default=None)):
         "license": "MIT",
         "voiceIdentity": VOICE_IDENTITY,
         "referenceSampleSha256": EXPECTED_REFERENCE_SHA256,
+        "referenceWindow": {"startSeconds": REFERENCE_WINDOW_START_SECONDS, "durationSeconds": REFERENCE_WINDOW_SECONDS},
         "watermark": "PerTh",
     }
