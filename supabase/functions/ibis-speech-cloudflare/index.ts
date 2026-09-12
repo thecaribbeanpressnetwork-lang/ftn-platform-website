@@ -1,12 +1,25 @@
 // FTN Platform — ibis AUDIO_TRANSCRIPTION + TEXT_TO_SPEECH via Cloudflare Workers AI.
-// Health is zero-consumption: it checks only whether the required server-side configuration exists.
+// Health is zero-consumption. Production and FTN-controlled Cloudflare Pages preview origins are
+// allowed so release candidates can prove real audio artifacts before merge. The current TTS route
+// does not claim a Trinidadian accent/voice unless a provider explicitly verifies one.
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 const windows = new Map<string, { count: number; resetAt: number }>();
 
+function originAllowed(origin: string | null) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+  try {
+    const u = new URL(origin);
+    return u.protocol === "https:" && /^(?:[a-z0-9-]+\.)?ftn-platform-website\.pages\.dev$/i.test(u.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function cors(origin: string | null) {
   return {
-    "Access-Control-Allow-Origin": origin && allowedOrigins.has(origin) ? origin : "https://ftnplatform.org",
+    "Access-Control-Allow-Origin": origin && originAllowed(origin) ? origin : "https://ftnplatform.org",
     "Access-Control-Allow-Headers": "authorization, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Content-Type": "application/json; charset=utf-8",
@@ -43,11 +56,11 @@ function looksLikeMp3(bytes: Uint8Array) {
 
 Deno.serve(async (request) => {
   const origin = request.headers.get("origin");
-  if (request.method === "OPTIONS") return new Response(null, { headers: cors(origin) });
+  if (request.method === "OPTIONS") return new Response(null, { status: originAllowed(origin) ? 204 : 403, headers: cors(origin) });
   if (request.method !== "POST") return reply({ error: "Method not allowed" }, 405, origin);
-  if (origin && !allowedOrigins.has(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
+  if (!originAllowed(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
 
-  let payload: { action?: unknown; mode?: unknown; audio?: unknown; text?: unknown };
+  let payload: { action?: unknown; mode?: unknown; audio?: unknown; text?: unknown; voiceStyle?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
 
   const accountId = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
@@ -62,6 +75,8 @@ Deno.serve(async (request) => {
       ready: configured,
       ttsModel: TTS_MODEL,
       asrModel: ASR_MODEL,
+      verifiedVoiceStyles: ["generic-english"],
+      trinidadianVoiceVerified: false,
       generationAttempted: false,
       checkedAt: new Date().toISOString(),
     }, 200, origin);
@@ -71,7 +86,7 @@ Deno.serve(async (request) => {
   if (!withinLimit(ip)) return reply({ error: "ibis needs a short break. Please wait a few minutes and try again." }, 429, origin);
 
   const mode = payload.mode === "transcribe" || payload.mode === "speak" ? payload.mode : null;
-  if (!mode) return reply({ error: "mode must be \"transcribe\" or \"speak\"." }, 400, origin);
+  if (!mode) return reply({ error: 'mode must be "transcribe" or "speak".' }, 400, origin);
   if (!configured) return reply({ error: "ibis speech is not configured yet on this route. No request was sent and nothing was charged." }, 503, origin);
 
   try {
@@ -82,7 +97,7 @@ Deno.serve(async (request) => {
 
       const upstream = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${ASR_MODEL}`, {
         method: "POST",
-        headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
+        headers: { "content-type": "application/json", authorization: `Bearer ${apiToken}` },
         body: JSON.stringify({ audio }),
         signal: AbortSignal.timeout(20_000),
       });
@@ -106,9 +121,19 @@ Deno.serve(async (request) => {
     const text = typeof payload.text === "string" ? payload.text.trim().slice(0, 2_000) : "";
     if (!text) return reply({ error: "Provide text to speak." }, 400, origin);
 
+    const requestedStyle = typeof payload.voiceStyle === "string" ? payload.voiceStyle.toLowerCase() : "";
+    if (/trinidad|trini|trinidadian/.test(requestedStyle)) {
+      return reply({
+        error: "A verified Trinidadian TTS voice is not configured on this route. ibis will not label a generic English voice as Trinidadian.",
+        capability: "TEXT_TO_SPEECH",
+        trinidadianVoiceVerified: false,
+        availableVoiceStyle: "generic-english",
+      }, 409, origin);
+    }
+
     const upstream = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${TTS_MODEL}`, {
       method: "POST",
-      headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiToken}` },
       body: JSON.stringify({ text, speaker: "luna", encoding: "mp3" }),
       signal: AbortSignal.timeout(20_000),
     });
@@ -122,7 +147,16 @@ Deno.serve(async (request) => {
     let binary = "";
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     const audio = btoa(binary);
-    return reply({ audio, mimeType: "audio/mpeg", extension: "mp3", model: TTS_MODEL, generatedAt: new Date().toISOString() }, 200, origin);
+    return reply({
+      audio,
+      mimeType: "audio/mpeg",
+      extension: "mp3",
+      provider: "Cloudflare Workers AI",
+      model: TTS_MODEL,
+      voiceStyle: "generic-english",
+      trinidadianVoiceVerified: false,
+      generatedAt: new Date().toISOString(),
+    }, 200, origin);
   } catch (error) {
     console.error("ibis-speech-cloudflare server error", error);
     return reply({ error: "ibis speech is temporarily unavailable on this route. Please try again shortly." }, 502, origin);

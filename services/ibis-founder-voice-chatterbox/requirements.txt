@@ -1,0 +1,4 @@
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+soundfile==0.13.1
+chatterbox-tts==0.1.7
