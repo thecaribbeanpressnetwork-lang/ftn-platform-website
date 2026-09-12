@@ -14,13 +14,16 @@ from chatterbox.tts_turbo import ChatterboxTurboTTS
 VOICE_IDENTITY = "IBIS_FOUNDER_VOICE"
 PROVIDER = "chatterbox-nano"
 MODEL = "ResembleAI/chatterbox-nano"
-FULL_REFERENCE_SHA256 = "a1c58062344bb586dad665b9db6b81bba56af85fbffd214a6c17df3f4d270e9b"
+EXPECTED_REFERENCE_SHA256 = "a1c58062344bb586dad665b9db6b81bba56af85fbffd214a6c17df3f4d270e9b"
+FULL_REFERENCE_SHA256 = EXPECTED_REFERENCE_SHA256
 DERIVED_REFERENCE_SHA256 = "20be317f6ca9a04384f8fc8622760080f2f0560b1bdef756ef188c9f62e26548"
 REFERENCE_PATH = Path(os.getenv("IBIS_FOUNDER_VOICE_REFERENCE_PATH", "/run/secrets/ibis-founder-voice/reference.ogg"))
 REFERENCE_B64 = os.getenv("IBIS_FOUNDER_VOICE_REFERENCE_B64", "")
 DERIVED_REFERENCE_PATH = Path("/tmp/ibis-founder-reference.wav")
-SOURCE_WINDOW_START_SECONDS = 100.0
-SOURCE_WINDOW_SECONDS = 6.0
+REFERENCE_WINDOW_START_SECONDS = 100.0
+REFERENCE_WINDOW_SECONDS = 6.0
+SOURCE_WINDOW_START_SECONDS = REFERENCE_WINDOW_START_SECONDS
+SOURCE_WINDOW_SECONDS = REFERENCE_WINDOW_SECONDS
 AUTH_TOKEN = os.getenv("IBIS_FOUNDER_VOICE_SERVICE_TOKEN", "")
 MAX_TEXT_CHARS = int(os.getenv("IBIS_FOUNDER_VOICE_MAX_TEXT_CHARS", "2500"))
 
@@ -71,15 +74,15 @@ def verify_reference() -> bool:
         if not REFERENCE_PATH.is_file():
             return False
         digest = hashlib.sha256(REFERENCE_PATH.read_bytes()).hexdigest()
-        if digest != FULL_REFERENCE_SHA256:
+        if digest != EXPECTED_REFERENCE_SHA256:
             raise RuntimeError("Founder voice reference SHA-256 mismatch; refusing to synthesize")
         source = REFERENCE_PATH
-        ss = ["-ss", str(SOURCE_WINDOW_START_SECONDS)]
-        duration = SOURCE_WINDOW_SECONDS
+        ss = ["-ss", str(REFERENCE_WINDOW_START_SECONDS)]
+        duration = REFERENCE_WINDOW_SECONDS
     else:
-        # The secret is already the derived speech-rich clip; do not seek 100 seconds into it.
+        # The secret is already the derived speech-rich clip; do not seek into it.
         ss = []
-        duration = SOURCE_WINDOW_SECONDS
+        duration = REFERENCE_WINDOW_SECONDS
 
     subprocess.run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
@@ -95,7 +98,7 @@ def verify_reference() -> bool:
 def get_model():
     global _model
     if _model is None:
-        # Chatterbox Nano is explicitly documented as CPU-capable and uses the Turbo class with nano=True.
+        # Chatterbox Nano is CPU-capable and uses the Turbo class with nano=True.
         torch.set_num_threads(max(1, int(os.getenv("TORCH_NUM_THREADS", str(os.cpu_count() or 4)))))
         _model = ChatterboxTurboTTS.from_pretrained(device="cpu", nano=True)
     return _model
@@ -117,9 +120,9 @@ def health(authorization: str | None = Header(default=None)):
         "founderVoiceRequired": True,
         "genericVoiceAcceptedAsPrimary": False,
         "voiceIdentity": VOICE_IDENTITY,
-        "referenceSampleSha256": FULL_REFERENCE_SHA256,
+        "referenceSampleSha256": EXPECTED_REFERENCE_SHA256,
         "derivedReferenceSha256": DERIVED_REFERENCE_SHA256,
-        "referenceWindow": {"startSeconds": SOURCE_WINDOW_START_SECONDS, "durationSeconds": SOURCE_WINDOW_SECONDS},
+        "referenceWindow": {"startSeconds": REFERENCE_WINDOW_START_SECONDS, "durationSeconds": REFERENCE_WINDOW_SECONDS},
         "privateReferenceTransport": "secret-env-or-private-mount",
         "watermark": "PerTh",
         "generationAttempted": False,
@@ -155,8 +158,8 @@ def speak(body: SpeakRequest, authorization: str | None = Header(default=None)):
         "openSource": True,
         "license": "MIT",
         "voiceIdentity": VOICE_IDENTITY,
-        "referenceSampleSha256": FULL_REFERENCE_SHA256,
+        "referenceSampleSha256": EXPECTED_REFERENCE_SHA256,
         "derivedReferenceSha256": DERIVED_REFERENCE_SHA256,
-        "referenceWindow": {"startSeconds": SOURCE_WINDOW_START_SECONDS, "durationSeconds": SOURCE_WINDOW_SECONDS},
+        "referenceWindow": {"startSeconds": REFERENCE_WINDOW_START_SECONDS, "durationSeconds": REFERENCE_WINDOW_SECONDS},
         "watermark": "PerTh",
     }
