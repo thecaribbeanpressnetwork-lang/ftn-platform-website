@@ -201,6 +201,18 @@ function personRelevant(identity, item) {
   return identity.words.every((word) => hay.includes(word));
 }
 
+const RELEVANCE_STOPWORDS = new Set(['about','after','again','available','best','could','find','from','give','have','latest','news','small','tell','that','their','there','these','this','today','what','when','where','which','with','would']);
+function evidenceRelevant(q, item, governedEvidencePresent) {
+  if (!governedEvidencePresent || String(item.engine || '').startsWith('ftn-')) return true;
+  const hay = `${item.title || ''} ${item.snippet || ''} ${item.url || ''}`.toLowerCase();
+  const terms = Array.from(new Set(String(q || '').toLowerCase().match(/[a-z0-9]+/g) || []))
+    .filter((term) => term.length >= 4 && !RELEVANCE_STOPWORDS.has(term));
+  if (!terms.length) return false;
+  let hits = 0;
+  for (const term of terms) if (hay.includes(term)) hits += 1;
+  return hits >= Math.min(2, terms.length);
+}
+
 function searchPlans(q) {
   const raw = String(q || '').trim();
   const identity = personIdentity(raw);
@@ -246,8 +258,8 @@ export async function onRequestGet({ request }) {
   const identity = personIdentity(q);
   const [facts, web] = await Promise.all([verifiedFtnFacts(request, q), multiSearch(q)]);
   const raw = dedupe([...facts, ...web.searx, ...web.bing, ...web.ddg]);
-  const results = raw.filter((item) => localityRelevant(q, item) && personRelevant(identity, item)).slice(0, 30);
-  const rejectedIrrelevant = identity ? raw.length - results.length : 0;
+  const results = raw.filter((item) => localityRelevant(q, item) && personRelevant(identity, item) && evidenceRelevant(q, item, facts.length > 0)).slice(0, 30);
+  const rejectedIrrelevant = raw.length - results.length;
   return Response.json({ query: q, results, queryPlans: web.plans, engines: { ftnVerified: facts.length, searxng: web.searx.length, bing: web.bing.length, duckduckgo: web.ddg.length }, rejectedIrrelevant, retrievedAt: new Date().toISOString() }, {
     headers: { 'cache-control': 'public, max-age=60', 'x-robots-tag': 'noindex' },
   });
