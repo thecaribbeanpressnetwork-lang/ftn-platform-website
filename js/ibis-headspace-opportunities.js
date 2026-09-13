@@ -21,4 +21,6 @@
   // Own funding/opportunity intent at document capture before generic Headspace UI keyword handling.
   if(form)document.addEventListener('submit',function(event){if(event.target!==form)return;var value=input&&input.value||'';if(!relevant(value))return;event.preventDefault();event.stopImmediatePropagation();run(value);},true);
   document.querySelector('[data-launch-scout]')?.addEventListener('click',function(){run(input&&input.value||'Find the strongest current opportunity for FTN');});
+  global.FTN=global.FTN||{};global.FTN.HeadspaceOpportunities={run:run};
+  if(typeof document!=='undefined')document.dispatchEvent(new CustomEvent('ibis:opportunities-ready'));
 })(typeof window!=='undefined'?window:globalThis);
