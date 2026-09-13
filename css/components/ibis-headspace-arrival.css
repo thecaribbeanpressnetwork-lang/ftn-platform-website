@@ -12,12 +12,12 @@ body:not(.headspace-engaged) .input-orbit{top:61svh;bottom:auto;width:min(900px,
 body:not(.headspace-engaged) .input-orbit button[type=submit]{color:#b47cff}
 body:not(.headspace-engaged) .command-hint{top:calc(61svh + 78px);bottom:auto;color:#746b7e}
 
-.arrival-scenes{position:absolute;z-index:0;inset:0;overflow:hidden;background:#020204;transition:opacity 1.8s ease,filter 2.8s ease}
+.arrival-scenes{position:absolute;z-index:0;inset:0;overflow:hidden;background:radial-gradient(circle at 72% 24%,rgba(122,53,172,.18),transparent 31%),linear-gradient(145deg,#07141c 0%,#04101a 42%,#090613 100%);transition:opacity 1.8s ease,filter 2.8s ease}
 .arrival-scenes:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;transition:background 3s ease}
-body[data-daypart=morning] .arrival-scenes:after{background:linear-gradient(180deg,rgba(255,176,112,.12),rgba(9,33,54,.2) 55%,rgba(0,0,0,.42))}
-body[data-daypart=daytime] .arrival-scenes:after{background:linear-gradient(180deg,rgba(84,177,219,.08),rgba(0,22,42,.1) 55%,rgba(0,0,0,.38))}
-body[data-daypart=evening] .arrival-scenes:after{background:linear-gradient(180deg,rgba(247,126,94,.18),rgba(62,20,82,.23) 58%,rgba(0,0,0,.5))}
-body[data-daypart=night] .arrival-scenes:after{background:linear-gradient(180deg,rgba(10,14,48,.42),rgba(30,10,58,.3) 58%,rgba(0,0,0,.62))}
+body[data-daypart=morning] .arrival-scenes:after{background:radial-gradient(circle at 18% 12%,rgba(255,185,118,.18),transparent 34%),linear-gradient(180deg,rgba(30,86,111,.28),rgba(4,17,27,.5))}
+body[data-daypart=daytime] .arrival-scenes:after{background:radial-gradient(circle at 74% 14%,rgba(88,197,213,.16),transparent 32%),linear-gradient(180deg,rgba(11,63,82,.32),rgba(3,17,27,.48))}
+body[data-daypart=evening] .arrival-scenes:after{background:radial-gradient(circle at 22% 22%,rgba(237,126,93,.17),transparent 35%),linear-gradient(180deg,rgba(75,29,91,.28),rgba(8,9,25,.55))}
+body[data-daypart=night] .arrival-scenes:after{background:radial-gradient(circle at 76% 18%,rgba(151,71,255,.12),transparent 30%),linear-gradient(180deg,rgba(9,16,47,.5),rgba(2,4,12,.7))}
 .arrival-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;filter:brightness(.4) saturate(1.16) contrast(1.05);transition:opacity 4.8s ease}
 .arrival-scene.is-active{opacity:1}
 .scene-disclosure{position:absolute;z-index:3;right:20px;bottom:12px;color:rgba(255,255,255,.28);font-size:7px;letter-spacing:.12em;text-transform:uppercase}
@@ -26,16 +26,17 @@ body[data-daypart=night] .arrival-scenes:after{background:linear-gradient(180deg
 .arrival-clock span{color:rgba(255,255,255,.54);font-size:8px;letter-spacing:.16em;text-transform:uppercase}
 .arrival-clock:hover,.arrival-clock:focus-visible{color:#c492ff}
 
-.outcome-window{display:inline-flex;align-items:baseline;vertical-align:baseline;white-space:nowrap}
+.outcome-window{display:inline-grid;width:6.35em;align-items:baseline;vertical-align:baseline;white-space:nowrap;text-align:left}
 .outcome-word{display:inline-block;color:#c492ff;will-change:transform,opacity,filter;transition:transform .9s cubic-bezier(.22,1,.36,1),opacity .9s ease,filter .9s ease}
-.outcome-mark{margin-left:.03em;color:#f6fffd}
 .outcome-word.is-leaving{opacity:0;filter:blur(10px);transform:scale(.97)}
 .outcome-word.is-entering{transition:none;opacity:0;filter:blur(10px);transform:scale(1.03)}
 
 body.headspace-engaged .arrival-clock{display:none}
 body.headspace-engaged .arrival-scenes{opacity:.24;filter:saturate(.72) brightness(.72)}
 body.headspace-engaged .scene-disclosure{display:none}
-body.headspace-engaged .headspace-head{min-height:122px}
+body.headspace-engaged .headspace{padding-bottom:176px}
+body.headspace-engaged .headspace-head{min-height:72px}
+body.headspace-engaged .field{top:auto!important;padding-bottom:136px}
 body.headspace-engaged .input-orbit{top:auto;bottom:26px}
 
 @media(max-width:1000px){
@@ -53,7 +54,7 @@ body.headspace-engaged .input-orbit{top:auto;bottom:26px}
   body:not(.headspace-engaged) .head-actions{top:-5px}
   body:not(.headspace-engaged) .input-orbit{top:63svh;width:calc(100vw - 20px)}
   body:not(.headspace-engaged) .command-hint{top:calc(63svh + 72px)}
-  .outcome-window{display:inline-flex;margin-top:.08em}
+  .outcome-window{display:inline-grid;width:auto;min-width:6.35em;margin-top:.08em}
   .arrival-clock{top:2px;left:4px}
   .arrival-clock time{font-size:23px}
   .scene-disclosure{right:10px;bottom:7px;font-size:6px}
