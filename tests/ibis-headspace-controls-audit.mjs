@@ -42,10 +42,10 @@ assert.doesNotMatch(html,/Sample signal/i,'Headspace must not show sample demand
 assert.doesNotMatch(html,/Caribbean context is first-class infrastructure\./i,'The old canned conclusion must not return.');
 
 for (const id of ['speakAnswer','speechPause','speechRewind','speechSpeed','speechNext']) assert.match(html, new RegExp(`id="${id}"`), `Missing speech control ${id}`);
-assert.match(html,/Founder voice candidate controls/);
-assert.match(html,/awaiting founder listening approval/);
-for (const operation of ['ibis-founder-voice',"action:'preview'",'UNAPPROVED_FOUNDER_VOICE_CANDIDATE','new Audio','.pause(','.play(','move(-10)','move(10)','playbackRate']) assert.ok(speech.includes(operation), `Missing speech operation ${operation}`);
-assert.doesNotMatch(speech,/speechSynthesis/,'The candidate control must not substitute a generic browser voice.');
+assert.match(html,/Founder voice controls/);
+assert.match(html,/approved Chatterbox founder voice/);
+for (const operation of ['ibis-founder-voice',"action:'speak'",'IBIS_FOUNDER_VOICE','founderListeningApproved','new Audio','.pause(','.play(','move(-10)','move(10)','playbackRate']) assert.ok(speech.includes(operation), `Missing speech operation ${operation}`);
+assert.doesNotMatch(speech,/speechSynthesis/,'The founder voice control must not substitute a generic browser voice.');
 for (const action of ['place','snapNode','minimize','restore','tile','stack']) assert.match(manager, new RegExp(`function ${action}\\b`));
 assert.match(manager,/function freeform\b/,'Headspace must expose a genuine unsnapped freeform layout.');
 assert.match(manager,/if\s*\(mode!==['"]freeform['"]\)\s*\{?\s*freeform\(\)/,'Dragging a snapped card must implicitly unsnap Headspace rather than snapping it back.');

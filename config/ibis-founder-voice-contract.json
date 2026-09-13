@@ -23,10 +23,10 @@
     "channels": 1
   },
   "founderApproval": {
-    "status": "REVOKED_PENDING_REENROLLMENT",
-    "reason": "Founder listening review did not recognize the generated voice as his own.",
-    "approvedAt": null,
-    "mayBePresentedAsFounderVoice": false
+    "status": "APPROVED",
+    "reason": "Founder Ricardo Antoine approved the Chatterbox candidate after listening review.",
+    "approvedAt": "2026-09-13T03:00:00Z",
+    "mayBePresentedAsFounderVoice": true
   },
   "privacy": {
     "rawVoiceSampleStoredInRepository": false,

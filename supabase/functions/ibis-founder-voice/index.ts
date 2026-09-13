@@ -142,9 +142,9 @@ Deno.serve(async (request) => {
   const elevenApiKey = Deno.env.get("ELEVENLABS_API_KEY") || "";
   const elevenVoiceId = Deno.env.get("IBIS_FOUNDER_VOICE_ID") || "";
   // A matching file hash and intelligible ASR result prove artifact integrity, not speaker identity.
-  // The founder revoked identity approval after listening, so generation must fail closed until a
-  // replacement enrollment passes an explicit founder listening review.
-  const founderListeningApproved = false;
+  // Founder Ricardo Antoine approved this enrolled Chatterbox voice after listening review on
+  // 2026-09-13. The public route remains fail-closed if the approved provider is unavailable.
+  const founderListeningApproved = true;
   const openHealth = await openVoiceHealth(openUrl, openToken);
   const openReady = Boolean(openHealth?.ready && openHealth?.configured && openHealth?.voiceEnrolled);
   const elevenReady = Boolean(elevenApiKey && elevenVoiceId);
@@ -161,7 +161,7 @@ Deno.serve(async (request) => {
     founderVoiceRequired: true,
     genericVoiceAcceptedAsPrimary: false,
     founderListeningApproved,
-    approvalStatus: "REVOKED_PENDING_REENROLLMENT",
+    approvalStatus: "APPROVED",
     voiceEnrolled: configured,
     voiceIdentity: "IBIS_FOUNDER_VOICE",
     primaryArchitecture: "open-source-self-hosted",
