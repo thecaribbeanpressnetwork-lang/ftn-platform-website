@@ -51,6 +51,7 @@ for (const action of ['place','snapNode','minimize','restore','tile','stack']) a
 assert.match(manager,/function freeform\b/,'Headspace must expose a genuine unsnapped freeform layout.');
 assert.match(manager,/if\s*\(mode!==['"]freeform['"]\)\s*\{?\s*freeform\(\)/,'Dragging a snapped card must implicitly unsnap Headspace rather than snapping it back.');
 assert.match(manager,/document\.addEventListener\('pointermove',moveDrag,true\)/,'Headspace drag must survive the grid-to-freeform DOM/layout transition.');
+assert.match(fabric,/manager\.getMode\(\)!==['"]freeform['"]\)\{manager\.arrange\(manager\.getMode\(\)\);return;\}/,'The fabric must not reapply freeform percentages over a snapped layout.');
 for (const code of ['TT','JM','BB','GY','LC','VE']) assert.match(themes, new RegExp(`${code}: \\{`));
 assert.match(themes, /VE:.*primary: '#f2c94c'.*secondary: '#1f5ca8'.*tertiary: '#d71920'/);
 assert.match(themes, /GY:.*secondary: '#2f8f48'.*tertiary: '#d71920'.*ink: '#08090b'.*muted: '#ffffff'/);
