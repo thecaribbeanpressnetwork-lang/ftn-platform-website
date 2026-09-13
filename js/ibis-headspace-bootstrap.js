@@ -12,11 +12,11 @@
     '/js/charts.js?v=20260907.1',
     '/js/ibis-presentation.js?v=20260907.2',
     '/js/ibis-headspace-request-state.js?v=20260908.1',
-    '/js/ibis-headspace-window-manager.js?v=20260913.1',
-    '/js/ibis-headspace-arrival.js?v=20260913.2',
-    '/js/ibis-headspace-speech.js?v=20260913.2',
-    '/js/ibis-headspace-fabric.js?v=20260913.1',
-    '/js/ibis-headspace-universal.js?v=20260911.2',
+    '/js/ibis-headspace-window-manager.js?v=20260913.2',
+    '/js/ibis-headspace-arrival.js?v=20260913.3',
+    '/js/ibis-headspace-speech.js?v=20260913.3',
+    '/js/ibis-headspace-fabric.js?v=20260913.2',
+    '/js/ibis-headspace-universal.js?v=20260913.3',
     '/js/ibis-headspace-preview.js?v=20260913.1',
     '/js/ibis-headspace-handoff-guards.js?v=20260910.2',
     '/js/ibis-headspace-statistics.js?v=20260907.1',
@@ -64,11 +64,11 @@
     global.FTN = global.FTN || {};
     global.FTN.HeadspaceBootstrap = { ready: failures.length === 0, failures: failures.slice() };
     if (failures.length) {
-      bootStatus('Core workspace ready · some optional capabilities unavailable', 'degraded');
+      bootStatus('Workspace ready · some tools unavailable', 'degraded');
       var hint = document.getElementById('commandHint');
       if (hint) hint.textContent = 'Headspace is usable. Unavailable capabilities will fail closed rather than inventing results.';
     } else {
-      bootStatus('ibis ready', 'ready');
+      bootStatus('Workspace ready', 'ready');
     }
     document.documentElement.classList.add('headspace-hydrated');
     document.dispatchEvent(new CustomEvent('ibis:headspace-ready', { detail: global.FTN.HeadspaceBootstrap }));

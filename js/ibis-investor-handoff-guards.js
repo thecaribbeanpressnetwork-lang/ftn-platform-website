@@ -42,7 +42,16 @@
   function publishHandoff(){
     explain('Publishing requires account authorization.','IBIS can prepare metadata, captions, descriptions, files, tags and release notes. It will not publish to YouTube, social platforms, GitHub, Cloudflare, email or app stores without a connected authorized account.','The investor demo should show the publishing package and the required approval boundary.');
   }
-  function classify(text){var q=String(text||'').toLowerCase();if(/\b(pay|purchase|buy|transfer|card|bank|invoice|checkout)\b/.test(q))return'money';if(/\b(publish|post|send email|email|upload to youtube|deploy|submit|ship|push live)\b/.test(q))return'publish';if(/\b(device|usb|mixer|deck|phone|camera|microphone|printer|hardware)\b/.test(q))return'device';if(/\b(launch|run|monitor|watch)\b/.test(q)&&/\b(scout|source|opportunity|price|policy|news)\b/.test(q))return'scout';return'';}
+  function classify(text){
+    var q=String(text||'').trim().toLowerCase();
+    var informational=/^(?:what|who|where|when|why|how|which|compare|calculate|estimate|explain|find|research|show|list|tell me)\b/.test(q)||/\b(?:rate|price|cost|mortgage|interest|information|data|latest|current|today|available)\b/.test(q);
+    var moneyAction=/\b(?:pay|purchase|buy|transfer|send|charge|refund|withdraw|deposit)\b/.test(q)&&/\b(?:now|this|it|invoice|vendor|account|card|bank|money|funds|checkout)\b/.test(q);
+    if(moneyAction&&!informational)return'money';
+    if(/\b(?:publish|post|send email|upload to youtube|deploy|submit|ship|push live)\b/.test(q)&&!informational)return'publish';
+    if(/\b(?:control|connect|operate|access)\b/.test(q)&&/\b(?:device|usb|mixer|deck|phone|camera|microphone|printer|hardware)\b/.test(q))return'device';
+    if(/\b(?:launch|run|monitor|watch)\b/.test(q)&&/\b(?:scout|source|opportunity|price|policy|news)\b/.test(q))return'scout';
+    return'';
+  }
   function attach(){
     document.querySelectorAll('[data-tool]').forEach(function(btn){if(btn.dataset.ibisHandoffGuard)return;btn.dataset.ibisHandoffGuard='true';btn.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();toolHandoff(btn.dataset.tool);},true);});
     document.querySelectorAll('[data-launch-scout]').forEach(function(btn){if(btn.dataset.ibisHandoffGuard)return;btn.dataset.ibisHandoffGuard='true';btn.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();scoutHandoff();},true);});

@@ -35,6 +35,21 @@ function buildSystemPrompt(products: unknown, requestText: string, locationConte
   return `${BASE_INSTRUCTION} ${policy}${lines.length ? " Current FTN products (registry evidence only; do not infer extra capabilities):\n" + lines.join("\n") : ""}`;
 }
 
+async function askGemini(apiKey: string, model: string, system: string, turns: Turn[]) {
+  if (!apiKey) return "";
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: turns.map((turn) => ({ role: turn.role === "assistant" ? "model" : "user", parts: [{ text: turn.content }] })), generationConfig: { temperature: 0.2, maxOutputTokens: 1800 } }),
+      signal: AbortSignal.timeout(18_000),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) return "";
+    return (data?.candidates?.[0]?.content?.parts || []).map((part: { text?: unknown }) => typeof part?.text === "string" ? part.text : "").join("").trim();
+  } catch { return ""; }
+}
+
 Deno.serve(async (request) => {
   const origin = request.headers.get("origin");
   if (request.method === "OPTIONS") return new Response(null, { headers: cors(origin) });
@@ -42,8 +57,8 @@ Deno.serve(async (request) => {
   if (!originAllowed(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
   let payload: { action?: unknown; messages?: unknown; products?: unknown; locationContext?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
-  const accountId = Deno.env.get("CLOUDFLARE_ACCOUNT_ID"), apiToken = Deno.env.get("CLOUDFLARE_API_TOKEN"), configured = Boolean(accountId && apiToken);
-  if (payload.action === "health") return reply({ capability: "TEXT", provider: "cloudflare-workers-ai", model: MODEL, configured, ready: configured, cebos: true, inferenceAttempted: false, checkedAt: new Date().toISOString() }, 200, origin);
+  const accountId = Deno.env.get("CLOUDFLARE_ACCOUNT_ID"), apiToken = Deno.env.get("CLOUDFLARE_API_TOKEN"), geminiKey = Deno.env.get("GEMINI_API_KEY") || "", geminiModel = Deno.env.get("IBIS_TEXT_MODEL") || "gemini-2.5-flash", cloudflareConfigured = Boolean(accountId && apiToken), configured = Boolean(cloudflareConfigured || geminiKey);
+  if (payload.action === "health") return reply({ capability: "TEXT", provider: "FTN multi-provider text gateway", providers: [{ id: "cloudflare-workers-ai", configured: cloudflareConfigured }, { id: "google-gemini", configured: Boolean(geminiKey) }], model: cloudflareConfigured ? MODEL : geminiModel, configured, ready: configured, cebos: true, inferenceAttempted: false, checkedAt: new Date().toISOString() }, 200, origin);
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
   if (!withinLimit(ip)) return reply({ error: "ibis needs a short break. Please wait a few minutes and try again." }, 429, origin);
   const raw = Array.isArray(payload.messages) ? payload.messages : [];
@@ -53,15 +68,18 @@ Deno.serve(async (request) => {
   if (!configured) return reply({ error: "ibis is not configured yet on this route. No request was sent and nothing was charged." }, 503, origin);
   const requestText = turns[turns.length - 1].content;
   const locationContext = typeof payload.locationContext === "string" ? payload.locationContext.slice(0, 200) : null;
-  try {
+  const system = buildSystemPrompt(payload.products, requestText, locationContext);
+  if (cloudflareConfigured) try {
     const upstream = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${MODEL}`, {
       method: "POST", headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
-      body: JSON.stringify({ messages: [{ role: "system", content: buildSystemPrompt(payload.products, requestText, locationContext) }, ...turns.map((t) => ({ role: t.role, content: t.content }))], temperature: 0.2 }), signal: AbortSignal.timeout(20_000),
+      body: JSON.stringify({ messages: [{ role: "system", content: system }, ...turns.map((t) => ({ role: t.role, content: t.content }))], temperature: 0.2 }), signal: AbortSignal.timeout(16_000),
     });
     const data = await upstream.json().catch(() => ({}));
-    if (!upstream.ok || data?.success === false) { console.error("Cloudflare Workers AI request failed", upstream.status, JSON.stringify(data?.errors || data)); return reply({ error: "ibis is temporarily unavailable on this route. Please try again shortly." }, 502, origin); }
-    const answer = typeof data?.result?.response === "string" ? data.result.response.trim() : "";
-    if (!answer) return reply({ error: "ibis did not return an answer. Please try again." }, 502, origin);
-    return reply({ answer, provider: "Cloudflare Workers AI", model: MODEL, generatedAt: new Date().toISOString(), cebos: true }, 200, origin);
-  } catch (error) { console.error("ibis-text-cloudflare server error", error); return reply({ error: "ibis is temporarily unavailable on this route. Please try again shortly." }, 502, origin); }
+    const answer = upstream.ok && data?.success !== false && typeof data?.result?.response === "string" ? data.result.response.trim() : "";
+    if (answer) return reply({ answer, provider: "Cloudflare Workers AI", model: MODEL, generatedAt: new Date().toISOString(), cebos: true }, 200, origin);
+    console.error("Cloudflare Workers AI request failed", upstream.status);
+  } catch (error) { console.error("ibis-text-cloudflare primary provider error", error); }
+  const fallback = await askGemini(geminiKey, geminiModel, system, turns);
+  if (fallback) return reply({ answer: fallback, provider: "Google Gemini fallback", model: geminiModel, generatedAt: new Date().toISOString(), cebos: true }, 200, origin);
+  return reply({ error: "ibis could not reach either configured answer provider. Please try again shortly." }, 502, origin);
 });

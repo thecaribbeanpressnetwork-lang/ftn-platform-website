@@ -9,6 +9,8 @@ const arrivalCss = fs.readFileSync('css/components/ibis-headspace-arrival.css','
 const preview = fs.readFileSync('js/ibis-headspace-preview.js','utf8');
 const themes = fs.readFileSync('js/ibis-country-themes.js','utf8');
 const speech = fs.readFileSync('js/ibis-headspace-speech.js','utf8');
+const universal = fs.readFileSync('js/ibis-headspace-universal.js','utf8');
+const investorGuards = fs.readFileSync('js/ibis-investor-handoff-guards.js','utf8');
 const manager = fs.readFileSync('js/ibis-headspace-window-manager.js','utf8');
 const fabric = fs.readFileSync('js/ibis-headspace-fabric.js','utf8');
 const toolHealth = fs.readFileSync('js/ibis-headspace-tool-health.js','utf8');
@@ -88,7 +90,16 @@ assert.doesNotMatch(html,/<(?:label|input)[^>]+(?:headspaceOpacity|opacity-contr
 assert.doesNotMatch(preview,/headspaceOpacity|applyOpacity/,'The retired Focus control logic must not remain in the preview controller.');
 assert.doesNotMatch(manager,/headspaceOpacity|wireOpacity|__ibisSetOpacity/,'The retired Focus control logic must not remain in the window manager.');
 assert.doesNotMatch(preview,/function draggable/,'Only the spatial window manager may own card dragging.');
-assert.match(arrivalCss,/body\.headspace-engaged \.field\{top:auto!important;padding-bottom:136px\}/,'Working cards must clear the fixed command dock without an artificial top offset.');
+assert.match(arrivalCss,/body\.headspace-engaged \.field\{top:auto!important;padding-bottom:190px\}/,'Working cards must clear the fixed command dock without an artificial top offset.');
+assert.match(investorGuards,/var informational=/,'Information questions must be excluded from side-effect handoff interception.');
+assert.match(investorGuards,/moneyAction&&!informational/,'Rates, prices and calculations must not be mistaken for payment execution.');
+assert.match(universal,/function mortgageAnswer\b/,'Headspace must complete bounded mortgage calculations without a fragile capability handoff.');
+assert.match(universal,/ibis-image-cloudflare/,'Headspace image requests must reach the verified real image route.');
+assert.match(universal,/function renderImage\b[\s\S]*Download image/,'Headspace must render a real downloadable image artifact.');
+assert.match(manager,/Math\.min\(count\|\|1,max\)/,'Window columns must adapt to the number of visible results.');
+assert.match(manager,/function fit\b/,'Answer and media windows must adapt to their real content.');
+assert.match(speech,/function splitText\b/,'Founder voice must split long answers into bounded synthesis chunks.');
+assert.match(speech,/chunkIndex<chunks\.length[\s\S]*playChunk/,'Founder voice must continue automatically through every answer chunk.');
 assert.match(html,/thought-graph dematerialized/,'The graph surface must remain hidden until real evidence requests it.');
 assert.match(html,/body\{overflow-y:auto\}\.headspace\{height:auto;overflow:visible\}\.field\{inset:auto\}/,'Headspace must neutralize the legacy viewport lock and 116px field offset.');
 assert.match(html,/@media \(max-height:820px\) and \(min-width:721px\)/,'Short or zoomed desktop viewports need a compact first paint that clears the fixed command dock.');

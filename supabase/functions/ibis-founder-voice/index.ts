@@ -75,6 +75,8 @@ type OpenHealth = {
   watermark?: string;
 };
 
+let openHealthCache: { key: string; value: OpenHealth | null; expiresAt: number } | null = null;
+
 function isHuggingFaceSpace(base: string) {
   try { return new URL(base).hostname.endsWith(".hf.space"); } catch { return false; }
 }
@@ -112,10 +114,13 @@ async function callGradio(base: string, apiName: "health" | "speak", data: unkno
 
 async function openVoiceHealth(base: string, token: string): Promise<OpenHealth | null> {
   if (!base || !token) return null;
+  const cacheKey = `${base}|${token.length}`;
+  if (openHealthCache && openHealthCache.key === cacheKey && openHealthCache.expiresAt > Date.now()) return openHealthCache.value;
   try {
     if (isHuggingFaceSpace(base)) {
       const body = await callGradio(base, "health", [token], 20_000) as OpenHealth | null;
       if (!body || body.voiceIdentity !== "IBIS_FOUNDER_VOICE" || body.referenceSampleSha256 !== SAMPLE_SHA256) return null;
+      openHealthCache = { key: cacheKey, value: body, expiresAt: Date.now() + 5 * 60_000 };
       return body;
     }
     const response = await fetch(`${base.replace(/\/$/, "")}/health`, {
@@ -125,8 +130,9 @@ async function openVoiceHealth(base: string, token: string): Promise<OpenHealth 
     if (!response.ok) return null;
     const body = await response.json().catch(() => null) as OpenHealth | null;
     if (!body || body.voiceIdentity !== "IBIS_FOUNDER_VOICE" || body.referenceSampleSha256 !== SAMPLE_SHA256) return null;
+    openHealthCache = { key: cacheKey, value: body, expiresAt: Date.now() + 5 * 60_000 };
     return body;
-  } catch { return null; }
+  } catch { openHealthCache = { key: cacheKey, value: null, expiresAt: Date.now() + 15_000 }; return null; }
 }
 
 Deno.serve(async (request) => {
