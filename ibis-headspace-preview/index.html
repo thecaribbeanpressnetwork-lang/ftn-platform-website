@@ -17,23 +17,20 @@
 body{overflow-y:auto}.headspace{height:auto;overflow:visible}.field{inset:auto}
 @media (max-height:820px) and (min-width:721px){.headspace{padding-top:18px}.headspace-head{margin-bottom:16px}.headspace h1{font-size:clamp(36px,3.1vw,46px);margin:10px 0 8px}.subhead{font-size:14px;line-height:1.4}.boot{margin-top:9px}}
 </style>
-<link rel="stylesheet" href="/css/components/ibis-headspace-arrival.css?v=20260913.1">
+<link rel="stylesheet" href="/css/components/ibis-headspace-arrival.css?v=20260913.2">
 </head>
 <body>
 <a class="skip" href="#headspace">Skip to Headspace</a>
 <main class="headspace" id="headspace">
-  <div class="arrival-scenes" aria-label="Caribbean landmark scenes">
-    <figure class="arrival-scene is-active">
-      <img src="/assets/ibis/landmarks/pitch-lake-trinidad.webp" alt="" width="2560" height="1440" fetchpriority="high">
-      <figcaption class="scene-caption"><span>Pitch Lake · Trinidad &amp; Tobago</span><a href="https://en.wikipedia.org/wiki/Pitch_Lake" target="_blank" rel="noopener">More about Trinidad’s Pitch Lake</a><a class="scene-credit" href="https://commons.wikimedia.org/wiki/File:STAPP_102_La_Brea_Pitch_Lake.jpg" target="_blank" rel="noopener" aria-label="Pitch Lake photograph credit and licence">Grueslayer · CC BY-SA 4.0</a></figcaption>
-    </figure>
+  <div class="arrival-scenes" aria-label="Caribbean landmark scene">
     <figure class="arrival-scene">
-      <img src="/assets/ibis/landmarks/bathsheba-barbados.webp" alt="" width="2560" height="1440">
-      <figcaption class="scene-caption"><span>Bathsheba · Barbados</span><a href="https://en.wikipedia.org/wiki/Bathsheba,_Barbados" target="_blank" rel="noopener">More about Bathsheba</a><a class="scene-credit" href="https://commons.wikimedia.org/wiki/File:BATHSHEBA_ROCK_-_ST._JOSEPH_PARISH_-_BARBADOS.jpg" target="_blank" rel="noopener" aria-label="Bathsheba photograph credit and licence">Jerrye &amp; Roy Klotz · CC BY-SA 3.0</a></figcaption>
-    </figure>
-    <figure class="arrival-scene">
-      <img src="/assets/ibis/landmarks/kaieteur-falls-guyana.webp" alt="" width="2560" height="1440">
-      <figcaption class="scene-caption"><span>Kaieteur Falls · Guyana</span><a href="https://en.wikipedia.org/wiki/Kaieteur_Falls" target="_blank" rel="noopener">More about Kaieteur Falls</a><a class="scene-credit" href="https://commons.wikimedia.org/wiki/File:Kaieteur_Falls_Guyana_(2)_2007.jpg" target="_blank" rel="noopener" aria-label="Kaieteur Falls photograph credit and licence">Bill Cameron · CC BY-SA 3.0</a></figcaption>
+      <img class="scene-image is-active" data-scene-layer="0" src="/assets/ibis/landmarks/trinidad-pitch-lake.webp" alt="" width="2560" height="1440" fetchpriority="high">
+      <img class="scene-image" data-scene-layer="1" alt="" width="2560" height="1440">
+      <figcaption class="scene-caption">
+        <span id="sceneLabel">Pitch Lake · Trinidad &amp; Tobago</span>
+        <a id="sceneArticle" href="https://en.wikipedia.org/wiki/Pitch_Lake" target="_blank" rel="noopener">More about Pitch Lake</a>
+        <a id="sceneCredit" class="scene-credit" href="https://commons.wikimedia.org/wiki/File:STAPP_102_La_Brea_Pitch_Lake.jpg" target="_blank" rel="noopener" aria-label="Pitch Lake photograph credit and licence">Grueslayer · CC BY-SA 4.0</a>
+      </figcaption>
     </figure>
   </div>
   <header class="headspace-head">
@@ -47,16 +44,21 @@ body{overflow-y:auto}.headspace{height:auto;overflow:visible}.field{inset:auto}
       <p class="subhead">Start with the reality you want. ibis helps build the road there.</p>
       <span class="boot" id="headspaceBootStatus" data-state="loading" role="status">Workspace ready · connecting ibis capabilities…</span>
     </div>
-    <div class="head-actions" aria-label="Headspace layout and history controls">
-      <button id="undoSpace" type="button" disabled>← Back</button>
-      <button id="redoSpace" type="button" disabled>Forward →</button>
-      <button id="restoreLast" type="button">Put it back</button>
-      <button type="button" data-arrange="grid">Snap grid</button>
-      <button type="button" data-arrange="tile">Tile</button>
-      <button type="button" data-arrange="stack">Stack</button>
-      <label class="opacity-control" for="headspaceOpacity">Focus <input id="headspaceOpacity" type="range" min="50" max="100" value="100" aria-label="Headspace card opacity"></label>
-      <button id="saveSpace" type="button">Save Headspace</button>
-      <a href="/account/">Sign in</a>
+    <div class="head-actions" aria-label="Headspace controls">
+      <button id="liveView" class="live-view-toggle" type="button" aria-pressed="false">Live view</button>
+      <details class="headspace-menu" id="headspaceMenu">
+        <summary aria-label="Open Headspace menu" title="Headspace menu">•••</summary>
+        <div class="headspace-menu-panel" aria-label="Headspace layout and history controls">
+          <button id="undoSpace" type="button" disabled>← Back</button>
+          <button id="redoSpace" type="button" disabled>Forward →</button>
+          <button id="restoreLast" type="button">Put it back</button>
+          <button type="button" data-arrange="grid">Snap grid</button>
+          <button type="button" data-arrange="tile">Tile</button>
+          <button type="button" data-arrange="stack">Stack</button>
+          <button id="saveSpace" type="button">Save Headspace</button>
+          <a href="/account/">Sign in</a>
+        </div>
+      </details>
     </div>
   </header>
 

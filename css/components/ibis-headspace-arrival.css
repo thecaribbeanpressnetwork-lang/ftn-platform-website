@@ -7,6 +7,14 @@ body:not(.headspace-engaged) .headspace h1{max-width:none;margin:18px auto 16px;
 body:not(.headspace-engaged) .subhead{max-width:620px;margin:0 auto;color:#b5aebe}
 body:not(.headspace-engaged) .boot{margin-top:20px}
 body:not(.headspace-engaged) .head-actions{position:absolute;top:0;right:0;max-width:560px}
+.head-actions{z-index:260;overflow:visible}
+.headspace-menu{position:relative}
+.headspace-menu summary{display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(255,255,255,.18);border-radius:50%;background:rgba(2,3,3,.68);color:#fff;cursor:pointer;list-style:none;font:700 14px/1 Montserrat,Inter,Arial,sans-serif;letter-spacing:.06em;backdrop-filter:blur(16px)}
+.headspace-menu summary::-webkit-details-marker{display:none}
+.headspace-menu[open] summary{border-color:rgba(180,124,255,.72);color:#c492ff}
+.headspace-menu-panel{position:absolute;z-index:270;top:50px;right:0;display:grid;grid-template-columns:repeat(2,minmax(112px,1fr));gap:7px;width:min(300px,calc(100vw - 28px));padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(2,3,3,.94);box-shadow:0 24px 70px rgba(0,0,0,.58);backdrop-filter:blur(20px)}
+.headspace-menu-panel button,.headspace-menu-panel a{width:100%;text-align:left}
+.live-view-toggle{white-space:nowrap}
 body:not(.headspace-engaged) .field{min-height:0;margin:0}
 body:not(.headspace-engaged) .input-orbit{top:61svh;bottom:auto;width:min(900px,calc(100vw - 48px));border-color:rgba(151,71,255,.7);box-shadow:0 18px 70px rgba(0,0,0,.58),0 0 44px rgba(139,66,255,.08)}
 body:not(.headspace-engaged) .input-orbit button[type=submit]{color:#b47cff}
@@ -18,9 +26,9 @@ body[data-daypart=morning] .arrival-scenes:after{background:radial-gradient(circ
 body[data-daypart=daytime] .arrival-scenes:after{background:radial-gradient(circle at 74% 14%,rgba(88,197,213,.16),transparent 32%),linear-gradient(180deg,rgba(11,63,82,.32),rgba(3,17,27,.48))}
 body[data-daypart=evening] .arrival-scenes:after{background:radial-gradient(circle at 22% 22%,rgba(237,126,93,.17),transparent 35%),linear-gradient(180deg,rgba(75,29,91,.28),rgba(8,9,25,.55))}
 body[data-daypart=night] .arrival-scenes:after{background:radial-gradient(circle at 76% 18%,rgba(151,71,255,.12),transparent 30%),linear-gradient(180deg,rgba(9,16,47,.5),rgba(2,4,12,.7))}
-.arrival-scene{position:absolute;z-index:1;inset:0;margin:0;opacity:0;pointer-events:none;transition:opacity 4.8s ease}
-.arrival-scene img{width:100%;height:100%;object-fit:cover;object-position:center;filter:brightness(.42) saturate(1.08) contrast(1.05)}
-.arrival-scene.is-active{opacity:1;pointer-events:auto}
+.arrival-scene{position:absolute;z-index:1;inset:0;margin:0}
+.scene-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;filter:brightness(.42) saturate(1.08) contrast(1.05);transition:opacity 3.2s ease;will-change:opacity}
+.scene-image.is-active{opacity:1}
 .scene-caption{position:absolute;z-index:3;right:20px;bottom:14px;display:grid;justify-items:end;gap:2px;color:rgba(255,255,255,.64);font:500 9px/1.35 Montserrat,Inter,Arial,sans-serif;letter-spacing:.07em;text-transform:uppercase;text-shadow:0 1px 12px #000}
 .scene-caption a{color:rgba(255,255,255,.82);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.22)}
 .scene-caption a:hover,.scene-caption a:focus-visible{color:#fff;border-color:#c492ff}
@@ -43,10 +51,20 @@ body.headspace-engaged .headspace-head{min-height:72px}
 body.headspace-engaged .field{top:auto!important;padding-bottom:136px}
 body.headspace-engaged .input-orbit{top:auto;bottom:26px}
 
+body.ambient-live{overflow:hidden}
+body.ambient-live .headspace{min-height:100svh;padding:24px;overflow:hidden}
+body.ambient-live .arrival-scenes{opacity:1!important;filter:none!important}
+body.ambient-live .arrival-scenes:after{background:linear-gradient(180deg,rgba(0,0,0,.03),rgba(0,0,0,.10))!important}
+body.ambient-live .scene-image{filter:saturate(1.16) contrast(1.04)}
+body.ambient-live .identity,body.ambient-live .field,body.ambient-live .input-orbit,body.ambient-live .command-hint,body.ambient-live .window-shelf,body.ambient-live .headspace-menu{display:none!important}
+body.ambient-live .headspace-head{position:relative;z-index:4;min-height:0;margin:0;max-width:none}
+body.ambient-live .arrival-clock{display:grid;top:0;left:0}
+body.ambient-live .head-actions{position:fixed;z-index:280;top:24px;right:24px;left:auto;margin:0;display:flex}
+body.ambient-live .scene-caption{display:grid}
+
 @media(max-width:1000px){
   body:not(.headspace-engaged) .headspace-head{display:flex}
-  body:not(.headspace-engaged) .head-actions{left:0;right:0;justify-content:center;margin-top:0}
-  body:not(.headspace-engaged) .head-actions button:not(#saveSpace),body:not(.headspace-engaged) .opacity-control{display:none}
+  body:not(.headspace-engaged) .head-actions{left:auto;right:0;justify-content:flex-end;margin-top:0}
   .arrival-clock{top:4px}
 }
 
@@ -72,6 +90,6 @@ body.headspace-engaged .input-orbit{top:auto;bottom:26px}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .arrival-scene{transition:none}
+  .scene-image{transition:none}
   .outcome-word{transition:none}
 }

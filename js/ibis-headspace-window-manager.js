@@ -53,12 +53,10 @@
     return{place:place,snap:function(node){if(node){preserveDraggedPosition(node);return;}arrange('grid');},snapNode:snapNode,organize:function(){arrange('grid');},tile:tile,stack:stack,freeform:freeform,minimize:minimize,restore:restore,visible:visible,arrange:arrange,getMode:function(){return mode;}};
   }
 
-  function wireOpacity(field){var slider=document.getElementById('headspaceOpacity');if(!slider||slider.dataset.ibisOpacityReady==='true')return;slider.dataset.ibisOpacityReady='true';function apply(raw){var value=Math.max(50,Math.min(100,Number(raw||slider.value||100)))/100;slider.value=String(Math.round(value*100));field.style.setProperty('--thought-opacity',String(value));document.querySelectorAll('.thought:not(.dematerialized)').forEach(function(n){n.style.setProperty('opacity',String(value),'important');});}slider.addEventListener('input',function(){apply();});slider.addEventListener('change',function(){apply();});field.__ibisSetOpacity=apply;apply();}
-
   function init(){var field=document.getElementById('field');if(!field)return;var api=manager(field);global.FTN=global.FTN||{};global.FTN.HeadspaceWindowManager=api;
     var stackBtn=document.querySelector('[data-arrange="stack"]');if(stackBtn&&!document.querySelector('[data-arrange="freeform"]')){var free=document.createElement('button');free.type='button';free.dataset.arrange='freeform';free.textContent='Freeform';free.title='Unsnap cards and move them freely';stackBtn.insertAdjacentElement('afterend',free);}
     document.querySelectorAll('[data-arrange]').forEach(function(button){button.addEventListener('click',function(e){e.preventDefault();var a=button.dataset.arrange;if(a==='tile')api.tile();else if(a==='stack')api.stack();else if(a==='freeform')api.freeform();else api.organize();});});
-    document.querySelectorAll('[data-minimize]').forEach(function(button){button.addEventListener('click',function(e){e.stopPropagation();var n=button.closest('.thought');if(n)api.minimize(n);});});wireOpacity(field);
+    document.querySelectorAll('[data-minimize]').forEach(function(button){button.addEventListener('click',function(e){e.stopPropagation();var n=button.closest('.thought');if(n)api.minimize(n);});});
     global.addEventListener('resize',function(){if(api.getMode()==='freeform'||global.matchMedia&&global.matchMedia(MOBILE).matches)return;clearTimeout(global.__ibisHeadspaceWindowResize);global.__ibisHeadspaceWindowResize=setTimeout(function(){api.arrange(api.getMode());},120);});setTimeout(function(){api.organize();},150);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

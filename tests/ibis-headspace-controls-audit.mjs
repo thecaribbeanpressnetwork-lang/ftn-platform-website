@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const html = fs.readFileSync('ibis-headspace-preview/index.html','utf8');
 const bootstrap = fs.readFileSync('js/ibis-headspace-bootstrap.js','utf8');
@@ -15,6 +16,7 @@ const scoutHealth = fs.readFileSync('js/ibis-headspace-scout-health.js','utf8');
 const publicBootstrap = fs.readFileSync('js/ibis-query-bootstrap.js','utf8');
 const publicHtml = fs.readFileSync('ibis-ai/index.html','utf8');
 const scoutRegistry = JSON.parse(fs.readFileSync('data/scout-2-source-registry.json','utf8'));
+const landmarkManifest = JSON.parse(fs.readFileSync('data/ibis-headspace-landmarks.json','utf8'));
 
 // Public Headspace must first-paint immediately and hydrate capabilities through one non-blocking
 // bootstrap. Directly embedding the full capability graph in HTML previously held DOM readiness
@@ -44,9 +46,24 @@ assert.match(html,/Start with the reality you want\. ibis helps build the road t
 assert.doesNotMatch(html,/ibis-flight/,'Headspace must not translate a still bird asset as fake flight.');
 assert.match(html,/id="headspaceTime"/,'Headspace must connect its ambient arrival to the FTN Clock capability.');
 assert.doesNotMatch(html,/headspace-archipelago-|AI-generated/,'Unverified generated geography must not appear on the Headspace arrival.');
-for (const landmark of ['pitch-lake-trinidad.webp','bathsheba-barbados.webp','kaieteur-falls-guyana.webp']) assert.ok(html.includes(landmark),`Missing verified Caribbean landmark ${landmark}`);
-for (const label of ['More about Trinidad’s Pitch Lake','More about Bathsheba','More about Kaieteur Falls']) assert.ok(html.includes(label),`Missing unobtrusive landmark link: ${label}`);
-for (const licence of ['CC BY-SA 4.0','CC BY-SA 3.0']) assert.ok(html.includes(licence),`Missing visible image licence ${licence}`);
+assert.equal(landmarkManifest.count,51,'The Caribbean landmark collection must contain all 51 approved locations.');
+assert.equal(landmarkManifest.landmarks.length,51,'The landmark manifest count must match its records.');
+assert.equal(new Set(landmarkManifest.landmarks.map(item=>item.id)).size,51,'Every landmark must have a unique stable ID.');
+assert.equal(new Set(landmarkManifest.landmarks.map(item=>item.localPath)).size,51,'Every landmark must use its own local asset.');
+for (const item of landmarkManifest.landmarks) {
+  assert.match(item.articleUrl,/^https:\/\/(?:en\.)?wikipedia\.org\//,`${item.id} needs a named landmark information link.`);
+  assert.match(item.descriptionUrl,/^https:\/\/commons\.wikimedia\.org\//,`${item.id} needs a Commons provenance link.`);
+  assert.match(item.license,/^(?:CC0|CC BY(?:-SA)?|Public domain|PDM)/i,`${item.id} does not have an allowed licence.`);
+  assert.ok(item.author,`${item.id} needs an attribution holder.`);
+  assert.ok(Array.isArray(item.dayparts)&&item.dayparts.length,`${item.id} needs a clock-aligned daypart.`);
+  const localFile=item.localPath.replace(/^\//,'');
+  const bytes=fs.readFileSync(localFile);
+  assert.ok(bytes.length>80_000,`${item.id} is missing or too small to be a production scene.`);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),item.fileHashSha256,`${item.id} does not match its provenance hash.`);
+}
+assert.equal((html.match(/data-scene-layer=/g)||[]).length,2,'Headspace must crossfade through exactly two reusable image layers.');
+for (const id of ['sceneLabel','sceneArticle','sceneCredit']) assert.match(html,new RegExp(`id="${id}"`),`Missing unobtrusive landmark metadata surface ${id}.`);
+assert.match(arrival,/fetch\('\/data\/ibis-headspace-landmarks\.json'/,'Headspace must render the governed 51-location manifest.');
 assert.match(bootstrap,/node\.classList\.add\('dematerialized'\)/,'Headspace must open as a clear objective field without premature cards.');
 assert.equal((html.match(/<article class="thought[^\"]*dematerialized"/g)||[]).length,(html.match(/<article class="thought/g)||[]).length,'Every Headspace card must be hidden in first-paint HTML, before asynchronous hydration.');
 for (const outcome of ['make happen?','achieve?','find?','understand?','solve?','build?','change?','prove?']) assert.ok(arrival.includes(`'${outcome}'`),`Missing punctuated outcome phrase ${outcome}`);
@@ -57,10 +74,19 @@ assert.match(arrival,/America\/Port_of_Spain/,'Ambient clock must use the real T
 for (const part of ['morning','daytime','evening','night']) assert.ok(arrival.includes(`'${part}'`),`Missing Trinidad-time atmosphere state ${part}`);
 assert.match(arrival,/window\.setInterval\(advance,5200\)/,'Outcome words must remain long enough to read calmly.');
 assert.doesNotMatch(arrival,/scheduleFlight|function fly/,'Headspace must not simulate wing flight with a static image.');
-assert.match(arrival,/20000/,'Idle orientation must reveal the second landmark after twenty seconds.');
-assert.match(arrival,/40000/,'Idle orientation must reveal the third landmark after forty seconds.');
 assert.match(arrival,/240000/,'Idle landmark rotation must settle to a four-minute cadence.');
 assert.match(arrival,/MutationObserver[\s\S]*headspace-engaged[\s\S]*stopScenes/,'Landmark changes must stop as soon as Headspace begins working.');
+assert.doesNotMatch(arrival,/orientationTimers|settleRotation|\b20000\b|\b40000\b|\b60000\b/,'Discarded three-scene sequencing logic must not remain.');
+assert.match(arrival,/matchingLandmarks[\s\S]*dataset\.daypart/,'Landmark selection must respect the Trinidad-time atmosphere.');
+assert.match(html,/id="liveView"[^>]+aria-pressed="false"/,'Headspace needs an explicit Live view toggle.');
+assert.match(html,/<details class="headspace-menu" id="headspaceMenu">/,'Secondary controls must live behind the three-dot menu.');
+assert.match(arrival,/requestFullscreen/,'Live view must request browser fullscreen from its user gesture.');
+assert.match(arrivalCss,/body\.ambient-live \.scene-image\{filter:saturate\(1\.16\) contrast\(1\.04\)\}/,'Live view must restore vivid undimmed landmark colour.');
+assert.match(arrivalCss,/body\.ambient-live \.identity[\s\S]*\.input-orbit[\s\S]*display:none!important/,'Live view must preserve the scene and clock without working controls.');
+assert.match(arrivalCss,/\.head-actions\{z-index:260/,'The protected controls must remain above cards and the command dock.');
+assert.doesNotMatch(html,/<(?:label|input)[^>]+(?:headspaceOpacity|opacity-control)/,'The retired Focus control must not remain in the public interface.');
+assert.doesNotMatch(preview,/headspaceOpacity|applyOpacity/,'The retired Focus control logic must not remain in the preview controller.');
+assert.doesNotMatch(manager,/headspaceOpacity|wireOpacity|__ibisSetOpacity/,'The retired Focus control logic must not remain in the window manager.');
 assert.doesNotMatch(preview,/function draggable/,'Only the spatial window manager may own card dragging.');
 assert.match(arrivalCss,/body\.headspace-engaged \.field\{top:auto!important;padding-bottom:136px\}/,'Working cards must clear the fixed command dock without an artificial top offset.');
 assert.match(html,/thought-graph dematerialized/,'The graph surface must remain hidden until real evidence requests it.');
