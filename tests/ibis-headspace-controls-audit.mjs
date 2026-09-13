@@ -44,6 +44,9 @@ assert.match(html,/Start with the reality you want\. ibis helps build the road t
 assert.doesNotMatch(html,/ibis-flight/,'Headspace must not translate a still bird asset as fake flight.');
 assert.match(html,/id="headspaceTime"/,'Headspace must connect its ambient arrival to the FTN Clock capability.');
 assert.doesNotMatch(html,/headspace-archipelago-|AI-generated/,'Unverified generated geography must not appear on the Headspace arrival.');
+for (const landmark of ['pitch-lake-trinidad.webp','bathsheba-barbados.webp','kaieteur-falls-guyana.webp']) assert.ok(html.includes(landmark),`Missing verified Caribbean landmark ${landmark}`);
+for (const label of ['More about Trinidad’s Pitch Lake','More about Bathsheba','More about Kaieteur Falls']) assert.ok(html.includes(label),`Missing unobtrusive landmark link: ${label}`);
+for (const licence of ['CC BY-SA 4.0','CC BY-SA 3.0']) assert.ok(html.includes(licence),`Missing visible image licence ${licence}`);
 assert.match(bootstrap,/node\.classList\.add\('dematerialized'\)/,'Headspace must open as a clear objective field without premature cards.');
 assert.equal((html.match(/<article class="thought[^\"]*dematerialized"/g)||[]).length,(html.match(/<article class="thought/g)||[]).length,'Every Headspace card must be hidden in first-paint HTML, before asynchronous hydration.');
 for (const outcome of ['make happen?','achieve?','find?','understand?','solve?','build?','change?','prove?']) assert.ok(arrival.includes(`'${outcome}'`),`Missing punctuated outcome phrase ${outcome}`);
@@ -54,7 +57,10 @@ assert.match(arrival,/America\/Port_of_Spain/,'Ambient clock must use the real T
 for (const part of ['morning','daytime','evening','night']) assert.ok(arrival.includes(`'${part}'`),`Missing Trinidad-time atmosphere state ${part}`);
 assert.match(arrival,/window\.setInterval\(advance,5200\)/,'Outcome words must remain long enough to read calmly.');
 assert.doesNotMatch(arrival,/scheduleFlight|function fly/,'Headspace must not simulate wing flight with a static image.');
-assert.doesNotMatch(arrival,/rotateScene|settleRotation|240000|20000|40000/,'Arrival scenery must remain stable and never interrupt an active workspace.');
+assert.match(arrival,/20000/,'Idle orientation must reveal the second landmark after twenty seconds.');
+assert.match(arrival,/40000/,'Idle orientation must reveal the third landmark after forty seconds.');
+assert.match(arrival,/240000/,'Idle landmark rotation must settle to a four-minute cadence.');
+assert.match(arrival,/MutationObserver[\s\S]*headspace-engaged[\s\S]*stopScenes/,'Landmark changes must stop as soon as Headspace begins working.');
 assert.doesNotMatch(preview,/function draggable/,'Only the spatial window manager may own card dragging.');
 assert.match(arrivalCss,/body\.headspace-engaged \.field\{top:auto!important;padding-bottom:136px\}/,'Working cards must clear the fixed command dock without an artificial top offset.');
 assert.match(html,/thought-graph dematerialized/,'The graph surface must remain hidden until real evidence requests it.');

@@ -26,4 +26,19 @@
   function tick(){var now=new Date();document.body.dataset.daypart=daypart(now);if(time){time.textContent=timeFormat.format(now);time.dateTime=now.toISOString();}if(date)date.textContent=dateFormat.format(now)+' · Trinidad & Tobago';}
   tick();window.setInterval(tick,1000);
 
+  var scenes=Array.from(document.querySelectorAll('.arrival-scene')),sceneIndex=0,sceneTimer=0,orientationTimers=[];
+  function showScene(next){scenes.forEach(function(scene,i){scene.classList.toggle('is-active',i===next);});sceneIndex=next;}
+  function stopScenes(){orientationTimers.forEach(window.clearTimeout);orientationTimers=[];window.clearInterval(sceneTimer);sceneTimer=0;}
+  function rotateScene(){if(document.body.classList.contains('headspace-engaged'))return stopScenes();showScene((sceneIndex+1)%scenes.length);}
+  function settleRotation(){sceneTimer=window.setInterval(rotateScene,240000);}
+  if(scenes.length){
+    showScene(reduce?0:Math.floor(Math.random()*scenes.length));
+    if(!reduce){
+      orientationTimers.push(window.setTimeout(rotateScene,20000));
+      orientationTimers.push(window.setTimeout(rotateScene,40000));
+      orientationTimers.push(window.setTimeout(settleRotation,60000));
+      new MutationObserver(function(){if(document.body.classList.contains('headspace-engaged'))stopScenes();}).observe(document.body,{attributes:true,attributeFilter:['class']});
+    }
+  }
+
 })();
