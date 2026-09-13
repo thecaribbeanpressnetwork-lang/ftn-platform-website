@@ -41,15 +41,20 @@
   }
 
   var flight=document.querySelector('.ibis-flight'),flightTimer=0;
-  function scheduleFlight(first){if(!flight||reduce)return;window.clearTimeout(flightTimer);flightTimer=window.setTimeout(fly,first?650:random(42000,96000));}
+  function scheduleFlight(first){
+    if(!flight||reduce)return;
+    window.clearTimeout(flightTimer);
+    var engaged=document.body.classList.contains('headspace-engaged');
+    flightTimer=window.setTimeout(fly,first?10500:engaged?random(150000,360000):random(42000,96000));
+  }
   function fly(){
-    if(document.body.classList.contains('headspace-engaged'))return;
+    var engaged=document.body.classList.contains('headspace-engaged');
     var fromLeft=random(0,1)>.5;
     flight.classList.remove('is-flying','flight-from-left','flight-from-right');
     flight.classList.add(fromLeft?'flight-from-left':'flight-from-right');
-    flight.style.setProperty('--flight-y',random(5,34).toFixed(1)+'svh');
-    flight.style.setProperty('--flight-width',Math.round(random(300,760))+'px');
-    flight.style.setProperty('--flight-duration',random(5.8,10.2).toFixed(1)+'s');
+    flight.style.setProperty('--flight-y',random(5,engaged?48:34).toFixed(1)+'svh');
+    flight.style.setProperty('--flight-width',Math.round(engaged?random(120,320):random(300,760))+'px');
+    flight.style.setProperty('--flight-duration',engaged?random(9,16).toFixed(1)+'s':random(5.8,10.2).toFixed(1)+'s');
     flight.style.setProperty('--flight-rise',Math.round(random(-70,55))+'px');
     void flight.offsetWidth;
     flight.classList.add('is-flying');

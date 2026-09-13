@@ -12,7 +12,7 @@ body:not(.headspace-engaged) .input-orbit{top:61svh;bottom:auto;width:min(900px,
 body:not(.headspace-engaged) .input-orbit button[type=submit]{color:#b47cff}
 body:not(.headspace-engaged) .command-hint{top:calc(61svh + 78px);bottom:auto;color:#746b7e}
 
-.arrival-scenes{position:absolute;z-index:0;inset:0;overflow:hidden;background:#020204;transition:opacity 1.8s ease,filter 2.8s ease}
+.arrival-scenes{position:absolute;z-index:0;inset:-5%;overflow:hidden;background:#020204;transform-origin:72% 82%;animation:headspaceArrivalFlight 8.5s cubic-bezier(.18,.72,.28,1) both;transition:opacity 1.8s ease,filter 2.8s ease}
 .arrival-scenes:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;transition:background 3s ease}
 body[data-daypart=morning] .arrival-scenes:after{background:linear-gradient(180deg,rgba(255,176,112,.12),rgba(9,33,54,.2) 55%,rgba(0,0,0,.42))}
 body[data-daypart=daytime] .arrival-scenes:after{background:linear-gradient(180deg,rgba(84,177,219,.08),rgba(0,22,42,.1) 55%,rgba(0,0,0,.38))}
@@ -41,7 +41,7 @@ body[data-daypart=night] .arrival-scenes:after{background:linear-gradient(180deg
 .ibis-flight.is-flying.flight-from-right{right:-62vw;animation:ibisCrossingRight var(--flight-duration,6.4s) cubic-bezier(.33,.02,.72,.99) forwards}
 .ibis-flight.is-flying.flight-from-left{left:-62vw;animation:ibisCrossingLeft var(--flight-duration,6.4s) cubic-bezier(.33,.02,.72,.99) forwards}
 
-body.headspace-engaged .ibis-flight{display:none}
+body.headspace-engaged .ibis-flight img{opacity:.42;filter:drop-shadow(0 0 14px rgba(154,72,255,.12))}
 body.headspace-engaged .arrival-clock{display:none}
 body.headspace-engaged .arrival-scenes{opacity:.24;filter:saturate(.72) brightness(.72)}
 body.headspace-engaged .arrival-geography{opacity:.12}
@@ -61,6 +61,12 @@ body.headspace-engaged .input-orbit{top:auto;bottom:26px}
   10%{opacity:.88}
   84%{opacity:.88}
   100%{opacity:0;transform:translate3d(calc(100vw + 110%),var(--flight-rise,-24px),0) scaleX(-1) scale(1.02)}
+}
+
+@keyframes headspaceArrivalFlight{
+  0%{transform:scale(1.24) translate3d(-1.5%,4.5%,0)}
+  52%{transform:scale(1.11) translate3d(.4%,1.6%,0)}
+  100%{transform:scale(1) translate3d(0,0,0)}
 }
 
 @media(max-width:1000px){
@@ -93,6 +99,7 @@ body.headspace-engaged .input-orbit{top:auto;bottom:26px}
 }
 
 @media(prefers-reduced-motion:reduce){
+  .arrival-scenes{animation:none;transform:none}
   .arrival-scene{transition:none;transform:none}
   .arrival-geography{transform:none;opacity:.16}
   .ibis-flight,.ibis-flight.is-flying.flight-from-left,.ibis-flight.is-flying.flight-from-right{left:auto;right:7vw;opacity:.28;animation:none;transform:none}

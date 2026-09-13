@@ -55,6 +55,9 @@ assert.match(arrival,/20000/,'The first orientation minute must reveal the secon
 assert.match(arrival,/40000/,'The first orientation minute must reveal the third Caribbean scene.');
 assert.match(arrival,/60000/,'The four-minute settled cadence must begin only after the orientation minute.');
 assert.match(arrival,/random\(42000,96000\)/,'Repeated ibis crossings must remain rare enough for an ambient workspace.');
+assert.match(arrival,/first\?10500/,'The first ibis crossing must wait until the geographic arrival flight settles.');
+assert.match(arrival,/random\(150000,360000\)/,'Working-mode ibis discoveries must be substantially rarer than arrival motion.');
+assert.match(arrival,/random\(120,320\)/,'Working-mode ibis discoveries must remain visually small.');
 assert.match(arrival,/random\(300,760\)/,'Ibis crossings must vary scale to preserve aerial depth.');
 assert.match(arrival,/flight-from-left.*flight-from-right/,'Ibis paths must vary travel direction.');
 assert.match(arrival,/240000/,'Atmospheric scenes must rotate slowly rather than distract from the objective.');
