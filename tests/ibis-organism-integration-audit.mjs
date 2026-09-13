@@ -103,7 +103,7 @@ context.FTN.Auth = {
 };
 context.FTN.PersonalContext.configure({ auth: { getVerifiedUser: async () => null }, storage: context.localStorage });
 
-const answer = await context.FTN.IbisRuntime.ask('Find the strongest funding opportunity for FTN', {
+const answer = await context.FTN.IbisRuntime.ask('Find the strongest current funding path for a Caribbean-owned AI and public-intelligence platform in Trinidad and Tobago.', {
   capabilityPayloads: { FUNDING_SEARCH: { opportunities } },
 });
 assert.equal(answer.success, true);
