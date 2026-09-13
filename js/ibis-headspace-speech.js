@@ -1,44 +1,19 @@
-// FTN ibis Headspace — local answer speech controls.
-// This module owns only browser speech playback. It never fetches, changes or blocks the text answer.
+// FTN ibis Headspace — Chatterbox founder-voice candidate audition controls.
+// A generated candidate is never presented as the founder voice until Ricardo approves it by ear.
 (function (global) {
   'use strict';
-  var synth = global.speechSynthesis;
-  var controls = {
-    play: document.getElementById('speakAnswer'), pause: document.getElementById('speechPause'),
-    rewind: document.getElementById('speechRewind'), speed: document.getElementById('speechSpeed'),
-    next: document.getElementById('speechNext')
-  };
-  var rates = [0.8, 1, 1.2, 1.5], rateIndex = 1, lines = [], lineIndex = 0, paused = false;
-  function answerLines() {
-    var card = document.querySelector('[data-thought="answer"]');
-    return [card && card.querySelector('h2'), card && card.querySelector('p')]
-      .map(function (node) { return node && node.textContent.trim(); }).filter(Boolean);
-  }
-  function status(message) { var node = document.getElementById('commandHint'); if (node) node.textContent = message; }
-  function stop() { if (synth) synth.cancel(); paused = false; if (controls.pause) controls.pause.setAttribute('aria-pressed', 'false'); }
-  function speakCurrent() {
-    if (!synth || !lines.length) return;
-    stop();
-    var utterance = new SpeechSynthesisUtterance(lines[lineIndex]);
-    utterance.lang = 'en-TT'; utterance.rate = rates[rateIndex];
-    utterance.onend = function () { if (lineIndex + 1 < lines.length) { lineIndex += 1; speakCurrent(); } else status('Generic browser narration finished. This was not the FTN founder voice.'); };
-    utterance.onerror = function () { status('Speech playback is unavailable. The text answer remains available.'); };
-    synth.speak(utterance);
-    status('Generic browser narration — not the FTN founder voice. Reading line ' + (lineIndex + 1) + ' of ' + lines.length + ' at ' + rates[rateIndex] + '×.');
-  }
-  function play() { lines = answerLines(); lineIndex = Math.min(lineIndex, Math.max(0, lines.length - 1)); if (paused && synth) { synth.resume(); paused = false; controls.pause.setAttribute('aria-pressed', 'false'); return; } speakCurrent(); }
-  function pause() { if (!synth || !synth.speaking) return; if (paused) { synth.resume(); paused = false; } else { synth.pause(); paused = true; } controls.pause.setAttribute('aria-pressed', String(paused)); controls.pause.textContent = paused ? 'Resume' : 'Pause'; }
-  function move(delta) { lines = answerLines(); if (!lines.length) return; lineIndex = Math.max(0, Math.min(lines.length - 1, lineIndex + delta)); speakCurrent(); }
-  function speed() { rateIndex = (rateIndex + 1) % rates.length; controls.speed.textContent = rates[rateIndex] + '×'; if (synth && synth.speaking) speakCurrent(); }
-  if (!synth || typeof global.SpeechSynthesisUtterance !== 'function') {
-    Object.keys(controls).forEach(function (key) { if (controls[key]) { controls[key].disabled = true; controls[key].title = 'Speech output is not supported in this browser'; } });
-    return;
-  }
-  controls.play && controls.play.addEventListener('click', play);
-  controls.pause && controls.pause.addEventListener('click', pause);
-  controls.rewind && controls.rewind.addEventListener('click', function () { move(-1); });
-  controls.next && controls.next.addEventListener('click', function () { move(1); });
-  controls.speed && controls.speed.addEventListener('click', speed);
-  global.FTN = global.FTN || {};
-  global.FTN.HeadspaceSpeech = { play: play, pause: pause, rewind: function () { move(-1); }, next: function () { move(1); }, speed: speed, stop: stop };
+  var ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-founder-voice';
+  var KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+  var controls={play:document.getElementById('speakAnswer'),pause:document.getElementById('speechPause'),rewind:document.getElementById('speechRewind'),speed:document.getElementById('speechSpeed'),next:document.getElementById('speechNext')};
+  var rates=[.8,1,1.2,1.5],rateIndex=1,audio=null,loading=false;
+  function answerText(){var card=document.querySelector('[data-thought="answer"]');return[card&&card.querySelector('h2'),card&&card.querySelector('p')].map(function(node){return node&&node.textContent.trim();}).filter(Boolean).join('. ').slice(0,2500);}
+  function status(message){var node=document.getElementById('commandHint');if(node)node.textContent=message;}
+  function stop(){if(audio){audio.pause();audio.currentTime=0;}if(controls.pause){controls.pause.setAttribute('aria-pressed','false');controls.pause.textContent='Pause';}}
+  function decode(encoded,mimeType){var binary=atob(encoded),bytes=new Uint8Array(binary.length);for(var i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return URL.createObjectURL(new Blob([bytes],{type:mimeType}));}
+  async function play(){if(loading)return;if(audio&&audio.src){await audio.play();return;}var text=answerText();if(!text){status('There is no ibis answer to read yet.');return;}loading=true;controls.play.disabled=true;status('Preparing the Chatterbox voice candidate for your listening review…');try{var response=await fetch(ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:KEY},body:JSON.stringify({action:'preview',text:text})}),body=await response.json().catch(function(){return{};});if(!response.ok||!body.audio||body.voiceIdentity!=='UNAPPROVED_FOUNDER_VOICE_CANDIDATE')throw new Error(body.error||'Voice candidate unavailable.');audio=new Audio(decode(body.audio,body.mimeType||'audio/wav'));audio.playbackRate=rates[rateIndex];audio.onended=function(){status('Voice candidate finished. It remains unapproved until Ricardo confirms it by ear.');};audio.onerror=function(){status('The voice candidate could not be played. The text answer remains available.');};await audio.play();status('Playing the unapproved Chatterbox voice candidate. Listen for your actual voice identity.');}catch(error){status('Voice candidate unavailable. No generic voice was substituted. '+(error&&error.message||String(error)));}finally{loading=false;controls.play.disabled=false;}}
+  function pause(){if(!audio)return;if(audio.paused){audio.play();controls.pause.textContent='Pause';controls.pause.setAttribute('aria-pressed','false');}else{audio.pause();controls.pause.textContent='Resume';controls.pause.setAttribute('aria-pressed','true');}}
+  function move(seconds){if(!audio)return;audio.currentTime=Math.max(0,Math.min(audio.duration||Infinity,audio.currentTime+seconds));}
+  function speed(){rateIndex=(rateIndex+1)%rates.length;controls.speed.textContent=rates[rateIndex]+'×';if(audio)audio.playbackRate=rates[rateIndex];}
+  controls.play&&controls.play.addEventListener('click',play);controls.pause&&controls.pause.addEventListener('click',pause);controls.rewind&&controls.rewind.addEventListener('click',function(){move(-10);});controls.next&&controls.next.addEventListener('click',function(){move(10);});controls.speed&&controls.speed.addEventListener('click',speed);
+  global.FTN=global.FTN||{};global.FTN.HeadspaceSpeech={play:play,pause:pause,rewind:function(){move(-10);},next:function(){move(10);},speed:speed,stop:stop,candidate:true};
 })(window);

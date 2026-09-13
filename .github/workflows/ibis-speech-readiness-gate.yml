@@ -24,7 +24,7 @@ jobs:
           const generic=fs.readFileSync('supabase/functions/ibis-speech-cloudflare/index.ts','utf8');
           for(const x of ['payload.action === "health"','generationAttempted: false','@cf/openai/whisper-large-v3-turbo']) if(!generic.includes(x)) throw new Error(`missing generic speech invariant: ${x}`);
           const founder=fs.readFileSync('supabase/functions/ibis-founder-voice/index.ts','utf8');
-          for(const x of ['IBIS_FOUNDER_VOICE_OPEN_URL','IBIS_FOUNDER_VOICE_OPEN_TOKEN','chatterbox-nano','founderVoiceRequired: true','genericVoiceAcceptedAsPrimary: false','voiceIdentity: "IBIS_FOUNDER_VOICE"','looksLikeWav']) if(!founder.includes(x)) throw new Error(`missing founder gateway invariant: ${x}`);
+          for(const x of ['IBIS_FOUNDER_VOICE_OPEN_URL','IBIS_FOUNDER_VOICE_OPEN_TOKEN','chatterbox-nano','founderVoiceRequired: true','genericVoiceAcceptedAsPrimary: false','voiceIdentity: "IBIS_FOUNDER_VOICE"','UNAPPROVED_FOUNDER_VOICE_CANDIDATE','payload.action === "preview"','looksLikeWav']) if(!founder.includes(x)) throw new Error(`missing founder gateway invariant: ${x}`);
           const service=fs.readFileSync('services/ibis-founder-voice-chatterbox/app.py','utf8');
           for(const x of ['ChatterboxTurboTTS.from_pretrained(device="cpu", nano=True)','_nano_runtime_compatible','runtimeCompatible','lifespan=lifespan','modelLoaded','EXPECTED_REFERENCE_SHA256','IBIS_FOUNDER_VOICE_SERVICE_TOKEN','DERIVED_REFERENCE_PATH','audio_prompt_path=str(DERIVED_REFERENCE_PATH)','REFERENCE_WINDOW_START_SECONDS','PerTh']) if(!service.includes(x)) throw new Error(`missing open-source voice invariant: ${x}`);
           const dockerfile=fs.readFileSync('services/ibis-founder-voice-chatterbox/Dockerfile','utf8');

@@ -185,8 +185,9 @@ Deno.serve(async (request) => {
     checkedAt: new Date().toISOString(),
   }, 200, origin);
 
-  if (payload.action !== "speak") return reply({ error: "action must be health or speak." }, 400, origin);
-  if (!configured) return reply({
+  const audition = payload.action === "preview";
+  if (payload.action !== "speak" && !audition) return reply({ error: "action must be health, preview or speak." }, 400, origin);
+  if (!configured && !(audition && openReady)) return reply({
     error: "IBIS founder voice is unavailable pending founder listening approval. Generic speech is not an acceptable substitute for the public IBIS voice.",
     capability: "FOUNDER_TEXT_TO_SPEECH",
     founderVoiceRequired: true,
@@ -236,7 +237,9 @@ Deno.serve(async (request) => {
         openSource: true,
         license: body.license || "MIT",
         watermark: body.watermark || "PerTh",
-        voiceIdentity: "IBIS_FOUNDER_VOICE",
+        voiceIdentity: founderListeningApproved ? "IBIS_FOUNDER_VOICE" : "UNAPPROVED_FOUNDER_VOICE_CANDIDATE",
+        founderListeningApproved,
+        approvalStatus: founderListeningApproved ? "APPROVED" : "AWAITING_FOUNDER_LISTENING_REVIEW",
         referenceSampleSha256: SAMPLE_SHA256,
         generatedAt: new Date().toISOString(),
       }, 200, origin);
