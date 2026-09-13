@@ -19,9 +19,13 @@ async function open(page,path,selector){
 
 const landing=await context.newPage();
 await isolate(landing);
+await landing.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[{id:'fixture-caribbean-ai-grant',title:'Caribbean AI Grant',organization:'Fixture Official Institution',country:'Trinidad and Tobago / Caribbean',type:'Grant / Funding',deadline:'2026-10-05',fee:0,payoutCompatible:true,ownershipImpact:'non-dilutive, no equity',strategicValue:5,probability:.75,amount:'USD 100,000',eligibility:'Trinidad and Tobago registered entities may apply.',summary:'Source-backed browser fixture for the connected funding funnel.',sourceUrl:'https://example.test/caribbean-ai-grant',lastVerified:'2026-09-08T12:00:00Z'}]})}));
 await open(landing,'/ibis-preview/','#askInput');
 assert.match(await landing.locator('.hero h1').innerText(),/Give ibis a problem, opportunity, product, song, document or goal/i);
 await landing.screenshot({path:'test-artifacts/ibis-headspace-lander.png',fullPage:false});
+await landing.getByRole('button',{name:'Caribbean funding'}).click();
+await landing.getByRole('button',{name:'Enter Headspace'}).click();
+await landing.locator('[data-thought="answer"] h2').filter({hasText:'Caribbean AI Grant'}).waitFor({state:'visible',timeout:10000});
 await landing.close();
 
 const page=await context.newPage();
