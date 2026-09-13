@@ -26,6 +26,7 @@ await head.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,c
 await open(head,'/ibis-headspace-preview/','#headspaceQuery');
 await head.waitForFunction(()=>document.documentElement.classList.contains('headspace-hydrated'),null,{timeout:15000});
 assert.match(await head.locator('[data-thought="answer"] h2').innerText(),/What do you need/i,'Headspace must open neutral.');
+await head.setViewportSize({width:1536,height:696});await head.waitForTimeout(180);const shortAnswer=await head.locator('[data-thought="answer"]').boundingBox(),shortDock=await head.locator('#inputOrbit').boundingBox();assert(shortAnswer&&shortDock&&shortAnswer.y+shortAnswer.height<=shortDock.y,'Short or zoomed desktop first paint must keep the answer above the command dock.');await head.setViewportSize({width:1280,height:720});
 assert.equal(await head.locator('[data-thought="graph"]').evaluate(el=>el.classList.contains('dematerialized')),true,'Sample graph must stay hidden.');
 assert.doesNotMatch(await head.locator('body').innerText(),/Sample signal\s*[—-]/i,'No sample demand data may appear investor-facing.');
 await head.waitForFunction(()=>{const n=document.querySelector('#toolStatus');return n&&!/Checking governed/.test(n.textContent||'');},null,{timeout:8000}).catch(()=>{});

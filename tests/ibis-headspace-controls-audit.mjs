@@ -39,6 +39,7 @@ assert.match(bootstrap,/failures\.push/,'Optional capability-load failures must 
 assert.match(html,/<h2>What do you need\?<\/h2>/,'Headspace must open on an objective-first neutral answer.');
 assert.match(html,/thought-graph dematerialized/,'The graph surface must remain hidden until real evidence requests it.');
 assert.match(html,/body\{overflow-y:auto\}\.headspace\{height:auto;overflow:visible\}\.field\{inset:auto\}/,'Headspace must neutralize the legacy viewport lock and 116px field offset.');
+assert.match(html,/@media \(max-height:820px\) and \(min-width:721px\)/,'Short or zoomed desktop viewports need a compact first paint that clears the fixed command dock.');
 assert.doesNotMatch(html,/Sample signal/i,'Headspace must not show sample demand data on the investor surface.');
 assert.doesNotMatch(html,/Caribbean context is first-class infrastructure\./i,'The old canned conclusion must not return.');
 
