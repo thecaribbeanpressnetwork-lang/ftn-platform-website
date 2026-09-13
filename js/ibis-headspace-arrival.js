@@ -3,9 +3,8 @@
   'use strict';
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var node=document.getElementById('outcomeWord');
-  var words=['make happen','achieve','find','understand','solve','build','change','prove','make happen'];
+  var words=['make happen','achieve','find','understand','solve','build','change','prove'];
   var index=0,wordTimer=0;
-  function random(min,max){var value=Math.random();if(window.crypto&&window.crypto.getRandomValues){var bytes=new Uint32Array(1);window.crypto.getRandomValues(bytes);value=bytes[0]/4294967295;}return min+value*(max-min);}
   function advance(){
     if(!node||document.body.classList.contains('headspace-engaged')){window.clearInterval(wordTimer);return;}
     node.classList.add('is-leaving');
@@ -15,9 +14,9 @@
       node.classList.add('is-entering');
       node.textContent=words[index];
       requestAnimationFrame(function(){requestAnimationFrame(function(){node.classList.remove('is-entering');});});
-    },480);
+    },900);
   }
-  if(node&&!reduce)wordTimer=window.setInterval(advance,2900);
+  if(node&&!reduce)wordTimer=window.setInterval(advance,5200);
 
   var time=document.getElementById('headspaceTime'),date=document.getElementById('headspaceDate');
   var timeFormat=new Intl.DateTimeFormat('en-TT',{timeZone:'America/Port_of_Spain',hour:'numeric',minute:'2-digit',second:'2-digit'});
@@ -40,25 +39,4 @@
     }
   }
 
-  var flight=document.querySelector('.ibis-flight'),flightTimer=0;
-  function scheduleFlight(first){
-    if(!flight||reduce)return;
-    window.clearTimeout(flightTimer);
-    var engaged=document.body.classList.contains('headspace-engaged');
-    flightTimer=window.setTimeout(fly,first?10500:engaged?random(150000,360000):random(42000,96000));
-  }
-  function fly(){
-    var engaged=document.body.classList.contains('headspace-engaged');
-    var fromLeft=random(0,1)>.5;
-    flight.classList.remove('is-flying','flight-from-left','flight-from-right');
-    flight.classList.add(fromLeft?'flight-from-left':'flight-from-right');
-    flight.style.setProperty('--flight-y',random(5,engaged?48:34).toFixed(1)+'svh');
-    flight.style.setProperty('--flight-width',Math.round(engaged?random(120,320):random(300,760))+'px');
-    flight.style.setProperty('--flight-duration',engaged?random(9,16).toFixed(1)+'s':random(5.8,10.2).toFixed(1)+'s');
-    flight.style.setProperty('--flight-rise',Math.round(random(-70,55))+'px');
-    void flight.offsetWidth;
-    flight.classList.add('is-flying');
-    flight.addEventListener('animationend',function(){flight.classList.remove('is-flying');scheduleFlight(false);},{once:true});
-  }
-  scheduleFlight(true);
 })();

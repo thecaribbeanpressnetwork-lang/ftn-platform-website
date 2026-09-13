@@ -39,12 +39,10 @@ assert.match(bootstrap,/failures\.push/,'Optional capability-load failures must 
 // conclusion or placeholder demand curve before a task has generated evidence.
 assert.match(html,/What do you want to <span class="outcome-window"/,'Headspace must open with the founder-approved outcome-first invitation.');
 assert.match(html,/Start with the reality you want\. ibis helps build the road there\./,'Headspace must carry the approved IBIS positioning line.');
-assert.match(html,/ibis-flight\.webp/,'Headspace must use the lightweight owned purple-ibis flight asset.');
+assert.doesNotMatch(html,/ibis-flight/,'Headspace must not translate a still bird asset as fake flight.');
 for (const scene of ['headspace-archipelago-trinidad-tobago.webp','headspace-archipelago-lesser-antilles.webp','headspace-archipelago-grenadines.webp']) assert.ok(html.includes(scene),`Missing restrained Headspace scene ${scene}`);
 assert.match(html,/id="headspaceTime"/,'Headspace must connect its ambient arrival to the FTN Clock capability.');
-assert.match(html,/Atmosphere: AI visualization · coastlines: Natural Earth/,'Synthetic atmosphere and sourced geography must be distinguished.');
-assert.match(html,/caribbean-natural-earth\.svg/,'Headspace must ground its archipelago silhouettes in the Natural Earth map asset.');
-assert.match(html,/Venezuela · Trinidad &amp; Tobago · Lesser Antilles/,'The quiet geographic orientation must state the real south-to-north corridor.');
+assert.match(html,/Atmospheric Caribbean visualization · AI-generated/,'Synthetic atmosphere must remain disclosed.');
 assert.match(bootstrap,/node\.classList\.add\('dematerialized'\)/,'Headspace must open as a clear objective field without premature cards.');
 assert.equal((html.match(/<article class="thought[^\"]*dematerialized"/g)||[]).length,(html.match(/<article class="thought/g)||[]).length,'Every Headspace card must be hidden in first-paint HTML, before asynchronous hydration.');
 for (const outcome of ['make happen','achieve','find','understand','solve','build','change','prove']) assert.ok(arrival.includes(`'${outcome}'`),`Missing outcome phrase ${outcome}`);
@@ -54,12 +52,8 @@ for (const part of ['morning','daytime','evening','night']) assert.ok(arrival.in
 assert.match(arrival,/20000/,'The first orientation minute must reveal the second Caribbean scene.');
 assert.match(arrival,/40000/,'The first orientation minute must reveal the third Caribbean scene.');
 assert.match(arrival,/60000/,'The four-minute settled cadence must begin only after the orientation minute.');
-assert.match(arrival,/random\(42000,96000\)/,'Repeated ibis crossings must remain rare enough for an ambient workspace.');
-assert.match(arrival,/first\?10500/,'The first ibis crossing must wait until the geographic arrival flight settles.');
-assert.match(arrival,/random\(150000,360000\)/,'Working-mode ibis discoveries must be substantially rarer than arrival motion.');
-assert.match(arrival,/random\(120,320\)/,'Working-mode ibis discoveries must remain visually small.');
-assert.match(arrival,/random\(300,760\)/,'Ibis crossings must vary scale to preserve aerial depth.');
-assert.match(arrival,/flight-from-left.*flight-from-right/,'Ibis paths must vary travel direction.');
+assert.match(arrival,/window\.setInterval\(advance,5200\)/,'Outcome words must remain long enough to read calmly.');
+assert.doesNotMatch(arrival,/scheduleFlight|function fly/,'Headspace must not simulate wing flight with a static image.');
 assert.match(arrival,/240000/,'Atmospheric scenes must rotate slowly rather than distract from the objective.');
 assert.match(html,/thought-graph dematerialized/,'The graph surface must remain hidden until real evidence requests it.');
 assert.match(html,/body\{overflow-y:auto\}\.headspace\{height:auto;overflow:visible\}\.field\{inset:auto\}/,'Headspace must neutralize the legacy viewport lock and 116px field offset.');
