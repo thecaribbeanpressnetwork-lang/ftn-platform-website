@@ -22,6 +22,12 @@
     "sampleRateHz": 48000,
     "channels": 1
   },
+  "founderApproval": {
+    "status": "REVOKED_PENDING_REENROLLMENT",
+    "reason": "Founder listening review did not recognize the generated voice as his own.",
+    "approvedAt": null,
+    "mayBePresentedAsFounderVoice": false
+  },
   "privacy": {
     "rawVoiceSampleStoredInRepository": false,
     "rawVoiceSampleMayBeExposedPublicly": false,
@@ -30,6 +36,7 @@
   },
   "acceptance": {
     "mustReturnRealAudioArtifact": true,
+    "mustPassFounderListeningReview": true,
     "mustPublishVoiceIdentityProvenance": true,
     "mustFailClosedIfFounderVoiceUnavailable": true,
     "genericFallbackMayNotBePresentedAsFounderVoice": true,

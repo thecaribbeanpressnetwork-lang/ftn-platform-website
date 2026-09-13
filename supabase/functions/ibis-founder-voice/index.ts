@@ -141,11 +141,15 @@ Deno.serve(async (request) => {
   const openToken = Deno.env.get("IBIS_FOUNDER_VOICE_OPEN_TOKEN") || "";
   const elevenApiKey = Deno.env.get("ELEVENLABS_API_KEY") || "";
   const elevenVoiceId = Deno.env.get("IBIS_FOUNDER_VOICE_ID") || "";
+  // A matching file hash and intelligible ASR result prove artifact integrity, not speaker identity.
+  // The founder revoked identity approval after listening, so generation must fail closed until a
+  // replacement enrollment passes an explicit founder listening review.
+  const founderListeningApproved = false;
   const openHealth = await openVoiceHealth(openUrl, openToken);
   const openReady = Boolean(openHealth?.ready && openHealth?.configured && openHealth?.voiceEnrolled);
   const elevenReady = Boolean(elevenApiKey && elevenVoiceId);
-  const configured = openReady || elevenReady;
-  const provider = openReady ? (openHealth?.provider || "chatterbox-nano") : elevenReady ? "elevenlabs" : "unconfigured";
+  const configured = founderListeningApproved && (openReady || elevenReady);
+  const provider = configured && openReady ? (openHealth?.provider || "chatterbox-nano") : configured && elevenReady ? "elevenlabs" : "unapproved";
   const model = openReady ? (openHealth?.model || OPEN_MODEL_ID) : elevenReady ? ELEVEN_MODEL_ID : OPEN_MODEL_ID;
 
   if (payload.action === "health") return reply({
@@ -156,6 +160,8 @@ Deno.serve(async (request) => {
     ready: configured,
     founderVoiceRequired: true,
     genericVoiceAcceptedAsPrimary: false,
+    founderListeningApproved,
+    approvalStatus: "REVOKED_PENDING_REENROLLMENT",
     voiceEnrolled: configured,
     voiceIdentity: "IBIS_FOUNDER_VOICE",
     primaryArchitecture: "open-source-self-hosted",
@@ -181,7 +187,7 @@ Deno.serve(async (request) => {
 
   if (payload.action !== "speak") return reply({ error: "action must be health or speak." }, 400, origin);
   if (!configured) return reply({
-    error: "IBIS founder voice is not deployed/configured yet. Generic speech is not an acceptable substitute for the public IBIS voice.",
+    error: "IBIS founder voice is unavailable pending founder listening approval. Generic speech is not an acceptable substitute for the public IBIS voice.",
     capability: "FOUNDER_TEXT_TO_SPEECH",
     founderVoiceRequired: true,
     voiceEnrolled: false,

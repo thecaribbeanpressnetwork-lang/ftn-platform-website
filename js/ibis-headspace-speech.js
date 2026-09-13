@@ -21,10 +21,10 @@
     stop();
     var utterance = new SpeechSynthesisUtterance(lines[lineIndex]);
     utterance.lang = 'en-TT'; utterance.rate = rates[rateIndex];
-    utterance.onend = function () { if (lineIndex + 1 < lines.length) { lineIndex += 1; speakCurrent(); } else status('Finished reading the current ibis answer.'); };
+    utterance.onend = function () { if (lineIndex + 1 < lines.length) { lineIndex += 1; speakCurrent(); } else status('Generic browser narration finished. This was not the FTN founder voice.'); };
     utterance.onerror = function () { status('Speech playback is unavailable. The text answer remains available.'); };
     synth.speak(utterance);
-    status('Reading line ' + (lineIndex + 1) + ' of ' + lines.length + ' at ' + rates[rateIndex] + '×.');
+    status('Generic browser narration — not the FTN founder voice. Reading line ' + (lineIndex + 1) + ' of ' + lines.length + ' at ' + rates[rateIndex] + '×.');
   }
   function play() { lines = answerLines(); lineIndex = Math.min(lineIndex, Math.max(0, lines.length - 1)); if (paused && synth) { synth.resume(); paused = false; controls.pause.setAttribute('aria-pressed', 'false'); return; } speakCurrent(); }
   function pause() { if (!synth || !synth.speaking) return; if (paused) { synth.resume(); paused = false; } else { synth.pause(); paused = true; } controls.pause.setAttribute('aria-pressed', String(paused)); controls.pause.textContent = paused ? 'Resume' : 'Pause'; }

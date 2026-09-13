@@ -43,6 +43,7 @@ jobs:
           const contract=JSON.parse(fs.readFileSync('config/ibis-founder-voice-contract.json','utf8'));
           if(contract.voiceIdentity!=='IBIS_FOUNDER_VOICE') throw new Error('founder identity contract mismatch');
           if(contract.primaryProvider?.provider!=='chatterbox-nano'||contract.primaryProvider?.openSource!==true) throw new Error('Chatterbox Nano must be the open-source primary');
+          if(contract.founderApproval?.status!=='APPROVED'||contract.founderApproval?.mayBePresentedAsFounderVoice!==true) throw new Error('Founder listening approval is required before this voice may be presented as the founder voice');
           if(contract.privacy?.rawVoiceSampleStoredInRepository!==false||contract.privacy?.referenceMustBeRuntimeMountedSecret!==true) throw new Error('raw founder sample must stay private');
           if(contract.acceptance?.mustFailClosedIfFounderVoiceUnavailable!==true||contract.acceptance?.genericFallbackMayNotBePresentedAsFounderVoice!==true) throw new Error('voice truth contract weakened');
           console.log('Speech source contract PASS: founder-authenticated Chatterbox Nano primary; no generic substitution.');
