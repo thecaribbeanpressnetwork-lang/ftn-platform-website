@@ -1,0 +1,100 @@
+/* Founder-approved Headspace arrival: an outcome-first field before working surfaces appear. */
+body:not(.headspace-engaged) .headspace{position:relative;min-height:100svh;padding-bottom:32px;overflow:hidden}
+body:not(.headspace-engaged) .headspace-head{position:relative;z-index:4;min-height:calc(100svh - 64px);margin-bottom:0;align-items:center;justify-content:center}
+body:not(.headspace-engaged) .identity{width:min(980px,82vw);max-width:none;text-align:center;transform:translateY(-3vh)}
+body:not(.headspace-engaged) .identity .kicker{color:#c4abd8}
+body:not(.headspace-engaged) .headspace h1{max-width:none;margin:18px auto 16px;font-size:clamp(42px,5vw,78px);font-weight:500;line-height:1.02;text-wrap:balance}
+body:not(.headspace-engaged) .subhead{max-width:620px;margin:0 auto;color:#b5aebe}
+body:not(.headspace-engaged) .boot{margin-top:20px}
+body:not(.headspace-engaged) .head-actions{position:absolute;top:0;right:0;max-width:560px}
+body:not(.headspace-engaged) .field{min-height:0;margin:0}
+body:not(.headspace-engaged) .input-orbit{top:61svh;bottom:auto;width:min(900px,calc(100vw - 48px));border-color:rgba(151,71,255,.7);box-shadow:0 18px 70px rgba(0,0,0,.58),0 0 44px rgba(139,66,255,.08)}
+body:not(.headspace-engaged) .input-orbit button[type=submit]{color:#b47cff}
+body:not(.headspace-engaged) .command-hint{top:calc(61svh + 78px);bottom:auto;color:#746b7e}
+
+.arrival-scenes{position:absolute;z-index:0;inset:0;overflow:hidden;background:#020204;transition:opacity 1.8s ease,filter 2.8s ease}
+.arrival-scenes:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;transition:background 3s ease}
+body[data-daypart=morning] .arrival-scenes:after{background:linear-gradient(180deg,rgba(255,176,112,.12),rgba(9,33,54,.2) 55%,rgba(0,0,0,.42))}
+body[data-daypart=daytime] .arrival-scenes:after{background:linear-gradient(180deg,rgba(84,177,219,.08),rgba(0,22,42,.1) 55%,rgba(0,0,0,.38))}
+body[data-daypart=evening] .arrival-scenes:after{background:linear-gradient(180deg,rgba(247,126,94,.18),rgba(62,20,82,.23) 58%,rgba(0,0,0,.5))}
+body[data-daypart=night] .arrival-scenes:after{background:linear-gradient(180deg,rgba(10,14,48,.42),rgba(30,10,58,.3) 58%,rgba(0,0,0,.62))}
+.arrival-scene{position:absolute;inset:-1%;width:102%;height:102%;object-fit:cover;object-position:center;opacity:0;filter:brightness(.4) saturate(1.24) contrast(1.08);transform:scale(1.015);transition:opacity 3.6s ease,transform 180s linear}
+.arrival-scene.is-active{opacity:1;transform:scale(1.06)}
+.arrival-geography{position:absolute;z-index:1;inset:-8% -3% -18%;color:#c278ff;opacity:.3;transform:perspective(1100px) rotateX(53deg) translateY(8%);transform-origin:50% 72%;filter:drop-shadow(0 0 7px rgba(181,111,255,.55));mix-blend-mode:screen;pointer-events:none}
+.arrival-geography img,.arrival-geography svg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.arrival-geography img{filter:brightness(0) saturate(100%) invert(50%) sepia(98%) saturate(1900%) hue-rotate(235deg) brightness(102%)}
+.arrival-geography svg{fill:currentColor}
+.geography-caption{position:absolute;z-index:3;left:50%;bottom:34px;transform:translateX(-50%);color:rgba(255,255,255,.44);font-size:8px;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
+.scene-disclosure{position:absolute;z-index:3;right:20px;bottom:12px;color:rgba(255,255,255,.28);font-size:7px;letter-spacing:.12em;text-transform:uppercase}
+.arrival-clock{position:absolute;z-index:6;top:0;left:0;display:grid;gap:4px;color:#fff;text-decoration:none;text-align:left;font-variant-numeric:tabular-nums;transition:color .25s ease,opacity .45s ease}
+.arrival-clock time{font-family:Montserrat,Inter,Arial,sans-serif;font-size:clamp(24px,2.25vw,38px);font-weight:500;letter-spacing:-.04em;line-height:1}
+.arrival-clock span{color:rgba(255,255,255,.54);font-size:8px;letter-spacing:.16em;text-transform:uppercase}
+.arrival-clock:hover,.arrival-clock:focus-visible{color:#c492ff}
+
+.outcome-window{display:inline-grid;overflow:hidden;vertical-align:bottom;min-width:5.8em;text-align:left}
+.outcome-word{grid-area:1/1;display:inline-block;color:#c492ff;will-change:transform,opacity;transition:transform .48s cubic-bezier(.22,1,.36,1),opacity .34s ease}
+.outcome-word.is-leaving{opacity:0;transform:translateY(-105%)}
+.outcome-word.is-entering{transition:none;opacity:0;transform:translateY(105%)}
+
+.ibis-flight{position:absolute;z-index:2;top:var(--flight-y,9svh);width:var(--flight-width,clamp(420px,46vw,760px));pointer-events:none;opacity:0;will-change:transform,opacity}
+.ibis-flight img{display:block;width:100%;height:auto;filter:drop-shadow(0 0 24px rgba(154,72,255,.2))}
+.ibis-flight.is-flying.flight-from-right{right:-62vw;animation:ibisCrossingRight var(--flight-duration,6.4s) cubic-bezier(.33,.02,.72,.99) forwards}
+.ibis-flight.is-flying.flight-from-left{left:-62vw;animation:ibisCrossingLeft var(--flight-duration,6.4s) cubic-bezier(.33,.02,.72,.99) forwards}
+
+body.headspace-engaged .ibis-flight{display:none}
+body.headspace-engaged .arrival-clock{display:none}
+body.headspace-engaged .arrival-scenes{opacity:.24;filter:saturate(.72) brightness(.72)}
+body.headspace-engaged .arrival-geography{opacity:.12}
+body.headspace-engaged .geography-caption{opacity:0}
+body.headspace-engaged .scene-disclosure{display:none}
+body.headspace-engaged .headspace-head{min-height:122px}
+body.headspace-engaged .input-orbit{top:auto;bottom:26px}
+
+@keyframes ibisCrossingRight{
+  0%{opacity:0;transform:translate3d(0,8px,0) scale(.96)}
+  10%{opacity:.88}
+  84%{opacity:.88}
+  100%{opacity:0;transform:translate3d(calc(-100vw - 110%),var(--flight-rise,-24px),0) scale(1.02)}
+}
+@keyframes ibisCrossingLeft{
+  0%{opacity:0;transform:translate3d(0,8px,0) scaleX(-1) scale(.96)}
+  10%{opacity:.88}
+  84%{opacity:.88}
+  100%{opacity:0;transform:translate3d(calc(100vw + 110%),var(--flight-rise,-24px),0) scaleX(-1) scale(1.02)}
+}
+
+@media(max-width:1000px){
+  body:not(.headspace-engaged) .headspace-head{display:flex}
+  body:not(.headspace-engaged) .head-actions{left:0;right:0;justify-content:center;margin-top:0}
+  body:not(.headspace-engaged) .head-actions button:not(#saveSpace),body:not(.headspace-engaged) .opacity-control{display:none}
+  .arrival-clock{top:4px}
+}
+
+@media(max-width:720px){
+  body:not(.headspace-engaged) .headspace{padding:20px 14px 24px}
+  body:not(.headspace-engaged) .identity{width:100%;transform:translateY(-7vh)}
+  body:not(.headspace-engaged) .headspace h1{font-size:clamp(38px,11vw,54px)}
+  body:not(.headspace-engaged) .subhead{font-size:14px}
+  body:not(.headspace-engaged) .head-actions{top:-5px}
+  body:not(.headspace-engaged) .input-orbit{top:63svh;width:calc(100vw - 20px)}
+  body:not(.headspace-engaged) .command-hint{top:calc(63svh + 72px)}
+  .outcome-window{display:block;min-width:0;text-align:center;margin-top:.08em}
+  .arrival-clock{top:2px;left:4px}
+  .arrival-clock time{font-size:23px}
+  .scene-disclosure{right:10px;bottom:7px;font-size:6px}
+  .geography-caption{bottom:27px;font-size:6px;letter-spacing:.11em}
+}
+
+@media(max-height:700px) and (min-width:721px){
+  body:not(.headspace-engaged) .identity{transform:translateY(-7vh)}
+  body:not(.headspace-engaged) .headspace h1{font-size:clamp(38px,4.3vw,58px)}
+  body:not(.headspace-engaged) .input-orbit{top:64svh}
+  body:not(.headspace-engaged) .command-hint{top:calc(64svh + 72px)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .arrival-scene{transition:none;transform:none}
+  .arrival-geography{transform:none;opacity:.16}
+  .ibis-flight,.ibis-flight.is-flying.flight-from-left,.ibis-flight.is-flying.flight-from-right{left:auto;right:7vw;opacity:.28;animation:none;transform:none}
+  .outcome-word{transition:none}
+}

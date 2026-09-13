@@ -25,8 +25,9 @@ await head.route('https://api.github.com/repos/thecaribbeanpressnetwork-lang/ftn
 await head.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[]})}));
 await open(head,'/ibis-headspace-preview/','#headspaceQuery');
 await head.waitForFunction(()=>document.documentElement.classList.contains('headspace-hydrated'),null,{timeout:15000});
-assert.match(await head.locator('[data-thought="answer"] h2').innerText(),/What do you need/i,'Headspace must open neutral.');
-await head.setViewportSize({width:1536,height:696});await head.waitForTimeout(180);const shortAnswer=await head.locator('[data-thought="answer"]').boundingBox(),shortDock=await head.locator('#inputOrbit').boundingBox();assert(shortAnswer&&shortDock&&shortAnswer.y+shortAnswer.height<=shortDock.y,'Short or zoomed desktop first paint must keep the answer above the command dock.');await head.setViewportSize({width:1280,height:720});
+assert.match(await head.locator('.identity h1').getAttribute('aria-label'),/What do you want to make happen/i,'Headspace must open with the outcome-first invitation.');
+assert.equal(await head.locator('.thought:not(.dematerialized)').count(),0,'Headspace must not show cards before the user provides an objective.');
+await head.setViewportSize({width:1536,height:696});await head.waitForTimeout(180);const shortTitle=await head.locator('.identity h1').boundingBox(),shortDock=await head.locator('#inputOrbit').boundingBox();assert(shortTitle&&shortDock&&shortTitle.y+shortTitle.height<=shortDock.y,'Short or zoomed desktop first paint must keep the invitation above the command dock.');await head.setViewportSize({width:1280,height:720});
 assert.equal(await head.locator('[data-thought="graph"]').evaluate(el=>el.classList.contains('dematerialized')),true,'Sample graph must stay hidden.');
 assert.doesNotMatch(await head.locator('body').innerText(),/Sample signal\s*[—-]/i,'No sample demand data may appear investor-facing.');
 await head.waitForFunction(()=>{const n=document.querySelector('#toolStatus');return n&&!/Checking governed/.test(n.textContent||'');},null,{timeout:8000}).catch(()=>{});

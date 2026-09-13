@@ -13,6 +13,7 @@
     '/js/ibis-presentation.js?v=20260907.2',
     '/js/ibis-headspace-request-state.js?v=20260908.1',
     '/js/ibis-headspace-window-manager.js?v=20260910.6',
+    '/js/ibis-headspace-arrival.js?v=20260913.1',
     '/js/ibis-headspace-speech.js?v=20260913.2',
     '/js/ibis-headspace-fabric.js?v=20260913.1',
     '/js/ibis-headspace-universal.js?v=20260911.2',
@@ -35,7 +36,7 @@
     // Investor first paint should be an objective field, not an infrastructure dashboard.
     // Tool/context/evidence surfaces materialize only when a task actually calls for them.
     document.querySelectorAll('.thought').forEach(function (node) {
-      if (node.dataset.thought !== 'answer') node.classList.add('dematerialized');
+      node.classList.add('dematerialized');
     });
   }
 
