@@ -72,7 +72,7 @@ Deno.serve(async (request) => {
   if (cloudflareConfigured) try {
     const upstream = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${MODEL}`, {
       method: "POST", headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
-      body: JSON.stringify({ messages: [{ role: "system", content: system }, ...turns.map((t) => ({ role: t.role, content: t.content }))], temperature: 0.2 }), signal: AbortSignal.timeout(16_000),
+      body: JSON.stringify({ messages: [{ role: "system", content: system }, ...turns.map((t) => ({ role: t.role, content: t.content }))], temperature: 0.2 }), signal: AbortSignal.timeout(20_000),
     });
     const data = await upstream.json().catch(() => ({}));
     const answer = upstream.ok && data?.success !== false && typeof data?.result?.response === "string" ? data.result.response.trim() : "";
