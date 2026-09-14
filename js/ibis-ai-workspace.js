@@ -205,28 +205,42 @@
   // ready now) is allowed to use the on-device path; 'downloadable' and 'unavailable' both fall
   // straight through to the existing server/router fallback instead, same as before. The
   // capability itself is preserved -- an already-warm on-device model still answers locally.
-  // Canonical-planner gate for on-device execution (Slice 1 correction): localAI() used to run
-  // unconditionally BEFORE serverAI() for every message whenever a browser exposed an available
-  // on-device LanguageModel -- a real bypass of canonical orchestration for every such browser,
-  // not just keyword-matched messages, and current-information questions could be answered
-  // entirely from on-device memory with no freshness check at all. The canonical planner
-  // (FTN.UniversalRouter.route(), the exact same classifier FTN.IbisRuntime.ask() itself calls
-  // internally) must now be consulted FIRST; local execution is only attempted when that planner
-  // classifies the request as a plain, read-only, general-agent TEXT question AND it does not
-  // look freshness-sensitive. Freshness is checked here only to gate LOCAL execution eligibility --
-  // the authoritative freshness classification remains server-side in
-  // supabase/functions/_shared/ibis-intent-router.ts, which serverAI() always reaches regardless
-  // of this gate's outcome. Any failure to load the planner defaults to false (never local),
-  // failing toward MORE scrutiny (the full serverAI() canonical path), never less.
-  var LOCAL_FRESHNESS_MARKERS=/\b(today|latest|current(?:ly)?|right now|this week|this month|breaking|recent|as of \d{4}|news|price|exchange rate|fx rate|selling rate|indicators?|shortage|election result|score|search the internet|search the web)\b/i;
-  async function plannerAllowsLocalExecution(text){
-    if(LOCAL_FRESHNESS_MARKERS.test(text))return false;
+  // CORRECTED (this pass -- the prior version of this gate was itself still a bypass): local
+  // execution used to be gated by calling FTN.UniversalRouter.route() directly IN THE BROWSER --
+  // but that router is not the canonical server brain. A browser deciding, on its own, that a
+  // question is "plain" or "non-fresh" and therefore safe to answer locally is exactly the
+  // architecture being corrected, even when the classifier it consults is a real one. The
+  // authority now lives exclusively server-side: every prompt is sent to
+  // action:"canonical_query" FIRST, and that response's executionInstruction
+  // (see supabase/functions/_shared/ibis-response-envelope.ts) is the ONLY thing that may
+  // authorize FTN LanguageModel execution. A malformed, rejected, timed-out or unreachable
+  // canonical response never defaults to authorizing local execution -- it defaults to using the
+  // canonical answer itself (which the same response already carries), or, if canonical_query is
+  // entirely unreachable, falls through to the existing serverAI() path below. Local execution is
+  // never the "safe default" on any failure path.
+  var PUBLISHABLE_KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+  var ASSISTANT_ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
+  function productsSummary(){return global.FTN.ProductRegistry&&global.FTN.ProductRegistry.publicProducts?global.FTN.ProductRegistry.publicProducts({includeSupporting:true}).map(function(p){return{name:p.name,route:p.route,tagline:p.tagline};}):[];}
+  async function requestCanonicalDecision(prompt){
     try{
-      await ensureRuntime();
-      if(!global.FTN||!global.FTN.UniversalRouter)return false;
-      var route=global.FTN.UniversalRouter.route(text,{});
-      return !!(route&&route.sideEffect==='READ_ONLY'&&(route.capabilityCandidates||[]).every(function(c){return c==='TEXT';})&&(route.agents||[]).every(function(a){return a==='GENERAL';}));
-    }catch(e){return false;}
+      var response=await withTimeout(fetch(ASSISTANT_ENDPOINT,{
+        method:'POST',
+        headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},
+        body:JSON.stringify({action:'canonical_query',messages:[{role:'user',content:prompt}],products:productsSummary()}),
+      }),15000,null);
+      if(!response||!response.ok)return null;
+      var envelope=await response.json().catch(function(){return null;});
+      if(!envelope||typeof envelope.answer!=='string')return null;
+      return envelope;
+    }catch(e){return null;}
+  }
+  // Fire-and-forget: the completion/receipt path so the canonical system has a real record of what
+  // browser-local execution actually did (not just what it authorized). Never blocks rendering --
+  // a receipt-recording failure must not affect the user's answer.
+  function recordExecutionReceipt(receipt){
+    try{
+      fetch(ASSISTANT_ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},body:JSON.stringify({action:'record_execution_receipt',receipt:receipt})}).catch(function(){});
+    }catch(e){}
   }
   async function localAI(prompt){
     if(!('LanguageModel' in global))return null;
@@ -483,21 +497,44 @@
           revealAnswer(out);
           return;
         }
-        var allowLocal=await plannerAllowsLocalExecution(q);
-        var answer=allowLocal?await localAI(q):null;
-        if(answer){
-          out.innerHTML='<span class="workspace-kicker">On-device AI</span>'+answerHTML(answer)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
-          // Phase 4B: on-device inference never leaves the browser and calls no FTN provider at
-          // all -- a synthetic envelope built here (localAI() doesn't route through IbisClient,
-          // same reasoning as the Live Intelligence path above), only ever shown when the
-          // decision matrix judges the TOPIC (not the capability) evidence-worthy.
+        setStatus('verifying');
+        // Every prompt reaches the canonical server brain FIRST, unconditionally. Only its own
+        // executionInstruction may authorize browser-local execution (see the note above
+        // requestCanonicalDecision() for why the browser must never make this call itself).
+        var canonical=await requestCanonicalDecision(q);
+        if(canonical&&canonical.executionInstruction&&canonical.executionInstruction.executionAuthorized===true){
+          var localStartedAt=Date.now();
+          var localAnswer=await localAI(q);
+          if(localAnswer){
+            recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:true,degraded:false,latencyMs:Date.now()-localStartedAt});
+            out.innerHTML='<span class="workspace-kicker">On-device AI (server-authorized)</span>'+answerHTML(localAnswer)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
+            // Phase 4B: on-device inference never leaves the browser and calls no FTN provider at
+            // all -- a synthetic envelope built here (localAI() doesn't route through IbisClient,
+            // same reasoning as the Live Intelligence path above), only ever shown when the
+            // decision matrix judges the TOPIC (not the capability) evidence-worthy.
+            await ensureEvidence();
+            mountEvidence(out,{capability:'TEXT',provider:'On-device browser AI (server-authorized: planId '+esc(canonical.executionInstruction.planId)+')',costToIbis:'ZERO_COST_TO_IBIS',confidenceBasis:'NOT_ASSESSED'},{prompt:q});
+            setStatus('idle');
+            scrollToEnd();
+            return;
+          }
+          // Authorized but local execution itself failed/unavailable -- record it honestly and
+          // fall through to the canonical answer already carried in this same response, never a
+          // silent guess about whether local execution "should have" worked.
+          recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:false,degraded:true,latencyMs:Date.now()-localStartedAt});
+        }
+        if(canonical&&typeof canonical.answer==='string'&&canonical.answer){
+          out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain</span>'+answerHTML(canonical.answer)+'<p class="ibis-answer-meta">'+esc((canonical.providerPath&&canonical.providerPath[0])||'Governed ibis route')+(canonical.confidence?' · '+esc(canonical.confidence):'')+'</p>'+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
           await ensureEvidence();
-          mountEvidence(out,{capability:'TEXT',provider:'On-device browser AI',costToIbis:'ZERO_COST_TO_IBIS',confidenceBasis:'NOT_ASSESSED'},{prompt:q});
+          mountEvidence(out,{capability:'TEXT',provider:(canonical.providerPath&&canonical.providerPath[0])||'FTN ibis canonical brain',sourceRetrievedAt:canonical.generatedAt,confidenceBasis:canonical.confidence||'NOT_ASSESSED'},{prompt:q,limitations:canonical.confidenceBasis});
           setStatus('idle');
-          scrollToEnd();
+          revealAnswer(out);
           return;
         }
-        setStatus('verifying');
+        // canonical_query was entirely unreachable (network down, malformed response, etc.) --
+        // never invent a decision about local execution on this failure. Fall through to the
+        // existing serverAI() path (FTN.IbisRuntime.ask() -> degradedTextFallback() -> bare TEXT),
+        // itself already a real, tested, non-fabricating chain.
         var server=await serverAI(q);
         if(server.available){
           out.innerHTML='<span class="workspace-kicker">FTN ibis</span>'+answerHTML(server.answer)+answerMeta(server)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');

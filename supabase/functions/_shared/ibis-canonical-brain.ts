@@ -19,7 +19,7 @@
 import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct } from "./ibis-intelligence-gateway.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
-import { buildEnvelope, type CanonicalResponse, type QueryClass, type ReasoningModeRecord, type SourceRecord } from "./ibis-response-envelope.ts";
+import { buildEnvelope, type CanonicalResponse, type ExecutionInstruction, type QueryClass, type ReasoningModeRecord, type SourceRecord } from "./ibis-response-envelope.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -80,6 +80,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   if (!text) {
     return buildEnvelope({
       requestId, startedAt, answer: "Ask ibis something first.", queryClass: "SIMPLE_TEXT",
+      executionInstruction: { planId: requestId, executionTarget: null, executionAuthorized: false, intent: "SIMPLE_TEXT", freshnessRequired: false, constraints: ["empty_request_no_execution"] },
       reasoningModesUsed: [], capabilitiesAttempted: [], providerPath: [],
       evidenceState: "NO_ANSWER_GENERATED", confidence: "UNAVAILABLE", confidenceBasis: "Empty request.",
       status: "UNAVAILABLE", degradedStages: ["EMPTY_REQUEST"],
@@ -88,6 +89,28 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
 
   // 3. INTENT/OUTCOME CLASSIFICATION.
   const intent = classifyIntent(text);
+
+  // Slice 1 correction: the execution-authorization decision lives here, server-side, and ONLY
+  // here. A client (regular IBIS, Headspace, any future surface) must never independently decide
+  // a question is "plain" or "non-fresh" and run an on-device/local model before this endpoint has
+  // classified it. Local (browser-side, zero-cost) execution is authorized only for genuinely
+  // plain SIMPLE_TEXT questions -- never for freshness-sensitive, outcome/strategy, pathway,
+  // place or relationship questions, all of which need either real search or reasoning this
+  // endpoint cannot fabricate on a local model's behalf.
+  const freshnessRequired = intent.queryClass === "CURRENT_WEB_RESEARCH";
+  const executionAuthorized = intent.queryClass === "SIMPLE_TEXT";
+  const executionInstruction: ExecutionInstruction = {
+    planId: requestId,
+    executionTarget: executionAuthorized ? "browser_local" : "server_provider",
+    executionAuthorized,
+    intent: intent.queryClass,
+    freshnessRequired,
+    constraints: executionAuthorized
+      ? ["do_not_invent_current_facts", "max_output_tokens_600"]
+      : freshnessRequired
+        ? ["freshness_required_local_execution_prohibited"]
+        : ["specialist_reasoning_required_local_execution_prohibited"],
+  };
   const reasoningModesUsed: ReasoningModeRecord[] = [];
   const capabilitiesAttempted: string[] = [];
   const providerPath: string[] = [];
@@ -153,6 +176,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
 
   return buildEnvelope({
     requestId, startedAt, answer, objective: intent.objective, queryClass: intent.queryClass,
+    executionInstruction,
     reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: intent.reasons,

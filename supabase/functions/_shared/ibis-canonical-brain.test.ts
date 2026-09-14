@@ -178,6 +178,29 @@ Deno.test("search() returns SEARCH_UNAVAILABLE when neither SearXNG nor Brave ar
   assertEquals(result.status, "SEARCH_UNAVAILABLE");
 });
 
+// --- Slice 1 correction: executionInstruction is the sole, server-side authority over browser
+// local execution. ---
+Deno.test("simple question authorizes browser_local execution with a real planId", async () => {
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "Photosynthesis converts light into chemical energy.")] });
+  assertEquals(res.executionInstruction.executionAuthorized, true);
+  assertEquals(res.executionInstruction.executionTarget, "browser_local");
+  assertEquals(res.executionInstruction.freshnessRequired, false);
+  assertEquals(res.executionInstruction.planId, res.requestId);
+});
+
+Deno.test("freshness question never authorizes browser_local execution", async () => {
+  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")] });
+  assertEquals(res.executionInstruction.executionAuthorized, false);
+  assertEquals(res.executionInstruction.freshnessRequired, true);
+  assertEquals(res.executionInstruction.executionTarget, "server_provider");
+});
+
+Deno.test("outcome/strategy question never authorizes browser_local execution", async () => {
+  const res = await handleCanonicalRequest({ text: "I want to build a Caribbean-owned business.", providers: [fakeProvider("test", "unused")] });
+  assertEquals(res.executionInstruction.executionAuthorized, false);
+  assertEquals(res.executionInstruction.executionTarget, "server_provider");
+});
+
 Deno.test("empty text is rejected without attempting any provider", async () => {
   const res = await handleCanonicalRequest({ text: "   ", providers: [fakeProvider("test", "unused")] });
   assertEquals(res.status, "UNAVAILABLE");

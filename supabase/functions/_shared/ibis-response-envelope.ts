@@ -60,6 +60,30 @@ export type SourceRecord = {
   supportsClaimIds?: string[];
 };
 
+// Slice 1 correction: the browser must never independently decide a question is "plain" or
+// "non-fresh" and run local execution before the canonical planner has seen it. Every
+// canonical_query response now carries this instruction; a client may invoke browser-local
+// execution (e.g. an on-device LanguageModel) ONLY when executionAuthorized is explicitly true on
+// a response that actually came from this endpoint -- never inferred client-side.
+export type ExecutionInstruction = {
+  planId: string;
+  executionTarget: "browser_local" | "server_provider" | null;
+  executionAuthorized: boolean;
+  intent: QueryClass;
+  freshnessRequired: boolean;
+  constraints: string[];
+};
+
+export type ExecutionReceipt = {
+  planId: string;
+  executionTarget: "browser_local" | "server_provider";
+  provider: string;
+  success: boolean;
+  degraded: boolean;
+  latencyMs: number | null;
+  recordedAt: string;
+};
+
 export type AlternativeRecord = {
   label: string;
   url: string;
@@ -103,6 +127,7 @@ export type CanonicalResponse = {
   artifacts: unknown[];
   handoff: { external: boolean; note: string | null };
   receipt: CanonicalReceipt;
+  executionInstruction: ExecutionInstruction;
   generatedAt: string;
 };
 
@@ -112,6 +137,7 @@ export function buildEnvelope(input: {
   answer: string;
   objective?: string | null;
   queryClass: QueryClass;
+  executionInstruction: ExecutionInstruction;
   reasoningModesUsed: ReasoningModeRecord[];
   capabilitiesAttempted: string[];
   providerPath: string[];
@@ -153,6 +179,7 @@ export function buildEnvelope(input: {
     permissions: input.permissions || { requiresApproval: false, reason: null },
     artifacts: [],
     handoff: input.handoff || { external: false, note: null },
+    executionInstruction: input.executionInstruction,
     receipt: {
       requestId: input.requestId,
       queryClass: input.queryClass,

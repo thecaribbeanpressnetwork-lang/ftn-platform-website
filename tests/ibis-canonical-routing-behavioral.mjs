@@ -67,7 +67,7 @@ async function spyOnRuntimeAsk(page) {
     }
     window.__armAskSpy();
   });
-  await page.waitForFunction(() => window.__askSpyArmed === true, { timeout: 20000 });
+  await page.waitForFunction(() => window.__askSpyArmed === true, null, { timeout: 20000 });
 }
 
 // --- 1. Regular IBIS loads the canonical runtime primitives (not just the bare TEXT client). ---
@@ -96,7 +96,7 @@ await scenario('simple-question-enters-canonical-orchestrator', async (page) => 
   await spyOnRuntimeAsk(page);
   await page.fill('#ibis-goal', 'What is photosynthesis?');
   await page.locator('#ibis-form').evaluate((form) => form.requestSubmit());
-  await page.waitForFunction(() => window.__askCalls && window.__askCalls.length > 0, { timeout: 20000 });
+  await page.waitForFunction(() => window.__askCalls && window.__askCalls.length > 0, null, { timeout: 20000 });
   const calls = await page.evaluate(() => window.__askCalls);
   assert.deepEqual(calls, ['What is photosynthesis?'], 'a plain question must still be handed to FTN.IbisRuntime.ask() -- the browser must not decide it is "simple" and skip canonical orchestration');
 });
@@ -108,7 +108,7 @@ await scenario('headspace-also-enters-canonical-orchestrator-unconditionally', a
   const input = page.locator('#headspaceQuery');
   await input.fill('What is photosynthesis?');
   await page.locator('#inputOrbit').evaluate((form) => form.requestSubmit());
-  await page.waitForFunction(() => window.__askCalls && window.__askCalls.length > 0, { timeout: 20000 });
+  await page.waitForFunction(() => window.__askCalls && window.__askCalls.length > 0, null, { timeout: 20000 });
   const calls = await page.evaluate(() => window.__askCalls);
   assert.deepEqual(calls, ['What is photosynthesis?'], 'Headspace must also hand every question to FTN.IbisRuntime.ask() unconditionally -- no client-side isPlainAnswer() gate may remain');
 });
@@ -152,6 +152,7 @@ await scenario('orchestration-failure-marks-response-degraded-not-silently-canon
       const el = document.querySelector('.ibis-msg--ibis:last-child');
       return el && !/ibis is thinking/i.test(el.innerText || '');
     },
+    null,
     { timeout: 30000 }
   );
   const answerText = await page.locator('.ibis-msg--ibis').last().innerText();
@@ -179,6 +180,7 @@ await scenario('successful-runtime-answer-is-rendered-as-runtime-response', asyn
       const el = document.querySelector('.ibis-msg--ibis:last-child');
       return el && !/ibis is thinking/i.test(el.innerText || '');
     },
+    null,
     { timeout: 20000 }
   );
   const answerText = await page.locator('.ibis-msg--ibis').last().innerText();
