@@ -123,7 +123,11 @@ function syntheticClickTrack(bpm) {
 // --- 3. serverAI() uses the shared, guest-capable governed client. ---
 {
   const workspaceSource = fs.readFileSync('js/ibis-ai-workspace.js', 'utf8');
-  const serverAiBody = workspaceSource.slice(workspaceSource.indexOf('async function serverAI'), workspaceSource.indexOf('async function serverAI') + 2200);
+  // Window widened (2200 -> 3600 chars): serverAI() now also classifies through the Universal
+  // Router before falling through to this same IbisClient.request() call (see
+  // js/ibis-ai-workspace.js's ensureRuntime()/route-gate) -- the assertions below are unchanged,
+  // only the byte offset of the call they check for moved later in the function body.
+  const serverAiBody = workspaceSource.slice(workspaceSource.indexOf('async function serverAI'), workspaceSource.indexOf('async function serverAI') + 3600);
   assert.match(serverAiBody, /ensureIbisClient\(\)/, 'serverAI() must load the shared governed client');
   assert.match(serverAiBody, /IbisClient\.request\(\{nodeId:'ibis-ai',capability:'TEXT'/, 'serverAI() must route TEXT through IbisClient');
   assert.match(serverAiBody, /context:\{authenticated:!!user\}/, 'serverAI() must work for both guests and authenticated users');

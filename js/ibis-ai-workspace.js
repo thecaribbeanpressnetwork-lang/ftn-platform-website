@@ -41,6 +41,26 @@
     if(!global.FTN||!global.FTN.IbisProvenance)await loadScript('/js/ibis-provenance.js');
     if(!global.FTN||!global.FTN.IbisClient)await loadScript('/js/ibis-client.js');
   }
+  // Canonical-routing fix: regular ibis previously never loaded or consulted the Universal Router at
+  // all -- every plain-text question went straight to the default TEXT provider, bypassing the Founder
+  // Cognitive Layer, Butterfly Engine, Connection Fabric and multi-agent orchestration entirely, even
+  // when the request genuinely called for one of them. js/ibis-headspace-universal.js already gates on
+  // this same router; this mirrors that exact pattern so regular ibis and Headspace share one
+  // classification step instead of the workspace silently short-circuiting past it. ibis-runtime-loader.js
+  // is idempotent (guards each script by testing the primitive it registers), so calling this from both
+  // surfaces on the same page never double-loads anything.
+  async function ensureRuntime(){
+    if(global.FTN&&global.FTN.IbisRuntime)return;
+    await loadScript('/js/ibis-runtime-loader.js');
+    if(global.FTN&&global.FTN.IbisRuntimeReady)await withTimeout(global.FTN.IbisRuntimeReady,15000,null);
+  }
+  // Identical predicate to js/ibis-headspace-universal.js's isPlainAnswer() -- kept as an exact mirror
+  // (not re-derived) so "what counts as plain" can never quietly diverge between the two surfaces.
+  function isPlainAnswer(route){return !route||route.sideEffect==='READ_ONLY'&&(route.capabilityCandidates||[]).every(function(cap){return cap==='TEXT';})&&(route.agents||[]).every(function(agent){return agent==='GENERAL';});}
+  // Identical extraction to js/ibis-headspace-universal.js's bestText() -- FTN.IbisRuntime.ask() returns
+  // the multi-agent orchestrator's raw result shape, not the {answer,...} shape serverAI() otherwise
+  // returns, so this normalizes it the same way Headspace already does.
+  function bestRuntimeText(result){var direct=result&&(result.data||result.result)||{};if(direct.answer)return direct.answer;var outputs=result&&result.run&&result.run.result&&result.run.result.outputs||[];for(var i=outputs.length-1;i>=0;i--){var o=outputs[i].output||{},d=o.data||o.result||{};if(d.answer)return d.answer;if(o.result&&o.result.answer)return o.result.answer;if(typeof d==='string')return d;}return null;}
   // Pass 16: IBIS Live Intelligence lazy-load. js/ibis-provider-registry.js is already a static
   // script tag on this page; the eligibility engine and the live-research capability itself are
   // loaded on demand, same pattern as every other ensure* helper here.
@@ -194,6 +214,32 @@
       var user=null;
       if(global.FTN.Auth&&global.FTN.Auth.getVerifiedUser)user=await withTimeout(global.FTN.Auth.getVerifiedUser(),4000,null);
       var products=global.FTN.ProductRegistry&&global.FTN.ProductRegistry.publicProducts?global.FTN.ProductRegistry.publicProducts({includeSupporting:true}).map(function(p){return{name:p.name,route:p.route,tagline:p.tagline};}):[];
+      var routeContext={authenticated:!!user};
+
+      // Classify before answering (see ensureRuntime() above for why). A route the Universal Router
+      // itself flags as non-plain is handed to FTN.IbisRuntime.ask() -- the same capability-selecting
+      // execution Headspace already uses, which can genuinely reach Founder Cognitive Layer/Butterfly
+      // Engine/Connection Fabric/multi-agent orchestration. Any failure to load or classify falls straight
+      // through to the unchanged direct-provider call below -- this never blocks an answer on the router.
+      var route=null;
+      try{
+        await ensureRuntime();
+        if(global.FTN&&global.FTN.UniversalRouter)route=global.FTN.UniversalRouter.route(prompt,routeContext);
+      }catch(e){route=null;}
+
+      if(route&&!isPlainAnswer(route)&&global.FTN&&global.FTN.IbisRuntime){
+        try{
+          var runtimeResult=await withTimeout(global.FTN.IbisRuntime.ask(prompt,routeContext),25000,null);
+          if(runtimeResult&&runtimeResult.status==='WAITING_PERMISSION'){
+            return{available:true,answer:'This needs your approval before ibis can continue -- it would take an action outside this conversation. Open Headspace to approve or decline it.',provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:'Action requires explicit permission.',answerClass:'WAITING_PERMISSION',provenance:{capability:(route.capabilityCandidates||[]).join(', '),route:route}};
+          }
+          var runtimeAnswer=runtimeResult&&bestRuntimeText(runtimeResult);
+          if(runtimeAnswer){
+            return{available:true,answer:runtimeAnswer,provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:null,answerClass:'RUNTIME_RESPONSE',provenance:{capability:(route.capabilityCandidates||[]).join(', '),route:route,runtime:true}};
+          }
+        }catch(e){/* fall through to the direct provider below -- never a dead end */}
+      }
+
       var response=await global.FTN.IbisClient.request({nodeId:'ibis-ai',capability:'TEXT',context:{authenticated:!!user},payload:{prompt:prompt,products:products}});
       if(!response||!response.success)return{available:false,reason:(response&&response.reason)||'No eligible ibis answer route is available.'};
       var result=response.result||{};
