@@ -227,10 +227,37 @@
       sideEffect:(route&&route.sideEffect)||null,
     };
   }
-  // Runtime unavailable, timed out, or returned nothing usable: answer through the direct TEXT
-  // provider so the user is never dead-ended, but mark the response degraded and name the stage
-  // that failed -- never disguise this as a canonical response.
+  // Canonical-brain server slice (feature-flagged action:'canonical_query' on the ibis-assistant
+  // Edge Function -- see supabase/functions/_shared/ibis-canonical-brain.ts). Called as the FIRST
+  // fallback attempt below, ahead of the bare TEXT provider call, because it is a strict superset
+  // of that call for the cases it covers today: freshness-sensitive prompts get real search (or an
+  // honest SEARCH_UNAVAILABLE with direct-link alternatives) instead of silently answering from
+  // model memory, and every other prompt still gets the exact same deterministic/provider/founder-
+  // rules-fallback chain the bare TEXT call would have used anyway. Returns null (never throws) on
+  // any failure so the caller falls straight through to the unconditional bare TEXT call -- this
+  // must never be the only route to an answer.
+  async function canonicalServerQuery(prompt,products,context){
+    try{
+      var response=await withTimeout(fetch('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant',{
+        method:'POST',
+        headers:{'content-type':'application/json',apikey:'sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z',authorization:'Bearer sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z'},
+        body:JSON.stringify({action:'canonical_query',messages:[{role:'user',content:prompt}],products:products}),
+      }),12000,null);
+      if(!response||!response.ok)return null;
+      var envelope=await response.json().catch(function(){return null;});
+      if(!envelope||typeof envelope.answer!=='string'||!envelope.answer)return null;
+      return envelope;
+    }catch(e){return null;}
+  }
+  // Runtime unavailable, timed out, or returned nothing usable: answer through the canonical server
+  // brain first, then the direct TEXT provider, so the user is never dead-ended, but mark the
+  // response degraded and name the stage that failed -- never disguise this as a canonical response
+  // from FTN.IbisRuntime.ask() (the browser-side canonical path this function is a fallback FOR).
   async function degradedTextFallback(prompt,products,context,failedStage,route){
+    var canonical=await canonicalServerQuery(prompt,products,context);
+    if(canonical){
+      return{available:true,degraded:true,failedStage:failedStage,answer:canonical.answer,provider:'FTN ibis canonical brain',providerId:(canonical.providerPath&&canonical.providerPath[0])||null,model:'',generatedAt:canonical.generatedAt||new Date().toISOString(),confidence:canonical.confidence||null,uncertainty:canonical.confidenceBasis||null,answerClass:canonical.queryClass||null,provenance:{sources:canonical.sources,alternatives:canonical.alternatives,queryClass:canonical.queryClass},receipt:Object.assign({},canonicalReceipt(route,failedStage),{serverEnvelope:canonical.receipt})};
+    }
     var response=await global.FTN.IbisClient.request({nodeId:'ibis-ai',capability:'TEXT',context:context,payload:{prompt:prompt,products:products}});
     if(!response||!response.success)return{available:false,degraded:true,failedStage:failedStage,reason:(response&&response.reason)||'No eligible ibis answer route is available.',receipt:canonicalReceipt(route,failedStage)};
     var result=response.result||{};

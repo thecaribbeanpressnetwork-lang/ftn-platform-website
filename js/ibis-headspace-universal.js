@@ -5,6 +5,7 @@
   var form=document.getElementById('inputOrbit'),input=document.getElementById('headspaceQuery'),hint=document.getElementById('commandHint');
   if(!form||!input)return;
   var ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-text-cloudflare';
+  var ASSISTANT_ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
   var KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
 
   function answerCard(){return document.querySelector('[data-thought="answer"]');}
@@ -14,7 +15,26 @@
   function needsLiveEvidence(text){return /\b(today|latest|current|right now|news|price|rate|weather|score|election result|breaking)\b/i.test(text);}
   function personLookup(text){return /^(?:tell me about|who is|what do you know about)\s+[A-Z][A-Za-z.'’-]+(?:\s+[A-Z][A-Za-z.'’-]+){1,4}[?.!]*$/.test(String(text||'').trim());}
 
+  // Canonical-brain server slice (feature-flagged action:'canonical_query' on the ibis-assistant
+  // Edge Function -- see supabase/functions/_shared/ibis-canonical-brain.ts). Tried first: it is a
+  // strict superset of the bare TEXT call for the cases it covers -- a freshness-sensitive question
+  // gets real search or an honest SEARCH_UNAVAILABLE with direct-link alternatives instead of
+  // silently answering from model memory. Returns null (never throws) on any failure so directText()
+  // falls straight through to the bare TEXT call below -- this must never be the only route to an
+  // answer, since this call is itself already the fallback FOR FTN.IbisRuntime.ask().
+  async function canonicalServerQuery(text){
+    try{
+      var r=await fetch(ASSISTANT_ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:KEY,authorization:'Bearer '+KEY},body:JSON.stringify({action:'canonical_query',messages:[{role:'user',content:text}],products:products()})});
+      if(!r.ok)return null;
+      var envelope=await r.json().catch(function(){return null;});
+      if(!envelope||typeof envelope.answer!=='string'||!envelope.answer)return null;
+      return envelope;
+    }catch(e){return null;}
+  }
+
   async function directText(text){
+    var canonical=await canonicalServerQuery(text);
+    if(canonical)return{answer:canonical.answer,provider:'FTN ibis canonical brain',queryClass:canonical.queryClass,sources:canonical.sources,alternatives:canonical.alternatives};
     var guard='Answer the user directly. Do not output internal FTN decision-framework headings or scorecards. Do not invent facts, capabilities, links, biographies, current events or data access. If evidence is required and none is supplied, say what must be verified. ';
     if(needsLiveEvidence(text))guard+='This request may depend on current information. Do not pretend model memory is live evidence. ';
     if(personLookup(text))guard+='This is a person lookup. Do not guess the person\'s profession, credits, biography or economic role if you cannot verify them. ';

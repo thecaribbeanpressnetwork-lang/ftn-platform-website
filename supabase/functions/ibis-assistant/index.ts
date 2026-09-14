@@ -1,4 +1,5 @@
 import { gatewayHealth, runGateway, type GatewayProvider, type IbisProduct, type IbisTurn } from "../_shared/ibis-intelligence-gateway.ts";
+import { handleCanonicalRequest } from "../_shared/ibis-canonical-brain.ts";
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 function originAllowed(origin: string | null) {
@@ -110,6 +111,19 @@ Deno.serve(async (request) => {
   // external models, the proven zero-cost Cloudflare allocation is attempted before paid keys.
   const providers = [cloudflare(turns, system), anthropic(turns, system), gemini(turns, system), openAICompatible("PRIMARY", turns, system), openAICompatible("SECONDARY", turns, system), ollama(turns, system)];
   if (payload.action === "health") return reply(gatewayHealth(providers), 200, origin);
+
+  // Canonical-orchestration slice (feature-flagged, additive): opt-in via action:"canonical_query"
+  // so every pre-existing client (regular IBIS, Headspace, and this same route's own default
+  // behavior below) is completely unaffected -- this branch changes nothing about the legacy
+  // request/response shape. See ../_shared/ibis-canonical-brain.ts for what this path actually
+  // does and does not yet do (search-eligible questions get real search; Founder/EcoMap/Butterfly/
+  // Correlation/Prediction are honestly reported unavailable, never claimed to have executed).
+  if (payload.action === "canonical_query") {
+    if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
+    const envelope = await handleCanonicalRequest({ text: turns[turns.length - 1].content, products, providers });
+    return reply(envelope, 200, origin);
+  }
+
   if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
   const result = await runGateway({ text: turns[turns.length - 1].content, products, providers });
   return reply(result, 200, origin);
