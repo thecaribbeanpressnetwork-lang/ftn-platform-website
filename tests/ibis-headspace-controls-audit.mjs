@@ -77,10 +77,12 @@ for (const part of ['morning','daytime','evening','night']) assert.ok(arrival.in
 assert.match(arrival,/window\.setInterval\(advance,5200\)/,'Outcome words must remain long enough to read calmly.');
 assert.doesNotMatch(arrival,/scheduleFlight|function fly/,'Headspace must not simulate wing flight with a static image.');
 assert.match(arrival,/240000/,'Idle landmark rotation must settle to a four-minute cadence.');
-assert.match(arrival,/MutationObserver[\s\S]*headspace-engaged[\s\S]*stopScenes/,'Landmark changes must stop as soon as Headspace begins working.');
+assert.match(arrival,/function sceneSuppressed[\s\S]*headspace-engaged[\s\S]*ambient-live/,'Working Headspace must pause scenes unless the user explicitly enters Live view.');
 assert.doesNotMatch(arrival,/orientationTimers|settleRotation|\b20000\b|\b40000\b|\b60000\b/,'Discarded three-scene sequencing logic must not remain.');
 assert.match(arrival,/matchingLandmarks[\s\S]*dataset\.daypart/,'Landmark selection must respect the Trinidad-time atmosphere.');
 assert.match(html,/id="liveView"[^>]+aria-pressed="false"/,'Headspace needs an explicit Live view toggle.');
+assert.match(html,/id="nextScene"/,'Live view needs a direct next-landmark control.');
+assert.match(arrival,/scheduleScenes\(30000\)/,'Live view must visibly advance through the governed landmark collection.');
 assert.match(html,/<details class="headspace-menu" id="headspaceMenu">/,'Secondary controls must live behind the three-dot menu.');
 assert.match(arrival,/requestFullscreen/,'Live view must request browser fullscreen from its user gesture.');
 assert.match(arrivalCss,/body\.ambient-live \.scene-image\{filter:saturate\(1\.16\) contrast\(1\.04\)\}/,'Live view must restore vivid undimmed landmark colour.');
@@ -98,8 +100,13 @@ assert.match(universal,/ibis-image-cloudflare/,'Headspace image requests must re
 assert.match(universal,/function renderImage\b[\s\S]*Download image/,'Headspace must render a real downloadable image artifact.');
 assert.match(manager,/Math\.min\(count\|\|1,max\)/,'Window columns must adapt to the number of visible results.');
 assert.match(manager,/function fit\b/,'Answer and media windows must adapt to their real content.');
+assert.match(manager,/function cycleSize\b/,'Every Headspace window must cycle through half, full and restored sizes.');
+assert.match(manager,/dataset\.windowSize='half'[\s\S]*dataset\.windowSize='full'/,'Window sizing must expose predictable half-screen and full-width states.');
 assert.match(speech,/function splitText\b/,'Founder voice must split long answers into bounded synthesis chunks.');
 assert.match(speech,/chunkIndex<chunks\.length[\s\S]*playChunk/,'Founder voice must continue automatically through every answer chunk.');
+assert.match(preview,/navigator\.mediaDevices\.getUserMedia/,'Speak to ibis must capture microphone audio through a cross-browser path.');
+assert.match(preview,/ibis-speech-cloudflare[\s\S]*mode:'transcribe'/,'Speak to ibis must transcribe captured audio through the verified ASR route.');
+assert.match(preview,/orbit\.requestSubmit\(\)/,'A completed transcription must ask ibis without a second manual submit.');
 assert.match(html,/thought-graph dematerialized/,'The graph surface must remain hidden until real evidence requests it.');
 assert.match(html,/body\{overflow-y:auto\}\.headspace\{height:auto;overflow:visible\}\.field\{inset:auto\}/,'Headspace must neutralize the legacy viewport lock and 116px field offset.');
 assert.match(html,/@media \(max-height:820px\) and \(min-width:721px\)/,'Short or zoomed desktop viewports need a compact first paint that clears the fixed command dock.');

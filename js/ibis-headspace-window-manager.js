@@ -25,6 +25,23 @@
     function tile(){arrange('tile');}
     function stack(){arrange('stack');}
     function fit(node,content){if(!node)return;if(mode!=='freeform'){arrange(mode);return;}var fr=field.getBoundingClientRect(),long=content&&content.length>900,media=content&&content.media,w=Math.min(fr.width-20,media?960:long?860:680),left=Math.max(10,Math.min(parseFloat(node.style.left)||10,fr.width-w-10));imp(node,'width',Math.max(300,w)+'px');imp(node,'height','auto');imp(node,'max-height','none');imp(node,'overflow','visible');imp(node,'left',left+'px');field.style.setProperty('min-height',Math.max(field.scrollHeight,node.offsetTop+node.scrollHeight+220)+'px','important');}
+    function cycleSize(node){
+      if(!node||global.matchMedia&&global.matchMedia(MOBILE).matches)return;
+      var state=node.dataset.windowSize||'normal',fr=field.getBoundingClientRect();
+      if(state==='normal'){
+        node.dataset.restoreGeometry=JSON.stringify({left:node.style.left,top:node.style.top,width:node.style.width,height:node.style.height});
+        if(mode!=='freeform')freeform();
+        imp(node,'left','0');imp(node,'top',Math.max(0,node.offsetTop)+'px');imp(node,'width',Math.max(MIN_W,Math.floor(fr.width/2)-GAP/2)+'px');imp(node,'height','auto');
+        node.dataset.windowSize='half';hint('Window set to half width. Select the resize arrows again for full width.');return;
+      }
+      if(state==='half'){
+        imp(node,'left','0');imp(node,'top','0');imp(node,'width',fr.width+'px');imp(node,'height','auto');imp(node,'max-height','none');
+        node.dataset.windowSize='full';hint('Window expanded to the Headspace width. Select the resize arrows again to restore it.');return;
+      }
+      var saved={};try{saved=JSON.parse(node.dataset.restoreGeometry||'{}');}catch(_){}
+      ['left','top','width','height'].forEach(function(key){if(saved[key])imp(node,key,saved[key]);else node.style.removeProperty(key);});
+      node.dataset.windowSize='normal';delete node.dataset.restoreGeometry;place(node);hint('Window restored.');
+    }
 
     function startDrag(e){
       if(global.matchMedia&&global.matchMedia(MOBILE).matches)return;
@@ -51,10 +68,11 @@
     document.addEventListener('pointerup',endDrag,true);
     document.addEventListener('pointercancel',endDrag,true);
 
-    return{place:place,fit:fit,snap:function(node){if(node){preserveDraggedPosition(node);return;}arrange('grid');},snapNode:snapNode,organize:function(){arrange('grid');},tile:tile,stack:stack,freeform:freeform,minimize:minimize,restore:restore,visible:visible,arrange:arrange,getMode:function(){return mode;}};
+    return{place:place,fit:fit,cycleSize:cycleSize,snap:function(node){if(node){preserveDraggedPosition(node);return;}arrange('grid');},snapNode:snapNode,organize:function(){arrange('grid');},tile:tile,stack:stack,freeform:freeform,minimize:minimize,restore:restore,visible:visible,arrange:arrange,getMode:function(){return mode;}};
   }
 
   function init(){var field=document.getElementById('field');if(!field)return;var api=manager(field);global.FTN=global.FTN||{};global.FTN.HeadspaceWindowManager=api;
+    field.querySelectorAll('.thought .window-actions').forEach(function(actions){if(actions.querySelector('[data-window-size]'))return;var resize=document.createElement('button');resize.type='button';resize.dataset.windowSize='true';resize.textContent='↗';resize.title='Resize: half width, full width, restore';resize.setAttribute('aria-label','Resize window');resize.addEventListener('click',function(e){e.stopPropagation();api.cycleSize(actions.closest('.thought'));});actions.prepend(resize);});
     var stackBtn=document.querySelector('[data-arrange="stack"]');if(stackBtn&&!document.querySelector('[data-arrange="freeform"]')){var free=document.createElement('button');free.type='button';free.dataset.arrange='freeform';free.textContent='Freeform';free.title='Unsnap cards and move them freely';stackBtn.insertAdjacentElement('afterend',free);}
     document.querySelectorAll('[data-arrange]').forEach(function(button){button.addEventListener('click',function(e){e.preventDefault();var a=button.dataset.arrange;if(a==='tile')api.tile();else if(a==='stack')api.stack();else if(a==='freeform')api.freeform();else api.organize();});});
     document.querySelectorAll('[data-minimize]').forEach(function(button){button.addEventListener('click',function(e){e.stopPropagation();var n=button.closest('.thought');if(n)api.minimize(n);});});

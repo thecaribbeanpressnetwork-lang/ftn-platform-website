@@ -73,7 +73,7 @@
   form.addEventListener('submit',async function(e){
     var text=input.value.trim();if(!text)return;
     if(/^(go )?back$|^undo$|^redo$|^forward$|put (that|it) back|restore|save (this )?(headspace|space)|recall (headspace|space)$/i.test(text))return;
-    e.preventDefault();e.stopImmediatePropagation();var FTN=global.FTN=global.FTN||{},token=FTN.HeadspaceRequestState&&FTN.HeadspaceRequestState.snapshot();if(hint)hint.textContent=imageRequest(text)?'ibis is generating a real image artifact…':needsLiveEvidence(text)?'ibis is researching live evidence…':'ibis is routing the request to a real intelligence capability…';input.value='';
+    e.preventDefault();e.stopImmediatePropagation();var FTN=global.FTN=global.FTN||{},token=FTN.HeadspaceRequestState&&FTN.HeadspaceRequestState.snapshot();if(FTN.HeadspaceSpeech&&FTN.HeadspaceSpeech.stop)FTN.HeadspaceSpeech.stop();if(hint)hint.textContent=imageRequest(text)?'ibis is generating a real image artifact…':needsLiveEvidence(text)?'ibis is researching live evidence…':'ibis is routing the request to a real intelligence capability…';input.value='';
     try{
       var context={attachments:((FTN.HeadspaceInputContext&&FTN.HeadspaceInputContext.attachments)||[]).slice()},route=null;
       if(FTN.UniversalRouter){try{route=FTN.UniversalRouter.route(text,context);}catch(_){} }

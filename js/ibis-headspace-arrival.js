@@ -28,15 +28,18 @@
 
   var layers=Array.from(document.querySelectorAll('[data-scene-layer]'));
   var sceneLabel=document.getElementById('sceneLabel'),sceneArticle=document.getElementById('sceneArticle'),sceneCredit=document.getElementById('sceneCredit');
-  var liveView=document.getElementById('liveView'),headspaceMenu=document.getElementById('headspaceMenu');
+  var liveView=document.getElementById('liveView'),nextScene=document.getElementById('nextScene'),headspaceMenu=document.getElementById('headspaceMenu');
   var landmarks=[],sceneIndex=-1,activeLayer=0,sceneTimer=0,transitioning=false;
-  function setLiveView(active){document.body.classList.toggle('ambient-live',active);if(liveView){liveView.textContent=active?'Exit live':'Live view';liveView.setAttribute('aria-pressed',String(active));}if(headspaceMenu)headspaceMenu.open=false;}
+  function sceneSuppressed(){return document.body.classList.contains('headspace-engaged')&&!document.body.classList.contains('ambient-live');}
+  function scheduleScenes(delay){stopScenes();if(!landmarks.length||reduce)return;sceneTimer=window.setInterval(rotateScene,delay);}
+  function setLiveView(active){document.body.classList.toggle('ambient-live',active);if(liveView){liveView.textContent=active?'Exit live':'Live view';liveView.setAttribute('aria-pressed',String(active));}if(headspaceMenu)headspaceMenu.open=false;if(active){rotateScene();scheduleScenes(30000);}else scheduleScenes(240000);}
   if(liveView)liveView.addEventListener('click',function(){
     var active=document.body.classList.contains('ambient-live');
     if(active){setLiveView(false);if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(function(){});return;}
     setLiveView(true);
     if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(function(){});
   });
+  if(nextScene)nextScene.addEventListener('click',function(){rotateScene();});
   document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&document.body.classList.contains('ambient-live'))setLiveView(false);});
   if(headspaceMenu)headspaceMenu.addEventListener('click',function(event){if(event.target.closest('.headspace-menu-panel button,.headspace-menu-panel a'))headspaceMenu.open=false;});
   function stopScenes(){window.clearInterval(sceneTimer);sceneTimer=0;}
@@ -51,11 +54,11 @@
     if(sceneCredit){sceneCredit.href=item.descriptionUrl;sceneCredit.textContent=item.author+' · '+item.license;sceneCredit.setAttribute('aria-label',item.landmark+' photograph credit and licence');}
   }
   function showScene(item){
-    if(!item||!layers.length||transitioning||document.body.classList.contains('headspace-engaged'))return;
+    if(!item||!layers.length||transitioning||sceneSuppressed())return;
     var nextLayer=layers.length>1?1-activeLayer:activeLayer,next=layers[nextLayer];
     transitioning=true;
     next.onload=function(){
-      if(document.body.classList.contains('headspace-engaged')){transitioning=false;return;}
+      if(sceneSuppressed()){transitioning=false;return;}
       setCaption(item);
       layers[activeLayer].classList.remove('is-active');
       next.classList.add('is-active');
@@ -66,7 +69,7 @@
     if(next.complete)next.onload();
   }
   function rotateScene(){
-    if(document.body.classList.contains('headspace-engaged'))return stopScenes();
+    if(sceneSuppressed())return stopScenes();
     var candidates=matchingLandmarks().filter(function(item){return landmarks.indexOf(item)!==sceneIndex;});
     showScene(candidates[Math.floor(Math.random()*candidates.length)]||matchingLandmarks()[0]);
   }
@@ -74,8 +77,8 @@
     landmarks=items;
     if(!landmarks.length||reduce)return;
     rotateScene();
-    sceneTimer=window.setInterval(rotateScene,240000);
-    new MutationObserver(function(){if(document.body.classList.contains('headspace-engaged'))stopScenes();}).observe(document.body,{attributes:true,attributeFilter:['class']});
+    scheduleScenes(240000);
+    new MutationObserver(function(){if(sceneSuppressed())stopScenes();else if(!sceneTimer)scheduleScenes(document.body.classList.contains('ambient-live')?30000:240000);}).observe(document.body,{attributes:true,attributeFilter:['class']});
   }
   if(layers.length)fetch('/data/ibis-headspace-landmarks.json',{credentials:'same-origin'}).then(function(response){if(!response.ok)throw new Error('landmark manifest unavailable');return response.json();}).then(function(data){startScenes(Array.isArray(data.landmarks)?data.landmarks:[]);}).catch(function(){/* The local Pitch Lake fallback remains visible. */});
 

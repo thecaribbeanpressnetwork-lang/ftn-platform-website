@@ -15,6 +15,9 @@ body:not(.headspace-engaged) .head-actions{position:absolute;top:0;right:0;max-w
 .headspace-menu-panel{position:absolute;z-index:270;top:50px;right:0;display:grid;grid-template-columns:repeat(2,minmax(112px,1fr));gap:7px;width:min(300px,calc(100vw - 28px));padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(2,3,3,.94);box-shadow:0 24px 70px rgba(0,0,0,.58);backdrop-filter:blur(20px)}
 .headspace-menu-panel button,.headspace-menu-panel a{width:100%;text-align:left}
 .live-view-toggle{white-space:nowrap}
+.next-scene{display:none}
+#voiceButton.listening{color:#fff;background:#7c3aed;box-shadow:0 0 0 5px rgba(196,146,255,.18);animation:ibis-listening 1.25s ease-in-out infinite}
+@keyframes ibis-listening{50%{box-shadow:0 0 0 10px rgba(196,146,255,.04)}}
 body:not(.headspace-engaged) .field{min-height:0;margin:0}
 body:not(.headspace-engaged) .input-orbit{top:61svh;bottom:auto;width:min(900px,calc(100vw - 48px));border-color:rgba(151,71,255,.7);box-shadow:0 18px 70px rgba(0,0,0,.58),0 0 44px rgba(139,66,255,.08)}
 body:not(.headspace-engaged) .input-orbit button[type=submit]{color:#b47cff}
@@ -60,6 +63,7 @@ body.ambient-live .identity,body.ambient-live .field,body.ambient-live .input-or
 body.ambient-live .headspace-head{position:relative;z-index:4;min-height:0;margin:0;max-width:none}
 body.ambient-live .arrival-clock{display:grid;top:0;left:0}
 body.ambient-live .head-actions{position:fixed;z-index:280;top:24px;right:24px;left:auto;margin:0;display:flex}
+body.ambient-live .next-scene{display:inline-flex}
 body.ambient-live .scene-caption{display:grid}
 
 @media(max-width:1000px){
