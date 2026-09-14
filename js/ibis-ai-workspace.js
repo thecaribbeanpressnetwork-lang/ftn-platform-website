@@ -205,6 +205,29 @@
   // ready now) is allowed to use the on-device path; 'downloadable' and 'unavailable' both fall
   // straight through to the existing server/router fallback instead, same as before. The
   // capability itself is preserved -- an already-warm on-device model still answers locally.
+  // Canonical-planner gate for on-device execution (Slice 1 correction): localAI() used to run
+  // unconditionally BEFORE serverAI() for every message whenever a browser exposed an available
+  // on-device LanguageModel -- a real bypass of canonical orchestration for every such browser,
+  // not just keyword-matched messages, and current-information questions could be answered
+  // entirely from on-device memory with no freshness check at all. The canonical planner
+  // (FTN.UniversalRouter.route(), the exact same classifier FTN.IbisRuntime.ask() itself calls
+  // internally) must now be consulted FIRST; local execution is only attempted when that planner
+  // classifies the request as a plain, read-only, general-agent TEXT question AND it does not
+  // look freshness-sensitive. Freshness is checked here only to gate LOCAL execution eligibility --
+  // the authoritative freshness classification remains server-side in
+  // supabase/functions/_shared/ibis-intent-router.ts, which serverAI() always reaches regardless
+  // of this gate's outcome. Any failure to load the planner defaults to false (never local),
+  // failing toward MORE scrutiny (the full serverAI() canonical path), never less.
+  var LOCAL_FRESHNESS_MARKERS=/\b(today|latest|current(?:ly)?|right now|this week|this month|breaking|recent|as of \d{4}|news|price|exchange rate|fx rate|selling rate|indicators?|shortage|election result|score|search the internet|search the web)\b/i;
+  async function plannerAllowsLocalExecution(text){
+    if(LOCAL_FRESHNESS_MARKERS.test(text))return false;
+    try{
+      await ensureRuntime();
+      if(!global.FTN||!global.FTN.UniversalRouter)return false;
+      var route=global.FTN.UniversalRouter.route(text,{});
+      return !!(route&&route.sideEffect==='READ_ONLY'&&(route.capabilityCandidates||[]).every(function(c){return c==='TEXT';})&&(route.agents||[]).every(function(a){return a==='GENERAL';}));
+    }catch(e){return false;}
+  }
   async function localAI(prompt){
     if(!('LanguageModel' in global))return null;
     try{
@@ -460,7 +483,8 @@
           revealAnswer(out);
           return;
         }
-        var answer=await localAI(q);
+        var allowLocal=await plannerAllowsLocalExecution(q);
+        var answer=allowLocal?await localAI(q):null;
         if(answer){
           out.innerHTML='<span class="workspace-kicker">On-device AI</span>'+answerHTML(answer)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
           // Phase 4B: on-device inference never leaves the browser and calls no FTN provider at
