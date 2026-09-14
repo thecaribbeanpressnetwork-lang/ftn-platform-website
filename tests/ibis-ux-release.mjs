@@ -20,7 +20,13 @@ assert.match(workspaceCss, /\.ibis-mode-row button\{min-height:44px/);
 assert.match(workspaceJs, /data-ftn-no-draft="true"/);
 assert.match(workspaceJs, /function revealAnswer\(out\)/);
 assert.match(workspaceJs, /replace\(\/\\\*\\\*\(\[\^\*\]\+\)\\\*\\\*\/g,'<strong>\$1<\/strong>'\)/);
-assert.equal((workspaceJs.match(/revealAnswer\(out\);/g) || []).length, 5);
+// Count dropped 5 -> 4: the canonical-brain completion pass removed the client-side
+// quickLooksLikeLiveRequest() freshness shortcut and its own revealAnswer(out) call site --
+// freshness classification now happens once, server-side, in every message's ordinary path
+// (see js/ibis-ai-workspace.js's note near where QUICK_LIVE_PHRASES used to be defined).
+assert.equal((workspaceJs.match(/revealAnswer\(out\);/g) || []).length, 4);
+assert.doesNotMatch(workspaceJs, /function quickLooksLikeLiveRequest/, 'the freshness pre-filter function must not exist -- the browser must never decide a question is too current for canonical orchestration');
+assert.doesNotMatch(workspaceJs, /if\(quickLooksLikeLiveRequest/, 'nothing may call the freshness pre-filter as a bypass gate');
 assert.ok(widgetJs.includes("if (/^\\/ibis-ai\\/?$/.test(global.location.pathname)) return;"));
 
 console.log('IBIS UX release: full workspace, answer reveal, safe inline formatting, touch targets and public copy verified.');

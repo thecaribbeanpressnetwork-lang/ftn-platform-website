@@ -20,11 +20,17 @@
   function withTimeout(promise,ms,fallbackValue){return new Promise(function(resolve){var settled=false;var timer=setTimeout(function(){if(!settled){settled=true;resolve(fallbackValue);}},ms);promise.then(function(v){if(!settled){settled=true;clearTimeout(timer);resolve(v);}},function(){if(!settled){settled=true;clearTimeout(timer);resolve(fallbackValue);}});});}
   async function ensureData(){await loadScript('/js/ftn-media-discovery.js');if(!global.FTN.Auth)await loadScript('/js/ftn-auth.js');if(!global.FTN.Sources)await loadScript('/js/source-registry.js');if(!global.FTN.DataSource)await loadScript('/js/data-source.js');if(!global.FTN.indicators)await loadScript('/js/indicators-data.js');if(!global.FTN.Relationships)await loadScript('/js/relationships-data.js');}
   function ensureVisualState(){if(global.FTN&&global.FTN.IbisVisualState)return Promise.resolve();return loadScript('/js/ibis-visual-state.js');}
-  // Zero-dependency mirror of js/ibis-live-research.js's own LIVE_PHRASES list, so ordinary
-  // messages never pay the cost of loading the live-research module at all -- only a message that
-  // already looks like a live/current-events request triggers ensureLiveResearch() below.
-  var QUICK_LIVE_PHRASES=['right now','happening now','currently','as of today','latest on','latest news','current news','what are people saying',"what's new",'recent news','this week','up to date','up-to-date','today','this month'];
-  function quickLooksLikeLiveRequest(text){var lower=String(text||'').toLowerCase();return QUICK_LIVE_PHRASES.some(function(p){return lower.indexOf(p)!==-1;});}
+  // Correction (canonical-brain completion pass): a client-side keyword gate used to live here
+  // (QUICK_LIVE_PHRASES/quickLooksLikeLiveRequest) and decide, in the browser, that a message
+  // "looks like" a live/current-events request -- routing it straight to renderLiveResearch()
+  // (Hacker News + GitHub search only) and returning BEFORE serverAI()/the canonical brain ever
+  // ran. That is exactly the architecture being corrected: the browser must never decide a query
+  // is too current for canonical orchestration. Freshness classification now happens exactly once,
+  // inside supabase/functions/_shared/ibis-intent-router.ts's classifyIntent(), which every prompt
+  // reaches via serverAI() -> FTN.IbisRuntime.ask() (or, if that is unavailable, degradedTextFallback()
+  // -> canonicalServerQuery()'s action:'canonical_query' call). renderLiveResearch() itself is left
+  // in place below as an available capability, just no longer a pre-emptive authority over ordinary
+  // conversation.
   // Final integration pass (Caribbean intelligence): loads the real, cited lexical-marker
   // detector (js/ibis-caribbean-language-id.js, Phase 13) so ASK-mode requests can honestly note
   // when a user's own message already contains real Trinidad English/Creole vocabulary --
@@ -417,18 +423,10 @@
         appendUserMessage(q);
         var out=appendIbisMessage();
         setStatus('thinking');
-        // Pass 16 IBIS Live Intelligence: only fires when the message itself reads as a live/
-        // current-events request (deterministic phrase match, never an LLM call to decide).
-        // quickLooksLikeLiveRequest() has zero dependencies, so ordinary requests never trigger
-        // ensureLiveResearch()'s script loads at all -- ibis's normal behavior is completely
-        // unaffected for every message that doesn't look like this.
-        if(quickLooksLikeLiveRequest(q)){
-          setStatus('working');
-          await renderLiveResearch(q,out);
-          setStatus('idle');
-          revealAnswer(out);
-          return;
-        }
+        // The freshness/live-events pre-filter that used to gate here is removed (see the note
+        // above QUICK_LIVE_PHRASES' old location, near the top of this file): a message reading
+        // as current-events now reaches serverAI() like any other message, and freshness
+        // classification happens once, canonically, in the server-side intent router.
         if(mode==='visual'||/create|generate|make/.test(q.toLowerCase())&&/image|visual|poster|graphic/.test(q.toLowerCase())){
           setStatus('generating');
           await createVisual(q,out);
@@ -436,14 +434,27 @@
           revealAnswer(out);
           return;
         }
-        if(mode==='find'||/find|search|movie|film|song|music|youtube/.test(q.toLowerCase())){
+        // Narrowed (canonical-brain completion pass): bare "find"/"search" used to be sufficient
+        // to divert free-typed text to media discovery -- "search the internet for X" is a general
+        // web-search request, not a media request, and must reach canonical orchestration like any
+        // other question, not be silently claimed by YouTube discovery first. A genuine
+        // media-domain term is still required for the free-text auto-trigger; the explicit Find
+        // mode button (mode==='find') is a deliberate user action and is unaffected.
+        if(mode==='find'||/movie|film|song|music|youtube|soca|reggae|dancehall|calypso|kaiso|chutney|kompa|zouk|steelpan/.test(q.toLowerCase())){
           setStatus('working');
           await renderMedia(q,out);
           setStatus('idle');
           revealAnswer(out);
           return;
         }
-        if(mode==='analyze'||/what changed|correlat|indicator|econom|inflation|weather|pressure/.test(q.toLowerCase())){
+        // Keyword-sniffed auto-trigger removed (canonical-brain completion pass): "indicator",
+        // "econom", "weather" etc. used to divert an ordinarily-typed question straight to the
+        // local FTN indicator lookup before serverAI() ever ran -- exactly the kind of "the
+        // browser decides this is too specialized for canonical orchestration" bypass being
+        // corrected, and it silently swallowed the mandatory forex-indicators acceptance test
+        // ("...foreign-exchange indicators" matches /indicator/). The explicit Analyze mode button
+        // (mode==='analyze') is a deliberate user action, not a keyword guess, and is preserved.
+        if(mode==='analyze'){
           out.innerHTML=renderAnalysis(q);
           setStatus('idle');
           revealAnswer(out);
