@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const html = fs.readFileSync('ibis-headspace-preview/index.html','utf8');
 const bootstrap = fs.readFileSync('js/ibis-headspace-bootstrap.js','utf8');
+const arrival = fs.readFileSync('js/ibis-headspace-arrival.js','utf8');
+const arrivalCss = fs.readFileSync('css/components/ibis-headspace-arrival.css','utf8');
+const preview = fs.readFileSync('js/ibis-headspace-preview.js','utf8');
 const themes = fs.readFileSync('js/ibis-country-themes.js','utf8');
 const speech = fs.readFileSync('js/ibis-headspace-speech.js','utf8');
+const universal = fs.readFileSync('js/ibis-headspace-universal.js','utf8');
+const investorGuards = fs.readFileSync('js/ibis-investor-handoff-guards.js','utf8');
 const manager = fs.readFileSync('js/ibis-headspace-window-manager.js','utf8');
 const fabric = fs.readFileSync('js/ibis-headspace-fabric.js','utf8');
 const toolHealth = fs.readFileSync('js/ibis-headspace-tool-health.js','utf8');
@@ -12,6 +18,7 @@ const scoutHealth = fs.readFileSync('js/ibis-headspace-scout-health.js','utf8');
 const publicBootstrap = fs.readFileSync('js/ibis-query-bootstrap.js','utf8');
 const publicHtml = fs.readFileSync('ibis-ai/index.html','utf8');
 const scoutRegistry = JSON.parse(fs.readFileSync('data/scout-2-source-registry.json','utf8'));
+const landmarkManifest = JSON.parse(fs.readFileSync('data/ibis-headspace-landmarks.json','utf8'));
 
 // Public Headspace must first-paint immediately and hydrate capabilities through one non-blocking
 // bootstrap. Directly embedding the full capability graph in HTML previously held DOM readiness
@@ -36,17 +43,86 @@ assert.match(bootstrap,/failures\.push/,'Optional capability-load failures must 
 
 // Investor first paint must be neutral and evidence-bound. It must not present a fabricated
 // conclusion or placeholder demand curve before a task has generated evidence.
-assert.match(html,/<h2>What do you need\?<\/h2>/,'Headspace must open on an objective-first neutral answer.');
+assert.match(html,/What do you want to <span class="outcome-window"/,'Headspace must open with the founder-approved outcome-first invitation.');
+assert.match(html,/Start with the reality you want\. ibis helps build the road there\./,'Headspace must carry the approved IBIS positioning line.');
+assert.doesNotMatch(html,/ibis-flight/,'Headspace must not translate a still bird asset as fake flight.');
+assert.match(html,/id="headspaceTime"/,'Headspace must connect its ambient arrival to the FTN Clock capability.');
+assert.doesNotMatch(html,/headspace-archipelago-|AI-generated/,'Unverified generated geography must not appear on the Headspace arrival.');
+assert.equal(landmarkManifest.count,51,'The Caribbean landmark collection must contain all 51 approved locations.');
+assert.equal(landmarkManifest.landmarks.length,51,'The landmark manifest count must match its records.');
+assert.equal(new Set(landmarkManifest.landmarks.map(item=>item.id)).size,51,'Every landmark must have a unique stable ID.');
+assert.equal(new Set(landmarkManifest.landmarks.map(item=>item.localPath)).size,51,'Every landmark must use its own local asset.');
+for (const item of landmarkManifest.landmarks) {
+  assert.match(item.articleUrl,/^https:\/\/(?:en\.)?wikipedia\.org\//,`${item.id} needs a named landmark information link.`);
+  assert.match(item.descriptionUrl,/^https:\/\/commons\.wikimedia\.org\//,`${item.id} needs a Commons provenance link.`);
+  assert.match(item.license,/^(?:CC0|CC BY(?:-SA)?|Public domain|PDM)/i,`${item.id} does not have an allowed licence.`);
+  assert.ok(item.author,`${item.id} needs an attribution holder.`);
+  assert.ok(Array.isArray(item.dayparts)&&item.dayparts.length,`${item.id} needs a clock-aligned daypart.`);
+  const localFile=item.localPath.replace(/^\//,'');
+  const bytes=fs.readFileSync(localFile);
+  assert.ok(bytes.length>80_000,`${item.id} is missing or too small to be a production scene.`);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),item.fileHashSha256,`${item.id} does not match its provenance hash.`);
+}
+assert.equal((html.match(/data-scene-layer=/g)||[]).length,2,'Headspace must crossfade through exactly two reusable image layers.');
+for (const id of ['sceneLabel','sceneArticle','sceneCredit']) assert.match(html,new RegExp(`id="${id}"`),`Missing unobtrusive landmark metadata surface ${id}.`);
+assert.match(arrival,/fetch\('\/data\/ibis-headspace-landmarks\.json'/,'Headspace must render the governed 51-location manifest.');
+assert.match(bootstrap,/node\.classList\.add\('dematerialized'\)/,'Headspace must open as a clear objective field without premature cards.');
+assert.equal((html.match(/<article class="thought[^\"]*dematerialized"/g)||[]).length,(html.match(/<article class="thought/g)||[]).length,'Every Headspace card must be hidden in first-paint HTML, before asynchronous hydration.');
+for (const outcome of ['make happen?','achieve?','find?','understand?','solve?','build?','change?','prove?']) assert.ok(arrival.includes(`'${outcome}'`),`Missing punctuated outcome phrase ${outcome}`);
+assert.match(html,/id="outcomeWord" class="outcome-word">make happen\?<\/span><\/span>/,'Each outcome must own its question mark so punctuation cannot drift away.');
+assert.match(arrivalCss,/\.outcome-window\{[^}]*width:6\.35em/,'The outcome frame must reserve a stable width so the sentence never jumps.');
+assert.match(arrival,/prefers-reduced-motion: reduce/,'Outcome motion must respect reduced-motion preferences.');
+assert.match(arrival,/America\/Port_of_Spain/,'Ambient clock must use the real Trinidad and Tobago IANA time zone.');
+for (const part of ['morning','daytime','evening','night']) assert.ok(arrival.includes(`'${part}'`),`Missing Trinidad-time atmosphere state ${part}`);
+assert.match(arrival,/window\.setInterval\(advance,5200\)/,'Outcome words must remain long enough to read calmly.');
+assert.doesNotMatch(arrival,/scheduleFlight|function fly/,'Headspace must not simulate wing flight with a static image.');
+assert.match(arrival,/240000/,'Idle landmark rotation must settle to a four-minute cadence.');
+assert.match(arrival,/function sceneSuppressed[\s\S]*headspace-engaged[\s\S]*ambient-live/,'Working Headspace must pause scenes unless the user explicitly enters Live view.');
+assert.doesNotMatch(arrival,/orientationTimers|settleRotation|\b20000\b|\b40000\b|\b60000\b/,'Discarded three-scene sequencing logic must not remain.');
+assert.match(arrival,/matchingLandmarks[\s\S]*dataset\.daypart/,'Landmark selection must respect the Trinidad-time atmosphere.');
+assert.match(html,/id="liveView"[^>]+aria-pressed="false"/,'Headspace needs an explicit Live view toggle.');
+assert.match(html,/id="nextScene"/,'Live view needs a direct next-landmark control.');
+assert.match(arrival,/scheduleScenes\(30000\)/,'Live view must visibly advance through the governed landmark collection.');
+assert.match(html,/<details class="headspace-menu" id="headspaceMenu">/,'Secondary controls must live behind the three-dot menu.');
+assert.match(arrival,/requestFullscreen/,'Live view must request browser fullscreen from its user gesture.');
+assert.match(arrivalCss,/body\.ambient-live \.scene-image\{filter:saturate\(1\.16\) contrast\(1\.04\)\}/,'Live view must restore vivid undimmed landmark colour.');
+assert.match(arrivalCss,/body\.ambient-live \.identity[\s\S]*\.input-orbit[\s\S]*display:none!important/,'Live view must preserve the scene and clock without working controls.');
+assert.match(arrivalCss,/\.head-actions\{z-index:260/,'The protected controls must remain above cards and the command dock.');
+assert.doesNotMatch(html,/<(?:label|input)[^>]+(?:headspaceOpacity|opacity-control)/,'The retired Focus control must not remain in the public interface.');
+assert.doesNotMatch(preview,/headspaceOpacity|applyOpacity/,'The retired Focus control logic must not remain in the preview controller.');
+assert.doesNotMatch(manager,/headspaceOpacity|wireOpacity|__ibisSetOpacity/,'The retired Focus control logic must not remain in the window manager.');
+assert.doesNotMatch(preview,/function draggable/,'Only the spatial window manager may own card dragging.');
+assert.match(arrivalCss,/body\.headspace-engaged \.field\{top:auto!important;padding-bottom:190px\}/,'Working cards must clear the fixed command dock without an artificial top offset.');
+assert.match(investorGuards,/var informational=/,'Information questions must be excluded from side-effect handoff interception.');
+assert.match(investorGuards,/moneyAction&&!informational/,'Rates, prices and calculations must not be mistaken for payment execution.');
+assert.match(universal,/function mortgageAnswer\b/,'Headspace must complete bounded mortgage calculations without a fragile capability handoff.');
+assert.match(universal,/ibis-image-cloudflare/,'Headspace image requests must reach the verified real image route.');
+assert.match(universal,/function renderImage\b[\s\S]*Download image/,'Headspace must render a real downloadable image artifact.');
+assert.match(manager,/Math\.min\(count\|\|1,max\)/,'Window columns must adapt to the number of visible results.');
+assert.match(manager,/function fit\b/,'Answer and media windows must adapt to their real content.');
+assert.match(manager,/function cycleSize\b/,'Every Headspace window must cycle through half, full and restored sizes.');
+assert.match(manager,/dataset\.windowSize='half'[\s\S]*dataset\.windowSize='full'/,'Window sizing must expose predictable half-screen and full-width states.');
+assert.match(speech,/function splitText\b/,'Founder voice must split long answers into bounded synthesis chunks.');
+assert.match(speech,/chunkIndex<chunks\.length[\s\S]*playChunk/,'Founder voice must continue automatically through every answer chunk.');
+assert.match(preview,/navigator\.mediaDevices\.getUserMedia/,'Speak to ibis must capture microphone audio through a cross-browser path.');
+assert.match(preview,/ibis-speech-cloudflare[\s\S]*mode:'transcribe'/,'Speak to ibis must transcribe captured audio through the verified ASR route.');
+assert.match(preview,/orbit\.requestSubmit\(\)/,'A completed transcription must ask ibis without a second manual submit.');
 assert.match(html,/thought-graph dematerialized/,'The graph surface must remain hidden until real evidence requests it.');
+assert.match(html,/body\{overflow-y:auto\}\.headspace\{height:auto;overflow:visible\}\.field\{inset:auto\}/,'Headspace must neutralize the legacy viewport lock and 116px field offset.');
+assert.match(html,/@media \(max-height:820px\) and \(min-width:721px\)/,'Short or zoomed desktop viewports need a compact first paint that clears the fixed command dock.');
 assert.doesNotMatch(html,/Sample signal/i,'Headspace must not show sample demand data on the investor surface.');
 assert.doesNotMatch(html,/Caribbean context is first-class infrastructure\./i,'The old canned conclusion must not return.');
 
 for (const id of ['speakAnswer','speechPause','speechRewind','speechSpeed','speechNext']) assert.match(html, new RegExp(`id="${id}"`), `Missing speech control ${id}`);
-for (const operation of ['speechSynthesis','.pause(','.resume(','move(-1)','move(1)','utterance.rate']) assert.ok(speech.includes(operation), `Missing speech operation ${operation}`);
+assert.match(html,/Founder voice controls/);
+assert.match(html,/approved Chatterbox founder voice/);
+for (const operation of ['ibis-founder-voice',"action:'speak'",'IBIS_FOUNDER_VOICE','founderListeningApproved','new Audio','.pause(','.play(','move(-10)','move(10)','playbackRate']) assert.ok(speech.includes(operation), `Missing speech operation ${operation}`);
+assert.doesNotMatch(speech,/speechSynthesis/,'The founder voice control must not substitute a generic browser voice.');
 for (const action of ['place','snapNode','minimize','restore','tile','stack']) assert.match(manager, new RegExp(`function ${action}\\b`));
 assert.match(manager,/function freeform\b/,'Headspace must expose a genuine unsnapped freeform layout.');
 assert.match(manager,/if\s*\(mode!==['"]freeform['"]\)\s*\{?\s*freeform\(\)/,'Dragging a snapped card must implicitly unsnap Headspace rather than snapping it back.');
 assert.match(manager,/document\.addEventListener\('pointermove',moveDrag,true\)/,'Headspace drag must survive the grid-to-freeform DOM/layout transition.');
+assert.match(fabric,/manager\.getMode\(\)!==['"]freeform['"]\)\{manager\.arrange\(manager\.getMode\(\)\);return;\}/,'The fabric must not reapply freeform percentages over a snapped layout.');
 for (const code of ['TT','JM','BB','GY','LC','VE']) assert.match(themes, new RegExp(`${code}: \\{`));
 assert.match(themes, /VE:.*primary: '#f2c94c'.*secondary: '#1f5ca8'.*tertiary: '#d71920'/);
 assert.match(themes, /GY:.*secondary: '#2f8f48'.*tertiary: '#d71920'.*ink: '#08090b'.*muted: '#ffffff'/);

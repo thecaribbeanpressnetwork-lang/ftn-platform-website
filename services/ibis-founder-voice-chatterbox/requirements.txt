@@ -1,0 +1,4 @@
+gradio>=4,<7
+spaces
+soundfile==0.13.1
+https://huggingface.co/spaces/bossbeats/ibis-founder-voice/resolve/main/chatterbox_tts-0.1.7-py3-none-any.whl

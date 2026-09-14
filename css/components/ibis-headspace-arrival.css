@@ -1,0 +1,99 @@
+/* Founder-approved Headspace arrival: an outcome-first field before working surfaces appear. */
+body:not(.headspace-engaged) .headspace{position:relative;min-height:100svh;padding-bottom:32px;overflow:hidden}
+body:not(.headspace-engaged) .headspace-head{position:relative;z-index:4;min-height:calc(100svh - 64px);margin-bottom:0;align-items:center;justify-content:center}
+body:not(.headspace-engaged) .identity{width:min(980px,82vw);max-width:none;text-align:center;transform:translateY(-3vh)}
+body:not(.headspace-engaged) .identity .kicker{color:#c4abd8}
+body:not(.headspace-engaged) .headspace h1{max-width:none;margin:18px auto 16px;font-size:clamp(42px,5vw,78px);font-weight:500;line-height:1.02;text-wrap:balance}
+body:not(.headspace-engaged) .subhead{max-width:620px;margin:0 auto;color:#b5aebe}
+body:not(.headspace-engaged) .boot{margin-top:20px}
+body:not(.headspace-engaged) .head-actions{position:absolute;top:0;right:0;max-width:560px}
+.head-actions{z-index:260;overflow:visible}
+.headspace-menu{position:relative}
+.headspace-menu summary{display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(255,255,255,.18);border-radius:50%;background:rgba(2,3,3,.68);color:#fff;cursor:pointer;list-style:none;font:700 14px/1 Montserrat,Inter,Arial,sans-serif;letter-spacing:.06em;backdrop-filter:blur(16px)}
+.headspace-menu summary::-webkit-details-marker{display:none}
+.headspace-menu[open] summary{border-color:rgba(180,124,255,.72);color:#c492ff}
+.headspace-menu-panel{position:absolute;z-index:270;top:50px;right:0;display:grid;grid-template-columns:repeat(2,minmax(112px,1fr));gap:7px;width:min(300px,calc(100vw - 28px));padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(2,3,3,.94);box-shadow:0 24px 70px rgba(0,0,0,.58);backdrop-filter:blur(20px)}
+.headspace-menu-panel button,.headspace-menu-panel a{width:100%;text-align:left}
+.live-view-toggle{white-space:nowrap}
+.next-scene{display:none}
+#voiceButton.listening{color:#fff;background:#7c3aed;box-shadow:0 0 0 5px rgba(196,146,255,.18);animation:ibis-listening 1.25s ease-in-out infinite}
+@keyframes ibis-listening{50%{box-shadow:0 0 0 10px rgba(196,146,255,.04)}}
+body:not(.headspace-engaged) .field{min-height:0;margin:0}
+body:not(.headspace-engaged) .input-orbit{top:61svh;bottom:auto;width:min(900px,calc(100vw - 48px));border-color:rgba(151,71,255,.7);box-shadow:0 18px 70px rgba(0,0,0,.58),0 0 44px rgba(139,66,255,.08)}
+body:not(.headspace-engaged) .input-orbit button[type=submit]{color:#b47cff}
+body:not(.headspace-engaged) .command-hint{top:calc(61svh + 78px);bottom:auto;color:#746b7e}
+
+.arrival-scenes{position:absolute;z-index:0;inset:0;overflow:hidden;background:radial-gradient(circle at 72% 24%,rgba(122,53,172,.18),transparent 31%),linear-gradient(145deg,#07141c 0%,#04101a 42%,#090613 100%);transition:opacity 1.8s ease,filter 2.8s ease}
+.arrival-scenes:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;transition:background 3s ease}
+body[data-daypart=morning] .arrival-scenes:after{background:radial-gradient(circle at 18% 12%,rgba(255,185,118,.18),transparent 34%),linear-gradient(180deg,rgba(30,86,111,.28),rgba(4,17,27,.5))}
+body[data-daypart=daytime] .arrival-scenes:after{background:radial-gradient(circle at 74% 14%,rgba(88,197,213,.16),transparent 32%),linear-gradient(180deg,rgba(11,63,82,.32),rgba(3,17,27,.48))}
+body[data-daypart=evening] .arrival-scenes:after{background:radial-gradient(circle at 22% 22%,rgba(237,126,93,.17),transparent 35%),linear-gradient(180deg,rgba(75,29,91,.28),rgba(8,9,25,.55))}
+body[data-daypart=night] .arrival-scenes:after{background:radial-gradient(circle at 76% 18%,rgba(151,71,255,.12),transparent 30%),linear-gradient(180deg,rgba(9,16,47,.5),rgba(2,4,12,.7))}
+.arrival-scene{position:absolute;z-index:1;inset:0;margin:0}
+.scene-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;filter:brightness(.42) saturate(1.08) contrast(1.05);transition:opacity 3.2s ease;will-change:opacity}
+.scene-image.is-active{opacity:1}
+.scene-caption{position:absolute;z-index:3;right:20px;bottom:14px;display:grid;justify-items:end;gap:2px;color:rgba(255,255,255,.64);font:500 9px/1.35 Montserrat,Inter,Arial,sans-serif;letter-spacing:.07em;text-transform:uppercase;text-shadow:0 1px 12px #000}
+.scene-caption a{color:rgba(255,255,255,.82);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.22)}
+.scene-caption a:hover,.scene-caption a:focus-visible{color:#fff;border-color:#c492ff}
+.scene-caption .scene-credit{color:rgba(255,255,255,.42);font-size:7px;border:0}
+.arrival-clock{position:absolute;z-index:6;top:0;left:0;display:grid;gap:4px;color:#fff;text-decoration:none;text-align:left;font-variant-numeric:tabular-nums;transition:color .25s ease,opacity .45s ease}
+.arrival-clock time{font-family:Montserrat,Inter,Arial,sans-serif;font-size:clamp(24px,2.25vw,38px);font-weight:500;letter-spacing:-.04em;line-height:1}
+.arrival-clock span{color:rgba(255,255,255,.54);font-size:8px;letter-spacing:.16em;text-transform:uppercase}
+.arrival-clock:hover,.arrival-clock:focus-visible{color:#c492ff}
+
+.outcome-window{display:inline-grid;width:6.35em;align-items:baseline;vertical-align:baseline;white-space:nowrap;text-align:left}
+.outcome-word{display:inline-block;color:#c492ff;will-change:transform,opacity,filter;transition:transform .9s cubic-bezier(.22,1,.36,1),opacity .9s ease,filter .9s ease}
+.outcome-word.is-leaving{opacity:0;filter:blur(10px);transform:scale(.97)}
+.outcome-word.is-entering{transition:none;opacity:0;filter:blur(10px);transform:scale(1.03)}
+
+body.headspace-engaged .arrival-clock{display:none}
+body.headspace-engaged .arrival-scenes{opacity:.24;filter:saturate(.72) brightness(.72)}
+body.headspace-engaged .scene-caption{display:none}
+body.headspace-engaged .headspace{padding-bottom:176px}
+body.headspace-engaged .headspace-head{min-height:72px}
+body.headspace-engaged .field{top:auto!important;padding-bottom:190px}
+body.headspace-engaged .input-orbit{top:auto;bottom:26px}
+
+body.ambient-live{overflow:hidden}
+body.ambient-live .headspace{min-height:100svh;padding:24px;overflow:hidden}
+body.ambient-live .arrival-scenes{opacity:1!important;filter:none!important}
+body.ambient-live .arrival-scenes:after{background:linear-gradient(180deg,rgba(0,0,0,.03),rgba(0,0,0,.10))!important}
+body.ambient-live .scene-image{filter:saturate(1.16) contrast(1.04)}
+body.ambient-live .identity,body.ambient-live .field,body.ambient-live .input-orbit,body.ambient-live .command-hint,body.ambient-live .window-shelf,body.ambient-live .headspace-menu{display:none!important}
+body.ambient-live .headspace-head{position:relative;z-index:4;min-height:0;margin:0;max-width:none}
+body.ambient-live .arrival-clock{display:grid;top:0;left:0}
+body.ambient-live .head-actions{position:fixed;z-index:280;top:24px;right:24px;left:auto;margin:0;display:flex}
+body.ambient-live .next-scene{display:inline-flex}
+body.ambient-live .scene-caption{display:grid}
+
+@media(max-width:1000px){
+  body:not(.headspace-engaged) .headspace-head{display:flex}
+  body:not(.headspace-engaged) .head-actions{left:auto;right:0;justify-content:flex-end;margin-top:0}
+  .arrival-clock{top:4px}
+}
+
+@media(max-width:720px){
+  body:not(.headspace-engaged) .headspace{padding:20px 14px 24px}
+  body:not(.headspace-engaged) .identity{width:100%;transform:translateY(-7vh)}
+  body:not(.headspace-engaged) .headspace h1{font-size:clamp(38px,11vw,54px)}
+  body:not(.headspace-engaged) .subhead{font-size:14px}
+  body:not(.headspace-engaged) .head-actions{top:-5px}
+  body:not(.headspace-engaged) .input-orbit{top:63svh;width:calc(100vw - 20px)}
+  body:not(.headspace-engaged) .command-hint{top:calc(63svh + 72px)}
+  .outcome-window{display:inline-grid;width:auto;min-width:6.35em;margin-top:.08em}
+  .arrival-clock{top:2px;left:4px}
+  .arrival-clock time{font-size:23px}
+  .scene-caption{right:10px;bottom:8px;font-size:7px}
+}
+
+@media(max-height:700px) and (min-width:721px){
+  body:not(.headspace-engaged) .identity{transform:translateY(-7vh)}
+  body:not(.headspace-engaged) .headspace h1{font-size:clamp(38px,4.3vw,58px)}
+  body:not(.headspace-engaged) .input-orbit{top:64svh}
+  body:not(.headspace-engaged) .command-hint{top:calc(64svh + 72px)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .scene-image{transition:none}
+  .outcome-word{transition:none}
+}

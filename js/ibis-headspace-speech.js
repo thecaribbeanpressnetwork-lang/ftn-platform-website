@@ -1,44 +1,20 @@
-// FTN ibis Headspace — local answer speech controls.
-// This module owns only browser speech playback. It never fetches, changes or blocks the text answer.
+// FTN ibis Headspace — approved Chatterbox founder-voice controls.
 (function (global) {
   'use strict';
-  var synth = global.speechSynthesis;
-  var controls = {
-    play: document.getElementById('speakAnswer'), pause: document.getElementById('speechPause'),
-    rewind: document.getElementById('speechRewind'), speed: document.getElementById('speechSpeed'),
-    next: document.getElementById('speechNext')
-  };
-  var rates = [0.8, 1, 1.2, 1.5], rateIndex = 1, lines = [], lineIndex = 0, paused = false;
-  function answerLines() {
-    var card = document.querySelector('[data-thought="answer"]');
-    return [card && card.querySelector('h2'), card && card.querySelector('p')]
-      .map(function (node) { return node && node.textContent.trim(); }).filter(Boolean);
-  }
-  function status(message) { var node = document.getElementById('commandHint'); if (node) node.textContent = message; }
-  function stop() { if (synth) synth.cancel(); paused = false; if (controls.pause) controls.pause.setAttribute('aria-pressed', 'false'); }
-  function speakCurrent() {
-    if (!synth || !lines.length) return;
-    stop();
-    var utterance = new SpeechSynthesisUtterance(lines[lineIndex]);
-    utterance.lang = 'en-TT'; utterance.rate = rates[rateIndex];
-    utterance.onend = function () { if (lineIndex + 1 < lines.length) { lineIndex += 1; speakCurrent(); } else status('Finished reading the current ibis answer.'); };
-    utterance.onerror = function () { status('Speech playback is unavailable. The text answer remains available.'); };
-    synth.speak(utterance);
-    status('Reading line ' + (lineIndex + 1) + ' of ' + lines.length + ' at ' + rates[rateIndex] + '×.');
-  }
-  function play() { lines = answerLines(); lineIndex = Math.min(lineIndex, Math.max(0, lines.length - 1)); if (paused && synth) { synth.resume(); paused = false; controls.pause.setAttribute('aria-pressed', 'false'); return; } speakCurrent(); }
-  function pause() { if (!synth || !synth.speaking) return; if (paused) { synth.resume(); paused = false; } else { synth.pause(); paused = true; } controls.pause.setAttribute('aria-pressed', String(paused)); controls.pause.textContent = paused ? 'Resume' : 'Pause'; }
-  function move(delta) { lines = answerLines(); if (!lines.length) return; lineIndex = Math.max(0, Math.min(lines.length - 1, lineIndex + delta)); speakCurrent(); }
-  function speed() { rateIndex = (rateIndex + 1) % rates.length; controls.speed.textContent = rates[rateIndex] + '×'; if (synth && synth.speaking) speakCurrent(); }
-  if (!synth || typeof global.SpeechSynthesisUtterance !== 'function') {
-    Object.keys(controls).forEach(function (key) { if (controls[key]) { controls[key].disabled = true; controls[key].title = 'Speech output is not supported in this browser'; } });
-    return;
-  }
-  controls.play && controls.play.addEventListener('click', play);
-  controls.pause && controls.pause.addEventListener('click', pause);
-  controls.rewind && controls.rewind.addEventListener('click', function () { move(-1); });
-  controls.next && controls.next.addEventListener('click', function () { move(1); });
-  controls.speed && controls.speed.addEventListener('click', speed);
-  global.FTN = global.FTN || {};
-  global.FTN.HeadspaceSpeech = { play: play, pause: pause, rewind: function () { move(-1); }, next: function () { move(1); }, speed: speed, stop: stop };
+  var ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-founder-voice';
+  var KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+  var controls={play:document.getElementById('speakAnswer'),pause:document.getElementById('speechPause'),rewind:document.getElementById('speechRewind'),speed:document.getElementById('speechSpeed'),next:document.getElementById('speechNext')};
+  var rates=[.8,1,1.2,1.5],rateIndex=1,audio=null,loading=false,chunks=[],chunkIndex=0,audioUrl='';
+  function answerText(){var card=document.querySelector('[data-thought="answer"]');return[card&&card.querySelector('h2'),card&&card.querySelector('p')].map(function(node){return node&&node.textContent.trim();}).filter(Boolean).join('. ').slice(0,6000);}
+  function splitText(text){var sentences=String(text||'').match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[],out=[],current='';sentences.forEach(function(sentence){var clean=sentence.trim();if(!clean)return;if((current+' '+clean).trim().length<=380){current=(current+' '+clean).trim();return;}if(current)out.push(current);while(clean.length>380){var cut=clean.lastIndexOf(' ',380);if(cut<180)cut=380;out.push(clean.slice(0,cut).trim());clean=clean.slice(cut).trim();}current=clean;});if(current)out.push(current);return out;}
+  function status(message){var node=document.getElementById('commandHint');if(node)node.textContent=message;}
+  function stop(){if(audio){audio.pause();audio.currentTime=0;}if(audioUrl){URL.revokeObjectURL(audioUrl);audioUrl='';}audio=null;chunks=[];chunkIndex=0;if(controls.play)controls.play.textContent='Play voice';if(controls.pause){controls.pause.setAttribute('aria-pressed','false');controls.pause.textContent='Pause';}}
+  function decode(encoded,mimeType){var binary=atob(encoded),bytes=new Uint8Array(binary.length);for(var i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return URL.createObjectURL(new Blob([bytes],{type:mimeType}));}
+  async function playChunk(){if(loading||chunkIndex>=chunks.length)return;loading=true;controls.play.disabled=true;status('Preparing founder voice '+(chunkIndex+1)+' of '+chunks.length+'…');try{var response=await fetch(ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:KEY},body:JSON.stringify({action:'speak',text:chunks[chunkIndex]})}),body=await response.json().catch(function(){return{};});if(!response.ok||!body.audio||body.voiceIdentity!=='IBIS_FOUNDER_VOICE'||body.founderListeningApproved!==true)throw new Error(body.error||'Founder voice unavailable.');if(audioUrl)URL.revokeObjectURL(audioUrl);audioUrl=decode(body.audio,body.mimeType||'audio/wav');audio=new Audio(audioUrl);audio.playbackRate=rates[rateIndex];audio.onerror=function(){status('The founder voice could not be played. The text answer remains available.');};audio.onended=function(){chunkIndex+=1;if(chunkIndex<chunks.length){audio=null;playChunk();}else{status('Founder voice playback finished. Select Replay voice to hear it again.');audio=null;chunks=[];chunkIndex=0;if(controls.play)controls.play.textContent='Replay voice';}};await audio.play();status('Playing Ricardo’s approved founder voice · '+(chunkIndex+1)+' of '+chunks.length+'.');}catch(error){status('Founder voice unavailable. No generic voice was substituted. '+(error&&error.message||String(error)));audio=null;}finally{loading=false;controls.play.disabled=false;}}
+  async function play(){if(loading)return;if(audio&&audio.src&&audio.paused){await audio.play();return;}if(!chunks.length){var text=answerText();if(!text){status('There is no ibis answer to read yet.');return;}chunks=splitText(text);chunkIndex=0;}return playChunk();}
+  function pause(){if(!audio)return;if(audio.paused){audio.play();controls.pause.textContent='Pause';controls.pause.setAttribute('aria-pressed','false');}else{audio.pause();controls.pause.textContent='Resume';controls.pause.setAttribute('aria-pressed','true');}}
+  function move(seconds){if(!audio)return;audio.currentTime=Math.max(0,Math.min(audio.duration||Infinity,audio.currentTime+seconds));}
+  function speed(){rateIndex=(rateIndex+1)%rates.length;controls.speed.textContent=rates[rateIndex]+'×';if(audio)audio.playbackRate=rates[rateIndex];}
+  controls.play&&controls.play.addEventListener('click',play);controls.pause&&controls.pause.addEventListener('click',pause);controls.rewind&&controls.rewind.addEventListener('click',function(){move(-10);});controls.next&&controls.next.addEventListener('click',function(){move(10);});controls.speed&&controls.speed.addEventListener('click',speed);
+  global.FTN=global.FTN||{};global.FTN.HeadspaceSpeech={play:play,pause:pause,rewind:function(){move(-10);},next:function(){move(10);},speed:speed,stop:stop,founderVoiceApproved:true};
 })(window);

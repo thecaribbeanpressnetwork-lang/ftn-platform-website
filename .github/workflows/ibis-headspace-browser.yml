@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Audit Headspace grounded research routing
+        run: node tests/ibis-headspace-research-route-audit.mjs
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1

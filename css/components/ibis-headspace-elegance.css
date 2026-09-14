@@ -11,7 +11,7 @@
   .field{transition:top .72s cubic-bezier(.22,1,.36,1)}
   .headspace-engaged .headspace-head>div:first-child{opacity:0;transform:translateY(-18px);pointer-events:none;transition:opacity .55s ease,transform .55s ease}
   .headspace-engaged .headspace-head{padding-top:10px}
-  .headspace-engaged .field{top:44px}
+  .headspace-engaged .field{top:auto}
   .headspace-engaged .head-actions{opacity:.42}
   .headspace-engaged .head-actions:hover{opacity:1}
 }

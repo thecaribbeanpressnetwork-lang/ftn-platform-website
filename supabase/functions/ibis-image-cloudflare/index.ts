@@ -1,13 +1,24 @@
 // FTN Platform — ibis IMAGE_GENERATION route via Cloudflare Workers AI.
-// The generation route is fail-closed. The health action never calls Cloudflare or consumes
-// neurons; it reports only whether the required server-side configuration is present.
+// Generation is fail-closed; health never invokes the model. Production and FTN-controlled
+// Cloudflare Pages preview origins are allowed so release candidates can prove real artifacts.
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 const windows = new Map<string, { count: number; resetAt: number }>();
 
+function originAllowed(origin: string | null) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+  try {
+    const u = new URL(origin);
+    return u.protocol === "https:" && /^(?:[a-z0-9-]+\.)?ftn-platform-website\.pages\.dev$/i.test(u.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function cors(origin: string | null) {
   return {
-    "Access-Control-Allow-Origin": origin && allowedOrigins.has(origin) ? origin : "https://ftnplatform.org",
+    "Access-Control-Allow-Origin": origin && originAllowed(origin) ? origin : "https://ftnplatform.org",
     "Access-Control-Allow-Headers": "authorization, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Content-Type": "application/json; charset=utf-8",
@@ -49,9 +60,9 @@ function detectImageType(base64: string) {
 
 Deno.serve(async (request) => {
   const origin = request.headers.get("origin");
-  if (request.method === "OPTIONS") return new Response(null, { headers: cors(origin) });
+  if (request.method === "OPTIONS") return new Response(null, { status: originAllowed(origin) ? 204 : 403, headers: cors(origin) });
   if (request.method !== "POST") return reply({ error: "Method not allowed" }, 405, origin);
-  if (origin && !allowedOrigins.has(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
+  if (!originAllowed(origin)) return reply({ error: "Origin not allowed" }, 403, origin);
 
   let payload: { action?: unknown; prompt?: unknown; providerId?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
@@ -69,7 +80,7 @@ Deno.serve(async (request) => {
       providerIds: Object.keys(MODELS),
       models: Object.values(MODELS),
       generationAttempted: false,
-      generatedAt: new Date().toISOString(),
+      checkedAt: new Date().toISOString(),
     }, 200, origin);
   }
 
@@ -87,7 +98,7 @@ Deno.serve(async (request) => {
   try {
     const upstream = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`, {
       method: "POST",
-      headers: { "content-type": "application/json", "authorization": `Bearer ${apiToken}` },
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiToken}` },
       body: JSON.stringify({ prompt }),
       signal: AbortSignal.timeout(20_000),
     });
@@ -116,7 +127,7 @@ Deno.serve(async (request) => {
     if (!image) return reply({ error: "ibis did not return an image. Please try again." }, 502, origin);
     const type = detectImageType(image);
     if (!type) return reply({ error: "ibis received an unrecognized image artifact and refused to label or download it." }, 502, origin);
-    return reply({ image, mimeType: type.mimeType, extension: type.extension, providerId, model, generatedAt: new Date().toISOString() }, 200, origin);
+    return reply({ image, mimeType: type.mimeType, extension: type.extension, provider: "Cloudflare Workers AI", providerId, model, generatedAt: new Date().toISOString() }, 200, origin);
   } catch (error) {
     console.error("ibis-image-cloudflare server error", error);
     return reply({ error: "ibis image generation is temporarily unavailable on this route. Please try again shortly." }, 502, origin);

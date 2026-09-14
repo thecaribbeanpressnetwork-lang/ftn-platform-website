@@ -7,13 +7,13 @@
   var LIFECYCLE=['UNDERSTAND','RESEARCH','WATCH','PREDICT','MATCH','ACT'];
   var RULES=[
     {re:/\b(build|create|make)\b.*\b(website|web site|app|application)\b.*\b(test|preview|publish|deploy|share|link)\b|\b(build|test|publish preview|send link)\b/i,ops:['CREATE','TEST','PUBLISH_PREVIEW','SHARE'],caps:['BUILD_TEST_PUBLISH_SHARE'],agents:['STRATEGY','ENGINEERING','OPS','COMMS']},
+    {re:/\b(opportunit|grant|tender|job|funding|accelerator|procurement|investor|prize|fellowship)\b/i,ops:['UNDERSTAND','RESEARCH','WATCH','PREDICT','MATCH'],caps:['FUNDING_SEARCH'],agents:['STRATEGY']},
     {re:/\b(latest|current|today|now|this week|breaking|recent|price|weather|news)\b/i,ops:['RESEARCH','VERIFY'],caps:['LIVE_INTELLIGENCE']},
     {re:/\b(calculate|how much|percent|interest|yield|mortgage|roi|return|principal|budget)\b/i,ops:['CALCULATE'],caps:['CAPITAL_SCENARIO']},
     {re:/\b(compare|versus|vs\.?|better off|difference between)\b/i,ops:['COMPARE'],caps:[]},
     {re:/\b(correlat|relationship between|move together|associated with)\b/i,ops:['CORRELATE'],caps:['CORRELATION_ANALYSIS']},
     {re:/\b(connected to|links? to|context graph|relationship graph)\b/i,ops:['CONNECT','EXPLAIN'],caps:['CONTEXT_GRAPH_QUERY']},
     {re:/\b(what.*next|prepare for|anticipate|coming next|foresight|watch for)\b/i,ops:['PREDICT','WATCH'],caps:['FORESIGHT_GENERATE']},
-    {re:/\b(opportunit|grant|tender|job|funding|accelerator|procurement|investor|prize|fellowship)\b/i,ops:['UNDERSTAND','RESEARCH','WATCH','PREDICT','MATCH'],caps:['FUNDING_SEARCH'],agents:['STRATEGY']},
     {re:/\b(remember|save this|keep this|my preference|i prefer|don't forget)\b/i,ops:['REMEMBER'],caps:[]},
     {re:/\b(recall|bring back|what did i|last time|previously)\b/i,ops:['RECALL'],caps:[]},
     {re:/\b(imagine|what if|scenario|hypothetical|suppose)\b/i,ops:['IMAGINE'],caps:[]},

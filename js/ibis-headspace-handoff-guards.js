@@ -45,7 +45,7 @@
     if (!document.getElementById('ibis-headspace-investor-guard-style')) {
       const style = document.createElement('style');
       style.id = 'ibis-headspace-investor-guard-style';
-      style.textContent = '.headspace-head{margin-bottom:18px!important}.field{margin-top:0!important;padding-bottom:120px!important}.input-orbit{box-shadow:0 14px 45px rgba(0,0,0,.5)}.command-hint{bottom:94px!important;left:50%!important;right:auto!important;transform:translateX(-50%);width:min(1040px,calc(100vw - 48px));text-align:center;opacity:.72}';
+      style.textContent = '.headspace-head{margin-bottom:18px!important}.field{margin-top:0!important;padding-bottom:190px!important}.input-orbit{box-shadow:0 14px 45px rgba(0,0,0,.5)}body.headspace-engaged .command-hint{display:none!important}';
       document.head.appendChild(style);
     }
   }

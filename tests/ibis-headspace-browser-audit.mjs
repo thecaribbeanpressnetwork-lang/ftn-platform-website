@@ -19,9 +19,13 @@ async function open(page,path,selector){
 
 const landing=await context.newPage();
 await isolate(landing);
+await landing.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[{id:'fixture-caribbean-ai-grant',title:'Caribbean AI Grant',organization:'Fixture Official Institution',country:'Trinidad and Tobago / Caribbean',type:'Grant / Funding',deadline:'2026-10-05',fee:0,payoutCompatible:true,ownershipImpact:'non-dilutive, no equity',strategicValue:5,probability:.75,amount:'USD 100,000',eligibility:'Trinidad and Tobago registered entities may apply.',summary:'Source-backed browser fixture for the connected funding funnel.',sourceUrl:'https://example.test/caribbean-ai-grant',lastVerified:'2026-09-08T12:00:00Z'}]})}));
 await open(landing,'/ibis-preview/','#askInput');
 assert.match(await landing.locator('.hero h1').innerText(),/Give ibis a problem, opportunity, product, song, document or goal/i);
 await landing.screenshot({path:'test-artifacts/ibis-headspace-lander.png',fullPage:false});
+await landing.getByRole('button',{name:'Caribbean funding'}).click();
+await landing.getByRole('button',{name:'Enter Headspace'}).click();
+await landing.locator('[data-thought="answer"] h2').filter({hasText:'Caribbean AI Grant'}).waitFor({state:'visible',timeout:10000});
 await landing.close();
 
 const page=await context.newPage();
@@ -31,7 +35,7 @@ await page.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,c
 const consoleErrors=[];page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});page.on('pageerror',e=>consoleErrors.push(e.message));
 await open(page,'/ibis-headspace-preview/','#headspaceQuery');
 await page.waitForFunction(()=>document.documentElement.classList.contains('headspace-hydrated'),null,{timeout:15000});
-assert.equal(await page.locator('.thought').count()>=10,true);assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/What do you need/i);assert.equal(await page.locator('[data-thought="graph"]').evaluate(el=>el.classList.contains('dematerialized')),true);
+assert.equal(await page.locator('.thought').count()>=10,true);assert.match(await page.locator('.identity h1').getAttribute('aria-label'),/What do you want to make happen/i);assert.equal(await page.locator('.thought:not(.dematerialized)').count(),0);assert.equal(await page.locator('[data-thought="graph"]').evaluate(el=>el.classList.contains('dematerialized')),true);
 await page.waitForFunction(()=>/Scout 2\.0: 9 official discovery sources configured/.test(document.querySelector('#scoutStatus')?.textContent||''),null,{timeout:10000});assert.match(await page.locator('#scoutStatus').innerText(),/latest observed run #18 success/i);assert.match(await page.locator('#scoutStatus').innerText(),/automatic applications off.*automatic spend off.*founder approval required/i);assert.equal(await page.locator('#scoutStatus').getAttribute('data-health'),'healthy');
 await page.waitForFunction(()=>{const n=document.querySelector('#toolStatus');return n&&!/Checking governed/.test(n.textContent||'');},null,{timeout:8000}).catch(()=>{});assert.doesNotMatch(await page.locator('#toolStatus').innerText(),/runtime catalog is unavailable/i);
 
