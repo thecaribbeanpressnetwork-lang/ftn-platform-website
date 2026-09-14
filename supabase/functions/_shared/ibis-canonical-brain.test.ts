@@ -4,7 +4,7 @@
 import { assert, assertEquals, assertMatch } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handleCanonicalRequest } from "./ibis-canonical-brain.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
-import { searxngSearch } from "./ibis-search-adapter.ts";
+import { searxngSearch, braveSearch, search } from "./ibis-search-adapter.ts";
 import type { GatewayProvider } from "./ibis-intelligence-gateway.ts";
 
 function fakeProvider(id: string, answer: string, opts: { configured?: boolean; fail?: boolean } = {}): GatewayProvider {
@@ -135,6 +135,47 @@ Deno.test("response envelope never contains a literal API key/token/secret subst
   const serialized = JSON.stringify(res);
   assert(!/sk-[a-zA-Z0-9]{10,}/.test(serialized), "no OpenAI-style key pattern in response");
   assert(!/AIza[0-9A-Za-z_-]{10,}/.test(serialized), "no Google API key pattern in response");
+});
+
+// --- Brave Search adapter (Slice 2): normalizes real Brave response contract. ---
+Deno.test("Brave Search success normalizes title/publisher/url", async () => {
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ web: { results: [{ title: "Central Bank raises rates", url: "https://www.central-bank.org.tt/x", description: "snippet", meta_url: { hostname: "central-bank.org.tt" } }] } }), { status: 200 });
+  const result = await braveSearch("test", { apiKey: "fake-key", fetchImpl: fakeFetch });
+  assertEquals(result.status, "OK");
+  if (result.status === "OK") {
+    assertEquals(result.provider, "brave-search");
+    assertEquals(result.sources[0].publisher, "central-bank.org.tt");
+    assertEquals(result.sources[0].evidenceDepth, "SNIPPET");
+  }
+});
+
+Deno.test("Brave Search with no API key returns SEARCH_UNAVAILABLE", async () => {
+  const result = await braveSearch("test", { apiKey: "" });
+  assertEquals(result.status, "SEARCH_UNAVAILABLE");
+});
+
+// --- Fallback chain: SearXNG down/unconfigured -> Brave tried next. ---
+Deno.test("search() falls through from SearXNG to Brave when SearXNG is unconfigured", async () => {
+  Deno.env.delete("SEARXNG_BASE_URL");
+  Deno.env.set("BRAVE_SEARCH_API_KEY", "fake-key");
+  const fakeFetch: typeof fetch = async (url) => {
+    if (String(url).includes("api.search.brave.com")) {
+      return new Response(JSON.stringify({ web: { results: [{ title: "Brave result", url: "https://example.tt/a", meta_url: { hostname: "example.tt" } }] } }), { status: 200 });
+    }
+    return new Response("", { status: 500 });
+  };
+  const result = await search("test", { fetchImpl: fakeFetch });
+  assertEquals(result.status, "OK");
+  if (result.status === "OK") assertEquals(result.provider, "brave-search");
+  Deno.env.delete("BRAVE_SEARCH_API_KEY");
+});
+
+Deno.test("search() returns SEARCH_UNAVAILABLE when neither SearXNG nor Brave are configured", async () => {
+  Deno.env.delete("SEARXNG_BASE_URL");
+  Deno.env.delete("BRAVE_SEARCH_API_KEY");
+  const result = await search("test", {});
+  assertEquals(result.status, "SEARCH_UNAVAILABLE");
 });
 
 Deno.test("empty text is rejected without attempting any provider", async () => {
