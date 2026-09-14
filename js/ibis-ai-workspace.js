@@ -54,9 +54,16 @@
     await loadScript('/js/ibis-runtime-loader.js');
     if(global.FTN&&global.FTN.IbisRuntimeReady)await withTimeout(global.FTN.IbisRuntimeReady,15000,null);
   }
-  // Identical predicate to js/ibis-headspace-universal.js's isPlainAnswer() -- kept as an exact mirror
-  // (not re-derived) so "what counts as plain" can never quietly diverge between the two surfaces.
-  function isPlainAnswer(route){return !route||route.sideEffect==='READ_ONLY'&&(route.capabilityCandidates||[]).every(function(cap){return cap==='TEXT';})&&(route.agents||[]).every(function(agent){return agent==='GENERAL';});}
+  // Correction (this pass): an isPlainAnswer() predicate used to live here, mirroring
+  // js/ibis-headspace-universal.js, and serverAI() used it to decide in the BROWSER whether a
+  // question was "plain" enough to skip FTN.IbisRuntime.ask() entirely. That is exactly the
+  // architectural violation this pass removes: the browser must never decide a question is simple
+  // and route around canonical orchestration on that basis. js/ibis-runtime.js's own ask() already
+  // calls FTN.UniversalRouter.route() and FTN.MultiAgentOrchestrator.execute() internally -- "this is
+  // a simple question, answer it directly" is a legitimate outcome, but it must be decided INSIDE
+  // that canonical planner, not by a client-side gate that prevents the planner from ever running.
+  // serverAI() below now calls FTN.IbisRuntime.ask() unconditionally for every prompt.
+  //
   // Identical extraction to js/ibis-headspace-universal.js's bestText() -- FTN.IbisRuntime.ask() returns
   // the multi-agent orchestrator's raw result shape, not the {answer,...} shape serverAI() otherwise
   // returns, so this normalizes it the same way Headspace already does.
@@ -207,44 +214,71 @@
       return answer;
     }catch(e){return null;}
   }
+  // Builds the non-secret receipt every serverAI() response now carries: which reasoning modes the
+  // canonical planner actually ran (from the route FTN.IbisRuntime.ask() itself produced, never
+  // guessed), versus a degraded stage name when canonical orchestration could not run at all. This
+  // is the honest alternative to letting a fallback answer look identical to a canonical one.
+  function canonicalReceipt(route,failedStage){
+    return{
+      orchestration:failedStage?'DEGRADED':'CANONICAL',
+      failedStage:failedStage||null,
+      capabilityCandidates:(route&&route.capabilityCandidates)||[],
+      agents:(route&&route.agents)||[],
+      sideEffect:(route&&route.sideEffect)||null,
+    };
+  }
+  // Runtime unavailable, timed out, or returned nothing usable: answer through the direct TEXT
+  // provider so the user is never dead-ended, but mark the response degraded and name the stage
+  // that failed -- never disguise this as a canonical response.
+  async function degradedTextFallback(prompt,products,context,failedStage,route){
+    var response=await global.FTN.IbisClient.request({nodeId:'ibis-ai',capability:'TEXT',context:context,payload:{prompt:prompt,products:products}});
+    if(!response||!response.success)return{available:false,degraded:true,failedStage:failedStage,reason:(response&&response.reason)||'No eligible ibis answer route is available.',receipt:canonicalReceipt(route,failedStage)};
+    var result=response.result||{};
+    return{available:true,degraded:true,failedStage:failedStage,answer:result.answer,provider:result.provider||response.provenance.provider||'FTN ibis',providerId:response.provenance.provider||null,model:result.model||response.provenance.model||'',generatedAt:result.generatedAt||new Date().toISOString(),confidence:result.confidence||null,uncertainty:result.uncertainty||null,answerClass:result.answerClass||null,provenance:response.provenance,receipt:canonicalReceipt(route,failedStage)};
+  }
   async function serverAI(prompt){
     try{
       await ensureIbisClient();
-      if(!global.FTN||!global.FTN.IbisClient)return{available:false,reason:'The ibis client did not load.'};
+      if(!global.FTN||!global.FTN.IbisClient)return{available:false,degraded:true,failedStage:'IBIS_CLIENT_LOAD',reason:'The ibis client did not load.',receipt:canonicalReceipt(null,'IBIS_CLIENT_LOAD')};
       var user=null;
       if(global.FTN.Auth&&global.FTN.Auth.getVerifiedUser)user=await withTimeout(global.FTN.Auth.getVerifiedUser(),4000,null);
       var products=global.FTN.ProductRegistry&&global.FTN.ProductRegistry.publicProducts?global.FTN.ProductRegistry.publicProducts({includeSupporting:true}).map(function(p){return{name:p.name,route:p.route,tagline:p.tagline};}):[];
-      var routeContext={authenticated:!!user};
+      var context={authenticated:!!user};
 
-      // Classify before answering (see ensureRuntime() above for why). A route the Universal Router
-      // itself flags as non-plain is handed to FTN.IbisRuntime.ask() -- the same capability-selecting
-      // execution Headspace already uses, which can genuinely reach Founder Cognitive Layer/Butterfly
-      // Engine/Connection Fabric/multi-agent orchestration. Any failure to load or classify falls straight
-      // through to the unchanged direct-provider call below -- this never blocks an answer on the router.
-      var route=null;
-      try{
-        await ensureRuntime();
-        if(global.FTN&&global.FTN.UniversalRouter)route=global.FTN.UniversalRouter.route(prompt,routeContext);
-      }catch(e){route=null;}
-
-      if(route&&!isPlainAnswer(route)&&global.FTN&&global.FTN.IbisRuntime){
-        try{
-          var runtimeResult=await withTimeout(global.FTN.IbisRuntime.ask(prompt,routeContext),25000,null);
-          if(runtimeResult&&runtimeResult.status==='WAITING_PERMISSION'){
-            return{available:true,answer:'This needs your approval before ibis can continue -- it would take an action outside this conversation. Open Headspace to approve or decline it.',provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:'Action requires explicit permission.',answerClass:'WAITING_PERMISSION',provenance:{capability:(route.capabilityCandidates||[]).join(', '),route:route}};
-          }
-          var runtimeAnswer=runtimeResult&&bestRuntimeText(runtimeResult);
-          if(runtimeAnswer){
-            return{available:true,answer:runtimeAnswer,provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:null,answerClass:'RUNTIME_RESPONSE',provenance:{capability:(route.capabilityCandidates||[]).join(', '),route:route,runtime:true}};
-          }
-        }catch(e){/* fall through to the direct provider below -- never a dead end */}
+      // Every prompt enters the canonical planner unconditionally -- no client-side "is this plain"
+      // gate exists any more (see the comment above where isPlainAnswer() used to live). If the
+      // runtime genuinely cannot load, that is a real degraded state, reported as one, not silently
+      // disguised as a normal answer.
+      var runtimeLoadFailed=null;
+      try{await ensureRuntime();}catch(e){runtimeLoadFailed=(e&&e.message)||'runtime failed to load';}
+      if(runtimeLoadFailed||!global.FTN||!global.FTN.IbisRuntime){
+        return degradedTextFallback(prompt,products,context,'RUNTIME_UNAVAILABLE',null);
       }
 
-      var response=await global.FTN.IbisClient.request({nodeId:'ibis-ai',capability:'TEXT',context:{authenticated:!!user},payload:{prompt:prompt,products:products}});
-      if(!response||!response.success)return{available:false,reason:(response&&response.reason)||'No eligible ibis answer route is available.'};
-      var result=response.result||{};
-      return{available:true,answer:result.answer,provider:result.provider||response.provenance.provider||'FTN ibis',providerId:response.provenance.provider||null,model:result.model||response.provenance.model||'',generatedAt:result.generatedAt||new Date().toISOString(),confidence:result.confidence||null,uncertainty:result.uncertainty||null,answerClass:result.answerClass||null,provenance:response.provenance};
-    }catch(e){return{available:false,reason:e.message||'The ibis gateway is unavailable.'};}
+      var runtimeResult;
+      try{
+        var TIMED_OUT={};
+        runtimeResult=await withTimeout(global.FTN.IbisRuntime.ask(prompt,context),25000,TIMED_OUT);
+        if(runtimeResult===TIMED_OUT)return degradedTextFallback(prompt,products,context,'ORCHESTRATION_TIMEOUT',null);
+      }catch(e){
+        return degradedTextFallback(prompt,products,context,'ORCHESTRATION_EXCEPTION',null);
+      }
+
+      var route=runtimeResult&&runtimeResult.route;
+      if(runtimeResult&&runtimeResult.errorType==='RUNTIME_NOT_READY'){
+        return degradedTextFallback(prompt,products,context,'RUNTIME_NOT_READY',route);
+      }
+      if(runtimeResult&&runtimeResult.status==='WAITING_PERMISSION'){
+        return{available:true,degraded:false,answer:'This needs your approval before ibis can continue -- it would take an action outside this conversation. Open Headspace to approve or decline it.',provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:'Action requires explicit permission.',answerClass:'WAITING_PERMISSION',provenance:{route:route},receipt:canonicalReceipt(route,null)};
+      }
+      var runtimeAnswer=bestRuntimeText(runtimeResult);
+      if(runtimeAnswer){
+        return{available:true,degraded:false,answer:runtimeAnswer,provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:null,answerClass:'RUNTIME_RESPONSE',provenance:{route:route,runtime:true},receipt:canonicalReceipt(route,null)};
+      }
+      // The canonical planner ran but produced nothing usable -- degrade explicitly rather than
+      // silently retrying a different route the user can't see was different.
+      return degradedTextFallback(prompt,products,context,'RUNTIME_NO_ANSWER',route);
+    }catch(e){return{available:false,degraded:true,failedStage:'SERVER_AI_EXCEPTION',reason:e.message||'The ibis gateway is unavailable.',receipt:canonicalReceipt(null,'SERVER_AI_EXCEPTION')};}
   }
   // A contextual entry point (e.g. Learn/Opportunities/Screen linking here with ?scope=learn)
   // biases ranking toward its own product without ever hard-filtering out a better FTN match --
