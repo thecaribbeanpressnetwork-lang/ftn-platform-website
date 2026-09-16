@@ -19,6 +19,14 @@ const PLACE_MARKERS = /\b(near me|nearby|in my area|close to me|around (?:here|m
 
 const RELATIONSHIP_MARKERS = /\b(which organi[sz]ations|who connects|relationship between|how (?:is|are) .* connected)\b/i;
 
+// Added alongside wiring the real (ported) Correlation Engine into the canonical brain -- this
+// marker was previously absent, meaning "CORRELATION" was a defined QueryClass enum value with no
+// classifier path that could ever reach it (confirmed dead code before this addition). Checked
+// AFTER freshness so a correlation question that also needs live data (e.g. "is there a
+// correlation between remittances and the exchange rate") still correctly routes to
+// CURRENT_WEB_RESEARCH first -- current evidence takes priority over historical-analysis framing.
+const CORRELATION_MARKERS = /\b(correlat(?:e|es|ed|ion|ing)|is there a (?:relationship|link) between)\b/i;
+
 export type IntentClassification = {
   queryClass: QueryClass;
   objective: string | null;
@@ -32,6 +40,10 @@ export function classifyIntent(text: string): IntentClassification {
   if (FRESHNESS_MARKERS.test(q)) {
     reasons.push("matched a freshness marker (e.g. \"today\", \"latest\", \"current\", a live-data term) -- model memory cannot honestly answer this without live retrieval.");
     return { queryClass: "CURRENT_WEB_RESEARCH", objective: null, reasons };
+  }
+  if (CORRELATION_MARKERS.test(q)) {
+    reasons.push("matched a correlation marker (\"correlation\", \"is there a relationship between...\") -- routed to the Correlation engine rather than answered as a plain fact.");
+    return { queryClass: "CORRELATION", objective: null, reasons };
   }
   if (PATHWAY_MARKERS.test(q)) {
     reasons.push("matched a pathway marker (steps/apply/eligibility/deadline) -- the user needs an ordered plan, not a single fact.");

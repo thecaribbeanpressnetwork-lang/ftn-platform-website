@@ -21,6 +21,7 @@ import { classifyIntent } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
 import { buildEnvelope, type CanonicalResponse, type ExecutionInstruction, type QueryClass, type ReasoningModeRecord, type SourceRecord } from "./ibis-response-envelope.ts";
 import { sha256Hex, type LifecycleStore } from "./ibis-lifecycle-store.ts";
+import { runFounderThinking, runCorrelation } from "./ibis-reasoning-engines.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -36,10 +37,11 @@ export type CanonicalRequest = {
 };
 
 const PLAN_TTL_MS = 5 * 60_000;
-// A plan stuck in FALLBACK_REQUESTED is only eligible for crash-recovery resumption once it has
-// been untouched for longer than any real provider call could plausibly still be running -- see
-// the resumption note in recordReceiptAndMaybeFallback for why this matters.
-const RESUMPTION_STALE_MS = 30_000;
+// How long a fallback-generation lease is held before it becomes eligible for reclaim by another
+// worker. Set well above the gateway's own real worst-case latency (ibis-intelligence-gateway.ts's
+// PROVIDER_BUDGET_MS is 9s per provider, TOTAL_BUDGET_MS ~24s across all providers) so an
+// ordinary, non-crashed call is never at risk of being reclaimed out from under it.
+const LEASE_DURATION_MS = 45_000;
 
 export type ExecutionReceiptInput = {
   planId: unknown;
@@ -65,10 +67,17 @@ function unavailableMode(mode: ReasoningModeRecord["mode"], reason = NOT_PORTED)
   return { mode, executed: false, unavailableReason: reason };
 }
 
+// Slice: FOUNDER_COGNITIVE_LAYER and CORRELATION are no longer statically listed as unavailable
+// here -- both are now REAL, genuinely invoked server-side engines (ibis-reasoning-engines.ts,
+// extracted/adapted from the real existing implementations, not invented). handleCanonicalRequest
+// calls them directly and reports their ACTUAL result (which, for CORRELATION on an ordinary
+// text query, is honestly executed:false/SKIPPED -- no numeric series data exists for a plain
+// question -- never silently upgraded to executed:true). Everything else here remains genuinely
+// unported; see ibis-reasoning-engines.ts's own header for the full contract map and why.
 function relevantUnavailableModes(queryClass: QueryClass): ReasoningModeRecord[] {
   switch (queryClass) {
     case "FOUNDER_STRATEGY":
-      return [unavailableMode("FOUNDER_COGNITIVE_LAYER"), unavailableMode("BUTTERFLY"), unavailableMode("CORRELATION"), unavailableMode("PREDICTION")];
+      return [unavailableMode("BUTTERFLY"), unavailableMode("PREDICTION")];
     case "PATHWAY":
       return [unavailableMode("ECOMAP_PATHWAY")];
     case "PLACE":
@@ -77,13 +86,28 @@ function relevantUnavailableModes(queryClass: QueryClass): ReasoningModeRecord[]
       return [unavailableMode("ECOMAP_RELATIONSHIP"), unavailableMode("CONTEXT_GRAPH")];
     case "CAUSAL_BUTTERFLY":
       return [unavailableMode("BUTTERFLY")];
-    case "CORRELATION":
-      return [unavailableMode("CORRELATION")];
     case "PREDICTION":
       return [unavailableMode("PREDICTION")];
     default:
       return [];
   }
+}
+
+function founderThinkingRecord(text: string, products: IbisProduct[]): ReasoningModeRecord {
+  const result = runFounderThinking(text, products);
+  if (!result.executed) return { mode: "FOUNDER_COGNITIVE_LAYER", executed: false, unavailableReason: result.reason || "skipped" };
+  return {
+    mode: "FOUNDER_COGNITIVE_LAYER",
+    executed: true,
+    contribution: `${result.findings.join(" ")} This classification and decision directly produced the answer text below (same domain/guidance table, extracted from the real founderReasoningAnswer() logic in ibis-intelligence-gateway.ts, not reinvented).`,
+  };
+}
+
+function correlationRecord(): ReasoningModeRecord {
+  // No FTN data-source integration feeds real time-series data into the canonical brain for an
+  // ordinary text query yet -- honestly invoked with no series, honestly reported as skipped.
+  const result = runCorrelation(null, null);
+  return { mode: "CORRELATION", executed: false, unavailableReason: result.reason || "skipped" };
 }
 
 function sourcesFromSearch(result: SearchResult): SourceRecord[] {
@@ -171,6 +195,13 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     }
   }
 
+  // Real engine invocation, selective -- not every engine runs on every query. Founder Thinking
+  // is only genuinely relevant (and only selected) for FOUNDER_STRATEGY; Correlation is only
+  // selected for a query actually classified CORRELATION-flavored. An ordinary SIMPLE_TEXT or
+  // CURRENT_WEB_RESEARCH question never invokes either -- avoiding unnecessary reasoning cost on
+  // simple queries, per the required selection rule.
+  if (intent.queryClass === "FOUNDER_STRATEGY") reasoningModesUsed.push(founderThinkingRecord(text, products));
+  if (intent.queryClass === "CORRELATION") reasoningModesUsed.push(correlationRecord());
   reasoningModesUsed.push(...relevantUnavailableModes(intent.queryClass));
 
   // Slice 3 correction: when local execution is authorized, this endpoint must NOT also generate
@@ -265,12 +296,12 @@ export async function recordReceiptAndMaybeFallback(input: {
   receipt: ExecutionReceiptInput;
   providers: GatewayProvider[];
   lifecycleStore: LifecycleStore | null;
-  // Test-only override for RESUMPTION_STALE_MS, so crash-recovery tests can prove real behavior
-  // deterministically and fast rather than sleeping 30+ real seconds. Never pass this in
-  // production request handling.
-  resumptionStaleMsOverride?: number;
+  // Test-only override for LEASE_DURATION_MS, so lease/fencing tests can prove real behavior
+  // deterministically and fast rather than sleeping 45+ real seconds for a lease to expire. Never
+  // pass this in production request handling.
+  leaseDurationMsOverride?: number;
 }): Promise<ReceiptOutcome> {
-  const resumptionStaleMs = input.resumptionStaleMsOverride ?? RESUMPTION_STALE_MS;
+  const leaseDurationMs = input.leaseDurationMsOverride ?? LEASE_DURATION_MS;
   const r = input.receipt;
   if (typeof r.planId !== "string" || typeof r.executionTarget !== "string" || typeof r.provider !== "string" || typeof r.success !== "boolean") {
     return { status: "REJECTED", reason: "MALFORMED_RECEIPT" };
@@ -281,64 +312,48 @@ export async function recordReceiptAndMaybeFallback(input: {
   const plan = await store.getPlan(r.planId);
   if (!plan) return { status: "REJECTED", reason: "UNKNOWN_PLAN" };
   if (plan.state === "EXPIRED") return { status: "REJECTED", reason: "EXPIRED_PLAN" };
-  // Authorization mismatch is checked BEFORE attempting the transition: a non-authorized plan
-  // (or one for a different target) must be rejected as a mismatch, never as a generic
-  // NOT_PENDING/duplicate, even though both would technically be true for an already-terminal
-  // non-authorized plan -- the more specific reason is more useful and more honest.
+  // Authorization mismatch is checked BEFORE attempting any transition: a non-authorized plan (or
+  // one for a different target) must be rejected as a mismatch, never as a generic duplicate,
+  // even though both would technically be true for an already-terminal non-authorized plan -- the
+  // more specific reason is more useful and more honest.
   if (plan.authorizedTarget !== "browser_local" || r.executionTarget !== "browser_local") {
     return { status: "REJECTED", reason: "MISMATCHED_AUTHORIZATION" };
   }
 
-  const toState = r.success ? "SUCCEEDED" : "FALLBACK_REQUESTED";
-  const transition = await store.transitionPlan(r.planId, toState);
-  let resumedFromCrash = false;
-  if (!transition.ok) {
-    if (transition.reason === "UNKNOWN_PLAN") return { status: "REJECTED", reason: "UNKNOWN_PLAN" };
-    if (transition.reason === "EXPIRED_PLAN") return { status: "REJECTED", reason: "EXPIRED_PLAN" };
-    // CRASH-RECOVERY resumption: a failure receipt (r.success===false) against a plan already in
-    // FALLBACK_REQUESTED means a PRIOR call already claimed the fallback but never reached a
-    // terminal state -- i.e. that process crashed after the atomic claim but before (or during)
-    // calling the provider. The user must not be permanently abandoned, so this caller is allowed
-    // to resume: it will attempt the provider call again and then atomically transition
-    // FALLBACK_REQUESTED -> SUCCEEDED itself. This makes the fallback-provider-call guarantee
-    // honestly AT-LEAST-ONCE (a rare concurrent double-resume could call the provider twice), not
-    // exactly-once -- but answer DELIVERY to any given client remains exactly-once, since only one
-    // resumer's final SUCCEEDED transition can ever win (see below).
-    if (!r.success) {
-      const current = await store.getPlan(r.planId);
-      // Lease/staleness check: a plan can only be resumed once its last update is old enough that
-      // a genuinely still-in-flight (non-crashed) call could not plausibly be the one that made
-      // it. Without this, two truly CONCURRENT failure receipts for the same plan would each see
-      // the other's fresh, in-progress claim and both treat it as "crashed", both call the
-      // provider -- exactly the double-call this gate exists to prevent. RESUMPTION_STALE_MS is
-      // set well above any realistic provider call latency (the gateway's own PROVIDER_BUDGET_MS
-      // in ibis-intelligence-gateway.ts is 9s per provider, ~24s total budget).
-      const staleEnoughToResume = !!current && current.state === "FALLBACK_REQUESTED" && (Date.now() - new Date(current.updatedAt).getTime()) >= resumptionStaleMs;
-      if (staleEnoughToResume) {
-        resumedFromCrash = true;
-      } else {
-        // Either unrelated to a resumable state, or genuinely still in progress (not yet stale --
-        // another request is actively handling this exact plan right now). Reject rather than race it.
-        return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
-      }
-    } else {
-      // NOT_PENDING / STORE_ERROR on a SUCCESS receipt always means a real duplicate/concurrent
-      // receipt or a store failure -- there is nothing to "resume" for a success report.
-      return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
-    }
-  }
-
   if (r.success) {
-    // Browser-local execution succeeded; the browser already has and is rendering its own answer.
-    // Nothing further to generate -- returning an envelope here would risk exactly the duplicate
-    // generation this correction removes.
+    // Browser-local execution succeeded; no provider call is ever involved on this path, so no
+    // lease is needed -- a plain atomic PENDING -> SUCCEEDED acknowledgement is sufficient. The
+    // browser already has and is rendering its own answer; nothing further to generate here.
+    const transition = await store.transitionPlan(r.planId, "SUCCEEDED");
+    if (!transition.ok) return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
     return { status: "ACCEPTED", terminal: true, envelope: null };
   }
 
-  // Authorized fallback: local execution failed despite authorization, and this caller won the
-  // atomic transition to FALLBACK_REQUESTED -- it is the one and only caller allowed to generate.
+  // Authorized fallback: local execution failed despite authorization. This is the ONLY path that
+  // calls an external provider, and it goes through a proper LEASED CLAIM WITH FENCING (see
+  // ibis-lifecycle-store.ts's module header for the full contract) -- not a plain atomic
+  // transition -- because a legitimate provider call can legitimately run longer than any fixed
+  // staleness window, so "stale enough" alone cannot safely gate a second attempt. claimFallback()
+  // either performs a fresh claim (first failure receipt for this plan) or, if the plan is already
+  // FALLBACK_REQUESTED, an atomic RECLAIM that only succeeds once the existing lease has actually
+  // EXPIRED -- an active (non-expired) lease is correctly rejected as still-in-progress, never raced.
+  const claim = await store.claimFallback(r.planId, leaseDurationMs);
+  if (!claim.ok) {
+    if (claim.reason === "UNKNOWN_PLAN") return { status: "REJECTED", reason: "UNKNOWN_PLAN" };
+    if (claim.reason === "EXPIRED_PLAN") return { status: "REJECTED", reason: "EXPIRED_PLAN" };
+    // NOT_CLAIMABLE (an active, non-expired lease already held by another worker) or STORE_ERROR:
+    // both mean this caller must not proceed. Rejected as a duplicate, never a fabricated success.
+    return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
+  }
+  // attemptCount > 1 on the claimed plan means this claim is a RECLAIM of an expired lease -- i.e.
+  // crash recovery, not a first attempt. Recorded honestly in the receipt below, never disguised
+  // as an ordinary first-attempt fallback.
+  const resumedFromCrash = claim.plan.attemptCount > 1;
+
   // The client must resend the original prompt text; verified against the hash taken at PLAN time
   // (this server never persisted the text itself -- see the migration header) before it is trusted.
+  // A text mismatch leaves the lease claimed-but-unfinalized -- it will simply expire naturally
+  // and become reclaimable, rather than needing its own explicit release path.
   const resentText = typeof r.text === "string" ? r.text.trim() : "";
   if (!resentText) return { status: "REJECTED", reason: "TEXT_MISMATCH" };
   const resentHash = await sha256Hex(resentText);
@@ -348,15 +363,15 @@ export async function recordReceiptAndMaybeFallback(input: {
   const startedAt = new Date().toISOString();
   const gatewayResult = await runGateway({ text: resentText, products, providers: input.providers, requestId: plan.planId });
 
-  // Finalize: FALLBACK_REQUESTED -> SUCCEEDED. This is what makes a genuinely COMPLETED fallback
-  // terminal (unresumable) while leaving a truly CRASHED one (never reaches this line) resumable
-  // -- without this, a replayed/duplicate failure receipt for an already-completed fallback would
-  // be indistinguishable from a real crash and would call the provider again. If this transition
-  // itself loses a race (another concurrent resumer already finalized it first), this caller's own
-  // freshly-generated answer is discarded and rejected as a duplicate -- exactly-once ANSWER
-  // DELIVERY, even though the provider call itself is only at-least-once (see the resumption note
-  // above).
-  const finalize = await store.transitionPlan(plan.planId, "SUCCEEDED", "FALLBACK_REQUESTED");
+  // Finalize: requires the EXACT (leaseOwner, leaseVersion) this call was issued at claim time.
+  // If another worker reclaimed this plan's lease in the meantime (this worker's own call ran
+  // long enough for its lease to expire and someone else reclaimed it), this finalize call's
+  // fencing check fails and this caller's freshly-generated answer is discarded, never delivered
+  // -- exactly-once ANSWER DELIVERY at the database-state level, even though the underlying
+  // external PROVIDER CALL itself is only AT-LEAST-ONCE (a reclaim after a real crash, or after a
+  // lease genuinely too short for an unusually slow call, can cause a second real provider call;
+  // this is disclosed, not claimed away).
+  const finalize = await store.finalizeFallback(plan.planId, claim.leaseOwner, claim.leaseVersion, "SUCCEEDED");
   if (!finalize.ok) return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
 
   const envelope = buildEnvelope({

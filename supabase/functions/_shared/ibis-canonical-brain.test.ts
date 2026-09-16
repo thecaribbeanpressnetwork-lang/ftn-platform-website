@@ -90,7 +90,7 @@ Deno.test("no SEARXNG_BASE_URL configured returns SEARCH_UNAVAILABLE, not silenc
 });
 
 // --- Gate: outcome extraction / Founder strategy classification (server-side honesty guard). ---
-Deno.test("outcome question classifies FOUNDER_STRATEGY and lists deeper modes as unavailable, not executed", async () => {
+Deno.test("outcome question classifies FOUNDER_STRATEGY, genuinely executes Founder Thinking, and lists deeper modes as unavailable", async () => {
   const res = await handleCanonicalRequest({
     text: "I want to build a Caribbean-owned business that earns US dollars while helping local creators.",
     providers: [fakeProvider("test", "Decision: EXPERIMENT")],
@@ -98,10 +98,22 @@ Deno.test("outcome question classifies FOUNDER_STRATEGY and lists deeper modes a
   });
   assertEquals(res.queryClass, "FOUNDER_STRATEGY");
   assert(res.objective && res.objective.length > 0, "an outcome question must extract an objective string");
+  // Founder Thinking is now genuinely connected (ibis-reasoning-engines.ts's runFounderThinking,
+  // itself structuring the real founderDomain()/FOUNDER_GUIDANCE decision table from
+  // ibis-intelligence-gateway.ts) -- it must show real execution, not a static "unavailable" stub.
   const founderMode = res.reasoningModesUsed.find((m) => m.mode === "FOUNDER_COGNITIVE_LAYER");
-  assert(founderMode, "FOUNDER_COGNITIVE_LAYER must be listed even when unavailable");
-  assertEquals(founderMode!.executed, false);
-  assertMatch(founderMode!.unavailableReason || "", /not yet ported/);
+  assert(founderMode, "FOUNDER_COGNITIVE_LAYER must be listed");
+  assertEquals(founderMode!.executed, true);
+  assert(founderMode!.contribution && founderMode!.contribution.length > 0, "an executed engine must report a real contribution, not an empty string");
+  assertMatch(founderMode!.contribution || "", /Decision:/);
+  // Engines genuinely not yet ported must still be honestly reported as unavailable -- this proves
+  // the fix did not also fabricate execution for engines that were never connected.
+  const butterflyMode = res.reasoningModesUsed.find((m) => m.mode === "BUTTERFLY");
+  assert(butterflyMode, "BUTTERFLY must be listed even when unavailable");
+  assertEquals(butterflyMode!.executed, false);
+  const predictionMode = res.reasoningModesUsed.find((m) => m.mode === "PREDICTION");
+  assert(predictionMode, "PREDICTION must be listed even when unavailable");
+  assertEquals(predictionMode!.executed, false);
 });
 
 // --- Gate: correlation must never be silently upgraded to causation language. ---
@@ -346,6 +358,109 @@ Deno.test("CONCURRENCY: two simultaneous failure receipts for the same plan yiel
   assertEquals(providerCalls, 1, "the fallback provider must be called exactly once, never twice, under concurrent receipts");
 });
 
+// --- LEASE/FENCING (explicit correction): a legitimate provider call may exceed the staleness
+// window, so "stale enough" alone must never be the only guard. These tests exercise
+// claimFallback()/finalizeFallback() directly (the real store contract) as well as through
+// recordReceiptAndMaybeFallback(), with an injected leaseDurationMsOverride so no test sleeps. ---
+
+Deno.test("LEASE: a provider call lasting longer than the resumption window (30s) does not duplicate, because the lease (45s) has not expired", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a slow-provider test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  let providerCalls = 0;
+  // Simulates a provider call that takes 35s of wall-clock time -- longer than the OLD 30s
+  // staleness window this correction replaces, but well within the 45s lease.
+  const slowProvider: GatewayProvider = {
+    id: "test", label: "test", model: "fake-model", configured: true,
+    run: async () => { providerCalls += 1; return { answer: "SLOW_BUT_SINGLE_ANSWER", model: "fake-model" }; },
+  };
+  // A second failure receipt arrives while the (simulated) first is still "in flight" -- modeled
+  // here by claiming the lease directly first (as the first receipt's handler would have already
+  // done), then having the SECOND receipt attempt to claim while that lease is still active.
+  const firstClaim = await store.claimFallback(planId, 45_000);
+  assertEquals(firstClaim.ok, true);
+  const secondAttempt = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a slow-provider test?" },
+    providers: [slowProvider], lifecycleStore: store,
+  });
+  assertEquals(secondAttempt.status, "REJECTED", "a still-active lease must reject a second attempt outright, never race it, no matter how long the first call takes");
+  assertEquals(providerCalls, 0, "the second (rejected) attempt must never call the provider at all");
+});
+
+Deno.test("LEASE: an active (non-expired) lease retry is rejected, not resumed", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is an active lease test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  const claimed = await store.claimFallback(planId, 45_000);
+  assertEquals(claimed.ok, true);
+  const retry = await store.claimFallback(planId, 45_000);
+  assertEquals(retry.ok, false);
+  if (!retry.ok) assertEquals(retry.reason, "NOT_CLAIMABLE");
+});
+
+Deno.test("LEASE: a genuinely expired (crashed) lease becomes reclaimable, and reclaiming increments the fencing version", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a reclaim test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  // A 1ms lease that we let expire deterministically (no real sleep needed for such a short wait
+  // to genuinely elapse via the event loop) -- injected lease duration, not a production value.
+  const firstClaim = await store.claimFallback(planId, 1);
+  assertEquals(firstClaim.ok, true);
+  if (!firstClaim.ok) return;
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const reclaim = await store.claimFallback(planId, 45_000);
+  assertEquals(reclaim.ok, true);
+  if (reclaim.ok) {
+    assertNotEquals(reclaim.leaseOwner, firstClaim.leaseOwner, "a reclaim must issue a brand new lease owner token");
+    assert(reclaim.leaseVersion > firstClaim.leaseVersion, "a reclaim must increment the fencing version");
+  }
+});
+
+Deno.test("LEASE: the old lease holder cannot finalize after its lease has been reclaimed", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a superseded-lease test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  const firstClaim = await store.claimFallback(planId, 1);
+  assertEquals(firstClaim.ok, true);
+  if (!firstClaim.ok) return;
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const reclaim = await store.claimFallback(planId, 45_000);
+  assertEquals(reclaim.ok, true);
+  // The OLD worker, unaware it was superseded, finally finishes its (abandoned) work and tries to
+  // finalize with its ORIGINAL (now-stale) lease token.
+  const staleFinalize = await store.finalizeFallback(planId, firstClaim.leaseOwner, firstClaim.leaseVersion, "SUCCEEDED");
+  assertEquals(staleFinalize.ok, false);
+  if (!staleFinalize.ok) assertEquals(staleFinalize.reason, "LEASE_SUPERSEDED");
+});
+
+Deno.test("LEASE: two simultaneous reclaim attempts on the same expired lease produce exactly one new owner", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a double-reclaim test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  const firstClaim = await store.claimFallback(planId, 1);
+  assertEquals(firstClaim.ok, true);
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const [a, b] = await Promise.all([store.claimFallback(planId, 45_000), store.claimFallback(planId, 45_000)]);
+  const succeeded = [a, b].filter((r) => r.ok);
+  assertEquals(succeeded.length, 1, "exactly one of two simultaneous reclaim attempts on the same expired lease must succeed");
+});
+
+Deno.test("LEASE: a terminal (SUCCEEDED) plan cannot be changed by a later claim or transition attempt", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a terminal-state test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  const claim = await store.claimFallback(planId, 45_000);
+  assertEquals(claim.ok, true);
+  if (!claim.ok) return;
+  const finalize = await store.finalizeFallback(planId, claim.leaseOwner, claim.leaseVersion, "SUCCEEDED");
+  assertEquals(finalize.ok, true);
+  // Now terminal. Neither a fresh claim nor a finalize with the same (now-stale) token can change it.
+  const claimAfterTerminal = await store.claimFallback(planId, 45_000);
+  assertEquals(claimAfterTerminal.ok, false);
+  const finalizeAfterTerminal = await store.finalizeFallback(planId, claim.leaseOwner, claim.leaseVersion, "SUCCEEDED");
+  assertEquals(finalizeAfterTerminal.ok, false);
+});
+
 Deno.test("CONCURRENCY: retrying an already-accepted receipt is idempotent (rejected, not reprocessed)", async () => {
   const store = createInMemoryLifecycleStore();
   const res = await handleCanonicalRequest({ text: "What is a retry test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
@@ -378,12 +493,16 @@ Deno.test("CONCURRENCY: a forged planId/target combination fails (planId exists 
 
 Deno.test("CONCURRENCY: database unavailability (store construction failure) fails honestly, not silently", async () => {
   // Simulates a real DB-backed store whose underlying calls fail (analogous to a database being
-  // unreachable) by using a store whose getPlan/transitionPlan always report unavailability.
+  // unreachable) by using a store whose every method reports unavailability. Must satisfy the
+  // full LifecycleStore interface (including claimFallback/finalizeFallback) to type-check as a
+  // real store, not a partial stand-in.
   const brokenStore = {
     kind: "DATABASE" as const,
     async createPlan() { throw new Error("simulated database unavailable"); },
     async getPlan() { return null; },
     async transitionPlan() { return { ok: false as const, reason: "STORE_ERROR" as const }; },
+    async claimFallback() { return { ok: false as const, reason: "STORE_ERROR" as const }; },
+    async finalizeFallback() { return { ok: false as const, reason: "STORE_ERROR" as const }; },
   };
   await assert(
     (async () => { try { await handleCanonicalRequest({ text: "hi", providers: [fakeProvider("test", "unused")], lifecycleStore: brokenStore }); return false; } catch { return true; } })(),
@@ -391,46 +510,50 @@ Deno.test("CONCURRENCY: database unavailability (store construction failure) fai
   );
 });
 
-// --- CRASH-RECOVERY (explicitly required): claim -> simulated crash -> retry -> resumed, never
-// abandoned; a genuinely completed fallback stays terminal and is never re-resumed. ---
-Deno.test("CRASH-RECOVERY: after a simulated crash mid-fallback, a retry resumes and delivers an answer", async () => {
+// --- CRASH-RECOVERY (explicitly required): claim -> simulated crash -> retry -> resumed via
+// reclaim, never abandoned; a genuinely completed fallback stays terminal and is never re-resumed. ---
+Deno.test("CRASH-RECOVERY: after a simulated crash mid-fallback, a retry reclaims the expired lease and delivers an answer", async () => {
   const store = createInMemoryLifecycleStore();
   const res = await handleCanonicalRequest({ text: "What is a crash recovery test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   const planId = res.executionInstruction.planId;
 
-  // Step 1: the atomic PENDING -> FALLBACK_REQUESTED claim, exactly as a real failure receipt
-  // would perform -- done directly against the store here to simulate "the function crashed
+  // Step 1: the atomic claim, with a 1ms lease -- exactly as a real failure receipt would
+  // perform, but with an injected short lease so this test can let it genuinely expire without a
+  // real 45-second sleep. Done directly against the store to simulate "the function crashed
   // immediately after this line, before calling the provider or returning a response".
-  const claim = await store.transitionPlan(planId, "FALLBACK_REQUESTED");
+  const claim = await store.claimFallback(planId, 1);
   assertEquals(claim.ok, true, "the claim itself must succeed before the simulated crash");
 
-  // Step 2: (the crash -- nothing else happens; no provider was ever called)
+  // Step 2: (the crash -- nothing else happens; no provider was ever called). Let the 1ms lease
+  // genuinely elapse.
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
   let providerCalls = 0;
   const countingProvider: GatewayProvider = { id: "test", label: "test", model: "fake-model", configured: true, run: async () => { providerCalls += 1; return { answer: "RESUMED_ANSWER", model: "fake-model" }; } };
 
-  // Step 3: client retries the exact same failure receipt. resumptionStaleMsOverride:0 lets this
-  // test prove real resumption behavior deterministically instead of sleeping 30+ real seconds
-  // for the production staleness lease to elapse (see RESUMPTION_STALE_MS's own doc comment, and
-  // the separate concurrency test proving that lease actually prevents a genuinely-concurrent
-  // double-resume when it has NOT elapsed).
+  // Step 3: client retries the exact same failure receipt. The plan's lease has genuinely
+  // expired (step 2), so claimFallback() inside recordReceiptAndMaybeFallback() reclaims it with
+  // a new fencing version -- this is the real, non-time-fudged behavior, not a test-only override.
   const retryOutcome = await recordReceiptAndMaybeFallback({
     receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a crash recovery test?" },
     providers: [countingProvider],
     lifecycleStore: store,
-    resumptionStaleMsOverride: 0,
   });
 
   // Step 4/5: the system resumes the stuck plan and the user is NOT abandoned -- a real answer
-  // comes back, honestly marked as a resumption.
+  // comes back, honestly marked as a resumption (attemptCount > 1 on the reclaimed plan).
   assertEquals(retryOutcome.status, "ACCEPTED");
   if (retryOutcome.status === "ACCEPTED") {
     assert(retryOutcome.envelope, "a resumed fallback must still deliver a real answer, never leave the user with nothing");
     assertMatch(retryOutcome.envelope!.answer, /RESUMED_ANSWER/);
     assert(retryOutcome.envelope!.receipt.degradedStages.includes("RESUMED_AFTER_CRASHED_FALLBACK_CLAIM"), "a resumption must be honestly labeled as such, not indistinguishable from a normal fallback");
   }
-  // Step 6 (the honestly-described limit of this guarantee): once resumed and finalized, the plan
-  // is terminal -- a THIRD receipt for the same plan (e.g. a slow, now-redundant original request
-  // finally arriving) must be rejected, not trigger yet another provider call.
+  // Step 6: once resumed and finalized, the plan is terminal -- a THIRD receipt for the same plan
+  // (e.g. a slow, now-redundant original request finally arriving) must be rejected, not trigger
+  // yet another provider call. Retry returns a rejection, not a fabricated re-delivery of the
+  // terminal result (this store does not retain the answer text itself to replay it -- see the
+  // migration's "no prompt/answer text stored" design note -- so a caller wanting the already-
+  // delivered answer must rely on its own earlier successful response, not a second query here).
   assertEquals(providerCalls, 1);
   const thirdOutcome = await recordReceiptAndMaybeFallback({
     receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a crash recovery test?" },

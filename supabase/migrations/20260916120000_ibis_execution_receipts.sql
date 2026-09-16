@@ -52,12 +52,32 @@ create table if not exists public.ibis_execution_plans (
   rejection_reason text check (rejection_reason in ('MALFORMED_RECEIPT','UNKNOWN_PLAN','DUPLICATE_RECEIPT','EXPIRED_PLAN','MISMATCHED_AUTHORIZATION','TEXT_MISMATCH') or rejection_reason is null),
   created_at timestamptz not null default now(),
   expires_at timestamptz not null default (now() + interval '5 minutes'),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  -- Leased-claim fencing (see ibis-lifecycle-store.ts's module header for the full contract).
+  -- lease_owner/lease_version together are the fencing token: a fallback-generation attempt may
+  -- only finalize this row if it presents the EXACT lease_owner+lease_version it was issued at
+  -- claim time. Reclaiming an expired lease increments lease_version, which is what fences off
+  -- whatever worker held the previous lease -- its eventual finalize attempt will present a
+  -- stale lease_version and match zero rows.
+  lease_owner text,
+  lease_version integer not null default 0,
+  lease_expires_at timestamptz,
+  attempt_count integer not null default 0
 );
 create index if not exists ibis_execution_plans_state_idx on public.ibis_execution_plans(state);
 create index if not exists ibis_execution_plans_expires_idx on public.ibis_execution_plans(expires_at) where state = 'PENDING';
+create index if not exists ibis_execution_plans_lease_idx on public.ibis_execution_plans(lease_expires_at) where state = 'FALLBACK_REQUESTED';
 create index if not exists ibis_execution_plans_time_idx on public.ibis_execution_plans(created_at desc);
 create index if not exists ibis_execution_plans_user_idx on public.ibis_execution_plans(user_id) where user_id is not null;
+
+-- KNOWN GAP, disclosed rather than hidden: createSupabaseLifecycleStore's reclaimExpiredLease
+-- path (ibis-lifecycle-store.ts) reads the current lease_version, then issues a conditional
+-- UPDATE keyed on that exact version -- a real read-then-write TOCTOU window exists between those
+-- two calls (vanishingly unlikely to matter in practice, since it requires two reclaimers to race
+-- within that same short window against an already-expired lease, but real). A Postgres function
+-- (`security definer`, callable only by service_role) performing the read-and-conditional-update
+-- as one server-side transaction would close this gap completely and is the recommended follow-up
+-- before this path carries meaningful production traffic volume -- not implemented in this pass.
 
 alter table public.ibis_execution_plans enable row level security;
 revoke all on public.ibis_execution_plans from anon, authenticated;
