@@ -36,6 +36,10 @@ export type CanonicalRequest = {
 };
 
 const PLAN_TTL_MS = 5 * 60_000;
+// A plan stuck in FALLBACK_REQUESTED is only eligible for crash-recovery resumption once it has
+// been untouched for longer than any real provider call could plausibly still be running -- see
+// the resumption note in recordReceiptAndMaybeFallback for why this matters.
+const RESUMPTION_STALE_MS = 30_000;
 
 export type ExecutionReceiptInput = {
   planId: unknown;
@@ -261,7 +265,12 @@ export async function recordReceiptAndMaybeFallback(input: {
   receipt: ExecutionReceiptInput;
   providers: GatewayProvider[];
   lifecycleStore: LifecycleStore | null;
+  // Test-only override for RESUMPTION_STALE_MS, so crash-recovery tests can prove real behavior
+  // deterministically and fast rather than sleeping 30+ real seconds. Never pass this in
+  // production request handling.
+  resumptionStaleMsOverride?: number;
 }): Promise<ReceiptOutcome> {
+  const resumptionStaleMs = input.resumptionStaleMsOverride ?? RESUMPTION_STALE_MS;
   const r = input.receipt;
   if (typeof r.planId !== "string" || typeof r.executionTarget !== "string" || typeof r.provider !== "string" || typeof r.success !== "boolean") {
     return { status: "REJECTED", reason: "MALFORMED_RECEIPT" };
@@ -282,13 +291,41 @@ export async function recordReceiptAndMaybeFallback(input: {
 
   const toState = r.success ? "SUCCEEDED" : "FALLBACK_REQUESTED";
   const transition = await store.transitionPlan(r.planId, toState);
+  let resumedFromCrash = false;
   if (!transition.ok) {
     if (transition.reason === "UNKNOWN_PLAN") return { status: "REJECTED", reason: "UNKNOWN_PLAN" };
     if (transition.reason === "EXPIRED_PLAN") return { status: "REJECTED", reason: "EXPIRED_PLAN" };
-    // NOT_PENDING / STORE_ERROR both mean: this exact atomic transition did not happen for this
-    // caller -- either someone else already transitioned it (a real duplicate/concurrent receipt)
-    // or the store itself failed. Either way, this caller must not proceed to generate anything.
-    return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
+    // CRASH-RECOVERY resumption: a failure receipt (r.success===false) against a plan already in
+    // FALLBACK_REQUESTED means a PRIOR call already claimed the fallback but never reached a
+    // terminal state -- i.e. that process crashed after the atomic claim but before (or during)
+    // calling the provider. The user must not be permanently abandoned, so this caller is allowed
+    // to resume: it will attempt the provider call again and then atomically transition
+    // FALLBACK_REQUESTED -> SUCCEEDED itself. This makes the fallback-provider-call guarantee
+    // honestly AT-LEAST-ONCE (a rare concurrent double-resume could call the provider twice), not
+    // exactly-once -- but answer DELIVERY to any given client remains exactly-once, since only one
+    // resumer's final SUCCEEDED transition can ever win (see below).
+    if (!r.success) {
+      const current = await store.getPlan(r.planId);
+      // Lease/staleness check: a plan can only be resumed once its last update is old enough that
+      // a genuinely still-in-flight (non-crashed) call could not plausibly be the one that made
+      // it. Without this, two truly CONCURRENT failure receipts for the same plan would each see
+      // the other's fresh, in-progress claim and both treat it as "crashed", both call the
+      // provider -- exactly the double-call this gate exists to prevent. RESUMPTION_STALE_MS is
+      // set well above any realistic provider call latency (the gateway's own PROVIDER_BUDGET_MS
+      // in ibis-intelligence-gateway.ts is 9s per provider, ~24s total budget).
+      const staleEnoughToResume = !!current && current.state === "FALLBACK_REQUESTED" && (Date.now() - new Date(current.updatedAt).getTime()) >= resumptionStaleMs;
+      if (staleEnoughToResume) {
+        resumedFromCrash = true;
+      } else {
+        // Either unrelated to a resumable state, or genuinely still in progress (not yet stale --
+        // another request is actively handling this exact plan right now). Reject rather than race it.
+        return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
+      }
+    } else {
+      // NOT_PENDING / STORE_ERROR on a SUCCESS receipt always means a real duplicate/concurrent
+      // receipt or a store failure -- there is nothing to "resume" for a success report.
+      return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
+    }
   }
 
   if (r.success) {
@@ -310,6 +347,18 @@ export async function recordReceiptAndMaybeFallback(input: {
 
   const startedAt = new Date().toISOString();
   const gatewayResult = await runGateway({ text: resentText, products, providers: input.providers, requestId: plan.planId });
+
+  // Finalize: FALLBACK_REQUESTED -> SUCCEEDED. This is what makes a genuinely COMPLETED fallback
+  // terminal (unresumable) while leaving a truly CRASHED one (never reaches this line) resumable
+  // -- without this, a replayed/duplicate failure receipt for an already-completed fallback would
+  // be indistinguishable from a real crash and would call the provider again. If this transition
+  // itself loses a race (another concurrent resumer already finalized it first), this caller's own
+  // freshly-generated answer is discarded and rejected as a duplicate -- exactly-once ANSWER
+  // DELIVERY, even though the provider call itself is only at-least-once (see the resumption note
+  // above).
+  const finalize = await store.transitionPlan(plan.planId, "SUCCEEDED", "FALLBACK_REQUESTED");
+  if (!finalize.ok) return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
+
   const envelope = buildEnvelope({
     requestId: plan.planId, startedAt, answer: gatewayResult.answer, objective: null, queryClass: plan.intent as QueryClass,
     executionInstruction: { planId: plan.planId, executionTarget: "server_provider", executionAuthorized: false, intent: plan.intent as QueryClass, freshnessRequired: plan.freshnessRequired, constraints: ["fallback_after_local_execution_failure"] },
@@ -321,7 +370,10 @@ export async function recordReceiptAndMaybeFallback(input: {
     sources: [], confidence: gatewayResult.confidence === "HIGH" ? "HIGH" : gatewayResult.confidence === "MODERATE" ? "MODERATE" : "UNVERIFIED",
     confidenceBasis: gatewayResult.uncertainty || "Authorized fallback after browser-local execution failed.",
     status: gatewayResult.answerClass === "DEGRADED" ? "DEGRADED" : "OK",
-    degradedStages: gatewayResult.answerClass === "DEGRADED" ? ["ALL_TEXT_PROVIDERS_FAILED"] : ["LOCAL_EXECUTION_FAILED_FALLBACK_TO_SERVER"],
+    degradedStages: [
+      ...(gatewayResult.answerClass === "DEGRADED" ? ["ALL_TEXT_PROVIDERS_FAILED"] : ["LOCAL_EXECUTION_FAILED_FALLBACK_TO_SERVER"]),
+      ...(resumedFromCrash ? ["RESUMED_AFTER_CRASHED_FALLBACK_CLAIM"] : []),
+    ],
   });
   return { status: "ACCEPTED", terminal: true, envelope };
 }

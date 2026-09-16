@@ -391,6 +391,78 @@ Deno.test("CONCURRENCY: database unavailability (store construction failure) fai
   );
 });
 
+// --- CRASH-RECOVERY (explicitly required): claim -> simulated crash -> retry -> resumed, never
+// abandoned; a genuinely completed fallback stays terminal and is never re-resumed. ---
+Deno.test("CRASH-RECOVERY: after a simulated crash mid-fallback, a retry resumes and delivers an answer", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a crash recovery test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+
+  // Step 1: the atomic PENDING -> FALLBACK_REQUESTED claim, exactly as a real failure receipt
+  // would perform -- done directly against the store here to simulate "the function crashed
+  // immediately after this line, before calling the provider or returning a response".
+  const claim = await store.transitionPlan(planId, "FALLBACK_REQUESTED");
+  assertEquals(claim.ok, true, "the claim itself must succeed before the simulated crash");
+
+  // Step 2: (the crash -- nothing else happens; no provider was ever called)
+  let providerCalls = 0;
+  const countingProvider: GatewayProvider = { id: "test", label: "test", model: "fake-model", configured: true, run: async () => { providerCalls += 1; return { answer: "RESUMED_ANSWER", model: "fake-model" }; } };
+
+  // Step 3: client retries the exact same failure receipt. resumptionStaleMsOverride:0 lets this
+  // test prove real resumption behavior deterministically instead of sleeping 30+ real seconds
+  // for the production staleness lease to elapse (see RESUMPTION_STALE_MS's own doc comment, and
+  // the separate concurrency test proving that lease actually prevents a genuinely-concurrent
+  // double-resume when it has NOT elapsed).
+  const retryOutcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a crash recovery test?" },
+    providers: [countingProvider],
+    lifecycleStore: store,
+    resumptionStaleMsOverride: 0,
+  });
+
+  // Step 4/5: the system resumes the stuck plan and the user is NOT abandoned -- a real answer
+  // comes back, honestly marked as a resumption.
+  assertEquals(retryOutcome.status, "ACCEPTED");
+  if (retryOutcome.status === "ACCEPTED") {
+    assert(retryOutcome.envelope, "a resumed fallback must still deliver a real answer, never leave the user with nothing");
+    assertMatch(retryOutcome.envelope!.answer, /RESUMED_ANSWER/);
+    assert(retryOutcome.envelope!.receipt.degradedStages.includes("RESUMED_AFTER_CRASHED_FALLBACK_CLAIM"), "a resumption must be honestly labeled as such, not indistinguishable from a normal fallback");
+  }
+  // Step 6 (the honestly-described limit of this guarantee): once resumed and finalized, the plan
+  // is terminal -- a THIRD receipt for the same plan (e.g. a slow, now-redundant original request
+  // finally arriving) must be rejected, not trigger yet another provider call.
+  assertEquals(providerCalls, 1);
+  const thirdOutcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a crash recovery test?" },
+    providers: [countingProvider],
+    lifecycleStore: store,
+  });
+  assertEquals(thirdOutcome.status, "REJECTED");
+  assertEquals(providerCalls, 1, "a plan that already completed (even via resumption) must never be resumed again");
+});
+
+Deno.test("CRASH-RECOVERY: a normal (non-crashed) fallback is finalized and cannot later be 'resumed'", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a normal fallback test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  let providerCalls = 0;
+  const countingProvider: GatewayProvider = { id: "test", label: "test", model: "fake-model", configured: true, run: async () => { providerCalls += 1; return { answer: "NORMAL_ANSWER", model: "fake-model" }; } };
+  const first = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a normal fallback test?" },
+    providers: [countingProvider], lifecycleStore: store,
+  });
+  assertEquals(first.status, "ACCEPTED");
+  if (first.status === "ACCEPTED") assert(!first.envelope!.receipt.degradedStages.includes("RESUMED_AFTER_CRASHED_FALLBACK_CLAIM"), "a normal, uninterrupted fallback must not be mislabeled as a crash resumption");
+  // A duplicate/replayed receipt after a normal (uninterrupted) completion must be rejected, not
+  // treated as a resumable crash -- this is the bug this fix specifically closes.
+  const replay = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a normal fallback test?" },
+    providers: [countingProvider], lifecycleStore: store,
+  });
+  assertEquals(replay.status, "REJECTED");
+  assertEquals(providerCalls, 1, "a completed plan replayed later must never call the provider a second time");
+});
+
 Deno.test("empty text is rejected without attempting any provider", async () => {
   const res = await handleCanonicalRequest({ text: "   ", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(res.status, "UNAVAILABLE");
