@@ -1,5 +1,6 @@
 import { gatewayHealth, runGateway, type GatewayProvider, type IbisProduct, type IbisTurn } from "../_shared/ibis-intelligence-gateway.ts";
 import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "../_shared/ibis-canonical-brain.ts";
+import { resolveLifecycleStore } from "../_shared/ibis-lifecycle-store.ts";
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 function originAllowed(origin: string | null) {
@@ -111,27 +112,37 @@ Deno.serve(async (request) => {
   // Cost order is intentional: deterministic handling occurs inside runGateway first; among
   // external models, the proven zero-cost Cloudflare allocation is attempted before paid keys.
   const providers = [cloudflare(turns, system), anthropic(turns, system), gemini(turns, system), openAICompatible("PRIMARY", turns, system), openAICompatible("SECONDARY", turns, system), ollama(turns, system)];
-  if (payload.action === "health") return reply(gatewayHealth(providers), 200, origin);
+
+  // Slice 3 serverless correction: resolved ONCE per request, from real environment configuration
+  // -- this is the ONLY place that decides whether durable lifecycle persistence is available.
+  // DATABASE when SUPABASE_URL+SUPABASE_SERVICE_ROLE_KEY are configured; IN_MEMORY_TEST_MODE only
+  // when IBIS_ALLOW_INMEMORY_LIFECYCLE='true' is explicitly set (local/test use only -- never set
+  // this in a real deployment); otherwise null, meaning no durable store exists at all, which
+  // ibis-canonical-brain.ts's handleCanonicalRequest() treats as a reason to fail closed on
+  // browser-local-execution authorization specifically (it still answers every question, just
+  // always server-side, never silently trusting process-local memory in what could be production).
+  const lifecycleStore = resolveLifecycleStore();
+  if (payload.action === "health") {
+    return reply({
+      ...gatewayHealth(providers),
+      lifecyclePersistence: lifecycleStore ? lifecycleStore.kind : "NOT_CONFIGURED",
+    }, 200, origin);
+  }
 
   // Slice 3 correction: the RECEIPT stage of the plan/execute/receipt/final-response lifecycle
   // (see ../_shared/ibis-canonical-brain.ts's recordReceiptAndMaybeFallback for the full contract).
   // A client that received executionAuthorized:true from action:"canonical_query" and then ran
   // localAI() posts the outcome back here. The server validates the receipt against the plan IT
-  // created and returned earlier -- an unknown, already-used, expired, or mismatched planId is
-  // rejected outright; an arbitrary client-declared "success" is never taken at face value beyond
-  // that validation. A genuine local-execution FAILURE triggers exactly one authorized fallback
-  // generation here (never a second one for the same plan) and returns the real answer envelope;
-  // a success receipt returns only an acknowledgement, since the browser already has its answer
-  // and generating a second one here would be exactly the duplicate this correction removes.
-  //
-  // Durability note: recordReceiptAndMaybeFallback's plan store is in-memory and process-local --
-  // real for the plan/receipt validation logic within one running instance, but not a durable
-  // record across a cold start or multiple scaled instances. Every receipt this endpoint accepts
-  // is also still logged (visible in Supabase's own function logs) as the temporary observability
-  // layer; a real persistent table is drafted in supabase/migrations/ but NOT applied in this
-  // pass -- see the final report for why.
+  // created and persisted earlier -- an unknown, already-terminal, expired, or mismatched planId
+  // is rejected outright; an arbitrary client-declared "success" is never taken at face value
+  // beyond that validation. The store's atomic PENDING->terminal transition (see
+  // ../_shared/ibis-lifecycle-store.ts) is what actually guarantees at most one fallback provider
+  // call ever happens per plan, even under concurrent/retried receipt requests across separate
+  // function instances -- this handler itself does no locking of its own. Every receipt this
+  // endpoint accepts or rejects is also still logged (visible in Supabase's own function logs) as
+  // an additional, non-durable observability layer.
   if (payload.action === "record_execution_receipt") {
-    const outcome = await recordReceiptAndMaybeFallback({ receipt: (payload.receipt as any) || {}, providers });
+    const outcome = await recordReceiptAndMaybeFallback({ receipt: (payload.receipt as any) || {}, providers, lifecycleStore });
     if (outcome.status === "REJECTED") {
       console.log("ibis execution receipt REJECTED", outcome.reason, JSON.stringify(payload.receipt));
       return reply({ recorded: false, rejected: true, reason: outcome.reason }, 409, origin);
@@ -149,7 +160,7 @@ Deno.serve(async (request) => {
   // Correlation/Prediction are honestly reported unavailable, never claimed to have executed).
   if (payload.action === "canonical_query") {
     if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
-    const envelope = await handleCanonicalRequest({ text: turns[turns.length - 1].content, products, providers });
+    const envelope = await handleCanonicalRequest({ text: turns[turns.length - 1].content, products, providers, lifecycleStore });
     return reply(envelope, 200, origin);
   }
 

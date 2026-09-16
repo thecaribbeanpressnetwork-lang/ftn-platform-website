@@ -528,7 +528,11 @@
           // would be exactly the duplicate generation this correction removes), so canonical.answer
           // is empty here by design. Reporting the failure IS the request for the one authorized
           // fallback generation; its response envelope (not canonical's) carries the real answer.
-          var fallback=await recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:false,degraded:true,latencyMs:Date.now()-localStartedAt});
+          // `text` is resent here (never persisted server-side -- see the migration header in
+          // supabase/migrations/20260916120000_ibis_execution_receipts.sql) so the server can
+          // verify it against the hash taken when this plan was created, then use it for the one
+          // authorized fallback generation without ever having stored the prompt durably itself.
+          var fallback=await recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:false,degraded:true,latencyMs:Date.now()-localStartedAt,text:q,products:productsSummary()});
           if(fallback&&typeof fallback.answer==='string'&&fallback.answer){
             out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain (authorized fallback)</span>'+answerHTML(fallback.answer)+'<p class="ibis-answer-meta">'+esc((fallback.providerPath&&fallback.providerPath[0])||'Governed ibis route')+(fallback.confidence?' · '+esc(fallback.confidence):'')+'</p>'+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
             await ensureEvidence();

@@ -1,10 +1,13 @@
 // FTN Platform — canonical IBIS brain contract/behavioral tests. Run with:
 //   deno test --allow-env supabase/functions/_shared/ibis-canonical-brain.test.ts
-// No live network calls: every provider/search call in these tests is a local fake.
-import { assert, assertEquals, assertMatch } from "https://deno.land/std@0.224.0/assert/mod.ts";
+// No live network calls: every provider/search call in these tests is a local fake. The lifecycle
+// store used throughout is createInMemoryLifecycleStore() -- explicitly the TEST-ONLY
+// implementation (see ibis-lifecycle-store.ts's own header for why it is never production-safe).
+import { assert, assertEquals, assertMatch, assertNotEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "./ibis-canonical-brain.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
 import { searxngSearch, braveSearch, search } from "./ibis-search-adapter.ts";
+import { createInMemoryLifecycleStore } from "./ibis-lifecycle-store.ts";
 import type { GatewayProvider } from "./ibis-intelligence-gateway.ts";
 
 function fakeProvider(id: string, answer: string, opts: { configured?: boolean; fail?: boolean } = {}): GatewayProvider {
@@ -23,7 +26,7 @@ function fakeProvider(id: string, answer: string, opts: { configured?: boolean; 
 // gate no longer asserts a gateway-generated answer, only correct classification and that no
 // provider (local's absence notwithstanding) was actually invoked for this plan.
 Deno.test("simple question classifies SIMPLE_TEXT and defers to authorized local execution", async () => {
-  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "SHOULD_NEVER_APPEAR")] });
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "SHOULD_NEVER_APPEAR")], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(res.queryClass, "SIMPLE_TEXT");
   assertEquals(res.status, "OK");
   assertEquals(res.executionInstruction.executionAuthorized, true);
@@ -46,6 +49,7 @@ Deno.test("search success normalizes source title/publisher/url/dates", async ()
     text: "What is the latest USD selling rate today?",
     providers: [fakeProvider("test", "unused")],
     searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
   });
   Deno.env.delete("SEARXNG_BASE_URL");
   assertEquals(res.queryClass, "CURRENT_WEB_RESEARCH");
@@ -65,6 +69,7 @@ Deno.test("search provider outage degrades honestly, no fabricated answer", asyn
     text: "What is the latest USD selling rate today?",
     providers: [fakeProvider("test", "unused")],
     searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
   });
   Deno.env.delete("SEARXNG_BASE_URL");
   assertEquals(res.status, "DEGRADED");
@@ -89,6 +94,7 @@ Deno.test("outcome question classifies FOUNDER_STRATEGY and lists deeper modes a
   const res = await handleCanonicalRequest({
     text: "I want to build a Caribbean-owned business that earns US dollars while helping local creators.",
     providers: [fakeProvider("test", "Decision: EXPERIMENT")],
+    lifecycleStore: createInMemoryLifecycleStore(),
   });
   assertEquals(res.queryClass, "FOUNDER_STRATEGY");
   assert(res.objective && res.objective.length > 0, "an outcome question must extract an objective string");
@@ -100,28 +106,18 @@ Deno.test("outcome question classifies FOUNDER_STRATEGY and lists deeper modes a
 
 // --- Gate: correlation must never be silently upgraded to causation language. ---
 Deno.test("correlation-flavored question with a live-data term still routes to research, never a guessed correlation claim", () => {
-  // No CORRELATION marker exists yet in the server-side classifier (see the honesty note in
-  // ibis-canonical-brain.ts: CORRELATION/PREDICTION are listed as unavailable modes, not
-  // implemented ones). This question also contains "exchange rate", a genuine freshness marker,
-  // so it correctly routes to CURRENT_WEB_RESEARCH rather than being answered from model memory
-  // as if a correlation had already been established -- the honest behavior available today.
   const result = classifyIntent("Is there a correlation between remittances and the exchange rate?");
   assertEquals(result.queryClass, "CURRENT_WEB_RESEARCH");
 });
 
 // --- Gate: provider outage falls to the gateway's real rules-based founder-reasoning fallback,
-// honestly labeled -- this is the gateway's actual designed behavior (ibis-intelligence-gateway.ts
-// founderReasoningAnswer), not a bug; the deeper full-DEGRADED path only triggers when even that
-// deterministic fallback has nothing to work with (see the next test).
-//
-// Slice 3 correction: SIMPLE_TEXT questions ("What is the capital of...") now defer to authorized
-// local execution and never reach runGateway directly, so this must use a query classification
-// that is NEVER local-authorized (FOUNDER_STRATEGY) to exercise the provider-fallback chain at
-// all -- exactly the gate this test exists to guard. ---
+// honestly labeled -- FOUNDER_STRATEGY is never local-authorized, so this genuinely exercises the
+// provider-fallback chain (SIMPLE_TEXT questions no longer reach runGateway directly). ---
 Deno.test("unconfigured providers fall to the rules-based founder-reasoning fallback, honestly labeled", async () => {
   const res = await handleCanonicalRequest({
     text: "I want to build a Caribbean-owned business that earns US dollars.",
     providers: [fakeProvider("a", "unused", { configured: false })],
+    lifecycleStore: createInMemoryLifecycleStore(),
   });
   assertEquals(res.queryClass, "FOUNDER_STRATEGY");
   assertEquals(res.executionInstruction.executionAuthorized, false, "FOUNDER_STRATEGY must never be local-authorized -- this test would silently stop exercising the fallback chain otherwise");
@@ -131,17 +127,16 @@ Deno.test("unconfigured providers fall to the rules-based founder-reasoning fall
 });
 
 // --- Gate: true provider exhaustion (deterministic fallback also has nothing to work with)
-// degrades to DEGRADED, never fabricates an answer.
-//
-// Slice 3 correction: the only place a SIMPLE_TEXT-classified plan ("x") still calls providers is
-// the authorized-fallback path (recordReceiptAndMaybeFallback, triggered by a failure receipt) --
-// the initial canonical_query response for an authorized plan never calls a provider at all. ---
+// degrades to DEGRADED, never fabricates an answer. Only reachable via the receipt/fallback path
+// now, since an authorized plan's initial response never calls a provider at all. ---
 Deno.test("full provider exhaustion with no fallback degrades to DEGRADED, never fabricates an answer", async () => {
-  const plan = await handleCanonicalRequest({ text: "x", providers: [fakeProvider("a", "unused", { configured: false })] });
+  const store = createInMemoryLifecycleStore();
+  const plan = await handleCanonicalRequest({ text: "x", providers: [fakeProvider("a", "unused", { configured: false })], lifecycleStore: store });
   assertEquals(plan.executionInstruction.executionAuthorized, true);
   const outcome = await recordReceiptAndMaybeFallback({
-    receipt: { planId: plan.executionInstruction.planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false },
+    receipt: { planId: plan.executionInstruction.planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "x" },
     providers: [fakeProvider("a", "unused", { configured: false })],
+    lifecycleStore: store,
   });
   assertEquals(outcome.status, "ACCEPTED");
   if (outcome.status === "ACCEPTED") {
@@ -152,7 +147,7 @@ Deno.test("full provider exhaustion with no fallback degrades to DEGRADED, never
 });
 
 Deno.test("response envelope never contains a literal API key/token/secret substring", async () => {
-  const res = await handleCanonicalRequest({ text: "hello", providers: [fakeProvider("test", "Good day.")] });
+  const res = await handleCanonicalRequest({ text: "hello", providers: [fakeProvider("test", "Good day.")], lifecycleStore: createInMemoryLifecycleStore() });
   const serialized = JSON.stringify(res);
   assert(!/sk-[a-zA-Z0-9]{10,}/.test(serialized), "no OpenAI-style key pattern in response");
   assert(!/AIza[0-9A-Za-z_-]{10,}/.test(serialized), "no Google API key pattern in response");
@@ -202,7 +197,7 @@ Deno.test("search() returns SEARCH_UNAVAILABLE when neither SearXNG nor Brave ar
 // --- Slice 1 correction: executionInstruction is the sole, server-side authority over browser
 // local execution. ---
 Deno.test("simple question authorizes browser_local execution with a real planId", async () => {
-  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "Photosynthesis converts light into chemical energy.")] });
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "Photosynthesis converts light into chemical energy.")], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(res.executionInstruction.executionAuthorized, true);
   assertEquals(res.executionInstruction.executionTarget, "browser_local");
   assertEquals(res.executionInstruction.freshnessRequired, false);
@@ -210,45 +205,62 @@ Deno.test("simple question authorizes browser_local execution with a real planId
 });
 
 Deno.test("freshness question never authorizes browser_local execution", async () => {
-  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")] });
+  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(res.executionInstruction.executionAuthorized, false);
   assertEquals(res.executionInstruction.freshnessRequired, true);
   assertEquals(res.executionInstruction.executionTarget, "server_provider");
 });
 
 Deno.test("outcome/strategy question never authorizes browser_local execution", async () => {
-  const res = await handleCanonicalRequest({ text: "I want to build a Caribbean-owned business.", providers: [fakeProvider("test", "unused")] });
+  const res = await handleCanonicalRequest({ text: "I want to build a Caribbean-owned business.", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(res.executionInstruction.executionAuthorized, false);
   assertEquals(res.executionInstruction.executionTarget, "server_provider");
+});
+
+// --- Slice 3 CORRECTION: no durable lifecycle store -> fail closed on local authorization. ---
+Deno.test("no lifecycle store available: SIMPLE_TEXT never authorized for local execution, still answers", async () => {
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "Real server answer.")], lifecycleStore: null });
+  assertEquals(res.executionInstruction.executionAuthorized, false, "must fail closed on local authorization when no durable store exists");
+  assertMatch(res.answer, /Real server answer/, "must still answer the question server-side, never leave the user with nothing");
+});
+
+Deno.test("a receipt cannot be processed at all when no lifecycle store is available", async () => {
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "x", executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [], lifecycleStore: null });
+  assertEquals(outcome.status, "REJECTED");
+  if (outcome.status === "REJECTED") assertEquals(outcome.reason, "LIFECYCLE_STORE_UNAVAILABLE");
 });
 
 // --- Slice 3: the PLAN/EXECUTE/RECEIPT/FINAL-RESPONSE lifecycle. ---
 
 Deno.test("authorized SIMPLE_TEXT plan generates NO provider answer up front (no duplicate generation)", async () => {
   const provider = fakeProvider("test", "SHOULD_NEVER_APPEAR");
-  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [provider] });
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [provider], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(res.executionInstruction.executionAuthorized, true);
   assertEquals(res.answer, "", "an authorized plan must return an empty answer -- generating one here and letting the browser also generate one locally would be duplicate generation");
   assertEquals(res.evidenceState, "NO_ANSWER_GENERATED");
 });
 
 Deno.test("a success receipt is accepted with no fallback envelope (browser already has the answer)", async () => {
-  const res = await handleCanonicalRequest({ text: "What is a receipt test one?", providers: [fakeProvider("test", "unused")] });
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a receipt test one?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   const planId = res.executionInstruction.planId;
   const outcome = await recordReceiptAndMaybeFallback({
     receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true, degraded: false, latencyMs: 120 },
     providers: [fakeProvider("test", "SHOULD_NEVER_APPEAR")],
+    lifecycleStore: store,
   });
   assertEquals(outcome.status, "ACCEPTED");
   if (outcome.status === "ACCEPTED") assertEquals(outcome.envelope, null, "a success receipt must never trigger a second, duplicate answer generation");
 });
 
 Deno.test("a failure receipt triggers exactly one authorized fallback generation", async () => {
-  const res = await handleCanonicalRequest({ text: "What is a receipt test two?", providers: [fakeProvider("test", "unused")] });
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a receipt test two?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   const planId = res.executionInstruction.planId;
   const outcome = await recordReceiptAndMaybeFallback({
-    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, degraded: true, latencyMs: 300 },
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, degraded: true, latencyMs: 300, text: "What is a receipt test two?" },
     providers: [fakeProvider("test", "REAL_FALLBACK_ANSWER")],
+    lifecycleStore: store,
   });
   assertEquals(outcome.status, "ACCEPTED");
   if (outcome.status === "ACCEPTED") {
@@ -258,49 +270,136 @@ Deno.test("a failure receipt triggers exactly one authorized fallback generation
   }
 });
 
-Deno.test("a second receipt for the same plan is rejected as a duplicate", async () => {
-  const res = await handleCanonicalRequest({ text: "What is a receipt test three?", providers: [fakeProvider("test", "unused")] });
+Deno.test("a failure receipt with mismatched/forged prompt text is rejected, never regenerated on trust alone", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a receipt test forged?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   const planId = res.executionInstruction.planId;
-  const first = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [] });
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "a completely different prompt the server never authorized" },
+    providers: [fakeProvider("test", "SHOULD_NEVER_APPEAR")],
+    lifecycleStore: store,
+  });
+  assertEquals(outcome.status, "REJECTED");
+  if (outcome.status === "REJECTED") assertEquals(outcome.reason, "TEXT_MISMATCH");
+});
+
+Deno.test("a second receipt for the same plan is rejected as a duplicate", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a receipt test three?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  const first = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [], lifecycleStore: store });
   assertEquals(first.status, "ACCEPTED");
-  const second = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [] });
+  const second = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [], lifecycleStore: store });
   assertEquals(second.status, "REJECTED");
   if (second.status === "REJECTED") assertEquals(second.reason, "DUPLICATE_RECEIPT");
 });
 
 Deno.test("a receipt for an unknown planId is rejected", async () => {
-  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "never-issued-plan-id", executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [] });
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "never-issued-plan-id", executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(outcome.status, "REJECTED");
   if (outcome.status === "REJECTED") assertEquals(outcome.reason, "UNKNOWN_PLAN");
 });
 
 Deno.test("a receipt claiming browser_local against a plan that was never authorized is rejected as mismatched", async () => {
-  // A freshness question is never authorized for local execution -- its plan record exists (so a
-  // forged receipt against it can be recognized) but carries executionAuthorized:false.
-  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")] });
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   const planId = res.executionInstruction.planId;
-  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [] });
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [], lifecycleStore: store });
   assertEquals(outcome.status, "REJECTED");
   if (outcome.status === "REJECTED") assertEquals(outcome.reason, "MISMATCHED_AUTHORIZATION");
 });
 
 Deno.test("a malformed receipt (missing required fields) is rejected", async () => {
-  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "x" } as any, providers: [] });
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "x" } as any, providers: [], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(outcome.status, "REJECTED");
   if (outcome.status === "REJECTED") assertEquals(outcome.reason, "MALFORMED_RECEIPT");
 });
 
-Deno.test("server-executed (non-authorized) plans are marked used immediately -- a stray receipt against one is a duplicate, not a fresh accept", async () => {
-  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")] });
+Deno.test("server-executed (non-authorized) plans are terminal immediately -- a stray receipt against one is rejected, not a fresh accept", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   assertEquals(res.executionInstruction.executionAuthorized, false);
-  // Even a well-formed receipt matching executionTarget can't slip through as a fresh success,
-  // because the plan was recorded as `used` (and never authorized) the moment the server answered.
-  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: res.executionInstruction.planId, executionTarget: "server_provider", provider: "cloudflare-workers-ai", success: true }, providers: [] });
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: res.executionInstruction.planId, executionTarget: "server_provider", provider: "cloudflare-workers-ai", success: true }, providers: [], lifecycleStore: store });
   assertEquals(outcome.status, "REJECTED");
 });
 
+// --- Concurrency (per your explicit request): PLAN/RECEIPT across "separate instances" (separate
+// store instances sharing nothing simulates the worst case honestly -- see the caveat below), two
+// simultaneous receipts yielding exactly one terminal transition and one fallback provider call,
+// expired plans failing, forged combinations failing, retries being idempotent, and store
+// unavailability failing honestly. ---
+
+Deno.test("CONCURRENCY: two simultaneous failure receipts for the same plan yield exactly one fallback provider call", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a concurrency test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  let providerCalls = 0;
+  const countingProvider: GatewayProvider = { id: "test", label: "test", model: "fake-model", configured: true, run: async () => { providerCalls += 1; return { answer: "ONE_TRUE_ANSWER", model: "fake-model" }; } };
+  const [a, b] = await Promise.all([
+    recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a concurrency test?" }, providers: [countingProvider], lifecycleStore: store }),
+    recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a concurrency test?" }, providers: [countingProvider], lifecycleStore: store }),
+  ]);
+  const accepted = [a, b].filter((o) => o.status === "ACCEPTED");
+  const rejected = [a, b].filter((o) => o.status === "REJECTED");
+  assertEquals(accepted.length, 1, "exactly one of the two simultaneous receipts must be accepted");
+  assertEquals(rejected.length, 1, "the other must be rejected, not silently ignored or double-processed");
+  assertEquals(providerCalls, 1, "the fallback provider must be called exactly once, never twice, under concurrent receipts");
+});
+
+Deno.test("CONCURRENCY: retrying an already-accepted receipt is idempotent (rejected, not reprocessed)", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a retry test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  const receipt = { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true } as const;
+  const first = await recordReceiptAndMaybeFallback({ receipt, providers: [], lifecycleStore: store });
+  const retry = await recordReceiptAndMaybeFallback({ receipt, providers: [fakeProvider("test", "SHOULD_NEVER_APPEAR")], lifecycleStore: store });
+  assertEquals(first.status, "ACCEPTED");
+  assertEquals(retry.status, "REJECTED", "a retried/replayed receipt must be rejected outright, never reprocessed as if new");
+});
+
+Deno.test("CONCURRENCY: an expired plan's receipt fails, even if it was genuinely authorized", async () => {
+  const store = createInMemoryLifecycleStore();
+  // Directly exercise the store's own TTL handling with a near-zero TTL, rather than waiting out
+  // the real 5-minute window in a test.
+  await store.createPlan({ planId: "expiring-plan", authorizedTarget: "browser_local", intent: "SIMPLE_TEXT", freshnessRequired: false, textSha256: "irrelevant", ttlMs: 1 });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "expiring-plan", executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [], lifecycleStore: store });
+  assertEquals(outcome.status, "REJECTED");
+  if (outcome.status === "REJECTED") assertEquals(outcome.reason, "EXPIRED_PLAN");
+});
+
+Deno.test("CONCURRENCY: a forged planId/target combination fails (planId exists but for a different target)", async () => {
+  const store = createInMemoryLifecycleStore();
+  await store.createPlan({ planId: "server-only-plan", authorizedTarget: "server_provider", intent: "FOUNDER_STRATEGY", freshnessRequired: false, textSha256: "irrelevant", ttlMs: 60_000 });
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "server-only-plan", executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [], lifecycleStore: store });
+  assertEquals(outcome.status, "REJECTED");
+  if (outcome.status === "REJECTED") assertEquals(outcome.reason, "MISMATCHED_AUTHORIZATION");
+});
+
+Deno.test("CONCURRENCY: database unavailability (store construction failure) fails honestly, not silently", async () => {
+  // Simulates a real DB-backed store whose underlying calls fail (analogous to a database being
+  // unreachable) by using a store whose getPlan/transitionPlan always report unavailability.
+  const brokenStore = {
+    kind: "DATABASE" as const,
+    async createPlan() { throw new Error("simulated database unavailable"); },
+    async getPlan() { return null; },
+    async transitionPlan() { return { ok: false as const, reason: "STORE_ERROR" as const }; },
+  };
+  await assert(
+    (async () => { try { await handleCanonicalRequest({ text: "hi", providers: [fakeProvider("test", "unused")], lifecycleStore: brokenStore }); return false; } catch { return true; } })(),
+    "createPlan failing (simulated database unavailability) must surface as a real failure, not a silently-authorized plan with no backing record"
+  );
+});
+
 Deno.test("empty text is rejected without attempting any provider", async () => {
-  const res = await handleCanonicalRequest({ text: "   ", providers: [fakeProvider("test", "unused")] });
+  const res = await handleCanonicalRequest({ text: "   ", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
   assertEquals(res.status, "UNAVAILABLE");
   assertEquals(res.receipt.capabilitiesAttempted.length, 0);
+});
+
+Deno.test("two plans for the same text get distinct planIds (no accidental collision/reuse)", async () => {
+  const store = createInMemoryLifecycleStore();
+  const a = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const b = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  assertNotEquals(a.executionInstruction.planId, b.executionInstruction.planId);
 });

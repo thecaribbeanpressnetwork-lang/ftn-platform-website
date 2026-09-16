@@ -4,7 +4,7 @@
 // mechanical merge of the three existing Edge Functions (ibis-assistant/ibis-text-cloudflare/
 // ibis-query) -- those remain as they are, and this module composes the ALREADY-REAL pieces
 // (runGateway's deterministic + provider-fallback + rules-based founder-reasoning chain, the new
-// intent classifier, the new search adapter) behind one typed request/response contract.
+// intent classifier, the new search adapter, the lifecycle store) behind one typed contract.
 //
 // Honesty boundary (read before extending this file): Founder Cognitive Layer, EBR, EcoMap
 // Place/Pathway/Relationship, Butterfly Engine, Correlation Engine, Prediction/Foresight Engine,
@@ -20,6 +20,7 @@ import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct } fro
 import { classifyIntent } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
 import { buildEnvelope, type CanonicalResponse, type ExecutionInstruction, type QueryClass, type ReasoningModeRecord, type SourceRecord } from "./ibis-response-envelope.ts";
+import { sha256Hex, type LifecycleStore } from "./ibis-lifecycle-store.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -27,26 +28,13 @@ export type CanonicalRequest = {
   providers: GatewayProvider[];
   requestId?: string;
   searchFetchImpl?: typeof fetch;
+  // Slice 3 serverless correction: the lifecycle store is INJECTED, never resolved internally --
+  // this module must not decide for itself whether it's "ok" to fall back to in-memory state.
+  // The caller (ibis-assistant/index.ts) resolves it once via resolveLifecycleStore() and is the
+  // one place that decision is made, honestly, from real environment configuration.
+  lifecycleStore: LifecycleStore | null;
 };
 
-// PLAN store (Slice 3 lifecycle correction). Module-level, in-memory, process-local. This is a
-// REAL, TESTABLE mechanism for the plan/receipt lifecycle within one running process (a local
-// `deno run`, or a single warm Supabase Edge Function instance) -- but it is NOT durable across a
-// cold start or across multiple concurrently-scaled instances of the same function, which Supabase
-// may run. That is a genuine gap: durable persistence needs a real table (see
-// supabase/migrations/ for the drafted, NOT-YET-APPLIED schema and the final report for why it was
-// not applied in this pass). Do not present this Map as durable provenance.
-type PlanRecord = {
-  planId: string;
-  text: string;
-  products: IbisProduct[];
-  queryClass: QueryClass;
-  executionAuthorized: boolean;
-  executionTarget: ExecutionInstruction["executionTarget"];
-  createdAt: number;
-  used: boolean;
-};
-const planStore = new Map<string, PlanRecord>();
 const PLAN_TTL_MS = 5 * 60_000;
 
 export type ExecutionReceiptInput = {
@@ -56,10 +44,15 @@ export type ExecutionReceiptInput = {
   success: unknown;
   degraded?: unknown;
   latencyMs?: unknown;
+  // The client resends the original prompt text (it already has it from its own submission) so
+  // the fallback generation can run without this server ever persisting prompt text durably --
+  // see supabase/migrations/20260916120000_ibis_execution_receipts.sql's header for why.
+  text?: unknown;
+  products?: unknown;
 };
 
 export type ReceiptOutcome =
-  | { status: "REJECTED"; reason: "MALFORMED_RECEIPT" | "UNKNOWN_PLAN" | "DUPLICATE_RECEIPT" | "EXPIRED_PLAN" | "MISMATCHED_AUTHORIZATION" }
+  | { status: "REJECTED"; reason: "MALFORMED_RECEIPT" | "UNKNOWN_PLAN" | "DUPLICATE_RECEIPT" | "EXPIRED_PLAN" | "MISMATCHED_AUTHORIZATION" | "TEXT_MISMATCH" | "LIFECYCLE_STORE_UNAVAILABLE" }
   | { status: "ACCEPTED"; terminal: true; envelope: CanonicalResponse | null };
 
 const NOT_PORTED = "not yet ported to the server-side canonical brain -- currently exists only as a browser module (js/ibis-*.js); this response does not claim it ran.";
@@ -124,14 +117,14 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   const intent = classifyIntent(text);
 
   // Slice 1 correction: the execution-authorization decision lives here, server-side, and ONLY
-  // here. A client (regular IBIS, Headspace, any future surface) must never independently decide
-  // a question is "plain" or "non-fresh" and run an on-device/local model before this endpoint has
-  // classified it. Local (browser-side, zero-cost) execution is authorized only for genuinely
-  // plain SIMPLE_TEXT questions -- never for freshness-sensitive, outcome/strategy, pathway,
-  // place or relationship questions, all of which need either real search or reasoning this
-  // endpoint cannot fabricate on a local model's behalf.
+  // here. Slice 3 correction: it ALSO now depends on whether a durable lifecycle store is
+  // actually available -- authorizing browser-local execution without durable backing means a
+  // later failure receipt has nowhere real to validate against, so this endpoint FAILS CLOSED on
+  // the local-execution optimization (never on answering the user): it still answers the
+  // question, just always server-side, exactly as if the query were never local-eligible.
+  const durableStoreAvailable = !!input.lifecycleStore;
   const freshnessRequired = intent.queryClass === "CURRENT_WEB_RESEARCH";
-  const executionAuthorized = intent.queryClass === "SIMPLE_TEXT";
+  const executionAuthorized = intent.queryClass === "SIMPLE_TEXT" && durableStoreAvailable;
   const executionInstruction: ExecutionInstruction = {
     planId: requestId,
     executionTarget: executionAuthorized ? "browser_local" : "server_provider",
@@ -142,7 +135,9 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       ? ["do_not_invent_current_facts", "max_output_tokens_600"]
       : freshnessRequired
         ? ["freshness_required_local_execution_prohibited"]
-        : ["specialist_reasoning_required_local_execution_prohibited"],
+        : !durableStoreAvailable && intent.queryClass === "SIMPLE_TEXT"
+          ? ["lifecycle_store_unavailable_local_execution_disabled"]
+          : ["specialist_reasoning_required_local_execution_prohibited"],
   };
   const reasoningModesUsed: ReasoningModeRecord[] = [];
   const capabilitiesAttempted: string[] = [];
@@ -176,14 +171,14 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
 
   // Slice 3 correction: when local execution is authorized, this endpoint must NOT also generate
   // a provider answer -- doing so and then letting the browser generate a second, local answer is
-  // duplicate answer generation, exactly what this correction removes. The plan is recorded (so a
-  // later failure receipt can request the ONE authorized fallback generation), and the response
-  // returns with no answer text at all; the browser's executionInstruction gate is what decides
-  // what happens next, not a redundant answer this endpoint already computed and would discard.
-  if (executionAuthorized) {
-    planStore.set(requestId, {
-      planId: requestId, text, products, queryClass: intent.queryClass,
-      executionAuthorized: true, executionTarget: "browser_local", createdAt: Date.now(), used: false,
+  // duplicate answer generation. The plan is persisted (never in this module's own memory -- see
+  // input.lifecycleStore) so a later failure receipt can request the ONE authorized fallback
+  // generation, and the response returns with no answer text at all.
+  if (executionAuthorized && input.lifecycleStore) {
+    const textSha256 = await sha256Hex(text);
+    await input.lifecycleStore.createPlan({
+      planId: requestId, authorizedTarget: "browser_local", intent: intent.queryClass,
+      freshnessRequired, textSha256, ttlMs: PLAN_TTL_MS,
     });
     return buildEnvelope({
       requestId, startedAt, answer: "", objective: intent.objective, queryClass: intent.queryClass,
@@ -198,8 +193,8 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // 7. REASONING / execution for the answer text itself -- reuses the already-real deterministic +
   // provider-fallback + rules-based-founder-reasoning chain (ibis-intelligence-gateway.ts). This is
   // the one piece of "reasoning" this pass can honestly claim ran. Only reached when local
-  // execution was NOT authorized above -- so this is always the sole answer-generation attempt for
-  // any given plan, never a duplicate of one the browser might also produce.
+  // execution was NOT authorized above (including the fail-closed case where no durable lifecycle
+  // store exists) -- so this is always the sole answer-generation attempt for any given plan.
   let answer: string;
   let confidence: CanonicalResponse["confidence"];
   let confidenceBasis: string;
@@ -230,14 +225,21 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     }
   }
 
-  // Recorded even though this plan was never authorized for local execution -- so a receipt
-  // claiming browser_local success/failure against THIS planId is rejected as a mismatch (the
-  // plan exists, but never carried executionAuthorized:true), rather than silently accepted
-  // because no record existed to check against.
-  planStore.set(requestId, {
-    planId: requestId, text, products, queryClass: intent.queryClass,
-    executionAuthorized: false, executionTarget: "server_provider", createdAt: Date.now(), used: true,
-  });
+  // Recorded (when a store exists) even though this plan was never authorized for local execution
+  // -- so a receipt claiming browser_local success/failure against THIS planId is rejected as a
+  // mismatch, rather than silently accepted because no record existed to check against. When no
+  // durable store is configured at all (fully local/offline dev, say), there is nothing to record
+  // against and nothing to mismatch-check -- the answer above was already generated safely either way.
+  if (input.lifecycleStore) {
+    const textSha256 = await sha256Hex(text);
+    await input.lifecycleStore.createPlan({
+      planId: requestId, authorizedTarget: "server_provider", intent: intent.queryClass,
+      freshnessRequired, textSha256, ttlMs: PLAN_TTL_MS,
+    });
+    // Immediately terminal: mark it SUCCEEDED so any later receipt against it is rejected as
+    // NOT_PENDING/duplicate rather than treated as a fresh, still-open plan.
+    await input.lifecycleStore.transitionPlan(requestId, "SUCCEEDED").catch(() => {});
+  }
 
   return buildEnvelope({
     requestId, startedAt, answer, objective: intent.objective, queryClass: intent.queryClass,
@@ -248,39 +250,46 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   });
 }
 
-function pruneExpiredPlans() {
-  const now = Date.now();
-  for (const [id, plan] of planStore) if (now - plan.createdAt > PLAN_TTL_MS) planStore.delete(id);
-}
-
-// The RECEIPT stage of the lifecycle. Validates a browser's report against the plan this
-// endpoint itself created and returned earlier -- never trusts an arbitrary client-declared
+// The RECEIPT stage of the lifecycle. Validates a browser's report against the plan THIS endpoint
+// itself created and persisted earlier -- never trusts an arbitrary client-declared
 // provider/success claim on its own. A local failure is the ONLY thing that triggers a fallback
-// generation here, and it happens exactly once per plan (the `used` flag makes a second receipt
-// for the same planId -- forged, duplicated, or genuinely repeated -- rejected as DUPLICATE_RECEIPT).
+// generation here, and the store's atomic PENDING -> terminal transition (see
+// ibis-lifecycle-store.ts) guarantees it happens at most once per plan even under concurrent
+// duplicate/retried receipt requests -- two simultaneous callers racing the same planId can never
+// both "win" the transition, so at most one fallback provider call is ever made.
 export async function recordReceiptAndMaybeFallback(input: {
   receipt: ExecutionReceiptInput;
   providers: GatewayProvider[];
+  lifecycleStore: LifecycleStore | null;
 }): Promise<ReceiptOutcome> {
-  pruneExpiredPlans();
   const r = input.receipt;
   if (typeof r.planId !== "string" || typeof r.executionTarget !== "string" || typeof r.provider !== "string" || typeof r.success !== "boolean") {
     return { status: "REJECTED", reason: "MALFORMED_RECEIPT" };
   }
-  const plan = planStore.get(r.planId);
+  if (!input.lifecycleStore) return { status: "REJECTED", reason: "LIFECYCLE_STORE_UNAVAILABLE" };
+  const store = input.lifecycleStore;
+
+  const plan = await store.getPlan(r.planId);
   if (!plan) return { status: "REJECTED", reason: "UNKNOWN_PLAN" };
-  if (Date.now() - plan.createdAt > PLAN_TTL_MS) { planStore.delete(r.planId); return { status: "REJECTED", reason: "EXPIRED_PLAN" }; }
-  // Authorization mismatch is checked BEFORE the used/duplicate check: a non-authorized plan is
-  // marked `used` the moment the server answers it (see handleCanonicalRequest), so without this
-  // ordering a receipt against one would be rejected as DUPLICATE_RECEIPT -- true, but hiding the
-  // more specific and more important fact that this plan was never authorized for local execution
-  // at all.
-  if (!plan.executionAuthorized || plan.executionTarget !== r.executionTarget || r.executionTarget !== "browser_local") {
+  if (plan.state === "EXPIRED") return { status: "REJECTED", reason: "EXPIRED_PLAN" };
+  // Authorization mismatch is checked BEFORE attempting the transition: a non-authorized plan
+  // (or one for a different target) must be rejected as a mismatch, never as a generic
+  // NOT_PENDING/duplicate, even though both would technically be true for an already-terminal
+  // non-authorized plan -- the more specific reason is more useful and more honest.
+  if (plan.authorizedTarget !== "browser_local" || r.executionTarget !== "browser_local") {
     return { status: "REJECTED", reason: "MISMATCHED_AUTHORIZATION" };
   }
-  if (plan.used) return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
 
-  plan.used = true; // terminal regardless of success/failure below -- one plan, one accepted result.
+  const toState = r.success ? "SUCCEEDED" : "FALLBACK_REQUESTED";
+  const transition = await store.transitionPlan(r.planId, toState);
+  if (!transition.ok) {
+    if (transition.reason === "UNKNOWN_PLAN") return { status: "REJECTED", reason: "UNKNOWN_PLAN" };
+    if (transition.reason === "EXPIRED_PLAN") return { status: "REJECTED", reason: "EXPIRED_PLAN" };
+    // NOT_PENDING / STORE_ERROR both mean: this exact atomic transition did not happen for this
+    // caller -- either someone else already transitioned it (a real duplicate/concurrent receipt)
+    // or the store itself failed. Either way, this caller must not proceed to generate anything.
+    return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
+  }
 
   if (r.success) {
     // Browser-local execution succeeded; the browser already has and is rendering its own answer.
@@ -289,13 +298,21 @@ export async function recordReceiptAndMaybeFallback(input: {
     return { status: "ACCEPTED", terminal: true, envelope: null };
   }
 
-  // Authorized fallback: local execution failed despite authorization. This is the ONE place a
-  // second generation attempt is legitimate, and it only ever runs once per plan.
+  // Authorized fallback: local execution failed despite authorization, and this caller won the
+  // atomic transition to FALLBACK_REQUESTED -- it is the one and only caller allowed to generate.
+  // The client must resend the original prompt text; verified against the hash taken at PLAN time
+  // (this server never persisted the text itself -- see the migration header) before it is trusted.
+  const resentText = typeof r.text === "string" ? r.text.trim() : "";
+  if (!resentText) return { status: "REJECTED", reason: "TEXT_MISMATCH" };
+  const resentHash = await sha256Hex(resentText);
+  if (resentHash !== plan.textSha256) return { status: "REJECTED", reason: "TEXT_MISMATCH" };
+  const products: IbisProduct[] = Array.isArray(r.products) ? (r.products as IbisProduct[]) : [];
+
   const startedAt = new Date().toISOString();
-  const gatewayResult = await runGateway({ text: plan.text, products: plan.products, providers: input.providers, requestId: plan.planId });
+  const gatewayResult = await runGateway({ text: resentText, products, providers: input.providers, requestId: plan.planId });
   const envelope = buildEnvelope({
-    requestId: plan.planId, startedAt, answer: gatewayResult.answer, objective: null, queryClass: plan.queryClass,
-    executionInstruction: { planId: plan.planId, executionTarget: "server_provider", executionAuthorized: false, intent: plan.queryClass, freshnessRequired: false, constraints: ["fallback_after_local_execution_failure"] },
+    requestId: plan.planId, startedAt, answer: gatewayResult.answer, objective: null, queryClass: plan.intent as QueryClass,
+    executionInstruction: { planId: plan.planId, executionTarget: "server_provider", executionAuthorized: false, intent: plan.intent as QueryClass, freshnessRequired: plan.freshnessRequired, constraints: ["fallback_after_local_execution_failure"] },
     reasoningModesUsed: gatewayResult.answerClass === "FOUNDER_REASONING_FALLBACK"
       ? [{ mode: "FOUNDER_REASONING_RULES_FALLBACK", executed: true, contribution: "Deterministic rules-based planning framework applied as the authorized fallback after local execution failed." }]
       : [{ mode: "MODEL_TEXT", executed: true, contribution: `Authorized fallback after local execution failed; answered by ${gatewayResult.provider}.` }],
