@@ -49,6 +49,41 @@ export type ReasoningModeRecord = {
   unavailableReason?: string;
 };
 
+// Composability correction: a single request can need several capabilities at once (e.g. a
+// current causal question needs live research AND a bounded causal reconstruction AND, when
+// relationships are being assessed, a correlation check). CapabilityKind names the additive,
+// server-side-only capabilities the canonical brain can plan for a given request -- this is
+// SEPARATE from and additive to the single legacy `queryClass`, which callers that only understand
+// one class may keep reading. EcoMap modes and Multi-Agent are intentionally NOT listed here yet
+// (not implemented -- see ibis-reasoning-engines.ts's contract-map header).
+export type CapabilityKind =
+  | "RESEARCH"
+  | "EBR"
+  | "CORRELATION"
+  | "FOUNDER_THINKING"
+  | "BUTTERFLY"
+  | "PREDICTION"
+  | "CONTEXT_GRAPH"
+  | "CONNECTION_FABRIC";
+
+export type PlannedCapability = {
+  capability: CapabilityKind;
+  // Why this capability was selected for THIS request -- a real, inspectable reason derived from
+  // the classifier's signals, never a static label copy-pasted regardless of the query.
+  reason: string;
+};
+
+// Per-engine operational readiness, distinct from a single request's runtime outcome
+// (ReasoningModeRecord.executed/unavailableReason above). CONNECTED_OPERATIONAL: an ordinary
+// canonical query can supply this engine's real inputs without any caller-supplied structured
+// data. CONNECTED_CONDITIONAL: the adapter is real and genuinely invoked, but genuine execution
+// still depends on structured input an ordinary free-text query does not automatically produce
+// (e.g. Butterfly/Prediction's structured effects/opportunities, or EBR's candidate causal
+// histories). UNAVAILABLE: not ported / no methodology exists yet (EcoMap, Multi-Agent). An engine
+// must never be reported CONNECTED_OPERATIONAL merely because its adapter exists or because a test
+// manually injected structured data -- that is exactly the overclaim this type exists to prevent.
+export type EngineReadiness = "CONNECTED_OPERATIONAL" | "CONNECTED_CONDITIONAL" | "UNAVAILABLE";
+
 export type SourceRecord = {
   title: string;
   publisher: string | null;
@@ -98,6 +133,7 @@ export type AlternativeRecord = {
 export type CanonicalReceipt = {
   requestId: string;
   queryClass: QueryClass;
+  capabilityPlan: PlannedCapability[];
   capabilitiesAttempted: string[];
   providerPath: string[];
   reasoningModesUsed: ReasoningModeRecord[];
@@ -111,6 +147,11 @@ export type CanonicalResponse = {
   answer: string;
   objective: string | null;
   queryClass: QueryClass;
+  // Additive, server-side-only capability plan for THIS request (see CapabilityKind above) -- what
+  // was decided as relevant, independent of the single legacy `queryClass`. Every capability that
+  // was planned appears in `reasoningModesUsed` too, with its actual executed/skipped/degraded
+  // outcome -- this field is the PLAN, reasoningModesUsed is the OUTCOME.
+  capabilityPlan: PlannedCapability[];
   reasoningModesUsed: ReasoningModeRecord[];
   capabilitiesAttempted: string[];
   providerPath: string[];
@@ -139,6 +180,7 @@ export function buildEnvelope(input: {
   answer: string;
   objective?: string | null;
   queryClass: QueryClass;
+  capabilityPlan?: PlannedCapability[];
   executionInstruction: ExecutionInstruction;
   reasoningModesUsed: ReasoningModeRecord[];
   capabilitiesAttempted: string[];
@@ -164,6 +206,7 @@ export function buildEnvelope(input: {
     answer: input.answer,
     objective: input.objective ?? null,
     queryClass: input.queryClass,
+    capabilityPlan: input.capabilityPlan || [],
     reasoningModesUsed: input.reasoningModesUsed,
     capabilitiesAttempted: input.capabilitiesAttempted,
     providerPath: input.providerPath,
@@ -185,6 +228,7 @@ export function buildEnvelope(input: {
     receipt: {
       requestId: input.requestId,
       queryClass: input.queryClass,
+      capabilityPlan: input.capabilityPlan || [],
       capabilitiesAttempted: input.capabilitiesAttempted,
       providerPath: input.providerPath,
       reasoningModesUsed: input.reasoningModesUsed,

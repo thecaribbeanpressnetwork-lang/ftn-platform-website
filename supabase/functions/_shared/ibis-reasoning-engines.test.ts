@@ -202,3 +202,34 @@ Deno.test("EBR: output never contains a fabricated probability or a consciousnes
   assert(!/"probability"\s*:/.test(serialized), "EBR must never attach a probability field to its result");
   assert(!/conscious/i.test(serialized), "EBR must never claim consciousness -- see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md");
 });
+
+// --- Composability correction: real evidence with no candidate history, and no actor/decision-time
+// context (the shape ibis-canonical-brain.ts's buildEbrInputFromSources() now produces from
+// grounded search results for an ordinary query) -- must genuinely execute a CONDITIONAL,
+// evidence-only finding, never SKIPPED (real evidence exists) and never a fabricated actor access.
+
+Deno.test("EBR: real evidence with NO candidate history genuinely executes a CONDITIONAL evidence-only finding, never SKIPPED", () => {
+  const result = runEBR({
+    auditCutoff: "2026-09-16T12:00:00Z",
+    evidenceItems: [
+      { id: "src-1", eventTime: "2026-09-01T00:00:00Z", recordTime: "2026-09-16T11:00:00Z", provenance: "central-bank.org.tt", epistemicStatus: "DOCUMENTED" },
+    ],
+    // no candidateHistories, no actor, no decisionTime
+  });
+  assertEquals(result.executed, true, "real grounded evidence means this must genuinely run, not be SKIPPED");
+  assertEquals(result.status, "OK");
+  assert(result.findings.some((f) => f.includes("No candidate causal history was supplied")), "must disclose that no candidate was evaluated");
+  assert(result.findings.some((f) => f.includes("⊥")), "must preserve the unmodeled-history reserve");
+  assert(result.evidenceReferences.includes("central-bank.org.tt"), "must surface real provenance");
+});
+
+Deno.test("EBR: no actor/decisionTime supplied -> never infers actor access, honestly discloses K_att was not evaluated", () => {
+  const result = runEBR({
+    auditCutoff: "2026-09-16T12:00:00Z",
+    evidenceItems: [{ id: "src-1", eventTime: "2026-09-01T00:00:00Z", recordTime: "2026-09-16T11:00:00Z", provenance: "central-bank.org.tt", epistemicStatus: "DOCUMENTED" }],
+    candidateHistories: [{ id: "h1", label: "chronology only", edges: [{ id: "e1", from: "a", to: "b", nominatedBy: ["CHRONOLOGY"], mechanismClass: null, temporalStatus: "BEFORE", provenanceRoots: [], testableImplication: null, knownContradictions: [], epistemicLabel: "UNKNOWN" }] }],
+  });
+  assertEquals(result.executed, true);
+  assert(result.findings.some((f) => f.includes("Actor access is never inferred merely because evidence exists")), "must explicitly disclose the no-actor-context limitation rather than silently omitting K_att");
+  assert(!result.findings.some((f) => f.includes("K_att) for")), "must not fabricate a K_att computation for an unnamed actor");
+});

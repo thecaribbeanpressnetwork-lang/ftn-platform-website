@@ -38,15 +38,27 @@ labeled separately from EBR, and must not be merged into this module or its test
 
 ## What this implementation honestly does not include
 
-Per the same honesty discipline every other reasoning engine in `ibis-reasoning-engines.ts`
-follows: this pass implements the **evaluation** half of EBR (three-view evidence separation,
-mechanism-gated causal-edge admissibility, contradiction preservation, open-set abstention). It
-does **not** implement an automatic evidence-retrieval or hypothesis-generation pipeline over live
-data -- no such data source is wired into the canonical brain for any engine yet. A caller must
-supply real, structured `EvidenceItem[]` and candidate `CausalEdgeProposal`/`CandidateHistory[]`
-data; an ordinary free-text query has none of this, so EBR is honestly `SKIPPED` for it, exactly
-like Butterfly/Prediction/Correlation/Connection Fabric are already honestly skipped absent their
-own required structured input.
+This implements the **evaluation** half of EBR (three-view evidence separation, mechanism-gated
+causal-edge admissibility, contradiction preservation, open-set abstention). Evidence-item
+*construction* IS now automatic for an ordinary query: `ibis-canonical-brain.ts`'s
+`buildEbrInputFromSources()` builds real `EvidenceItem[]` server-side from the grounded search
+results already retrieved for the request (title/url/publisher/dates it already carries) -- never
+a second retrieval, and never setting `actorAccess` (actor access must never be inferred merely
+because evidence exists; an ordinary request has no known actor or decision time, so `K_att`/`K_rec`
+are honestly disclosed as not evaluated rather than fabricated).
+
+What remains NOT automatic, and NOT invented, is candidate-*history* generation: this pass does
+**not** implement an automatic hypothesis-generation pipeline that proposes `CausalEdgeProposal`s
+from free text. A caller (the advanced/internal `CanonicalRequest.ebrInput` interface, or a
+governance/audit tool built on this endpoint) must supply real `CandidateHistory[]` data for the
+mechanism-gated *causal admissibility* evaluation to run; absent one, EBR still genuinely executes
+-- reporting a CONDITIONAL, evidence-only finding (K_att disclosure, contradiction count, the `⊥`
+reserve) rather than a completed causal reconstruction, and never `SKIPPED` when real evidence
+exists (SKIPPED is reserved for when there is no evidence at all -- e.g. search failed or was never
+planned). Inventing candidate causal edges from free text would be exactly the "invent reasoning to
+fill a gap" this codebase's discipline forbids -- this is also why EBR remains classified
+`CONNECTED_CONDITIONAL`, not `CONNECTED_OPERATIONAL`, in `docs/ibis/acceptance-baseline.md`'s engine
+readiness table.
 
 ## Acceptance boundary
 
@@ -61,7 +73,12 @@ Any test or acceptance-runner entry for EBR must confirm:
 - no output contains a consciousness claim;
 - EBR materially changes the canonical response (contradictions/uncertainties/reasoning modes),
   not just an `executed:true` flag;
-- an ordinary, non-retrodictive query never invokes EBR at all.
+- an ordinary, non-retrodictive query never invokes EBR at all;
+- search/evidence retrieval runs before any evidence-dependent reasoning (EBR evidence is built
+  from real search results, never a second or fabricated retrieval);
+- EBR is additively planned alongside other capabilities (research, correlation) via
+  `ibis-canonical-brain.ts`'s `capabilityPlan` -- it does not compete exclusively with
+  `CURRENT_WEB_RESEARCH` or any other single `queryClass`.
 
 See `supabase/functions/_shared/ibis-ebr-engine.test.ts` and the EBR-specific cases in
 `ibis-reasoning-engines.test.ts` / `ibis-canonical-brain.test.ts` for the tests that enforce this.

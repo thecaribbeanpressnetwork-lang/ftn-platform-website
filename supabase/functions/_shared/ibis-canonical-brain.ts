@@ -12,23 +12,30 @@
 // Correlation, Butterfly, Prediction/Foresight, Context Graph, Connection Fabric and EBR (Evidence-
 // Bounded Retrodiction -- see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md) are now real, genuinely
 // invoked server-side engines (ibis-reasoning-engines.ts) -- this orchestrator calls them directly
-// and reports their ACTUAL result, which for Butterfly/Prediction/Connection Fabric/EBR on an
-// ordinary free-text query is honestly executed:false/SKIPPED (no structured effects/opportunity/
-// provider/evidence data is wired into the canonical brain yet for those four -- an external
-// blocker, disclosed, never silently upgraded to executed:true; a caller MAY supply real EBR input
-// via CanonicalRequest.ebrInput and get genuine execution). When a query's classification suggests
-// a genuinely unported mode would be relevant, it is listed in reasoningModesUsed with
-// executed:false and an honest unavailableReason -- the rules-based founderReasoningAnswer()
-// already inside ibis-intelligence-gateway.ts IS real and IS executed where it applies, and is
-// reported as FOUNDER_REASONING_RULES_FALLBACK, never conflated with the deeper browser-only
-// FOUNDER_COGNITIVE_LAYER mode.
+// and reports their ACTUAL result, which for Butterfly/Prediction/Correlation/EBR on an ordinary
+// free-text query is often honestly executed:false/SKIPPED or a CONDITIONAL evidence-only finding
+// (structured effects/opportunity/series/candidate-history data is not automatically produced by
+// an ordinary query for those -- an external blocker, disclosed, never silently upgraded). See
+// EngineReadiness in ibis-response-envelope.ts for the per-engine CONNECTED_OPERATIONAL /
+// CONNECTED_CONDITIONAL / UNAVAILABLE classification this drives in docs/ibis/acceptance-
+// baseline.md and tests/ibis-investor-readiness.mjs.
+//
+// COMPOSABILITY (this checkpoint): a single request can need several capabilities at once (e.g. a
+// current causal question needs live research AND a bounded causal reconstruction AND, when
+// relationships/patterns are being assessed, a correlation check). `intent.queryClass` remains a
+// single PRIMARY class (computed by ibis-intent-router.ts with the exact same priority order as
+// every prior checkpoint, so legacy code that only reads `queryClass` sees no change), but capability
+// SELECTION for what actually runs is driven by the ADDITIVE `capabilityPlan` built from
+// `intent.signals` by planCapabilities() below -- the ONE place that decision is made, entirely
+// server-side (a browser never sees or influences this). This is still the single canonical
+// orchestrator -- no second router or duplicate planner exists.
 import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct } from "./ibis-intelligence-gateway.ts";
-import { classifyIntent } from "./ibis-intent-router.ts";
+import { classifyIntent, type IntentSignals } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
-import { buildEnvelope, type CanonicalResponse, type ExecutionInstruction, type QueryClass, type ReasoningModeRecord, type SourceRecord } from "./ibis-response-envelope.ts";
+import { buildEnvelope, type CanonicalResponse, type ExecutionInstruction, type QueryClass, type ReasoningModeRecord, type SourceRecord, type CapabilityKind, type PlannedCapability } from "./ibis-response-envelope.ts";
 import { sha256Hex, type LifecycleStore } from "./ibis-lifecycle-store.ts";
 import { runFounderThinking, runCorrelation, runButterfly, runPrediction, runContextGraph, runConnectionFabric, runEBR, type EBRInput } from "./ibis-reasoning-engines.ts";
-import { findContradictions } from "./ibis-ebr-engine.ts";
+import { findContradictions, type EvidenceItem } from "./ibis-ebr-engine.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -103,6 +110,81 @@ function relevantUnavailableModes(queryClass: QueryClass): ReasoningModeRecord[]
     default:
       return [];
   }
+}
+
+function addCapability(plan: PlannedCapability[], capability: CapabilityKind, reason: string): void {
+  if (plan.some((p) => p.capability === capability)) return; // first reason wins; never duplicate an entry
+  plan.push({ capability, reason });
+}
+
+function hasCapability(plan: PlannedCapability[], capability: CapabilityKind): boolean {
+  return plan.some((p) => p.capability === capability);
+}
+
+// The ONE place capability selection happens for a request -- entirely from classifyIntent()'s
+// signals, entirely server-side. Every capability added here is added under the SAME condition the
+// prior checkpoint's exclusive `queryClass ===` branch used for that engine, so a query matching
+// only ONE signal is invoked identically to before; only a MULTI-signal query now gets more than
+// one capability (previously impossible, since only the single highest-priority class ever ran).
+function planCapabilities(signals: IntentSignals): PlannedCapability[] {
+  const plan: PlannedCapability[] = [];
+  if (signals.freshness) {
+    addCapability(plan, "RESEARCH", "A freshness marker matched (\"today\", \"latest\", a live-data term) -- model memory cannot honestly answer this without live retrieval.");
+  } else if (signals.causeEvidence) {
+    addCapability(plan, "RESEARCH", "The request explicitly asks for evidence behind a cause -- grounded sources are needed even without a live-freshness marker.");
+  }
+  if (signals.retrodiction) {
+    addCapability(plan, "EBR", "The request asks why something happened / what caused it -- a bounded, evidence-based causal-history reconstruction (Evidence-Bounded Retrodiction) is relevant.");
+  }
+  if (signals.correlation) {
+    addCapability(plan, "CORRELATION", "An explicit correlation/relationship-between-variables marker matched.");
+  } else if (signals.causeEvidence) {
+    addCapability(plan, "CORRELATION", "Evidence-based cause analysis benefits from checking for correlational patterns among the available evidence, even without the literal word \"correlation\".");
+  }
+  if (signals.outcome) {
+    addCapability(plan, "FOUNDER_THINKING", "An outcome/build marker matched (\"I want to build/start/launch...\").");
+    addCapability(plan, "BUTTERFLY", "Outcome-building questions may involve second-order effects worth surfacing if structured effect data exists.");
+    addCapability(plan, "PREDICTION", "Outcome-building questions may involve timing/opportunity foresight worth surfacing if structured opportunity data exists.");
+    addCapability(plan, "CONTEXT_GRAPH", "An outcome/build marker matched -- grounding the answer to FTN's own product ecosystem is relevant.");
+  }
+  if (signals.relationship) {
+    addCapability(plan, "CONTEXT_GRAPH", "A relationship marker matched (which organizations/who connects) -- an ecosystem-connection question.");
+  }
+  if (signals.toolAction) {
+    addCapability(plan, "CONNECTION_FABRIC", `A named connection target ("${signals.toolAction}") was requested.`);
+  }
+  return plan;
+}
+
+// Builds real EBR evidence items from grounded search results already retrieved for THIS request --
+// never a second retrieval, never invented data. Deliberately does NOT set actorAccess: an ordinary
+// canonical request has no known actor or decision time, and actor access must never be inferred
+// merely because evidence exists (see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md and
+// ibis-reasoning-engines.ts's EBR contract comment). Returns null when there is no grounded evidence
+// to build from (search never ran, or ran and failed) -- runEBR() then honestly reports SKIPPED
+// rather than this function fabricating a placeholder item.
+function evidenceItemFromSource(source: SourceRecord, index: number): EvidenceItem {
+  return {
+    id: `search-source-${index}`,
+    eventTime: source.publishedAt || source.updatedAt || source.retrievedAt,
+    recordTime: source.retrievedAt,
+    provenance: source.publisher || source.url,
+    // A SNIPPET-only result was never actually read in full -- honestly weaker (INFERRED) than an
+    // INSPECTED result whose page body the retrieval adapter actually fetched (DOCUMENTED). This is
+    // a direct, non-fabricated translation of a distinction the search adapter already tracks.
+    epistemicStatus: source.evidenceDepth === "INSPECTED" ? "DOCUMENTED" : "INFERRED",
+    scope: "CURRENT_WEB_RESEARCH",
+    observerMetadata: { url: source.url, title: source.title },
+  };
+}
+
+function buildEbrInputFromSources(sources: SourceRecord[]): EBRInput | null {
+  if (!sources.length) return null;
+  return {
+    auditCutoff: new Date().toISOString(),
+    evidenceItems: sources.map(evidenceItemFromSource),
+    candidateHistories: [], // no automatic hypothesis generation -- see ibis-reasoning-engines.ts's EBR contract comment
+  };
 }
 
 function founderThinkingRecord(text: string, products: IbisProduct[]): ReasoningModeRecord {
@@ -235,10 +317,17 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   let handoff: CanonicalResponse["handoff"] = { external: false, note: null };
   let alternatives: CanonicalResponse["alternatives"] = [];
 
-  // 5/6. RETRIEVAL + SEARCH -- only for the one query class this pass genuinely implements
-  // (CURRENT_WEB_RESEARCH). Every other non-SIMPLE_TEXT class is honestly marked unavailable
-  // below rather than silently answered as if it were a plain question.
-  if (intent.queryClass === "CURRENT_WEB_RESEARCH") {
+  // 4. CAPABILITY PLANNING -- the ONE place capability selection happens, entirely server-side,
+  // entirely from intent.signals (see planCapabilities() above). Additive: a single request can
+  // plan several capabilities at once, unlike the single `queryClass` it is built alongside.
+  const capabilityPlan = planCapabilities(intent.signals);
+
+  // 5/6. RETRIEVAL + SEARCH -- runs whenever RESEARCH is planned (freshness marker, OR an explicit
+  // evidence-behind-a-cause request), regardless of which single class won PRIMARY classification.
+  // This MUST run before any evidence-dependent reasoning below (EBR's evidence is built from these
+  // sources) -- search failing degrades honestly here; it never silently falls through to an answer
+  // that claims research happened.
+  if (hasCapability(capabilityPlan, "RESEARCH")) {
     capabilitiesAttempted.push("SEARCH");
     const result = await runSearch(text, { fetchImpl: input.searchFetchImpl });
     if (result.status === "OK") {
@@ -254,24 +343,27 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     }
   }
 
-  // Real engine invocation, selective -- not every engine runs on every query. Founder Thinking,
-  // Butterfly, Prediction and Context Graph are only genuinely relevant (and only selected) for
-  // FOUNDER_STRATEGY (an outcome-building question); Context Graph is also selected for RELATIONSHIP;
-  // Correlation is only selected for a query actually classified CORRELATION-flavored; Connection
-  // Fabric is only selected for a query actually classified TOOL_ACTION (a named connect/integrate
-  // request). An ordinary SIMPLE_TEXT or CURRENT_WEB_RESEARCH question never invokes any of them --
-  // avoiding unnecessary reasoning cost on simple queries, per the required selection rule.
-  if (intent.queryClass === "FOUNDER_STRATEGY") {
+  // Real engine invocation, selective and now composable -- every capability planned above is
+  // invoked; a capability NOT planned is never invoked, avoiding unnecessary reasoning cost on
+  // simple queries (the required selection rule). Founder Thinking/Butterfly/Prediction/Context
+  // Graph run together when an outcome-building question is detected; Context Graph also runs
+  // alone for a relationship question; Correlation runs for an explicit correlation marker OR as a
+  // complementary check for evidence-based cause analysis; Connection Fabric runs for a named
+  // connect/integrate target; EBR runs for a why-did/what-caused question.
+  if (hasCapability(capabilityPlan, "FOUNDER_THINKING")) {
     reasoningModesUsed.push(founderThinkingRecord(text, products));
     reasoningModesUsed.push(butterflyRecord());
     reasoningModesUsed.push(predictionRecord());
-    reasoningModesUsed.push(contextGraphRecord(products));
   }
-  if (intent.queryClass === "CORRELATION") reasoningModesUsed.push(correlationRecord());
-  if (intent.queryClass === "RELATIONSHIP") reasoningModesUsed.push(contextGraphRecord(products));
-  if (intent.queryClass === "TOOL_ACTION") reasoningModesUsed.push(connectionFabricRecord(intent.objective));
-  if (intent.queryClass === "RETRODICTION") {
-    const ebr = ebrRecord(input.ebrInput ?? null);
+  if (hasCapability(capabilityPlan, "CONTEXT_GRAPH")) reasoningModesUsed.push(contextGraphRecord(products));
+  if (hasCapability(capabilityPlan, "CORRELATION")) reasoningModesUsed.push(correlationRecord());
+  if (hasCapability(capabilityPlan, "CONNECTION_FABRIC")) reasoningModesUsed.push(connectionFabricRecord(intent.signals.toolAction));
+  if (hasCapability(capabilityPlan, "EBR")) {
+    // Advanced/internal interface preserved: an explicit input.ebrInput always takes precedence.
+    // Otherwise, build real EBR evidence server-side from the grounded search results already
+    // retrieved above (never from the browser, never inferring actor access) -- an ordinary user
+    // never needs to construct ebrInput themselves for EBR to genuinely run on real evidence.
+    const ebr = ebrRecord(input.ebrInput ?? buildEbrInputFromSources(sources));
     reasoningModesUsed.push(ebr.record);
     contradictions.push(...ebr.contradictions);
     extraUncertainties.push(...ebr.uncertainties);
@@ -291,11 +383,13 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     });
     return buildEnvelope({
       requestId, startedAt, answer: "", objective: intent.objective, queryClass: intent.queryClass,
+      capabilityPlan,
       executionInstruction,
       reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState: "NO_ANSWER_GENERATED", sources,
       confidence: "UNVERIFIED", confidenceBasis: "Execution deferred to authorized browser-local generation; no server provider was called.",
       status: "OK", degradedStages, handoff, alternatives,
-      uncertainties: intent.reasons,
+      uncertainties: [...intent.reasons, ...extraUncertainties],
+      contradictions,
     });
   }
 
@@ -309,10 +403,12 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   let confidenceBasis: string;
   let status: CanonicalResponse["status"] = "OK";
 
-  if (intent.queryClass === "CURRENT_WEB_RESEARCH" && sources.length === 0) {
-    // Search genuinely unavailable: say so plainly rather than falling back to model memory and
-    // implying research happened -- this is the one hard rule this module must never violate.
-    answer = `I don't have a working live-search route yet, so I can't verify current information for "${text}". ${handoff.note} Use one of the direct sources below instead.`;
+  if (hasCapability(capabilityPlan, "RESEARCH") && sources.length === 0) {
+    // Search was genuinely needed (and, for EBR, evidence-dependent reasoning above already
+    // honestly SKIPPED for the same reason) but unavailable: say so plainly rather than falling
+    // back to model memory and implying research happened -- this is the one hard rule this
+    // module must never violate, regardless of which single primary class the query landed in.
+    answer = `I don't have a working live-search route yet, so I can't verify the requested information for "${text}". ${handoff.note} Use one of the direct sources below instead.`;
     confidence = "UNAVAILABLE";
     confidenceBasis = "No search provider is configured; answering from model memory would misrepresent freshness.";
     status = "DEGRADED";
@@ -352,6 +448,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
 
   return buildEnvelope({
     requestId, startedAt, answer, objective: intent.objective, queryClass: intent.queryClass,
+    capabilityPlan,
     executionInstruction,
     reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,

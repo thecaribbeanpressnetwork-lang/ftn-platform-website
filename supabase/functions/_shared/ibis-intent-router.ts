@@ -3,10 +3,17 @@
 // Every prompt passes through here before any answer is produced. This is deliberately a small,
 // inspectable, deterministic classifier -- not a second copy of js/ibis-universal-router.js (that
 // module reasons over capability/agent selection for the browser-side multi-agent runtime; this
-// one only decides which SERVER-SIDE query route the canonical brain takes: does this need live
+// one only decides which SERVER-SIDE query route(s) the canonical brain takes: does this need live
 // web research, does it describe a desired outcome, or is it an ordinary question). A wrong
 // classification here must fail toward MORE scrutiny (research/outcome), never toward silently
 // skipping evidence a freshness- or outcome-sensitive question needed.
+//
+// Composability correction: a real question can require SEVERAL capabilities at once (e.g. "why
+// has X happened, what evidence supports the possible causes" needs research AND a bounded causal
+// reconstruction AND a correlation check). `queryClass` remains a single PRIMARY class, computed
+// with the exact same priority order as before, for legacy code that only understands one class.
+// `signals` exposes every independently-matched marker so ibis-canonical-brain.ts can build an
+// ADDITIVE capability plan instead of only acting on whichever single class won the priority race.
 import type { QueryClass } from "./ibis-response-envelope.ts";
 
 const FRESHNESS_MARKERS = /\b(today|latest|current(?:ly)?|right now|this week|this month|breaking|as of \d{4}|news|price|exchange rate|fx rate|selling rate|indicators?|shortage|election result|score)\b/i;
@@ -40,55 +47,92 @@ const TOOL_ACTION_MARKERS = /\b(?:connect|integrate|link|sync)\s+(?:my|with|to)?
 // situation CORRELATION/TOOL_ACTION were in before they were wired). Matches a question asking WHY
 // something happened / what caused it / what an actor knew at a past decision time, as distinct
 // from an ordinary factual question -- these need the K_att/K_rec/R evidence separation, not a
-// single fact. Checked AFTER freshness/correlation/tool-action so a retrodiction question that also
-// needs live current data still correctly routes to CURRENT_WEB_RESEARCH first.
-const RETRODICTION_MARKERS = /\b(why did|what (?:really )?caused|what led to|in hindsight|looking back(?:,| at)|reconstruct (?:what|why|how)|given what we (?:now |later )?know|what did .+ know at the time|knowing what we know now)\b/i;
+// single fact. Broadened beyond "why did" to also catch "why has/does/is/are/was/were" phrasing
+// (e.g. "why has Trinidad and Tobago experienced forex shortages") -- still checked AFTER
+// freshness/correlation/tool-action for PRIMARY classification purposes so a retrodiction question
+// that also needs live current data still gets CURRENT_WEB_RESEARCH as its primary class, but the
+// RETRODICTION signal itself is independent and additive (see IntentSignals below).
+const RETRODICTION_MARKERS = /\b(why (?:has|have|did|does|do|is|are|was|were)\b|what (?:really )?caused|what led to|in hindsight|looking back(?:,| at)|reconstruct (?:what|why|how)|given what we (?:now |later )?know|what did .+ know at the time|knowing what we know now)\b/i;
+
+// New this checkpoint: detects a request explicitly asking for EVIDENCE behind a cause, distinct
+// from a bare "why" question. This independently signals that (a) grounded sources should be
+// attempted even when no freshness marker matched, and (b) a correlation check is a reasonable
+// complementary capability for evidence-based cause analysis, even without the literal word
+// "correlation" -- assessing whether patterns/associations exist among the available evidence is a
+// natural preparatory step before treating anything as a supported cause.
+const CAUSE_EVIDENCE_MARKERS = /\b(evidence (?:supports?|for|shows?)|possible causes?|root cause|contributing factors?|what evidence)\b/i;
+
+export type IntentSignals = {
+  freshness: boolean;
+  causeEvidence: boolean;
+  retrodiction: boolean;
+  correlation: boolean;
+  toolAction: string | null;
+  pathway: boolean;
+  place: boolean;
+  relationship: boolean;
+  outcome: boolean;
+};
 
 export type IntentClassification = {
   queryClass: QueryClass;
   objective: string | null;
   reasons: string[];
+  signals: IntentSignals;
 };
 
 export function classifyIntent(text: string): IntentClassification {
   const q = (text || "").trim();
+  const toolActionMatch = q.match(TOOL_ACTION_MARKERS);
+  const signals: IntentSignals = {
+    freshness: FRESHNESS_MARKERS.test(q),
+    causeEvidence: CAUSE_EVIDENCE_MARKERS.test(q),
+    retrodiction: RETRODICTION_MARKERS.test(q),
+    correlation: CORRELATION_MARKERS.test(q),
+    toolAction: toolActionMatch ? toolActionMatch[1] : null,
+    pathway: PATHWAY_MARKERS.test(q),
+    place: PLACE_MARKERS.test(q),
+    relationship: RELATIONSHIP_MARKERS.test(q),
+    outcome: OUTCOME_MARKERS.test(q),
+  };
   const reasons: string[] = [];
 
-  if (FRESHNESS_MARKERS.test(q)) {
+  // PRIMARY classification: identical priority order to every prior checkpoint, so existing
+  // callers that only read `queryClass` see no behavior change whatsoever.
+  if (signals.freshness) {
     reasons.push("matched a freshness marker (e.g. \"today\", \"latest\", \"current\", a live-data term) -- model memory cannot honestly answer this without live retrieval.");
-    return { queryClass: "CURRENT_WEB_RESEARCH", objective: null, reasons };
+    return { queryClass: "CURRENT_WEB_RESEARCH", objective: null, reasons, signals };
   }
-  if (CORRELATION_MARKERS.test(q)) {
+  if (signals.correlation) {
     reasons.push("matched a correlation marker (\"correlation\", \"is there a relationship between...\") -- routed to the Correlation engine rather than answered as a plain fact.");
-    return { queryClass: "CORRELATION", objective: null, reasons };
+    return { queryClass: "CORRELATION", objective: null, reasons, signals };
   }
-  const toolActionMatch = q.match(TOOL_ACTION_MARKERS);
-  if (toolActionMatch) {
+  if (signals.toolAction) {
     reasons.push("matched a tool-connection marker (\"connect my/integrate with/link my/sync my <app>\") -- routed to the Connection Fabric capability-check rather than answered as a plain fact.");
-    return { queryClass: "TOOL_ACTION", objective: toolActionMatch[1], reasons };
+    return { queryClass: "TOOL_ACTION", objective: signals.toolAction, reasons, signals };
   }
-  if (RETRODICTION_MARKERS.test(q)) {
-    reasons.push("matched a retrodiction marker (\"why did ... happen\", \"what caused\", \"in hindsight\", \"what did ... know at the time\") -- this asks for a causal-history reconstruction bounded by what was actually known when, not a single fact.");
-    return { queryClass: "RETRODICTION", objective: extractObjective(q), reasons };
+  if (signals.retrodiction) {
+    reasons.push("matched a retrodiction marker (\"why did/has/does ... \", \"what caused\", \"in hindsight\", \"what did ... know at the time\") -- this asks for a causal-history reconstruction bounded by what was actually known when, not a single fact.");
+    return { queryClass: "RETRODICTION", objective: extractObjective(q), reasons, signals };
   }
-  if (PATHWAY_MARKERS.test(q)) {
+  if (signals.pathway) {
     reasons.push("matched a pathway marker (steps/apply/eligibility/deadline) -- the user needs an ordered plan, not a single fact.");
-    return { queryClass: "PATHWAY", objective: extractObjective(q), reasons };
+    return { queryClass: "PATHWAY", objective: extractObjective(q), reasons, signals };
   }
-  if (PLACE_MARKERS.test(q)) {
+  if (signals.place) {
     reasons.push("matched a place marker (near me/nearby/in my area) -- location-relevant, requires consent before use.");
-    return { queryClass: "PLACE", objective: extractObjective(q), reasons };
+    return { queryClass: "PLACE", objective: extractObjective(q), reasons, signals };
   }
-  if (RELATIONSHIP_MARKERS.test(q)) {
+  if (signals.relationship) {
     reasons.push("matched a relationship marker (which organizations/who connects) -- an ecosystem-connection question, not a single fact.");
-    return { queryClass: "RELATIONSHIP", objective: extractObjective(q), reasons };
+    return { queryClass: "RELATIONSHIP", objective: extractObjective(q), reasons, signals };
   }
-  if (OUTCOME_MARKERS.test(q)) {
+  if (signals.outcome) {
     reasons.push("matched an outcome marker (\"I want to build/start/launch...\") -- this describes a desired outcome, not a single-fact question.");
-    return { queryClass: "FOUNDER_STRATEGY", objective: extractObjective(q), reasons };
+    return { queryClass: "FOUNDER_STRATEGY", objective: extractObjective(q), reasons, signals };
   }
   reasons.push("no freshness, pathway, place, relationship or outcome marker matched -- treated as an ordinary question.");
-  return { queryClass: "SIMPLE_TEXT", objective: null, reasons };
+  return { queryClass: "SIMPLE_TEXT", objective: null, reasons, signals };
 }
 
 function extractObjective(text: string): string {

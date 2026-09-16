@@ -11,7 +11,7 @@ Controlling test: `tests/ibis-investor-readiness.mjs` (the one authoritative acc
 ## Latest checkpoint
 
 - **Commit**: (this checkpoint -- see revision history below)
-- **Parent checkpoint**: `4f637c2`
+- **Parent checkpoint**: `acf46ff`
 - **Branch**: `fix/ibis-canonical-outcome-intelligence`
 - **Run date**: 2026-09-16
 - **Readiness classification**: **LOCALLY_VERIFIED**
@@ -28,7 +28,7 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 | Canonical routing | PASS | L1/L2 |
 | Durable lifecycle state | PASS (local contract); BLOCKED_EXTERNAL (real DB) | L1 / L3 |
 | Real web search | PASS (adapter contracts only); BLOCKED_EXTERNAL (live provider) | L1 / L3-L4 |
-| Reasoning engine execution | PASS (Founder Thinking, Correlation, Butterfly, Prediction, Context Graph, Connection Fabric, EBR — 7 of 11); **FAIL** (remaining 4: EcoMap Place/Pathway/Relationship, Multi-Agent) | L1 |
+| Reasoning engine execution | PASS (7 of 11 connected: 3 `CONNECTED_OPERATIONAL` — Founder Thinking, Context Graph, Connection Fabric; 4 `CONNECTED_CONDITIONAL` — Correlation, Butterfly, Prediction, EBR); **FAIL** (remaining 4 `UNAVAILABLE`: EcoMap Place/Pathway/Relationship, Multi-Agent) | L1 |
 | Capability truth | PASS (matrix assembled) | L1 |
 | Regular IBIS UX | PASS (core suites); NOT_RUN (viewport matrix, accessibility) | L1/L2 |
 | Headspace UX | PASS (controls suite) | L2 |
@@ -59,6 +59,88 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 - **Founder Thinking, Correlation, Butterfly, Prediction/Foresight, Context Graph, Connection
   Fabric and EBR (Evidence-Bounded Retrodiction) are now genuinely connected** (see "Reasoning
   engines connected this checkpoint" below) — this is a correction, not a new regression.
+
+## Engine readiness classification
+
+Per-engine operational readiness (`EngineReadiness` in `ibis-response-envelope.ts`), distinct from
+what any single request's runtime outcome was. An engine is never reported `CONNECTED_OPERATIONAL`
+merely because its adapter exists or because a test manually injected structured data.
+
+| Engine | Readiness | Why |
+|---|---|---|
+| Founder Cognitive Layer | `CONNECTED_OPERATIONAL` | An ordinary outcome-building request already carries the request text itself, which is all `founderDomain()`/`FOUNDER_GUIDANCE` needs. |
+| Context Graph | `CONNECTED_OPERATIONAL` | Grounded to the request's own `IbisProduct[]` list, always available. |
+| Connection Fabric | `CONNECTED_OPERATIONAL` | A named connect-target is parsed directly from the request text itself. |
+| Correlation | `CONNECTED_CONDITIONAL` | Genuine execution needs two real numeric time series; no data source produces these from free text yet. |
+| Butterfly | `CONNECTED_CONDITIONAL` | Genuine execution needs structured action + effect data; none is produced from free text yet. |
+| Prediction/Foresight | `CONNECTED_CONDITIONAL` | Genuine execution needs reviewed-opportunity/relationship data; none is produced from free text yet. |
+| EBR | `CONNECTED_CONDITIONAL` | Evidence items are now built server-side from grounded search results (this checkpoint), but genuine mechanism-gated *causal admissibility* still needs a candidate causal history no automatic pipeline generates from free text. |
+| EcoMap Place/Pathway/Relationship | `UNAVAILABLE` | Not ported; no methodology exists under this name. |
+| Multi-Agent Orchestrator | `UNAVAILABLE` | Real but browser-only (`FTN.Auth`/`PermissionLedger`/`UniversalRouter`); unassessed for server portability. |
+
+## Composable capability plan (this checkpoint)
+
+Corrects a canonical-planning gap: `RETRODICTION` was competing exclusively with
+`CURRENT_WEB_RESEARCH` and every other query class, even though a real question routinely needs
+several capabilities at once (e.g. "why has X happened, what evidence supports the possible
+causes" needs research AND a bounded causal reconstruction AND a correlation check).
+
+- `ibis-intent-router.ts`'s `classifyIntent()` now returns `signals: IntentSignals` -- every
+  independently-matched marker (freshness, cause-evidence, retrodiction, correlation, tool-action,
+  pathway, place, relationship, outcome) -- alongside the unchanged single `queryClass` (computed
+  with the exact same priority order as every prior checkpoint, so legacy code reading only
+  `queryClass` sees zero behavior change). New `CAUSE_EVIDENCE_MARKERS` detects an explicit
+  evidence-behind-a-cause request ("evidence supports", "possible causes", "root cause",
+  "contributing factors", "what evidence") -- independently triggers RESEARCH (even without a
+  freshness marker) and, as a complementary check, CORRELATION.
+- `ibis-canonical-brain.ts`'s new `planCapabilities(signals)` is the ONE place capability
+  selection happens -- entirely server-side, entirely from these signals (a browser never sees or
+  influences it) -- producing an additive `capabilityPlan: PlannedCapability[]`, now a first-class
+  field on `CanonicalResponse` and `CanonicalReceipt` (`CapabilityKind`/`PlannedCapability` in
+  `ibis-response-envelope.ts`). Every capability planned under the SAME condition a prior
+  checkpoint's exclusive `queryClass ===` branch used for that engine is invoked identically to
+  before for a single-signal query; only a MULTI-signal query now gets more than one capability
+  (previously structurally impossible). No second orchestrator was created -- this is the same one
+  canonical brain, extended.
+- Search now runs whenever RESEARCH is planned, regardless of which single class won PRIMARY
+  classification -- and always BEFORE any evidence-dependent reasoning (EBR) below it, so EBR can
+  actually use real grounded evidence rather than requiring a caller to pre-fetch it.
+- **EBR reachability for ordinary users**: new `buildEbrInputFromSources()` in
+  `ibis-canonical-brain.ts` builds real `EvidenceItem[]` server-side directly from the SAME grounded
+  search results already retrieved for the request -- never a second retrieval, never inventing
+  data. It deliberately never sets `actorAccess`: an ordinary canonical request has no known actor
+  or decision time, and actor access must never be inferred merely because evidence exists.
+  `ibis-reasoning-engines.ts`'s `EBRInput.actor`/`decisionTime`/`candidateHistories` are now
+  optional; `runEBR()` honestly discloses when `K_att`/`K_rec` were not evaluated (no actor context)
+  rather than fabricating one, and now genuinely executes a **CONDITIONAL, evidence-only finding**
+  (K_att disclosure, contradiction count, the `⊥` reserve) when real evidence exists but no
+  candidate causal history was supplied — distinct from `SKIPPED` (no evidence at all). The
+  advanced/internal `CanonicalRequest.ebrInput` interface is fully preserved and still takes
+  precedence when supplied (proven by the existing checkpoint-`acf46ff` tests, unchanged). No
+  automatic causal-edge/hypothesis-generation pipeline was added -- inventing one from free text
+  would be exactly the "invent reasoning to fill a gap" this codebase's discipline forbids (see
+  `ibis-reasoning-engines.ts`'s EBR contract comment); this is why EBR stays `CONNECTED_CONDITIONAL`
+  rather than being reclassified `CONNECTED_OPERATIONAL`.
+- **Acceptance query** (exact text specified): *"Why has Trinidad and Tobago experienced
+  foreign-exchange shortages, what evidence supports the possible causes, and what practical
+  actions could improve the situation?"* -- classifies `RETRODICTION` (legacy primary class,
+  unchanged priority order); signals `causeEvidence` and `retrodiction` both true, `freshness`
+  false. Capability plan: `[RESEARCH, EBR, CORRELATION]`. **With mocked grounded evidence** (two
+  real-shaped sources: Central Bank of T&T forex allocation update, IMF Article IV consultation):
+  `sources.length === 2`, `evidenceState === "SEARCH_GROUNDED"`, `EBR` executed:true with a real
+  evidence-grounded finding built from those sources (no `ebrInput` supplied), `CORRELATION`
+  honestly executed:false/SKIPPED (no numeric series in free text), and the canonical envelope's
+  own `uncertainties` array carries the `⊥` unmodeled-history-reserve disclosure. **Without grounded
+  evidence** (no search provider configured): `status: "DEGRADED"`, `degradedStages` includes
+  `SEARCH_UNAVAILABLE`, `sources.length === 0`, `EBR` honestly executed:false (abstains), and the
+  answer is the same honest "can't verify" refusal used for every other research-dependent query --
+  never a fabricated researched answer. Live web-search verification is never claimed unless a real
+  search provider is configured and the evidence came from it -- both branches use an explicit
+  local test double or an explicitly unconfigured provider, never a real network call. Proven by
+  `ibis-canonical-brain.test.ts`'s `ACCEPTANCE QUERY` tests (and the `COMPOSABILITY` test group
+  above them, covering non-invocation on a simple/current-fact-only query, invocation without
+  requiring current search via the advanced `ebrInput` interface, and honest degradation on search
+  failure).
 
 ## Reasoning engines connected this checkpoint
 
@@ -187,13 +269,33 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 
 `ibis-canonical-routing-behavioral.mjs`, `ibis-local-ai-planner-gate-behavioral.mjs`,
 `ibis-routing-consolidation-audit.mjs`, `ibis-headspace-universal-routing-audit.mjs`, the shared
-Deno suite (`supabase/functions/_shared/*.test.ts`, now including the new
-`ibis-ebr-engine.test.ts`), `ibis-ux-release.mjs`, `ibis-behavioral-ux-acceptance.mjs`,
-`ibis-headspace-controls-audit.mjs`.
+Deno suite (`supabase/functions/_shared/*.test.ts`, now including the `COMPOSABILITY` and
+`ACCEPTANCE QUERY` cases in `ibis-canonical-brain.test.ts`), `ibis-ux-release.mjs`,
+`ibis-behavioral-ux-acceptance.mjs`, `ibis-headspace-controls-audit.mjs`.
 
 ## Revision history
 
-- (this checkpoint, 2026-09-16): EBR slice. Implemented Evidence-Bounded Retrodiction (Ricardo
+- (this checkpoint, 2026-09-16): composable capability-plan correction. Replaced RETRODICTION's
+  exclusive competition with CURRENT_WEB_RESEARCH (and every other class) with an additive,
+  server-side-only `capabilityPlan` (see "Composable capability plan" above) -- a request can now
+  plan RESEARCH + EBR + CORRELATION (etc.) simultaneously, while the legacy single `queryClass`
+  field is fully preserved for backward compatibility. EBR evidence is now built server-side from
+  grounded search results for an ordinary query (no `ebrInput` required), but EBR remains
+  `CONNECTED_CONDITIONAL` (see the new engine readiness classification table above) because
+  mechanism-gated causal admissibility still needs a candidate causal history nothing generates
+  automatically. 18 new Deno tests (`COMPOSABILITY` + `ACCEPTANCE QUERY` groups in
+  `ibis-canonical-brain.test.ts`, 2 new pure-module tests in `ibis-reasoning-engines.test.ts`) proving:
+  a current causal question invokes both research and EBR; a correlation marker additionally invokes
+  Correlation; a historical causal question can still invoke EBR via the advanced `ebrInput`
+  interface without search; simple/current-fact-only questions never invoke EBR; search failure
+  degrades honestly and EBR abstains rather than fabricating a researched answer; the exact
+  specified acceptance query ("Why has Trinidad and Tobago experienced foreign-exchange
+  shortages...") produces a `[RESEARCH, EBR, CORRELATION]` plan and a sourced, uncertainty-aware
+  answer with mocked grounded evidence, and degrades honestly without it. Full shared Deno suite
+  (110 tests) and the authoritative acceptance runner both pass, with the same honest FAIL entries
+  for the 4 genuinely unavailable engines (EcoMap Place/Pathway/Relationship, Multi-Agent) -- not
+  touched this pass, per instruction.
+- `acf46ff` (2026-09-16): EBR slice. Implemented Evidence-Bounded Retrodiction (Ricardo
   Gill's published protocol, DOI `10.5281/zenodo.22681856` -- see `GOVERNANCE/
   EBR_SOURCE_AND_BOUNDARY.md`) as the 7th of 11 genuinely connected reasoning engines. New pure
   module `ibis-ebr-engine.ts` (three-view evidence separation, mechanism-gated admissibility,

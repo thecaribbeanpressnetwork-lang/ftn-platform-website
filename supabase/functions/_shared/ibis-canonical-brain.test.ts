@@ -751,6 +751,181 @@ Deno.test("EBR: no admissible candidate history honestly abstains rather than fa
   assert(ebrMode!.contribution && ebrMode!.contribution.includes("abstains"));
 });
 
+// --- COMPOSABILITY: an additive server-side capability plan, not an exclusive queryClass. A single
+// request can need several capabilities at once (research + EBR + correlation). `queryClass`
+// remains the single PRIMARY class for legacy code; `capabilityPlan` is the additive plan that
+// actually drives which engines run -- see ibis-response-envelope.ts's CapabilityKind/
+// PlannedCapability and ibis-canonical-brain.ts's planCapabilities(). ---
+
+const ACCEPTANCE_QUERY = "Why has Trinidad and Tobago experienced foreign-exchange shortages, what evidence supports the possible causes, and what practical actions could improve the situation?";
+
+Deno.test("COMPOSABILITY: acceptance query signals cause-evidence + retrodiction, primary class RETRODICTION", () => {
+  const result = classifyIntent(ACCEPTANCE_QUERY);
+  assertEquals(result.queryClass, "RETRODICTION");
+  assertEquals(result.signals.causeEvidence, true);
+  assertEquals(result.signals.retrodiction, true);
+  assertEquals(result.signals.freshness, false, "the acceptance query must not accidentally trip a freshness marker");
+});
+
+Deno.test("COMPOSABILITY: a current causal question invokes both RESEARCH and EBR when search evidence is available", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ results: [{ title: "USD exchange rate update", url: "https://www.central-bank.org.tt/rate", content: "snippet", engine: "central-bank", publishedDate: "2026-09-15" }] }), { status: 200 });
+  const res = await handleCanonicalRequest({
+    text: "Why has the latest USD exchange rate dropped today?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assertEquals(res.queryClass, "CURRENT_WEB_RESEARCH", "freshness still wins PRIMARY classification, unchanged from every prior checkpoint");
+  assert(res.capabilityPlan.some((p) => p.capability === "RESEARCH"));
+  assert(res.capabilityPlan.some((p) => p.capability === "EBR"), "EBR must be additively planned even though CURRENT_WEB_RESEARCH won primary classification");
+  assert(!res.capabilityPlan.some((p) => p.capability === "CORRELATION"), "no correlation marker matched -- must not be planned");
+  const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
+  assert(ebrMode, "EBR must be invoked");
+  assertEquals(ebrMode!.executed, true, "real grounded search evidence exists -- EBR must genuinely run, not SKIP");
+});
+
+Deno.test("COMPOSABILITY: a current causal question also invokes Correlation when a correlation marker is present", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ results: [{ title: "Remittances and FX", url: "https://www.central-bank.org.tt/remit", content: "snippet", engine: "central-bank", publishedDate: "2026-09-14" }] }), { status: 200 });
+  const res = await handleCanonicalRequest({
+    text: "Why has the latest correlation between remittances and the exchange rate changed?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assert(res.capabilityPlan.some((p) => p.capability === "RESEARCH"));
+  assert(res.capabilityPlan.some((p) => p.capability === "EBR"));
+  assert(res.capabilityPlan.some((p) => p.capability === "CORRELATION"));
+  assert(res.reasoningModesUsed.some((m) => m.mode === "CORRELATION"), "Correlation must actually be invoked, not just planned");
+});
+
+Deno.test("COMPOSABILITY: a historical causal question can invoke EBR without requiring current search (advanced ebrInput interface)", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Why did the operator change the plan right before the incident?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    ebrInput: {
+      auditCutoff: "2026-09-16T12:00:00Z",
+      evidenceItems: [{ id: "warning-957", eventTime: "2026-09-10T09:57:00Z", recordTime: "2026-09-10T09:57:30Z", provenance: "control-log", epistemicStatus: "DOCUMENTED" }],
+      candidateHistories: [{ id: "h1", label: "Operator saw the warning", edges: [{ id: "e1", from: "warning-957", to: "decision", nominatedBy: ["MECHANISM"], mechanismClass: "M", temporalStatus: "BEFORE", provenanceRoots: ["control-log"], testableImplication: "x", knownContradictions: [], epistemicLabel: "DOCUMENTED" }] }],
+    },
+  });
+  assert(!res.capabilityPlan.some((p) => p.capability === "RESEARCH"), "no freshness/cause-evidence marker matched -- research must not be planned");
+  const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
+  assert(ebrMode);
+  assertEquals(ebrMode!.executed, true, "explicit ebrInput must still genuinely execute without any search having run");
+});
+
+Deno.test("COMPOSABILITY: a simple factual question does not invoke EBR", async () => {
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
+  assert(!res.capabilityPlan.some((p) => p.capability === "EBR"));
+  assert(!res.reasoningModesUsed.some((m) => m.mode === "EBR"));
+});
+
+Deno.test("COMPOSABILITY: a current fact lookup without a causal request does not invoke EBR", async () => {
+  const res = await handleCanonicalRequest({ text: "What is the latest USD selling rate today?", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
+  assert(res.capabilityPlan.some((p) => p.capability === "RESEARCH"));
+  assert(!res.capabilityPlan.some((p) => p.capability === "EBR"));
+  assert(!res.reasoningModesUsed.some((m) => m.mode === "EBR"));
+});
+
+Deno.test("COMPOSABILITY: search failure produces honest degradation and EBR abstention, not a model-memory answer disguised as research", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () => new Response("", { status: 500 });
+  const res = await handleCanonicalRequest({
+    text: "Why has the latest USD exchange rate dropped today?",
+    providers: [fakeProvider("test", "SHOULD_NOT_BE_TREATED_AS_RESEARCH")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assertEquals(res.status, "DEGRADED");
+  assert(res.receipt.degradedStages.includes("SEARCH_UNAVAILABLE"));
+  assertMatch(res.answer, /can't verify the requested information/);
+  const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
+  assert(ebrMode, "EBR must still be listed as planned");
+  assertEquals(ebrMode!.executed, false, "no grounded evidence exists -- EBR must abstain (SKIPPED), never fabricate a reconstruction");
+});
+
+Deno.test("COMPOSABILITY: the final receipt lists every planned capability alongside its actual outcome", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ results: [{ title: "T&T forex note", url: "https://www.central-bank.org.tt/note", content: "snippet", engine: "central-bank", publishedDate: "2026-08-01" }] }), { status: 200 });
+  const res = await handleCanonicalRequest({
+    text: ACCEPTANCE_QUERY,
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assertEquals(res.receipt.capabilityPlan, res.capabilityPlan, "the receipt must carry the same capability plan as the top-level response");
+  for (const planned of res.capabilityPlan) {
+    const outcome = res.reasoningModesUsed.some((m) => m.mode === planned.capability) || (planned.capability === "RESEARCH" && res.receipt.capabilitiesAttempted.includes("SEARCH"));
+    assert(outcome, `planned capability ${planned.capability} must have a corresponding outcome recorded (executed, skipped, degraded or unavailable)`);
+  }
+});
+
+// --- ACCEPTANCE QUERY (exact text specified): with mocked grounded evidence, prove the plan
+// includes research + EBR + correlation and produces a sourced, uncertainty-aware answer; without
+// grounded evidence, prove it degrades honestly. ---
+
+Deno.test("ACCEPTANCE QUERY: with mocked grounded evidence, plan includes research+EBR+correlation, answer is sourced and uncertainty-aware", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({
+      results: [
+        { title: "Central Bank of T&T: forex allocation update", url: "https://www.central-bank.org.tt/forex-update", content: "snippet", engine: "central-bank", publishedDate: "2026-08-20" },
+        { title: "IMF Article IV consultation: Trinidad and Tobago", url: "https://www.imf.org/tt-article-iv", content: "snippet", engine: "imf", publishedDate: "2026-06-10" },
+      ],
+    }), { status: 200 });
+  const res = await handleCanonicalRequest({
+    text: ACCEPTANCE_QUERY,
+    providers: [fakeProvider("test", "Draft answer text.")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  assertEquals(res.queryClass, "RETRODICTION");
+  assertEquals(res.capabilityPlan.map((p) => p.capability).sort(), ["CORRELATION", "EBR", "RESEARCH"]);
+  assertEquals(res.sources.length, 2, "the answer must be genuinely sourced");
+  assertEquals(res.evidenceState, "SEARCH_GROUNDED");
+
+  const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
+  assert(ebrMode);
+  assertEquals(ebrMode!.executed, true, "real grounded evidence exists -- EBR must genuinely run");
+  assert(ebrMode!.contribution && ebrMode!.contribution.includes("grounded evidence"), "must report a real, concrete finding, not a static label");
+
+  const correlationMode = res.reasoningModesUsed.find((m) => m.mode === "CORRELATION");
+  assert(correlationMode, "Correlation must be listed as planned and invoked");
+  assertEquals(correlationMode!.executed, false, "no numeric time-series data exists in this free-text request -- honestly SKIPPED, not fabricated");
+
+  assert(res.uncertainties.some((u) => u.includes("⊥")), "the unmodeled-history reserve must surface on the canonical envelope's own uncertainties");
+  assertEquals(res.status, "OK");
+});
+
+Deno.test("ACCEPTANCE QUERY: without grounded evidence, it degrades honestly instead of fabricating researched causes", async () => {
+  Deno.env.delete("SEARXNG_BASE_URL");
+  Deno.env.delete("BRAVE_SEARCH_API_KEY");
+  const res = await handleCanonicalRequest({
+    text: ACCEPTANCE_QUERY,
+    providers: [fakeProvider("test", "SHOULD_NOT_APPEAR_AS_RESEARCH")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.status, "DEGRADED");
+  assert(res.receipt.degradedStages.includes("SEARCH_UNAVAILABLE"));
+  assertEquals(res.sources.length, 0);
+  const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
+  assert(ebrMode);
+  assertEquals(ebrMode!.executed, false, "no grounded evidence -- EBR must abstain, never fabricate a historical reconstruction");
+  assertMatch(res.answer, /can't verify the requested information/);
+});
+
 Deno.test("EBR: no consciousness claim appears anywhere in a canonical response that genuinely executed EBR", async () => {
   const ebrInput: EBRInput = {
     actor: "operator-1", decisionTime: "2026-09-10T09:58:00Z", auditCutoff: "2026-09-10T12:00:00Z",

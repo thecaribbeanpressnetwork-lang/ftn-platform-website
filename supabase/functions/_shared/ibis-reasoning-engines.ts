@@ -517,42 +517,66 @@ export function runConnectionFabric(provider: string | null): EngineResult {
 // --- EBR (Evidence-Bounded Retrodiction) ---------------------------------------------------------
 // See GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md and ibis-ebr-engine.ts's own header before extending
 // this adapter. Wraps the real, ported evidence-separation/mechanism-gate/admissibility logic
-// (ibis-ebr-engine.ts). No automatic evidence-retrieval or candidate-history-generation pipeline is
-// wired into the canonical brain for a free-text query yet -- exactly like Butterfly/Prediction/
-// Correlation/Connection Fabric, this is honestly SKIPPED absent caller-supplied structured input,
-// and genuinely executes (three-view separation, mechanism gate, admissibility, ranking, explicit
-// ⊥ abstention) given a real actor/decisionTime/auditCutoff plus evidence items and candidate
-// causal histories.
+// (ibis-ebr-engine.ts). Classified CONNECTED_CONDITIONAL (see EngineReadiness in
+// ibis-response-envelope.ts): ibis-canonical-brain.ts CAN build real evidenceItems automatically
+// from grounded search results for an ordinary query (see buildEbrInputFromSources() there), but
+// genuine MECHANISM-GATED CAUSAL admissibility still requires a candidate causal history -- no
+// automatic hypothesis-generation pipeline exists (inventing candidate causal edges from free text
+// would be exactly the "invent reasoning to fill a gap" this codebase's discipline forbids). `actor`
+// and `decisionTime` are OPTIONAL: an ordinary canonical request has no known actor/decision-time
+// context, and actor access must NEVER be inferred merely because evidence exists -- when omitted,
+// K_att/K_rec are honestly not evaluated (disclosed, not silently skipped) and the engine still
+// runs the actor-independent parts (R(c), contradiction preservation, admissibility, ranking, ⊥).
 export type EBRInput = {
-  actor: string;
-  decisionTime: string;
+  actor?: string | null;
+  decisionTime?: string | null;
   auditCutoff: string;
   evidenceItems: EvidenceItem[];
-  candidateHistories: CandidateHistory[];
+  candidateHistories?: CandidateHistory[];
 };
 
 export function runEBR(input: EBRInput | null): EngineResult {
-  if (!input || !Array.isArray(input.evidenceItems) || input.evidenceItems.length === 0 || !Array.isArray(input.candidateHistories) || input.candidateHistories.length === 0) {
+  if (!input || !Array.isArray(input.evidenceItems) || input.evidenceItems.length === 0) {
     return {
       engine: "EBR", requested: true, executed: false, status: "SKIPPED",
-      reason: "Evidence-Bounded Retrodiction requires real evidence items plus at least one candidate causal history to evaluate -- free text alone cannot honestly supply either, and no automatic evidence-retrieval/hypothesis-generation pipeline is wired into the canonical brain yet.",
+      reason: "Evidence-Bounded Retrodiction requires at least one real evidence item to evaluate -- free text alone cannot honestly supply one, and no grounded evidence (e.g. from search) was available for this request.",
       inputsUsed: {}, findings: [], assumptions: [], evidenceReferences: [], confidence: "UNAVAILABLE", downstreamEffects: [],
     };
   }
-  const attested = attestedKnowledge(input.actor, input.decisionTime, input.evidenceItems);
+  const hasActorContext = !!(input.actor && input.decisionTime);
+  const attested = hasActorContext ? attestedKnowledge(input.actor!, input.decisionTime!, input.evidenceItems) : [];
   const contradictions = findContradictions(input.evidenceItems);
-  const ranked = rankCandidates(input.candidateHistories, input.evidenceItems);
+  const candidateHistories = input.candidateHistories || [];
+  const ranked = rankCandidates(candidateHistories, input.evidenceItems);
   const admissible = ranked.filter((r) => r.admissible);
 
   const findings: string[] = [
-    `Contemporaneously attested knowledge (K_att) for "${input.actor}" at ${input.decisionTime}: ${attested.length} of ${input.evidenceItems.length} evidence item(s) -- later evidence can never rewrite this set.`,
+    hasActorContext
+      ? `Contemporaneously attested knowledge (K_att) for "${input.actor}" at ${input.decisionTime}: ${attested.length} of ${input.evidenceItems.length} evidence item(s) -- later evidence can never rewrite this set.`
+      : `No actor/decision-time context was supplied for this request -- K_att (contemporaneous actor knowledge) is not evaluated. Actor access is never inferred merely because evidence exists. This is a general causal-history reconstruction over ${input.evidenceItems.length} grounded evidence item(s), not an appraisal of a specific individual's decision.`,
     `${contradictions.length} contradiction(s) preserved across the evidence set (not collapsed into a single score).`,
   ];
+
+  if (ranked.length === 0) {
+    return {
+      engine: "EBR", requested: true, executed: true, status: "OK", reason: null,
+      inputsUsed: { evidenceItemCount: input.evidenceItems.length, candidateHistoryCount: 0, attestedCount: attested.length },
+      findings: [
+        ...findings,
+        "No candidate causal history was supplied to evaluate for mechanism-gated admissibility -- reporting the grounded evidence view only. This is a CONDITIONAL finding, not a completed causal reconstruction.",
+        "Unmodeled-history reserve (⊥) remains fully open: no candidate causal history has been tested against the mechanism gate for this request.",
+      ],
+      assumptions: ["No probability or causal claim is made without at least one candidate causal history to test against the mechanism gate."],
+      evidenceReferences: Array.from(new Set(input.evidenceItems.map((i) => i.provenance))),
+      confidence: "LOW",
+      downstreamEffects: ["Do not treat the grounded evidence above as proof of any particular cause -- no mechanism-gated candidate was evaluated."],
+    };
+  }
 
   if (admissible.length === 0) {
     return {
       engine: "EBR", requested: true, executed: true, status: "OK", reason: null,
-      inputsUsed: { evidenceItemCount: input.evidenceItems.length, candidateHistoryCount: input.candidateHistories.length, attestedCount: attested.length, admissibleCount: 0 },
+      inputsUsed: { evidenceItemCount: input.evidenceItems.length, candidateHistoryCount: candidateHistories.length, attestedCount: attested.length, admissibleCount: 0 },
       findings: [
         ...findings,
         `No candidate history among the ${ranked.length} examined is admissible (each has an unresolved required mechanism bridge and/or a hard contradiction) -- EBR abstains rather than forcing a pick.`,
@@ -569,7 +593,7 @@ export function runEBR(input: EBRInput | null): EngineResult {
   const tiedTop = admissible.filter((c) => compareRankKeys(rankKey(c.profile), rankKey(top.profile)) === 0);
   return {
     engine: "EBR", requested: true, executed: true, status: "OK", reason: null,
-    inputsUsed: { evidenceItemCount: input.evidenceItems.length, candidateHistoryCount: input.candidateHistories.length, attestedCount: attested.length, admissibleCount: admissible.length },
+    inputsUsed: { evidenceItemCount: input.evidenceItems.length, candidateHistoryCount: candidateHistories.length, attestedCount: attested.length, admissibleCount: admissible.length },
     findings: [
       ...findings,
       tiedTop.length > 1
@@ -583,6 +607,8 @@ export function runEBR(input: EBRInput | null): EngineResult {
     ],
     evidenceReferences: Array.from(new Set(admissible.flatMap((c) => c.history.edges.flatMap((e) => e.provenanceRoots)))),
     confidence: top.profile.mechanismCoverage >= 0.75 ? "MODERATE" : "LOW",
-    downstreamEffects: [`Do not appraise the ${input.decisionTime} decision using anything outside the ${attested.length}-item attested (K_att) set above.`],
+    downstreamEffects: hasActorContext
+      ? [`Do not appraise the ${input.decisionTime} decision using anything outside the ${attested.length}-item attested (K_att) set above.`]
+      : ["No actor/decision-time context was supplied -- this result is a general causal-history reconstruction, not an appraisal of any specific individual's decision."],
   };
 }
