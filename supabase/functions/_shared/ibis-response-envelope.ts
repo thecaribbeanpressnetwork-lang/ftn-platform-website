@@ -34,6 +34,7 @@ export type ReasoningMode =
   | "PREDICTION"
   | "CONTEXT_GRAPH"
   | "OPPORTUNITY_GRAPH"
+  | "CONNECTION_FABRIC"
   | "MULTI_AGENT";
 
 export type ReasoningModeRecord = {

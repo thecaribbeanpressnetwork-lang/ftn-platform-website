@@ -6,22 +6,26 @@
 // (runGateway's deterministic + provider-fallback + rules-based founder-reasoning chain, the new
 // intent classifier, the new search adapter, the lifecycle store) behind one typed contract.
 //
-// Honesty boundary (read before extending this file): Founder Cognitive Layer, EBR, EcoMap
-// Place/Pathway/Relationship, Butterfly Engine, Correlation Engine, Prediction/Foresight Engine,
-// Context Graph, Opportunity Graph and the Multi-Agent Orchestrator are all currently BROWSER-ONLY
-// (js/ibis-*.js) -- they have not been ported or reproduced as server-safe modules in this pass.
-// This orchestrator must never claim one of those modes executed. When a query's classification
-// suggests one would be relevant (e.g. FOUNDER_STRATEGY, PATHWAY, RELATIONSHIP), it is listed in
-// reasoningModesUsed with executed:false and an honest unavailableReason -- the rules-based
-// founderReasoningAnswer() already inside ibis-intelligence-gateway.ts IS real and IS executed
-// where it applies, and is reported as FOUNDER_REASONING_RULES_FALLBACK, never conflated with the
-// deeper browser-only FOUNDER_COGNITIVE_LAYER mode.
+// Honesty boundary (read before extending this file): EBR, EcoMap Place/Pathway/Relationship,
+// Opportunity Graph and the Multi-Agent Orchestrator remain BROWSER-ONLY or genuinely missing --
+// they have not been ported or reproduced as server-safe modules. Founder Cognitive Layer,
+// Correlation, Butterfly, Prediction/Foresight, Context Graph and Connection Fabric are now real,
+// genuinely invoked server-side engines (ibis-reasoning-engines.ts) -- this orchestrator calls them
+// directly and reports their ACTUAL result, which for Butterfly/Prediction/Connection Fabric on an
+// ordinary free-text query is honestly executed:false/SKIPPED (no structured effects/opportunity/
+// provider data is wired into the canonical brain yet for those three -- an external blocker,
+// disclosed, never silently upgraded to executed:true). When a query's classification suggests a
+// genuinely unported mode would be relevant, it is listed in reasoningModesUsed with executed:false
+// and an honest unavailableReason -- the rules-based founderReasoningAnswer() already inside
+// ibis-intelligence-gateway.ts IS real and IS executed where it applies, and is reported as
+// FOUNDER_REASONING_RULES_FALLBACK, never conflated with the deeper browser-only FOUNDER_COGNITIVE_
+// LAYER mode.
 import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct } from "./ibis-intelligence-gateway.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
 import { buildEnvelope, type CanonicalResponse, type ExecutionInstruction, type QueryClass, type ReasoningModeRecord, type SourceRecord } from "./ibis-response-envelope.ts";
 import { sha256Hex, type LifecycleStore } from "./ibis-lifecycle-store.ts";
-import { runFounderThinking, runCorrelation } from "./ibis-reasoning-engines.ts";
+import { runFounderThinking, runCorrelation, runButterfly, runPrediction, runContextGraph, runConnectionFabric } from "./ibis-reasoning-engines.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -67,27 +71,25 @@ function unavailableMode(mode: ReasoningModeRecord["mode"], reason = NOT_PORTED)
   return { mode, executed: false, unavailableReason: reason };
 }
 
-// Slice: FOUNDER_COGNITIVE_LAYER and CORRELATION are no longer statically listed as unavailable
-// here -- both are now REAL, genuinely invoked server-side engines (ibis-reasoning-engines.ts,
-// extracted/adapted from the real existing implementations, not invented). handleCanonicalRequest
-// calls them directly and reports their ACTUAL result (which, for CORRELATION on an ordinary
-// text query, is honestly executed:false/SKIPPED -- no numeric series data exists for a plain
-// question -- never silently upgraded to executed:true). Everything else here remains genuinely
-// unported; see ibis-reasoning-engines.ts's own header for the full contract map and why.
+// Slice: FOUNDER_COGNITIVE_LAYER, CORRELATION, BUTTERFLY, PREDICTION, CONTEXT_GRAPH and
+// CONNECTION_FABRIC are no longer statically listed as unavailable here -- all six are now REAL,
+// genuinely invoked server-side engines (ibis-reasoning-engines.ts, extracted/adapted from the real
+// existing implementations, not invented). handleCanonicalRequest calls them directly and reports
+// their ACTUAL result, which for CORRELATION/BUTTERFLY/PREDICTION/CONNECTION_FABRIC on an ordinary
+// free-text query is honestly executed:false/SKIPPED (no series/effects/opportunity/provider data
+// exists for a plain question) -- never silently upgraded to executed:true. EBR, EcoMap Place/
+// Pathway/Relationship and Multi-Agent Orchestrator remain genuinely unported; see
+// ibis-reasoning-engines.ts's own header for the full contract map and why.
 function relevantUnavailableModes(queryClass: QueryClass): ReasoningModeRecord[] {
   switch (queryClass) {
-    case "FOUNDER_STRATEGY":
-      return [unavailableMode("BUTTERFLY"), unavailableMode("PREDICTION")];
     case "PATHWAY":
       return [unavailableMode("ECOMAP_PATHWAY")];
     case "PLACE":
       return [unavailableMode("ECOMAP_PLACE", "not yet ported server-side; also requires explicit user location consent not collected by this endpoint.")];
     case "RELATIONSHIP":
-      return [unavailableMode("ECOMAP_RELATIONSHIP"), unavailableMode("CONTEXT_GRAPH")];
-    case "CAUSAL_BUTTERFLY":
-      return [unavailableMode("BUTTERFLY")];
-    case "PREDICTION":
-      return [unavailableMode("PREDICTION")];
+      return [unavailableMode("ECOMAP_RELATIONSHIP")];
+    case "TOOL_ACTION":
+      return [unavailableMode("MULTI_AGENT", "not yet ported server-side (browser-only, depends on FTN.Auth/PermissionLedger/UniversalRouter and unassessed real-world portability); Connection Fabric alone can only report route READINESS, not execute a connected action.")];
     default:
       return [];
   }
@@ -108,6 +110,34 @@ function correlationRecord(): ReasoningModeRecord {
   // ordinary text query yet -- honestly invoked with no series, honestly reported as skipped.
   const result = runCorrelation(null, null);
   return { mode: "CORRELATION", executed: false, unavailableReason: result.reason || "skipped" };
+}
+
+function butterflyRecord(): ReasoningModeRecord {
+  // No caller supplies real structured second-order-effect data for a free-text query yet --
+  // honestly invoked with no input, honestly reported as skipped (never fabricated).
+  const result = runButterfly(null);
+  return { mode: "BUTTERFLY", executed: false, unavailableReason: result.reason || "skipped" };
+}
+
+function predictionRecord(): ReasoningModeRecord {
+  // No caller supplies real reviewed-opportunity/relationship data for a free-text query yet --
+  // honestly invoked with no input, honestly reported as skipped (never fabricated).
+  const result = runPrediction(null);
+  return { mode: "PREDICTION", executed: false, unavailableReason: result.reason || "skipped" };
+}
+
+function contextGraphRecord(products: IbisProduct[]): ReasoningModeRecord {
+  const result = runContextGraph(products, []);
+  return result.executed
+    ? { mode: "CONTEXT_GRAPH", executed: true, contribution: result.findings.join(" ") }
+    : { mode: "CONTEXT_GRAPH", executed: false, unavailableReason: result.reason || "skipped" };
+}
+
+function connectionFabricRecord(provider: string | null): ReasoningModeRecord {
+  const result = runConnectionFabric(provider);
+  return result.executed
+    ? { mode: "CONNECTION_FABRIC", executed: true, contribution: result.findings.join(" ") }
+    : { mode: "CONNECTION_FABRIC", executed: false, unavailableReason: result.reason || "skipped" };
 }
 
 function sourcesFromSearch(result: SearchResult): SourceRecord[] {
@@ -195,13 +225,22 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     }
   }
 
-  // Real engine invocation, selective -- not every engine runs on every query. Founder Thinking
-  // is only genuinely relevant (and only selected) for FOUNDER_STRATEGY; Correlation is only
-  // selected for a query actually classified CORRELATION-flavored. An ordinary SIMPLE_TEXT or
-  // CURRENT_WEB_RESEARCH question never invokes either -- avoiding unnecessary reasoning cost on
-  // simple queries, per the required selection rule.
-  if (intent.queryClass === "FOUNDER_STRATEGY") reasoningModesUsed.push(founderThinkingRecord(text, products));
+  // Real engine invocation, selective -- not every engine runs on every query. Founder Thinking,
+  // Butterfly, Prediction and Context Graph are only genuinely relevant (and only selected) for
+  // FOUNDER_STRATEGY (an outcome-building question); Context Graph is also selected for RELATIONSHIP;
+  // Correlation is only selected for a query actually classified CORRELATION-flavored; Connection
+  // Fabric is only selected for a query actually classified TOOL_ACTION (a named connect/integrate
+  // request). An ordinary SIMPLE_TEXT or CURRENT_WEB_RESEARCH question never invokes any of them --
+  // avoiding unnecessary reasoning cost on simple queries, per the required selection rule.
+  if (intent.queryClass === "FOUNDER_STRATEGY") {
+    reasoningModesUsed.push(founderThinkingRecord(text, products));
+    reasoningModesUsed.push(butterflyRecord());
+    reasoningModesUsed.push(predictionRecord());
+    reasoningModesUsed.push(contextGraphRecord(products));
+  }
   if (intent.queryClass === "CORRELATION") reasoningModesUsed.push(correlationRecord());
+  if (intent.queryClass === "RELATIONSHIP") reasoningModesUsed.push(contextGraphRecord(products));
+  if (intent.queryClass === "TOOL_ACTION") reasoningModesUsed.push(connectionFabricRecord(intent.objective));
   reasoningModesUsed.push(...relevantUnavailableModes(intent.queryClass));
 
   // Slice 3 correction: when local execution is authorized, this endpoint must NOT also generate

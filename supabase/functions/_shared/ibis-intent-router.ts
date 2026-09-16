@@ -27,6 +27,13 @@ const RELATIONSHIP_MARKERS = /\b(which organi[sz]ations|who connects|relationshi
 // CURRENT_WEB_RESEARCH first -- current evidence takes priority over historical-analysis framing.
 const CORRELATION_MARKERS = /\b(correlat(?:e|es|ed|ion|ing)|is there a (?:relationship|link) between)\b/i;
 
+// Added alongside wiring the ported (pure, no server-side gateway registered yet) Connection
+// Fabric into the canonical brain -- TOOL_ACTION was previously a defined QueryClass enum value
+// with no classifier path that could ever reach it (same dead-code situation CORRELATION was in
+// before it was wired). Captures the named app/provider so the caller can be told honestly whether
+// a real connection route exists, rather than answering a connect-my-X request as plain text.
+const TOOL_ACTION_MARKERS = /\b(?:connect|integrate|link|sync)\s+(?:my|with|to)?\s*([a-z][\w.-]{1,40})/i;
+
 export type IntentClassification = {
   queryClass: QueryClass;
   objective: string | null;
@@ -44,6 +51,11 @@ export function classifyIntent(text: string): IntentClassification {
   if (CORRELATION_MARKERS.test(q)) {
     reasons.push("matched a correlation marker (\"correlation\", \"is there a relationship between...\") -- routed to the Correlation engine rather than answered as a plain fact.");
     return { queryClass: "CORRELATION", objective: null, reasons };
+  }
+  const toolActionMatch = q.match(TOOL_ACTION_MARKERS);
+  if (toolActionMatch) {
+    reasons.push("matched a tool-connection marker (\"connect my/integrate with/link my/sync my <app>\") -- routed to the Connection Fabric capability-check rather than answered as a plain fact.");
+    return { queryClass: "TOOL_ACTION", objective: toolActionMatch[1], reasons };
   }
   if (PATHWAY_MARKERS.test(q)) {
     reasons.push("matched a pathway marker (steps/apply/eligibility/deadline) -- the user needs an ordered plan, not a single fact.");

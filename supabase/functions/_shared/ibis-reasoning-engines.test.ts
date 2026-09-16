@@ -1,0 +1,142 @@
+// FTN Platform — unit/behavioral tests for the newly-ported reasoning-engine adapters (Butterfly,
+// Prediction/Foresight, Context Graph, Connection Fabric). Run with:
+//   deno test --allow-env supabase/functions/_shared/ibis-reasoning-engines.test.ts
+//
+// Each engine is proven twice: (1) honestly SKIPPED with no structured input (the real state for an
+// ordinary free-text canonical-brain query today -- no data source is wired in yet), and (2)
+// genuinely EXECUTED with real structured input, so the port itself is proven correct and not just
+// "present but permanently dead."
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { runButterfly, runPrediction, runContextGraph, runConnectionFabric, ContextGraph, explainConnection, connectionPlan } from "./ibis-reasoning-engines.ts";
+import type { IbisProduct } from "./ibis-intelligence-gateway.ts";
+
+// --- BUTTERFLY -----------------------------------------------------------------------------------
+
+Deno.test("Butterfly: no structured input -> honestly SKIPPED, never fabricated", () => {
+  const result = runButterfly(null);
+  assertEquals(result.executed, false);
+  assertEquals(result.status, "SKIPPED");
+  assert(result.reason && result.reason.length > 0);
+});
+
+Deno.test("Butterfly: real action + expected effects -> genuinely executes, formula matches B(a)=sum(P.V.D)", () => {
+  const result = runButterfly({
+    action: "Launch FTN Opportunities beta",
+    expectedEffects: [
+      { probability: 0.8, strategicValue: 6, connectivity: 4 }, // 0.8*6*4 = 19.2
+      { probability: 0.5, strategicValue: 3, connectivity: 2 }, // 0.5*3*2 = 3
+    ],
+  });
+  assertEquals(result.executed, true);
+  assertEquals(result.status, "OK");
+  assertEquals(result.engine, "BUTTERFLY");
+  assert(result.findings.some((f) => f.includes("22.20")), `expected 22.20 in findings, got: ${result.findings.join(" | ")}`);
+});
+
+Deno.test("Butterfly: clamps out-of-range values instead of trusting untrusted magnitudes", () => {
+  const result = runButterfly({ action: "test", expectedEffects: [{ probability: 5, strategicValue: 999, connectivity: -50 }] });
+  // probability clamped to 1, strategicValue clamped to 10, connectivity clamped to 0 -> value 0
+  assertEquals(result.executed, true);
+  assert(result.findings.some((f) => f.includes("0.00")));
+});
+
+// --- PREDICTION / FORESIGHT -----------------------------------------------------------------------
+
+Deno.test("Prediction: no structured input -> honestly SKIPPED, never fabricated", () => {
+  const result = runPrediction(null);
+  assertEquals(result.executed, false);
+  assertEquals(result.status, "SKIPPED");
+});
+
+Deno.test("Prediction: real opportunity match with a near deadline -> genuinely executes with a real candidate", () => {
+  const result = runPrediction({
+    opportunityMatches: [{ opportunity: { id: "cdb-fund-1", title: "CDB Digital Fund", deadline: "2026-09-20" } }],
+    now: "2026-09-16T00:00:00Z",
+  });
+  assertEquals(result.executed, true);
+  assertEquals(result.status, "OK");
+  assert(result.findings.some((f) => f.includes("CDB Digital Fund")));
+  assert(result.assumptions.some((a) => a.includes("probabilitiesEstimated:false")), "must never invent a probability");
+});
+
+Deno.test("Prediction: a predictive-signal relationship produces a SIGNAL_WATCH candidate, never causal", () => {
+  const result = runPrediction({ relationships: [{ id: "r1", type: "predictive", outOfSampleValidated: true, fromLabel: "Remittance volume", toLabel: "Local spend" }] });
+  assertEquals(result.executed, true);
+  assert(result.findings.some((f) => f.includes("Watch Local spend")));
+});
+
+Deno.test("Prediction: an expired-deadline opportunity is dropped, not reported as still actionable", () => {
+  // A real (non-empty) input was genuinely supplied and evaluated, so this still executes -- it
+  // just honestly produces zero candidates, distinct from SKIPPED (no input at all).
+  const result = runPrediction({ opportunityMatches: [{ opportunity: { id: "x", title: "Expired grant", deadline: "2020-01-01" } }], now: "2026-09-16T00:00:00Z" });
+  assertEquals(result.executed, true);
+  assert(result.findings.some((f) => f.includes("No opportunity deadline")), "an expired-only opportunity must not be reported as an actionable candidate");
+});
+
+// --- CONTEXT GRAPH ---------------------------------------------------------------------------------
+
+const PRODUCTS: IbisProduct[] = [
+  { name: "FTN ibis", route: "/ibis-ai/" },
+  { name: "FTN Opportunities", route: "/opportunities/" },
+];
+
+Deno.test("Context Graph: always executes deterministically (grounded to the request's own product list)", () => {
+  const result = runContextGraph(PRODUCTS, ["/ibis-ai/"]);
+  assertEquals(result.executed, true);
+  assertEquals(result.status, "OK");
+  assert(result.findings.some((f) => f.includes("2 node(s)")));
+  assert(result.findings.some((f) => f.includes("FTN ibis")));
+  assert(result.findings.some((f) => f.includes("No dependency-edge data")), "must disclose the server-side edge-data gap honestly");
+});
+
+Deno.test("Context Graph: empty product list still executes honestly with zero nodes, never invents one", () => {
+  const result = runContextGraph([], []);
+  assertEquals(result.executed, true);
+  assert(result.findings[0].includes("zero nodes"));
+});
+
+Deno.test("Context Graph: Graph/explainConnection primitives work (direct + one-hop + not-connected)", () => {
+  const g = new ContextGraph();
+  g.addNode({ type: "FTN_PRODUCT", id: "ibis-ai", label: "FTN ibis" });
+  g.addNode({ type: "ORGANIZATION", id: "cdb", label: "CDB" });
+  g.addNode({ type: "PLACE", id: "trinidad", label: "Trinidad" });
+  g.addEdge({ from: "FTN_PRODUCT:ibis-ai", to: "ORGANIZATION:cdb", relation: "RELEVANT_TO" });
+  g.addEdge({ from: "ORGANIZATION:cdb", to: "PLACE:trinidad", relation: "APPLIES_IN" });
+
+  const direct = explainConnection(g, "FTN_PRODUCT", "ibis-ai", "ORGANIZATION", "cdb");
+  assertEquals(direct.connected, true);
+  assertEquals(direct.direct, true);
+
+  const oneHop = explainConnection(g, "FTN_PRODUCT", "ibis-ai", "PLACE", "trinidad");
+  assertEquals(oneHop.connected, true);
+  assertEquals(oneHop.direct, false);
+  assertEquals(oneHop.path.length, 3);
+
+  const none = explainConnection(g, "FTN_PRODUCT", "ibis-ai", "PLACE", "never-added-place");
+  assertEquals(none.connected, false);
+
+  // Re-adding the same edge must not duplicate it.
+  g.addEdge({ from: "FTN_PRODUCT:ibis-ai", to: "ORGANIZATION:cdb", relation: "RELEVANT_TO" });
+  assertEquals(g.edges.length, 2, "duplicate addEdge() must be deduplicated by from|relation|to");
+});
+
+// --- CONNECTION FABRIC -----------------------------------------------------------------------------
+
+Deno.test("Connection Fabric: no provider named -> honestly SKIPPED", () => {
+  const result = runConnectionFabric(null);
+  assertEquals(result.executed, false);
+  assertEquals(result.status, "SKIPPED");
+});
+
+Deno.test("Connection Fabric: a named provider genuinely executes and truthfully reports no server-side gateway", () => {
+  const result = runConnectionFabric("gmail");
+  assertEquals(result.executed, true);
+  assertEquals(result.status, "OK");
+  assert(result.findings[0].includes("gmail"));
+  assert(result.findings[0].includes("No connection gateway"), "must not fabricate a ready route that does not exist server-side");
+});
+
+Deno.test("Connection Fabric: connectionPlan() preserves the exact DIRECT->MCP->ACTIVEPIECES->NANGO->REST order", () => {
+  const plan = connectionPlan("hubspot");
+  assertEquals(plan.preferredOrder, ["DIRECT", "MCP", "ACTIVEPIECES", "NANGO", "REST"]);
+});

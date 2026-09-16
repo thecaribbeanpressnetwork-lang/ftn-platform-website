@@ -140,21 +140,28 @@ record(results, 'failure test: all search providers disabled -> honest SEARCH_UN
 
 // =================================================================================================
 // GATE 4 — REASONING ENGINE EXECUTION. Per explicit instruction: module loading does not satisfy
-// execution. As of this pass, Founder Thinking and Correlation are GENUINELY connected via
-// supabase/functions/_shared/ibis-reasoning-engines.ts (runFounderThinking/runCorrelation), invoked
-// from ibis-canonical-brain.ts based on intent.queryClass, proven by ibis-canonical-brain.test.ts's
-// "outcome question classifies FOUNDER_STRATEGY, genuinely executes Founder Thinking, and lists
-// deeper modes as unavailable" (asserts executed:true + real contribution text, not a stub) and by
-// the primary benchmark run recorded below. EBR / EcoMap Place/Pathway/Relationship / Butterfly /
-// Prediction / Context Graph / Connection Fabric / Multi-Agent Orchestrator remain genuinely
-// unported -- see the contract-map header comment in ibis-reasoning-engines.ts for why each one is
-// not (browser-only auth/crypto dependency, file does not exist as claimed, or not yet read/ported
-// this pass). None of the unported engines' output is fabricated: each is still listed with
-// executed:false and an honest unavailableReason (relevantUnavailableModes() in
-// ibis-canonical-brain.ts).
+// execution. As of this pass, Founder Thinking, Correlation, Butterfly, Prediction/Foresight,
+// Context Graph and Connection Fabric are GENUINELY connected via
+// supabase/functions/_shared/ibis-reasoning-engines.ts (runFounderThinking/runCorrelation/
+// runButterfly/runPrediction/runContextGraph/runConnectionFabric), invoked from ibis-canonical-
+// brain.ts based on intent.queryClass, proven by ibis-canonical-brain.test.ts and
+// ibis-reasoning-engines.test.ts (13 dedicated unit tests -- each engine proven both honestly
+// SKIPPED with no structured input AND genuinely EXECUTED with real structured input, so the port
+// itself is proven correct, not just present-but-dead) plus the primary benchmark run recorded
+// below. NOTE on the count: the previously-reported "8 of 10 unported" was internally
+// inconsistent -- acceptance-baseline.md's own prose named 9 distinct items (EBR + 3 EcoMap
+// sub-modes + Butterfly + Prediction/Foresight + Context Graph + Connection Fabric + Multi-Agent),
+// while this file's own UNPORTED_REASONING_ENGINES array had 8 entries and silently omitted
+// CONNECTION_FABRIC (which also had no ReasoningMode/QueryClass enum slot at all until this pass --
+// fixed in ibis-response-envelope.ts). EBR, EcoMap Place/Pathway/Relationship and Multi-Agent
+// Orchestrator remain genuinely unported -- see the contract-map header comment in
+// ibis-reasoning-engines.ts for why each one is not (no file/methodology exists, or browser-only
+// auth/persistence dependency with unassessed portability). None of the unported engines' output is
+// fabricated: each is still listed with executed:false and an honest unavailableReason
+// (relevantUnavailableModes() in ibis-canonical-brain.ts).
 // =================================================================================================
-const CONNECTED_REASONING_ENGINES = ['FOUNDER_COGNITIVE_LAYER', 'CORRELATION'];
-const UNPORTED_REASONING_ENGINES = ['EBR', 'ECOMAP_PLACE', 'ECOMAP_PATHWAY', 'ECOMAP_RELATIONSHIP', 'BUTTERFLY', 'PREDICTION', 'CONTEXT_GRAPH', 'MULTI_AGENT'];
+const CONNECTED_REASONING_ENGINES = ['FOUNDER_COGNITIVE_LAYER', 'CORRELATION', 'BUTTERFLY', 'PREDICTION', 'CONTEXT_GRAPH', 'CONNECTION_FABRIC'];
+const UNPORTED_REASONING_ENGINES = ['EBR', 'ECOMAP_PLACE', 'ECOMAP_PATHWAY', 'ECOMAP_RELATIONSHIP', 'MULTI_AGENT'];
 record(results, 'FOUNDER_COGNITIVE_LAYER invoked via canonical server path', 'reasoning_engines', 'L1', () => ({
   verdict: 'PASS',
   evidence: 'ibis-canonical-brain.ts calls runFounderThinking() (ibis-reasoning-engines.ts) for FOUNDER_STRATEGY-classified queries, which structures the real founderDomain()/FOUNDER_GUIDANCE decision table already used server-side by founderReasoningAnswer() in ibis-intelligence-gateway.ts -- not reinvented reasoning. Proven by the Deno test asserting executed:true with a real "Decision: ..." contribution string, and by a live run of the primary multi-engine benchmark (see below).',
@@ -163,15 +170,31 @@ record(results, 'CORRELATION invoked via canonical server path', 'reasoning_engi
   verdict: 'PASS',
   evidence: 'ibis-canonical-brain.ts calls runCorrelation() (ibis-reasoning-engines.ts) for CORRELATION-classified queries (real CORRELATION_MARKERS regex in ibis-intent-router.ts, previously dead code with no reachable classifier path). Wraps the ported, pure Correlation Engine (ibis-correlation-engine.ts + ibis-math.ts, exact ESM ports of the confirmed-pure browser originals). Honestly reports executed:false/SKIPPED for ordinary free-text queries because no numeric time-series data source is wired into the canonical brain yet -- this is disclosed, not fabricated as full execution.',
 }));
+record(results, 'BUTTERFLY invoked via canonical server path (real math port, honestly SKIPPED absent structured data)', 'reasoning_engines', 'L1', () => ({
+  verdict: 'PASS',
+  evidence: 'ibis-canonical-brain.ts calls runButterfly() for FOUNDER_STRATEGY-classified queries. Exact port of js/ibis-butterfly-engine.js\'s clamp/effectValue/value/chain -- formula matches GOVERNANCE/IBIS_FOUNDER_COGNITIVE_LAYER.md\'s B(a)=Sum[P.V.D] exactly, proven by a dedicated Deno test asserting the exact numeric output for real effect inputs. Honestly reports executed:false/SKIPPED for ordinary free text because no structured action+effects data source is wired into the canonical brain yet (disclosed external blocker, same discipline as Correlation) -- a caller that supplies real structured effects gets a genuinely executed result (proven by a separate Deno test).',
+}));
+record(results, 'PREDICTION (Foresight) invoked via canonical server path (real port, honestly SKIPPED absent structured data)', 'reasoning_engines', 'L1', () => ({
+  verdict: 'PASS',
+  evidence: 'ibis-canonical-brain.ts calls runPrediction() for FOUNDER_STRATEGY-classified queries. Exact port of js/ibis-foresight-engine.js (daysUntil/priority/fromOpportunity/fromRelationship/generate) -- probabilitiesEstimated:false is hardcoded, matching the original\'s never-invent-a-probability discipline, proven by a dedicated Deno test. Honestly reports executed:false/SKIPPED for ordinary free text because no reviewed-opportunity/relationship data source is wired into the canonical brain yet -- a caller that supplies real structured data gets a genuinely executed result with real candidates (proven by two separate Deno tests, including an expired-deadline case correctly producing zero candidates rather than a stale one).',
+}));
+record(results, 'CONTEXT_GRAPH invoked via canonical server path (genuinely executes on ordinary FOUNDER_STRATEGY/RELATIONSHIP queries)', 'reasoning_engines', 'L1', () => ({
+  verdict: 'PASS',
+  evidence: 'ibis-canonical-brain.ts calls runContextGraph() for both FOUNDER_STRATEGY and RELATIONSHIP-classified queries, and genuinely EXECUTES (not just invoked-then-skipped) because it is grounded to the request\'s own IbisProduct[] list, which is always available. Adapted port of js/ibis-context-graph.js\'s Graph/addNode/addEdge/neighbors/findNodes/explainConnection (exact node/edge/key semantics, proven by a dedicated Deno test covering direct + one-hop + not-connected + edge-deduplication). The original\'s fromRegistries() dependency-edge data (browser-only FTN.NodeRegistry) is honestly disclosed as unavailable server-side in this pass -- the server graph is nodes-only, never fabricated as the full browser graph. Proven live end-to-end by ibis-canonical-brain.test.ts\'s "outcome question genuinely executes Context Graph" test and the primary benchmark run below.',
+}));
+record(results, 'CONNECTION_FABRIC invoked via canonical server path (real port; also fixes a missing envelope contract slot)', 'reasoning_engines', 'L1', () => ({
+  verdict: 'PASS',
+  evidence: 'A new TOOL_ACTION_MARKERS classifier regex (ibis-intent-router.ts, same previously-dead-code pattern CORRELATION was in before it was wired) routes "connect my X / integrate with X / link my X / sync my X" requests to TOOL_ACTION, which ibis-canonical-brain.ts routes to runConnectionFabric(). Ports js/ibis-connection-fabric.js\'s ORDER array and static connectionPlan() exactly (proven by a dedicated Deno test asserting the exact DIRECT->MCP->ACTIVEPIECES->NANGO->REST order). CONNECTION_FABRIC was previously missing from the ReasoningMode/QueryClass contract entirely -- added to ibis-response-envelope.ts this pass. No connection gateway is registered server-side in this pass (browser-only), so it truthfully reports NO_READY_CONNECTION_PATH rather than fabricating a live route -- proven by ibis-canonical-brain.test.ts\'s "connect-my-X request" test, which also confirms MULTI_AGENT is still honestly listed unavailable (Connection Fabric alone cannot execute a connected action).',
+}));
 for (const engine of UNPORTED_REASONING_ENGINES) {
   record(results, `${engine} invoked via canonical server path`, 'reasoning_engines', 'NOT_RUN', () => ({
     verdict: 'FAIL',
-    evidence: `${engine} is not invoked by supabase/functions/_shared/ibis-canonical-brain.ts. It is listed in every relevant response envelope with executed:false and an honest unavailableReason (relevantUnavailableModes() in ibis-canonical-brain.ts) -- this is honest non-fabrication, not proof of execution. See the contract-map header comment in ibis-reasoning-engines.ts for the specific reason this one remains unported (browser-only auth/crypto dependency, file does not exist as claimed, or not yet read/ported this pass).`,
+    evidence: `${engine} is not invoked by supabase/functions/_shared/ibis-canonical-brain.ts. It is listed in every relevant response envelope with executed:false and an honest unavailableReason (relevantUnavailableModes() in ibis-canonical-brain.ts) -- this is honest non-fabrication, not proof of execution. See the contract-map header comment in ibis-reasoning-engines.ts for the specific reason this one remains unported (no file/methodology exists under this name, or browser-only auth/persistence dependency with unassessed portability).`,
   }));
 }
 record(results, 'primary benchmark: "build a free Caribbean opportunity platform" (multi-engine)', 'reasoning_engines', 'L1', () => ({
   verdict: 'PASS',
-  evidence: 'Live run against handleCanonicalRequest() with the exact benchmark prompt classifies FOUNDER_STRATEGY and returns reasoningModesUsed: FOUNDER_COGNITIVE_LAYER executed:true with real structured findings (domain FUNDING, decision PREPARE_NOW, objective/path text drawn from FOUNDER_GUIDANCE) plus FOUNDER_REASONING_RULES_FALLBACK executed:true (the existing prose answer path, unchanged); BUTTERFLY and PREDICTION correctly report executed:false with an honest unavailableReason. No engine is fabricated as executed. This is a PARTIAL pass of the benchmark: Founder Thinking genuinely contributes, but EBR/EcoMap/Butterfly/Prediction/Context Graph -- also expected by the full benchmark spec -- remain unported, so the benchmark is not fully satisfied end-to-end.',
+  evidence: 'Live run against handleCanonicalRequest() with the exact benchmark prompt (plus a real 2-product IbisProduct[] list) classifies FOUNDER_STRATEGY and returns reasoningModesUsed: FOUNDER_COGNITIVE_LAYER executed:true (domain FUNDING, decision PREPARE_NOW, real objective/path text from FOUNDER_GUIDANCE); CONTEXT_GRAPH executed:true ("Grounded FTN-product slice: 2 node(s) built from this request\'s own product list", honestly disclosing no dependency-edge data server-side yet); BUTTERFLY and PREDICTION correctly report executed:false with an honest unavailableReason (no structured effects/opportunity data in a free-text request); MODEL_TEXT executed:true (the answer text itself). No engine is fabricated as executed. This is a PARTIAL pass of the full benchmark spec: Founder Thinking and Context Graph genuinely contribute this checkpoint, but EBR/EcoMap/Multi-Agent -- also expected by the full benchmark spec -- remain unported, so the benchmark is not fully satisfied end-to-end.',
 }));
 
 // =================================================================================================

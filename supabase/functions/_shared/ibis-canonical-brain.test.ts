@@ -116,6 +116,57 @@ Deno.test("outcome question classifies FOUNDER_STRATEGY, genuinely executes Foun
   assertEquals(predictionMode!.executed, false);
 });
 
+// --- Gate: Context Graph genuinely executes for an outcome-building question (grounded to the
+// request's own product list -- see ibis-reasoning-engines.ts's runContextGraph()). ---
+Deno.test("outcome question genuinely executes Context Graph, grounded to the request's product list", async () => {
+  const res = await handleCanonicalRequest({
+    text: "I want to build a Caribbean-owned business that earns US dollars while helping local creators.",
+    products: [{ name: "FTN ibis", route: "/ibis-ai/" }, { name: "FTN Opportunities", route: "/opportunities/" }],
+    providers: [fakeProvider("test", "Decision: EXPERIMENT")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  const contextGraphMode = res.reasoningModesUsed.find((m) => m.mode === "CONTEXT_GRAPH");
+  assert(contextGraphMode, "CONTEXT_GRAPH must be listed for a FOUNDER_STRATEGY query");
+  assertEquals(contextGraphMode!.executed, true);
+  assert(contextGraphMode!.contribution && contextGraphMode!.contribution.includes("node(s)"), "must report a real node count, not a static label");
+});
+
+// --- Gate: a relationship question genuinely executes Context Graph, still honestly lists
+// EcoMap Relationship (genuinely missing methodology) as unavailable. ---
+Deno.test("relationship question classifies RELATIONSHIP, executes Context Graph, lists EcoMap Relationship unavailable", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Which organizations are connected to FTN ibis?",
+    products: [{ name: "FTN ibis", route: "/ibis-ai/" }],
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.queryClass, "RELATIONSHIP");
+  const contextGraphMode = res.reasoningModesUsed.find((m) => m.mode === "CONTEXT_GRAPH");
+  assert(contextGraphMode);
+  assertEquals(contextGraphMode!.executed, true);
+  const ecoMapMode = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_RELATIONSHIP");
+  assert(ecoMapMode, "ECOMAP_RELATIONSHIP must still be listed (genuinely missing methodology, not fabricated)");
+  assertEquals(ecoMapMode!.executed, false);
+});
+
+// --- Gate: a connect-my-X request classifies TOOL_ACTION and genuinely executes Connection
+// Fabric, honestly reporting no server-side gateway exists yet (never fabricating a live route). ---
+Deno.test("connect-my-X request classifies TOOL_ACTION, executes Connection Fabric honestly, lists Multi-Agent unavailable", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Please connect my gmail so ibis can send email for me.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.queryClass, "TOOL_ACTION");
+  const fabricMode = res.reasoningModesUsed.find((m) => m.mode === "CONNECTION_FABRIC");
+  assert(fabricMode, "CONNECTION_FABRIC must be listed for a TOOL_ACTION query");
+  assertEquals(fabricMode!.executed, true);
+  assert(fabricMode!.contribution && fabricMode!.contribution.toLowerCase().includes("gmail"));
+  const multiAgentMode = res.reasoningModesUsed.find((m) => m.mode === "MULTI_AGENT");
+  assert(multiAgentMode, "MULTI_AGENT must still be listed unavailable -- Connection Fabric alone cannot execute a connected action");
+  assertEquals(multiAgentMode!.executed, false);
+});
+
 // --- Gate: correlation must never be silently upgraded to causation language. ---
 Deno.test("correlation-flavored question with a live-data term still routes to research, never a guessed correlation claim", () => {
   const result = classifyIntent("Is there a correlation between remittances and the exchange rate?");
