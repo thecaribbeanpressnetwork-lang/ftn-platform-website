@@ -10,7 +10,7 @@ Controlling test: `tests/ibis-investor-readiness.mjs` (the one authoritative acc
 
 ## Latest checkpoint
 
-- **Commit**: `PENDING` (see git log — updated immediately after this commit lands)
+- **Commit**: `1e034ae`
 - **Branch**: `fix/ibis-canonical-outcome-intelligence`
 - **Run date**: 2026-09-16
 - **Readiness classification**: **LOCALLY_VERIFIED**
@@ -112,7 +112,7 @@ Deno suite (`supabase/functions/_shared/*.test.ts`), `ibis-ux-release.mjs`,
 
 ## Revision history
 
-- `PENDING` (2026-09-16): durability hardening + canonical reasoning connection. Fallback
+- `1e034ae` (2026-09-16): durability hardening + canonical reasoning connection. Fallback
   lease/fencing correction (leaseOwner/leaseVersion/leaseExpiresAt/attemptCount, atomic
   claim/finalize, deterministic tests for long-provider-call/active-lease/crash-reclaim/fencing
   scenarios). Founder Thinking and Correlation genuinely connected to the canonical server path
