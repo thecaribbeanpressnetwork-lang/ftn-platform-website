@@ -234,13 +234,18 @@
       return envelope;
     }catch(e){return null;}
   }
-  // Fire-and-forget: the completion/receipt path so the canonical system has a real record of what
-  // browser-local execution actually did (not just what it authorized). Never blocks rendering --
-  // a receipt-recording failure must not affect the user's answer.
-  function recordExecutionReceipt(receipt){
+  // The RECEIPT stage of the plan/execute/receipt/final-response lifecycle (Slice 3 correction).
+  // A SUCCESS receipt is fire-and-forget: the browser already has its answer, and the server
+  // returns only an acknowledgement (never a second, duplicate answer). A FAILURE receipt is the
+  // one legitimate trigger for an AUTHORIZED fallback generation -- the caller must await this and
+  // use the returned envelope's `answer`, never re-request or re-decide anything itself. Returns
+  // null on any network/parse failure so a failed receipt POST can never be mistaken for a
+  // fallback answer.
+  async function recordExecutionReceipt(receipt){
     try{
-      fetch(ASSISTANT_ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},body:JSON.stringify({action:'record_execution_receipt',receipt:receipt})}).catch(function(){});
-    }catch(e){}
+      var r=await fetch(ASSISTANT_ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},body:JSON.stringify({action:'record_execution_receipt',receipt:receipt})});
+      return await r.json().catch(function(){return null;});
+    }catch(e){return null;}
   }
   async function localAI(prompt){
     if(!('LanguageModel' in global))return null;
@@ -518,10 +523,23 @@
             scrollToEnd();
             return;
           }
-          // Authorized but local execution itself failed/unavailable -- record it honestly and
-          // fall through to the canonical answer already carried in this same response, never a
-          // silent guess about whether local execution "should have" worked.
-          recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:false,degraded:true,latencyMs:Date.now()-localStartedAt});
+          // Authorized but local execution itself failed/unavailable. The server never generated
+          // an answer for an authorized plan (see ibis-canonical-brain.ts -- doing so up front
+          // would be exactly the duplicate generation this correction removes), so canonical.answer
+          // is empty here by design. Reporting the failure IS the request for the one authorized
+          // fallback generation; its response envelope (not canonical's) carries the real answer.
+          var fallback=await recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:false,degraded:true,latencyMs:Date.now()-localStartedAt});
+          if(fallback&&typeof fallback.answer==='string'&&fallback.answer){
+            out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain (authorized fallback)</span>'+answerHTML(fallback.answer)+'<p class="ibis-answer-meta">'+esc((fallback.providerPath&&fallback.providerPath[0])||'Governed ibis route')+(fallback.confidence?' · '+esc(fallback.confidence):'')+'</p>'+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
+            await ensureEvidence();
+            mountEvidence(out,{capability:'TEXT',provider:(fallback.providerPath&&fallback.providerPath[0])||'FTN ibis canonical brain',sourceRetrievedAt:fallback.generatedAt,confidenceBasis:fallback.confidence||'NOT_ASSESSED'},{prompt:q,limitations:fallback.confidenceBasis});
+            setStatus('idle');
+            revealAnswer(out);
+            return;
+          }
+          // The receipt itself was rejected (e.g. the plan already expired) or the fallback
+          // generation failed -- fall through to the existing non-fabricating serverAI() chain
+          // below rather than leaving the user with no answer at all.
         }
         if(canonical&&typeof canonical.answer==='string'&&canonical.answer){
           out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain</span>'+answerHTML(canonical.answer)+'<p class="ibis-answer-meta">'+esc((canonical.providerPath&&canonical.providerPath[0])||'Governed ibis route')+(canonical.confidence?' · '+esc(canonical.confidence):'')+'</p>'+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');

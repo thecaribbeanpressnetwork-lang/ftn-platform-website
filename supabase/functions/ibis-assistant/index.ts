@@ -1,5 +1,5 @@
 import { gatewayHealth, runGateway, type GatewayProvider, type IbisProduct, type IbisTurn } from "../_shared/ibis-intelligence-gateway.ts";
-import { handleCanonicalRequest } from "../_shared/ibis-canonical-brain.ts";
+import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "../_shared/ibis-canonical-brain.ts";
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 function originAllowed(origin: string | null) {
@@ -104,30 +104,6 @@ Deno.serve(async (request) => {
   let payload: { action?: string; messages?: unknown; products?: unknown; receipt?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
 
-  // Slice 1 correction: the completion/receipt path for browser-local execution. A client that
-  // received executionAuthorized:true from action:"canonical_query" and then ran localAI() posts
-  // the outcome back here so the canonical system has a real record of what actually happened
-  // (planId, provider, success, degraded, latency) -- not just what it authorized. This pass logs
-  // the receipt (visible in Supabase's own function logs) and acknowledges it; no persistent
-  // receipt table/analytics store exists yet -- that is a real gap, not hidden.
-  if (payload.action === "record_execution_receipt") {
-    const r = payload.receipt as Record<string, unknown> | undefined;
-    if (!r || typeof r.planId !== "string" || typeof r.executionTarget !== "string" || typeof r.provider !== "string" || typeof r.success !== "boolean") {
-      return reply({ error: "Malformed receipt." }, 400, origin);
-    }
-    const receipt = {
-      planId: r.planId,
-      executionTarget: r.executionTarget,
-      provider: r.provider,
-      success: r.success,
-      degraded: r.degraded === true,
-      latencyMs: typeof r.latencyMs === "number" ? r.latencyMs : null,
-      recordedAt: new Date().toISOString(),
-    };
-    console.log("ibis execution receipt", JSON.stringify(receipt));
-    return reply({ recorded: true, planId: receipt.planId }, 200, origin);
-  }
-
   const products: IbisProduct[] = Array.isArray(payload.products) ? payload.products.filter((p): p is IbisProduct => !!p && typeof p === "object" && typeof p.name === "string" && typeof p.route === "string").slice(0, 30) : [];
   const raw = Array.isArray(payload.messages) ? payload.messages : [];
   const turns: IbisTurn[] = raw.filter((m) => !!m && typeof m === "object").map((m: any) => ({ role: m.role === "assistant" ? "assistant" : "user", content: typeof m.content === "string" ? m.content.trim().slice(0, 2_000) : "" })).filter((m) => m.content).slice(-20);
@@ -136,6 +112,34 @@ Deno.serve(async (request) => {
   // external models, the proven zero-cost Cloudflare allocation is attempted before paid keys.
   const providers = [cloudflare(turns, system), anthropic(turns, system), gemini(turns, system), openAICompatible("PRIMARY", turns, system), openAICompatible("SECONDARY", turns, system), ollama(turns, system)];
   if (payload.action === "health") return reply(gatewayHealth(providers), 200, origin);
+
+  // Slice 3 correction: the RECEIPT stage of the plan/execute/receipt/final-response lifecycle
+  // (see ../_shared/ibis-canonical-brain.ts's recordReceiptAndMaybeFallback for the full contract).
+  // A client that received executionAuthorized:true from action:"canonical_query" and then ran
+  // localAI() posts the outcome back here. The server validates the receipt against the plan IT
+  // created and returned earlier -- an unknown, already-used, expired, or mismatched planId is
+  // rejected outright; an arbitrary client-declared "success" is never taken at face value beyond
+  // that validation. A genuine local-execution FAILURE triggers exactly one authorized fallback
+  // generation here (never a second one for the same plan) and returns the real answer envelope;
+  // a success receipt returns only an acknowledgement, since the browser already has its answer
+  // and generating a second one here would be exactly the duplicate this correction removes.
+  //
+  // Durability note: recordReceiptAndMaybeFallback's plan store is in-memory and process-local --
+  // real for the plan/receipt validation logic within one running instance, but not a durable
+  // record across a cold start or multiple scaled instances. Every receipt this endpoint accepts
+  // is also still logged (visible in Supabase's own function logs) as the temporary observability
+  // layer; a real persistent table is drafted in supabase/migrations/ but NOT applied in this
+  // pass -- see the final report for why.
+  if (payload.action === "record_execution_receipt") {
+    const outcome = await recordReceiptAndMaybeFallback({ receipt: (payload.receipt as any) || {}, providers });
+    if (outcome.status === "REJECTED") {
+      console.log("ibis execution receipt REJECTED", outcome.reason, JSON.stringify(payload.receipt));
+      return reply({ recorded: false, rejected: true, reason: outcome.reason }, 409, origin);
+    }
+    console.log("ibis execution receipt accepted", JSON.stringify(payload.receipt), "fallbackGenerated=", !!outcome.envelope);
+    if (outcome.envelope) return reply(outcome.envelope, 200, origin);
+    return reply({ recorded: true }, 200, origin);
+  }
 
   // Canonical-orchestration slice (feature-flagged, additive): opt-in via action:"canonical_query"
   // so every pre-existing client (regular IBIS, Headspace, and this same route's own default

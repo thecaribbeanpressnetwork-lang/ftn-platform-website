@@ -2,7 +2,7 @@
 //   deno test --allow-env supabase/functions/_shared/ibis-canonical-brain.test.ts
 // No live network calls: every provider/search call in these tests is a local fake.
 import { assert, assertEquals, assertMatch } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { handleCanonicalRequest } from "./ibis-canonical-brain.ts";
+import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "./ibis-canonical-brain.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
 import { searxngSearch, braveSearch, search } from "./ibis-search-adapter.ts";
 import type { GatewayProvider } from "./ibis-intelligence-gateway.ts";
@@ -18,12 +18,16 @@ function fakeProvider(id: string, answer: string, opts: { configured?: boolean; 
 }
 
 // --- Gate 1: a simple question enters the canonical brain and gets SIMPLE_TEXT. ---
-Deno.test("simple question classifies SIMPLE_TEXT and answers through the gateway", async () => {
-  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "Photosynthesis converts light into chemical energy.")] });
+// Slice 3 correction: an authorized SIMPLE_TEXT plan defers to browser-local execution and does
+// NOT call a provider up front (see the "generates NO provider answer" test below) -- so this
+// gate no longer asserts a gateway-generated answer, only correct classification and that no
+// provider (local's absence notwithstanding) was actually invoked for this plan.
+Deno.test("simple question classifies SIMPLE_TEXT and defers to authorized local execution", async () => {
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "SHOULD_NEVER_APPEAR")] });
   assertEquals(res.queryClass, "SIMPLE_TEXT");
-  assertMatch(res.answer, /Photosynthesis converts light/);
   assertEquals(res.status, "OK");
-  assert(res.receipt.capabilitiesAttempted.includes("TEXT"));
+  assertEquals(res.executionInstruction.executionAuthorized, true);
+  assert(!res.receipt.capabilitiesAttempted.includes("TEXT"), "an authorized plan must not attempt server TEXT generation up front");
   assert(!res.receipt.capabilitiesAttempted.includes("SEARCH"), "a plain question must not attempt SEARCH");
 });
 
@@ -108,26 +112,43 @@ Deno.test("correlation-flavored question with a live-data term still routes to r
 // --- Gate: provider outage falls to the gateway's real rules-based founder-reasoning fallback,
 // honestly labeled -- this is the gateway's actual designed behavior (ibis-intelligence-gateway.ts
 // founderReasoningAnswer), not a bug; the deeper full-DEGRADED path only triggers when even that
-// deterministic fallback has nothing to work with (see the next test). ---
+// deterministic fallback has nothing to work with (see the next test).
+//
+// Slice 3 correction: SIMPLE_TEXT questions ("What is the capital of...") now defer to authorized
+// local execution and never reach runGateway directly, so this must use a query classification
+// that is NEVER local-authorized (FOUNDER_STRATEGY) to exercise the provider-fallback chain at
+// all -- exactly the gate this test exists to guard. ---
 Deno.test("unconfigured providers fall to the rules-based founder-reasoning fallback, honestly labeled", async () => {
   const res = await handleCanonicalRequest({
-    text: "What is the capital of Trinidad and Tobago?",
+    text: "I want to build a Caribbean-owned business that earns US dollars.",
     providers: [fakeProvider("a", "unused", { configured: false })],
   });
+  assertEquals(res.queryClass, "FOUNDER_STRATEGY");
+  assertEquals(res.executionInstruction.executionAuthorized, false, "FOUNDER_STRATEGY must never be local-authorized -- this test would silently stop exercising the fallback chain otherwise");
   assertEquals(res.status, "OK");
   const founderFallback = res.reasoningModesUsed.find((m) => m.mode === "FOUNDER_REASONING_RULES_FALLBACK");
   assert(founderFallback && founderFallback.executed, "the real deterministic fallback must be reported as executed, distinct from the deeper unported FOUNDER_COGNITIVE_LAYER");
 });
 
 // --- Gate: true provider exhaustion (deterministic fallback also has nothing to work with)
-// degrades to DEGRADED, never fabricates an answer. ---
+// degrades to DEGRADED, never fabricates an answer.
+//
+// Slice 3 correction: the only place a SIMPLE_TEXT-classified plan ("x") still calls providers is
+// the authorized-fallback path (recordReceiptAndMaybeFallback, triggered by a failure receipt) --
+// the initial canonical_query response for an authorized plan never calls a provider at all. ---
 Deno.test("full provider exhaustion with no fallback degrades to DEGRADED, never fabricates an answer", async () => {
-  const res = await handleCanonicalRequest({
-    text: "x",
+  const plan = await handleCanonicalRequest({ text: "x", providers: [fakeProvider("a", "unused", { configured: false })] });
+  assertEquals(plan.executionInstruction.executionAuthorized, true);
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId: plan.executionInstruction.planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false },
     providers: [fakeProvider("a", "unused", { configured: false })],
   });
-  assertEquals(res.receipt.degradedStages.includes("ALL_TEXT_PROVIDERS_FAILED"), true);
-  assertMatch(res.answer, /could not reach an answer provider/i);
+  assertEquals(outcome.status, "ACCEPTED");
+  if (outcome.status === "ACCEPTED") {
+    assert(outcome.envelope, "a failure receipt must always produce a fallback envelope, even a degraded one");
+    assertEquals(outcome.envelope!.receipt.degradedStages.includes("ALL_TEXT_PROVIDERS_FAILED"), true);
+    assertMatch(outcome.envelope!.answer, /could not reach an answer provider/i);
+  }
 });
 
 Deno.test("response envelope never contains a literal API key/token/secret substring", async () => {
@@ -199,6 +220,83 @@ Deno.test("outcome/strategy question never authorizes browser_local execution", 
   const res = await handleCanonicalRequest({ text: "I want to build a Caribbean-owned business.", providers: [fakeProvider("test", "unused")] });
   assertEquals(res.executionInstruction.executionAuthorized, false);
   assertEquals(res.executionInstruction.executionTarget, "server_provider");
+});
+
+// --- Slice 3: the PLAN/EXECUTE/RECEIPT/FINAL-RESPONSE lifecycle. ---
+
+Deno.test("authorized SIMPLE_TEXT plan generates NO provider answer up front (no duplicate generation)", async () => {
+  const provider = fakeProvider("test", "SHOULD_NEVER_APPEAR");
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [provider] });
+  assertEquals(res.executionInstruction.executionAuthorized, true);
+  assertEquals(res.answer, "", "an authorized plan must return an empty answer -- generating one here and letting the browser also generate one locally would be duplicate generation");
+  assertEquals(res.evidenceState, "NO_ANSWER_GENERATED");
+});
+
+Deno.test("a success receipt is accepted with no fallback envelope (browser already has the answer)", async () => {
+  const res = await handleCanonicalRequest({ text: "What is a receipt test one?", providers: [fakeProvider("test", "unused")] });
+  const planId = res.executionInstruction.planId;
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true, degraded: false, latencyMs: 120 },
+    providers: [fakeProvider("test", "SHOULD_NEVER_APPEAR")],
+  });
+  assertEquals(outcome.status, "ACCEPTED");
+  if (outcome.status === "ACCEPTED") assertEquals(outcome.envelope, null, "a success receipt must never trigger a second, duplicate answer generation");
+});
+
+Deno.test("a failure receipt triggers exactly one authorized fallback generation", async () => {
+  const res = await handleCanonicalRequest({ text: "What is a receipt test two?", providers: [fakeProvider("test", "unused")] });
+  const planId = res.executionInstruction.planId;
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, degraded: true, latencyMs: 300 },
+    providers: [fakeProvider("test", "REAL_FALLBACK_ANSWER")],
+  });
+  assertEquals(outcome.status, "ACCEPTED");
+  if (outcome.status === "ACCEPTED") {
+    assert(outcome.envelope, "a failure receipt must produce exactly one fallback answer envelope");
+    assertMatch(outcome.envelope!.answer, /REAL_FALLBACK_ANSWER/);
+    assert(outcome.envelope!.receipt.degradedStages.includes("LOCAL_EXECUTION_FAILED_FALLBACK_TO_SERVER"));
+  }
+});
+
+Deno.test("a second receipt for the same plan is rejected as a duplicate", async () => {
+  const res = await handleCanonicalRequest({ text: "What is a receipt test three?", providers: [fakeProvider("test", "unused")] });
+  const planId = res.executionInstruction.planId;
+  const first = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [] });
+  assertEquals(first.status, "ACCEPTED");
+  const second = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [] });
+  assertEquals(second.status, "REJECTED");
+  if (second.status === "REJECTED") assertEquals(second.reason, "DUPLICATE_RECEIPT");
+});
+
+Deno.test("a receipt for an unknown planId is rejected", async () => {
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "never-issued-plan-id", executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [] });
+  assertEquals(outcome.status, "REJECTED");
+  if (outcome.status === "REJECTED") assertEquals(outcome.reason, "UNKNOWN_PLAN");
+});
+
+Deno.test("a receipt claiming browser_local against a plan that was never authorized is rejected as mismatched", async () => {
+  // A freshness question is never authorized for local execution -- its plan record exists (so a
+  // forged receipt against it can be recognized) but carries executionAuthorized:false.
+  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")] });
+  const planId = res.executionInstruction.planId;
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: true }, providers: [] });
+  assertEquals(outcome.status, "REJECTED");
+  if (outcome.status === "REJECTED") assertEquals(outcome.reason, "MISMATCHED_AUTHORIZATION");
+});
+
+Deno.test("a malformed receipt (missing required fields) is rejected", async () => {
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: "x" } as any, providers: [] });
+  assertEquals(outcome.status, "REJECTED");
+  if (outcome.status === "REJECTED") assertEquals(outcome.reason, "MALFORMED_RECEIPT");
+});
+
+Deno.test("server-executed (non-authorized) plans are marked used immediately -- a stray receipt against one is a duplicate, not a fresh accept", async () => {
+  const res = await handleCanonicalRequest({ text: "What is the latest news today?", providers: [fakeProvider("test", "unused")] });
+  assertEquals(res.executionInstruction.executionAuthorized, false);
+  // Even a well-formed receipt matching executionTarget can't slip through as a fresh success,
+  // because the plan was recorded as `used` (and never authorized) the moment the server answered.
+  const outcome = await recordReceiptAndMaybeFallback({ receipt: { planId: res.executionInstruction.planId, executionTarget: "server_provider", provider: "cloudflare-workers-ai", success: true }, providers: [] });
+  assertEquals(outcome.status, "REJECTED");
 });
 
 Deno.test("empty text is rejected without attempting any provider", async () => {
