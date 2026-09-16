@@ -6,26 +6,29 @@
 // (runGateway's deterministic + provider-fallback + rules-based founder-reasoning chain, the new
 // intent classifier, the new search adapter, the lifecycle store) behind one typed contract.
 //
-// Honesty boundary (read before extending this file): EBR, EcoMap Place/Pathway/Relationship,
+// Honesty boundary (read before extending this file): EcoMap Place/Pathway/Relationship,
 // Opportunity Graph and the Multi-Agent Orchestrator remain BROWSER-ONLY or genuinely missing --
 // they have not been ported or reproduced as server-safe modules. Founder Cognitive Layer,
-// Correlation, Butterfly, Prediction/Foresight, Context Graph and Connection Fabric are now real,
-// genuinely invoked server-side engines (ibis-reasoning-engines.ts) -- this orchestrator calls them
-// directly and reports their ACTUAL result, which for Butterfly/Prediction/Connection Fabric on an
+// Correlation, Butterfly, Prediction/Foresight, Context Graph, Connection Fabric and EBR (Evidence-
+// Bounded Retrodiction -- see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md) are now real, genuinely
+// invoked server-side engines (ibis-reasoning-engines.ts) -- this orchestrator calls them directly
+// and reports their ACTUAL result, which for Butterfly/Prediction/Connection Fabric/EBR on an
 // ordinary free-text query is honestly executed:false/SKIPPED (no structured effects/opportunity/
-// provider data is wired into the canonical brain yet for those three -- an external blocker,
-// disclosed, never silently upgraded to executed:true). When a query's classification suggests a
-// genuinely unported mode would be relevant, it is listed in reasoningModesUsed with executed:false
-// and an honest unavailableReason -- the rules-based founderReasoningAnswer() already inside
-// ibis-intelligence-gateway.ts IS real and IS executed where it applies, and is reported as
-// FOUNDER_REASONING_RULES_FALLBACK, never conflated with the deeper browser-only FOUNDER_COGNITIVE_
-// LAYER mode.
+// provider/evidence data is wired into the canonical brain yet for those four -- an external
+// blocker, disclosed, never silently upgraded to executed:true; a caller MAY supply real EBR input
+// via CanonicalRequest.ebrInput and get genuine execution). When a query's classification suggests
+// a genuinely unported mode would be relevant, it is listed in reasoningModesUsed with
+// executed:false and an honest unavailableReason -- the rules-based founderReasoningAnswer()
+// already inside ibis-intelligence-gateway.ts IS real and IS executed where it applies, and is
+// reported as FOUNDER_REASONING_RULES_FALLBACK, never conflated with the deeper browser-only
+// FOUNDER_COGNITIVE_LAYER mode.
 import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct } from "./ibis-intelligence-gateway.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
 import { buildEnvelope, type CanonicalResponse, type ExecutionInstruction, type QueryClass, type ReasoningModeRecord, type SourceRecord } from "./ibis-response-envelope.ts";
 import { sha256Hex, type LifecycleStore } from "./ibis-lifecycle-store.ts";
-import { runFounderThinking, runCorrelation, runButterfly, runPrediction, runContextGraph, runConnectionFabric } from "./ibis-reasoning-engines.ts";
+import { runFounderThinking, runCorrelation, runButterfly, runPrediction, runContextGraph, runConnectionFabric, runEBR, type EBRInput } from "./ibis-reasoning-engines.ts";
+import { findContradictions } from "./ibis-ebr-engine.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -38,6 +41,13 @@ export type CanonicalRequest = {
   // The caller (ibis-assistant/index.ts) resolves it once via resolveLifecycleStore() and is the
   // one place that decision is made, honestly, from real environment configuration.
   lifecycleStore: LifecycleStore | null;
+  // Optional real, structured Evidence-Bounded Retrodiction input (see GOVERNANCE/
+  // EBR_SOURCE_AND_BOUNDARY.md and ibis-ebr-engine.ts). No automatic evidence-retrieval pipeline
+  // is wired into the canonical brain yet, so an ordinary free-text RETRODICTION query has none of
+  // this and EBR is honestly SKIPPED -- a caller that already has real evidence items and candidate
+  // causal histories (e.g. a governance/audit tool built on top of this endpoint) may supply them
+  // here for genuine execution.
+  ebrInput?: EBRInput | null;
 };
 
 const PLAN_TTL_MS = 5 * 60_000;
@@ -140,6 +150,23 @@ function connectionFabricRecord(provider: string | null): ReasoningModeRecord {
     : { mode: "CONNECTION_FABRIC", executed: false, unavailableReason: result.reason || "skipped" };
 }
 
+// EBR materially changes the canonical envelope beyond its own reasoningModesUsed entry: real
+// contradictions and the ⊥ unmodeled-history reserve are threaded into the envelope's own
+// contradictions/uncertainties fields (both otherwise always empty for a RETRODICTION query) --
+// this is the concrete, inspectable proof that EBR changes the canonical result, not just an
+// executed:true flag on one record among many.
+function ebrRecord(input: EBRInput | null): { record: ReasoningModeRecord; contradictions: string[]; uncertainties: string[] } {
+  const result = runEBR(input);
+  if (!result.executed || !input) {
+    return { record: { mode: "EBR", executed: false, unavailableReason: result.reason || "skipped" }, contradictions: [], uncertainties: [] };
+  }
+  const contradictions = findContradictions(input.evidenceItems).map(
+    (p) => `EBR: evidence "${p.a}" contradicts "${p.b}" (${p.severity}) -- preserved, not resolved into a single score.`,
+  );
+  const uncertainties = ["EBR: an unmodeled-history reserve (⊥) is preserved -- the candidate histories examined are not claimed to exhaust reality."];
+  return { record: { mode: "EBR", executed: true, contribution: result.findings.join(" ") }, contradictions, uncertainties };
+}
+
 function sourcesFromSearch(result: SearchResult): SourceRecord[] {
   if (result.status !== "OK") return [];
   return result.sources.map((s) => ({
@@ -203,6 +230,8 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   let sources: SourceRecord[] = [];
   let evidenceState: CanonicalResponse["evidenceState"] = "NO_ANSWER_GENERATED";
   let degradedStages: string[] = [];
+  const contradictions: string[] = [];
+  const extraUncertainties: string[] = [];
   let handoff: CanonicalResponse["handoff"] = { external: false, note: null };
   let alternatives: CanonicalResponse["alternatives"] = [];
 
@@ -241,6 +270,12 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   if (intent.queryClass === "CORRELATION") reasoningModesUsed.push(correlationRecord());
   if (intent.queryClass === "RELATIONSHIP") reasoningModesUsed.push(contextGraphRecord(products));
   if (intent.queryClass === "TOOL_ACTION") reasoningModesUsed.push(connectionFabricRecord(intent.objective));
+  if (intent.queryClass === "RETRODICTION") {
+    const ebr = ebrRecord(input.ebrInput ?? null);
+    reasoningModesUsed.push(ebr.record);
+    contradictions.push(...ebr.contradictions);
+    extraUncertainties.push(...ebr.uncertainties);
+  }
   reasoningModesUsed.push(...relevantUnavailableModes(intent.queryClass));
 
   // Slice 3 correction: when local execution is authorized, this endpoint must NOT also generate
@@ -320,7 +355,8 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     executionInstruction,
     reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
-    uncertainties: intent.reasons,
+    uncertainties: [...intent.reasons, ...extraUncertainties],
+    contradictions,
   });
 }
 

@@ -7,8 +7,9 @@
 // genuinely EXECUTED with real structured input, so the port itself is proven correct and not just
 // "present but permanently dead."
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runButterfly, runPrediction, runContextGraph, runConnectionFabric, ContextGraph, explainConnection, connectionPlan } from "./ibis-reasoning-engines.ts";
+import { runButterfly, runPrediction, runContextGraph, runConnectionFabric, runEBR, ContextGraph, explainConnection, connectionPlan, type EBRInput } from "./ibis-reasoning-engines.ts";
 import type { IbisProduct } from "./ibis-intelligence-gateway.ts";
+import type { EvidenceItem, CandidateHistory, CausalEdgeProposal } from "./ibis-ebr-engine.ts";
 
 // --- BUTTERFLY -----------------------------------------------------------------------------------
 
@@ -139,4 +140,65 @@ Deno.test("Connection Fabric: a named provider genuinely executes and truthfully
 Deno.test("Connection Fabric: connectionPlan() preserves the exact DIRECT->MCP->ACTIVEPIECES->NANGO->REST order", () => {
   const plan = connectionPlan("hubspot");
   assertEquals(plan.preferredOrder, ["DIRECT", "MCP", "ACTIVEPIECES", "NANGO", "REST"]);
+});
+
+// --- EBR (Evidence-Bounded Retrodiction) ------------------------------------------------------
+// See GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md. Source methodology: Ricardo Gill's published EBR
+// protocol (DOI 10.5281/zenodo.22681856) -- NOT the separate Gill Cohesive Consciousness Hypothesis.
+
+Deno.test("EBR: no structured input -> honestly SKIPPED, never fabricated", () => {
+  const result = runEBR(null);
+  assertEquals(result.executed, false);
+  assertEquals(result.status, "SKIPPED");
+  assert(result.reason && result.reason.length > 0);
+});
+
+const MECHANISM_EDGE: CausalEdgeProposal = {
+  id: "e1", from: "warning-957", to: "operator-decision-958", nominatedBy: ["MECHANISM"],
+  mechanismClass: "OPERATOR_PERCEIVED_WARNING_AND_ADJUSTED_PLAN", temporalStatus: "BEFORE",
+  provenanceRoots: ["grid-sensor-7", "operator-interview"],
+  testableImplication: "The control log should show a plan adjustment logged after 09:57.",
+  knownContradictions: [], epistemicLabel: "DOCUMENTED",
+};
+
+function ebrInput(overrides: Partial<EBRInput> = {}): EBRInput {
+  const items: EvidenceItem[] = [
+    { id: "warning-957", eventTime: "2026-09-10T09:57:00Z", recordTime: "2026-09-10T09:57:30Z", provenance: "grid-sensor-7", epistemicStatus: "DOCUMENTED" },
+  ];
+  const histories: CandidateHistory[] = [{ id: "h1", label: "Operator saw the grid warning and adjusted plan", edges: [MECHANISM_EDGE] }];
+  return { actor: "operator-1", decisionTime: "2026-09-10T09:58:00Z", auditCutoff: "2026-09-10T12:00:00Z", evidenceItems: items, candidateHistories: histories, ...overrides };
+}
+
+Deno.test("EBR: real evidence + an admissible candidate history genuinely executes with concrete findings", () => {
+  const result = runEBR(ebrInput());
+  assertEquals(result.executed, true);
+  assertEquals(result.status, "OK");
+  assertEquals(result.engine, "EBR");
+  assert(result.findings.some((f) => f.includes("K_att")), "must name the attested-knowledge view explicitly");
+  assert(result.findings.some((f) => f.includes("Strongest admissible candidate")), "must report a real, concrete result, not just executed:true");
+  assert(result.findings.some((f) => f.includes("⊥")), "must always preserve the unmodeled-history reserve");
+});
+
+Deno.test("EBR: no candidate is admissible -> honestly abstains rather than forcing a pick", () => {
+  const unsupportedEdge: CausalEdgeProposal = { ...MECHANISM_EDGE, id: "e2", mechanismClass: null, nominatedBy: ["CHRONOLOGY"], testableImplication: null, epistemicLabel: "UNKNOWN" };
+  const result = runEBR(ebrInput({ candidateHistories: [{ id: "h1", label: "Chronology-only guess", edges: [unsupportedEdge] }] }));
+  assertEquals(result.executed, true, "the engine genuinely ran and evaluated the input -- abstaining is a real outcome, not a skip");
+  assert(result.findings.some((f) => f.includes("abstains")), "must state the abstention explicitly");
+  assertEquals(result.confidence, "UNAVAILABLE");
+});
+
+Deno.test("EBR: contradictions are reported, never silently resolved into a single score", () => {
+  const items: EvidenceItem[] = [
+    { id: "a", eventTime: "t", recordTime: "t", provenance: "p1", epistemicStatus: "DOCUMENTED", contradicts: ["b"], contradictionSeverity: "SOFT" },
+    { id: "b", eventTime: "t", recordTime: "t", provenance: "p2", epistemicStatus: "DOCUMENTED" },
+  ];
+  const result = runEBR(ebrInput({ evidenceItems: items }));
+  assert(result.findings.some((f) => f.includes("1 contradiction")));
+});
+
+Deno.test("EBR: output never contains a fabricated probability or a consciousness claim", () => {
+  const result = runEBR(ebrInput());
+  const serialized = JSON.stringify(result);
+  assert(!/"probability"\s*:/.test(serialized), "EBR must never attach a probability field to its result");
+  assert(!/conscious/i.test(serialized), "EBR must never claim consciousness -- see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md");
 });

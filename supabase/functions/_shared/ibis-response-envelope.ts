@@ -16,6 +16,7 @@ export type QueryClass =
   | "CAUSAL_BUTTERFLY"
   | "CORRELATION"
   | "PREDICTION"
+  | "RETRODICTION"
   | "GENERATION"
   | "TOOL_ACTION"
   | "MIXED";

@@ -16,9 +16,25 @@
 // |                             | based domain classifier + decision table),   | decision logic IS  |
 // |                             | which already runs server-side.              | ported/structured  |
 // |                             |                                               | below.             |
-// | EBR                        | js/ibis-evidence.js (192 lines; UI-focused   | NOT ported. Not a  |
-// |                             | provenance/Trust-Card renderer, not a claim- | claim-decomposition|
-// |                             | decomposition engine).                       | engine either way. |
+// | EBR                        | js/ibis-evidence.js (192 lines; UI-focused   | PORTED, but NOT    |
+// |                             | provenance/Trust-Card renderer, not a claim- | from that file --  |
+// |                             | decomposition engine -- confirmed genuinely  | js/ibis-evidence.js|
+// |                             | unrelated). The real methodology source is   | remains unrelated  |
+// |                             | Ricardo Gill's published Evidence-Bounded    | and untouched. See |
+// |                             | Retrodiction protocol (research/evidence-    | ibis-ebr-engine.ts |
+// |                             | bounded-retrodiction/mathematics/index.html; | for the K_att/     |
+// |                             | DOI 10.5281/zenodo.22681856) -- see          | K_rec/R/Φ(h)/      |
+// |                             | GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md.       | Admissible/RankKey |
+// |                             |                                               | port. Requires     |
+// |                             |                                               | caller-supplied    |
+// |                             |                                               | evidence items +   |
+// |                             |                                               | candidate causal   |
+// |                             |                                               | histories -- no    |
+// |                             |                                               | automatic evidence-|
+// |                             |                                               | retrieval/hypo-    |
+// |                             |                                               | thesis-generation  |
+// |                             |                                               | pipeline is wired  |
+// |                             |                                               | server-side yet.   |
 // | EcoMap Place/Pathway        | No file found under this name.               | NOT ported (does   |
 // |                             |                                               | not exist).        |
 // | EcoMap Relationship         | No file literally named this. Closest: js/   | NOT claimed as     |
@@ -84,8 +100,12 @@
 // port genuinely reusable deterministic logic -- never invent new "reasoning" to fill a gap.
 import { founderDomain, relevantProducts, FOUNDER_GUIDANCE, type IbisProduct } from "./ibis-intelligence-gateway.ts";
 import { analyzeCorrelation, type Series } from "./ibis-correlation-engine.ts";
+import {
+  attestedKnowledge, findContradictions, rankCandidates, rankKey, compareRankKeys,
+  type EvidenceItem, type CandidateHistory,
+} from "./ibis-ebr-engine.ts";
 
-export type EngineName = "FOUNDER_THINKING" | "CORRELATION" | "BUTTERFLY" | "PREDICTION" | "CONTEXT_GRAPH" | "CONNECTION_FABRIC";
+export type EngineName = "FOUNDER_THINKING" | "CORRELATION" | "BUTTERFLY" | "PREDICTION" | "CONTEXT_GRAPH" | "CONNECTION_FABRIC" | "EBR";
 
 // The minimum common engine result every adapter returns, per the required contract.
 export type EngineResult = {
@@ -491,5 +511,78 @@ export function runConnectionFabric(provider: string | null): EngineResult {
     evidenceReferences: [],
     confidence: "LOW",
     downstreamEffects: [plan.principle],
+  };
+}
+
+// --- EBR (Evidence-Bounded Retrodiction) ---------------------------------------------------------
+// See GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md and ibis-ebr-engine.ts's own header before extending
+// this adapter. Wraps the real, ported evidence-separation/mechanism-gate/admissibility logic
+// (ibis-ebr-engine.ts). No automatic evidence-retrieval or candidate-history-generation pipeline is
+// wired into the canonical brain for a free-text query yet -- exactly like Butterfly/Prediction/
+// Correlation/Connection Fabric, this is honestly SKIPPED absent caller-supplied structured input,
+// and genuinely executes (three-view separation, mechanism gate, admissibility, ranking, explicit
+// ⊥ abstention) given a real actor/decisionTime/auditCutoff plus evidence items and candidate
+// causal histories.
+export type EBRInput = {
+  actor: string;
+  decisionTime: string;
+  auditCutoff: string;
+  evidenceItems: EvidenceItem[];
+  candidateHistories: CandidateHistory[];
+};
+
+export function runEBR(input: EBRInput | null): EngineResult {
+  if (!input || !Array.isArray(input.evidenceItems) || input.evidenceItems.length === 0 || !Array.isArray(input.candidateHistories) || input.candidateHistories.length === 0) {
+    return {
+      engine: "EBR", requested: true, executed: false, status: "SKIPPED",
+      reason: "Evidence-Bounded Retrodiction requires real evidence items plus at least one candidate causal history to evaluate -- free text alone cannot honestly supply either, and no automatic evidence-retrieval/hypothesis-generation pipeline is wired into the canonical brain yet.",
+      inputsUsed: {}, findings: [], assumptions: [], evidenceReferences: [], confidence: "UNAVAILABLE", downstreamEffects: [],
+    };
+  }
+  const attested = attestedKnowledge(input.actor, input.decisionTime, input.evidenceItems);
+  const contradictions = findContradictions(input.evidenceItems);
+  const ranked = rankCandidates(input.candidateHistories, input.evidenceItems);
+  const admissible = ranked.filter((r) => r.admissible);
+
+  const findings: string[] = [
+    `Contemporaneously attested knowledge (K_att) for "${input.actor}" at ${input.decisionTime}: ${attested.length} of ${input.evidenceItems.length} evidence item(s) -- later evidence can never rewrite this set.`,
+    `${contradictions.length} contradiction(s) preserved across the evidence set (not collapsed into a single score).`,
+  ];
+
+  if (admissible.length === 0) {
+    return {
+      engine: "EBR", requested: true, executed: true, status: "OK", reason: null,
+      inputsUsed: { evidenceItemCount: input.evidenceItems.length, candidateHistoryCount: input.candidateHistories.length, attestedCount: attested.length, admissibleCount: 0 },
+      findings: [
+        ...findings,
+        `No candidate history among the ${ranked.length} examined is admissible (each has an unresolved required mechanism bridge and/or a hard contradiction) -- EBR abstains rather than forcing a pick.`,
+        `Unmodeled-history reserve (⊥) remains the strongest possibility: the true causal history may not be among the ${ranked.length} candidate(s) examined.`,
+      ],
+      assumptions: ["No probability was assigned to any candidate; admissibility is a gate, not a score."],
+      evidenceReferences: [],
+      confidence: "UNAVAILABLE",
+      downstreamEffects: ["Abstained: do not present any of the examined candidates as the answer."],
+    };
+  }
+
+  const top = admissible[0];
+  const tiedTop = admissible.filter((c) => compareRankKeys(rankKey(c.profile), rankKey(top.profile)) === 0);
+  return {
+    engine: "EBR", requested: true, executed: true, status: "OK", reason: null,
+    inputsUsed: { evidenceItemCount: input.evidenceItems.length, candidateHistoryCount: input.candidateHistories.length, attestedCount: attested.length, admissibleCount: admissible.length },
+    findings: [
+      ...findings,
+      tiedTop.length > 1
+        ? `${tiedTop.length} admissible candidate histories are tied and kept incomparable: ${tiedTop.map((c) => c.history.label).join(", ")}.`
+        : `Strongest admissible candidate among ${ranked.length} examined: "${top.history.label}" (mechanism coverage ${(top.profile.mechanismCoverage * 100).toFixed(0)}%, ${top.profile.provenanceRootCount} independent provenance root(s), ${top.profile.contradictionBurden} contradiction(s) carried).`,
+      "This is the strongest candidate AMONG THOSE EXAMINED, not a claim of completeness -- the unmodeled-history reserve (⊥) stays open.",
+    ],
+    assumptions: [
+      "No probability was invented for any candidate; ranking is a transparent, non-probabilistic display ordering only.",
+      "Chronology/correlation alone never counted as a supported mechanism bridge.",
+    ],
+    evidenceReferences: Array.from(new Set(admissible.flatMap((c) => c.history.edges.flatMap((e) => e.provenanceRoots)))),
+    confidence: top.profile.mechanismCoverage >= 0.75 ? "MODERATE" : "LOW",
+    downstreamEffects: [`Do not appraise the ${input.decisionTime} decision using anything outside the ${attested.length}-item attested (K_att) set above.`],
   };
 }

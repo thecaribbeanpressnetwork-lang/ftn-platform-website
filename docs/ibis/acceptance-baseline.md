@@ -11,7 +11,7 @@ Controlling test: `tests/ibis-investor-readiness.mjs` (the one authoritative acc
 ## Latest checkpoint
 
 - **Commit**: (this checkpoint -- see revision history below)
-- **Parent checkpoint**: `1e034ae`
+- **Parent checkpoint**: `4f637c2`
 - **Branch**: `fix/ibis-canonical-outcome-intelligence`
 - **Run date**: 2026-09-16
 - **Readiness classification**: **LOCALLY_VERIFIED**
@@ -28,7 +28,7 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 | Canonical routing | PASS | L1/L2 |
 | Durable lifecycle state | PASS (local contract); BLOCKED_EXTERNAL (real DB) | L1 / L3 |
 | Real web search | PASS (adapter contracts only); BLOCKED_EXTERNAL (live provider) | L1 / L3-L4 |
-| Reasoning engine execution | PASS (Founder Thinking, Correlation, Butterfly, Prediction, Context Graph, Connection Fabric — 6 of 11); **FAIL** (remaining 5: EBR, EcoMap Place/Pathway/Relationship, Multi-Agent) | L1 |
+| Reasoning engine execution | PASS (Founder Thinking, Correlation, Butterfly, Prediction, Context Graph, Connection Fabric, EBR — 7 of 11); **FAIL** (remaining 4: EcoMap Place/Pathway/Relationship, Multi-Agent) | L1 |
 | Capability truth | PASS (matrix assembled) | L1 |
 | Regular IBIS UX | PASS (core suites); NOT_RUN (viewport matrix, accessibility) | L1/L2 |
 | Headspace UX | PASS (controls suite) | L2 |
@@ -37,10 +37,9 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 
 ## Confirmed failures
 
-- **Reasoning engines (Gate 4), 5 of 11 remaining unported**: EBR, EcoMap (Place/Pathway/
-  Relationship), and Multi-Agent Orchestrator are not invoked by the canonical server path
-  (`supabase/functions/_shared/ibis-canonical-brain.ts`). EBR has no file or methodology under
-  that name anywhere in this repo; the EcoMap sub-modes do not exist under that name at all
+- **Reasoning engines (Gate 4), 4 of 11 remaining unported**: EcoMap (Place/Pathway/Relationship)
+  and Multi-Agent Orchestrator are not invoked by the canonical server path (`supabase/functions/
+  _shared/ibis-canonical-brain.ts`). The EcoMap sub-modes do not exist under that name at all
   (`js/ibis-relationship-epistemics.js` is the closest candidate for EcoMap Relationship, but is
   not claimed as satisfying it -- see the reconciliation note below); Multi-Agent Orchestrator is
   real and separate but depends on browser-only `FTN.Auth`/`PermissionLedger`/`UniversalRouter`
@@ -48,18 +47,18 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
   test suites for them are explicitly not accepted as proof of canonical execution. See the
   contract-map header comment in `supabase/functions/_shared/ibis-reasoning-engines.ts` for the
   specific reason each one is not yet ported.
-- **Reconciliation note (this checkpoint): the prior "8 of 10 unported" count was internally
-  inconsistent.** The prior checkpoint's own prose named 9 distinct unported items (EBR + 3 EcoMap
+- **Reconciliation note (prior checkpoint): the "8 of 10 unported" count was internally
+  inconsistent.** That checkpoint's own prose named 9 distinct unported items (EBR + 3 EcoMap
   sub-modes + Butterfly + Prediction/Foresight + Context Graph + Connection Fabric + Multi-Agent),
   while `tests/ibis-investor-readiness.mjs`'s machine-checked `UNPORTED_REASONING_ENGINES` array had
   only 8 entries and silently omitted `CONNECTION_FABRIC` -- which also had no `ReasoningMode`/
-  `QueryClass` enum slot in `ibis-response-envelope.ts` at all until this checkpoint, so it could not
-  even be reported `executed:false`. Both are fixed this checkpoint. The correct total is 11 distinct
-  reasoning capabilities (treating each EcoMap sub-mode separately, matching how they are separately
-  enumerated in `ReasoningMode`), not 10.
-- **Founder Thinking, Correlation, Butterfly, Prediction/Foresight, Context Graph and Connection
-  Fabric are now genuinely connected** (see "Reasoning engines connected this checkpoint" below) —
-  this is a correction from the prior checkpoint, not a new regression.
+  `QueryClass` enum slot in `ibis-response-envelope.ts` at all until that checkpoint, so it could not
+  even be reported `executed:false`. Both were fixed that checkpoint. The correct total is 11
+  distinct reasoning capabilities (treating each EcoMap sub-mode separately, matching how they are
+  separately enumerated in `ReasoningMode`), not 10.
+- **Founder Thinking, Correlation, Butterfly, Prediction/Foresight, Context Graph, Connection
+  Fabric and EBR (Evidence-Bounded Retrodiction) are now genuinely connected** (see "Reasoning
+  engines connected this checkpoint" below) — this is a correction, not a new regression.
 
 ## Reasoning engines connected this checkpoint
 
@@ -125,6 +124,29 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
   `NO_READY_CONNECTION_PATH` rather than fabricating a live route — proven by a live Deno
   integration test, which also confirms `MULTI_AGENT` is still honestly listed unavailable
   (Connection Fabric alone can report route readiness, but cannot execute a connected action).
+- **EBR (Evidence-Bounded Retrodiction) -- connected THIS checkpoint**: real methodology source
+  found (Ricardo Gill's published EBR protocol, DOI `10.5281/zenodo.22681856`; formalized in
+  `research/evidence-bounded-retrodiction/mathematics/index.html`) -- see `GOVERNANCE/
+  EBR_SOURCE_AND_BOUNDARY.md` for the source/boundary note required before this port, which also
+  records that this is strictly an epistemic/causal-reconstruction protocol, never the separate,
+  speculative Gill Cohesive Consciousness Hypothesis. New module `supabase/functions/_shared/
+  ibis-ebr-engine.ts` implements the three-view evidence separation (`K_att`/`K_rec`/`R`),
+  mechanism-gated causal-edge admissibility (`Admissible(h)`), transparent non-probabilistic
+  ranking (`RankKey(h)`), contradiction preservation and the `⊥` unmodeled-history reserve exactly
+  as formalized in that mathematics note. Wrapped by `runEBR()` in `ibis-reasoning-engines.ts` and
+  invoked from `ibis-canonical-brain.ts` for a new `RETRODICTION` `QueryClass`, reached via a new
+  reachable `RETRODICTION_MARKERS` classifier path in `ibis-intent-router.ts` (same previously-
+  dead-code pattern `CORRELATION`/`TOOL_ACTION` were in before they were wired). No automatic
+  evidence-retrieval/hypothesis-generation pipeline is wired into the canonical brain yet -- honestly
+  `SKIPPED` for ordinary free text, same discipline as Butterfly/Prediction/Correlation/Connection
+  Fabric -- but a caller supplying real evidence items and candidate causal histories via
+  `CanonicalRequest.ebrInput` gets genuine execution that **materially changes the canonical
+  envelope's own `contradictions`/`uncertainties` fields** (not just one `reasoningModesUsed`
+  entry, both otherwise always empty for a `RETRODICTION` query), and the engine can honestly
+  abstain (no admissible candidate) rather than force a pick. Proven by 15 dedicated Deno unit
+  tests (`ibis-ebr-engine.test.ts`), 5 dedicated adapter tests (`ibis-reasoning-engines.test.ts`)
+  and 6 dedicated canonical-brain integration tests, including a non-invocation test (an ordinary
+  `SIMPLE_TEXT`/`FOUNDER_STRATEGY` query never invokes EBR) and a no-consciousness-claim test.
 - **Primary benchmark result** (exact prompt: "I want to build a free Caribbean platform that
   helps ordinary people discover opportunities, services and resources. I have limited capital.
   What should I build first, who must be involved, what relationships matter, and what could cause
@@ -134,9 +156,11 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
   executes ("Grounded FTN-product slice: 2 node(s) built from this request's own product list",
   honestly disclosing no dependency-edge data server-side yet); `BUTTERFLY` and `PREDICTION`
   correctly report `executed:false` with an honest reason (no structured effects/opportunity data
-  in a free-text request); no engine is fabricated as executed. This is a **partial** pass of the
-  full benchmark spec — EBR, EcoMap and Multi-Agent are also expected by the benchmark and remain
-  unported, so the benchmark is not fully satisfied end-to-end.
+  in a free-text request); no engine is fabricated as executed. This prompt classifies
+  `FOUNDER_STRATEGY`, not `RETRODICTION`, so EBR is not exercised by it -- EBR is proven separately
+  by its own dedicated tests (see above). This is a **partial** pass of the full benchmark spec —
+  EcoMap and Multi-Agent are also expected by the benchmark and remain unported, so the benchmark
+  is not fully satisfied end-to-end.
 
 ## External blockers
 
@@ -164,12 +188,25 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 `ibis-canonical-routing-behavioral.mjs`, `ibis-local-ai-planner-gate-behavioral.mjs`,
 `ibis-routing-consolidation-audit.mjs`, `ibis-headspace-universal-routing-audit.mjs`, the shared
 Deno suite (`supabase/functions/_shared/*.test.ts`, now including the new
-`ibis-reasoning-engines.test.ts`), `ibis-ux-release.mjs`, `ibis-behavioral-ux-acceptance.mjs`,
+`ibis-ebr-engine.test.ts`), `ibis-ux-release.mjs`, `ibis-behavioral-ux-acceptance.mjs`,
 `ibis-headspace-controls-audit.mjs`.
 
 ## Revision history
 
-- (this checkpoint, 2026-09-16): reasoning-engine connection slice 2. Ported Butterfly, Prediction/
+- (this checkpoint, 2026-09-16): EBR slice. Implemented Evidence-Bounded Retrodiction (Ricardo
+  Gill's published protocol, DOI `10.5281/zenodo.22681856` -- see `GOVERNANCE/
+  EBR_SOURCE_AND_BOUNDARY.md`) as the 7th of 11 genuinely connected reasoning engines. New pure
+  module `ibis-ebr-engine.ts` (three-view evidence separation, mechanism-gated admissibility,
+  contradiction preservation, `⊥` open-set reserve), wrapped by `runEBR()` in
+  `ibis-reasoning-engines.ts`, invoked from `ibis-canonical-brain.ts` for a new `RETRODICTION`
+  `QueryClass` reached via a new `RETRODICTION_MARKERS` classifier path in `ibis-intent-router.ts`.
+  26 new Deno tests (15 pure-module unit tests, 5 adapter tests, 6 canonical-brain integration
+  tests including non-invocation, honest-SKIPPED, material-change, abstention and
+  no-consciousness-claim cases); full shared Deno suite (98 tests) and the authoritative acceptance
+  runner both pass with the same honest FAIL entries for the 4 genuinely unported engines (EcoMap
+  Place/Pathway/Relationship, Multi-Agent). EcoMap and Multi-Agent deliberately NOT implemented
+  this slice, per instruction.
+- `4f637c2` (2026-09-16): reasoning-engine connection slice 2. Ported Butterfly, Prediction/
   Foresight, Context Graph and Connection Fabric to the canonical server path (6 of 11 reconciled
   engines now genuinely connected — see the reconciliation note above correcting the prior "8 of
   10" inconsistency). Added `CONNECTION_FABRIC` to the `ReasoningMode`/`QueryClass` contract (was

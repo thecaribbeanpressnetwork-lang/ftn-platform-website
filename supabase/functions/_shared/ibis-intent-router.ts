@@ -34,6 +34,16 @@ const CORRELATION_MARKERS = /\b(correlat(?:e|es|ed|ion|ing)|is there a (?:relati
 // a real connection route exists, rather than answering a connect-my-X request as plain text.
 const TOOL_ACTION_MARKERS = /\b(?:connect|integrate|link|sync)\s+(?:my|with|to)?\s*([a-z][\w.-]{1,40})/i;
 
+// Added alongside wiring the ported Evidence-Bounded Retrodiction engine (ibis-ebr-engine.ts; see
+// GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md) into the canonical brain -- RETRODICTION was previously a
+// defined QueryClass enum value with no classifier path that could ever reach it (same dead-code
+// situation CORRELATION/TOOL_ACTION were in before they were wired). Matches a question asking WHY
+// something happened / what caused it / what an actor knew at a past decision time, as distinct
+// from an ordinary factual question -- these need the K_att/K_rec/R evidence separation, not a
+// single fact. Checked AFTER freshness/correlation/tool-action so a retrodiction question that also
+// needs live current data still correctly routes to CURRENT_WEB_RESEARCH first.
+const RETRODICTION_MARKERS = /\b(why did|what (?:really )?caused|what led to|in hindsight|looking back(?:,| at)|reconstruct (?:what|why|how)|given what we (?:now |later )?know|what did .+ know at the time|knowing what we know now)\b/i;
+
 export type IntentClassification = {
   queryClass: QueryClass;
   objective: string | null;
@@ -56,6 +66,10 @@ export function classifyIntent(text: string): IntentClassification {
   if (toolActionMatch) {
     reasons.push("matched a tool-connection marker (\"connect my/integrate with/link my/sync my <app>\") -- routed to the Connection Fabric capability-check rather than answered as a plain fact.");
     return { queryClass: "TOOL_ACTION", objective: toolActionMatch[1], reasons };
+  }
+  if (RETRODICTION_MARKERS.test(q)) {
+    reasons.push("matched a retrodiction marker (\"why did ... happen\", \"what caused\", \"in hindsight\", \"what did ... know at the time\") -- this asks for a causal-history reconstruction bounded by what was actually known when, not a single fact.");
+    return { queryClass: "RETRODICTION", objective: extractObjective(q), reasons };
   }
   if (PATHWAY_MARKERS.test(q)) {
     reasons.push("matched a pathway marker (steps/apply/eligibility/deadline) -- the user needs an ordered plan, not a single fact.");

@@ -9,6 +9,7 @@ import { classifyIntent } from "./ibis-intent-router.ts";
 import { searxngSearch, braveSearch, search } from "./ibis-search-adapter.ts";
 import { createInMemoryLifecycleStore } from "./ibis-lifecycle-store.ts";
 import type { GatewayProvider } from "./ibis-intelligence-gateway.ts";
+import type { EBRInput } from "./ibis-reasoning-engines.ts";
 
 function fakeProvider(id: string, answer: string, opts: { configured?: boolean; fail?: boolean } = {}): GatewayProvider {
   return {
@@ -648,4 +649,122 @@ Deno.test("two plans for the same text get distinct planIds (no accidental colli
   const a = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   const b = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   assertNotEquals(a.executionInstruction.planId, b.executionInstruction.planId);
+});
+
+// --- EBR (Evidence-Bounded Retrodiction) -- see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md. Source
+// methodology: Ricardo Gill's published EBR protocol (DOI 10.5281/zenodo.22681856), NOT the
+// separate, speculative Gill Cohesive Consciousness Hypothesis, which this module never touches. ---
+
+Deno.test("EBR: a why-did-this-happen question classifies RETRODICTION, distinct from an ordinary question", () => {
+  const result = classifyIntent("Why did signups drop after the redesign?");
+  assertEquals(result.queryClass, "RETRODICTION");
+});
+
+Deno.test("EBR: an ordinary SIMPLE_TEXT question never invokes EBR at all (non-invocation)", async () => {
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
+  assert(!res.reasoningModesUsed.some((m) => m.mode === "EBR"), "EBR must not appear in reasoningModesUsed for an irrelevant, non-retrodictive query");
+});
+
+Deno.test("EBR: a FOUNDER_STRATEGY outcome question never invokes EBR either (non-invocation is selective, not global)", async () => {
+  const res = await handleCanonicalRequest({
+    text: "I want to build a Caribbean-owned business that earns US dollars.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(!res.reasoningModesUsed.some((m) => m.mode === "EBR"));
+});
+
+Deno.test("EBR: a retrodiction question with no structured evidence is honestly SKIPPED, never fabricated", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Why did signups drop after the redesign?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.queryClass, "RETRODICTION");
+  const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
+  assert(ebrMode, "EBR must still be listed for a RETRODICTION query, even when honestly skipped");
+  assertEquals(ebrMode!.executed, false);
+  assertEquals(res.contradictions.length, 0, "no structured evidence means no contradictions can honestly be reported");
+});
+
+Deno.test("EBR: real structured evidence + an admissible candidate history MATERIALLY changes the canonical response, not just executed:true", async () => {
+  const ebrInput: EBRInput = {
+    actor: "operator-1",
+    decisionTime: "2026-09-10T09:58:00Z",
+    auditCutoff: "2026-09-10T12:00:00Z",
+    evidenceItems: [
+      {
+        id: "warning-957", eventTime: "2026-09-10T09:57:00Z", recordTime: "2026-09-10T09:57:30Z",
+        provenance: "grid-sensor-7", epistemicStatus: "DOCUMENTED",
+        actorAccess: [{ actor: "operator-1", accessTime: "2026-09-10T09:57:30Z", assertedAt: "2026-09-10T09:57:30Z", basis: "DOCUMENTED" }],
+        contradicts: ["conflicting-log-entry"], contradictionSeverity: "SOFT",
+      },
+      { id: "conflicting-log-entry", eventTime: "2026-09-10T09:57:00Z", recordTime: "2026-09-10T09:58:00Z", provenance: "backup-log", epistemicStatus: "DOCUMENTED" },
+    ],
+    candidateHistories: [{
+      id: "h1", label: "Operator saw the grid warning and adjusted plan",
+      edges: [{
+        id: "e1", from: "warning-957", to: "operator-decision-958", nominatedBy: ["MECHANISM"],
+        mechanismClass: "OPERATOR_PERCEIVED_WARNING_AND_ADJUSTED_PLAN", temporalStatus: "BEFORE",
+        provenanceRoots: ["grid-sensor-7", "operator-interview"],
+        testableImplication: "The control log should show a plan adjustment logged after 09:57.",
+        knownContradictions: [], epistemicLabel: "DOCUMENTED",
+      }],
+    }],
+  };
+  const res = await handleCanonicalRequest({
+    text: "Why did the operator change the plan right before the incident?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    ebrInput,
+  });
+  assertEquals(res.queryClass, "RETRODICTION");
+  const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
+  assert(ebrMode);
+  assertEquals(ebrMode!.executed, true);
+  assert(ebrMode!.contribution && ebrMode!.contribution.includes("Strongest admissible candidate"), "must report a real, concrete finding, not a static label");
+  // The material-change proof: contradictions/uncertainties are populated on the ENVELOPE itself
+  // (both otherwise always empty for a RETRODICTION query), not only inside one reasoningMode entry.
+  assertEquals(res.contradictions.length, 1, "a real contradiction supplied in evidenceItems must surface on the canonical envelope");
+  assert(res.contradictions[0].includes("warning-957"));
+  assert(res.uncertainties.some((u) => u.includes("⊥")), "the unmodeled-history reserve must surface on the canonical envelope's own uncertainties");
+});
+
+Deno.test("EBR: no admissible candidate history honestly abstains rather than fabricating a reconstruction", async () => {
+  const ebrInput: EBRInput = {
+    actor: "analyst-1", decisionTime: "2023-01-01T00:00:00Z", auditCutoff: "2023-06-01T00:00:00Z",
+    evidenceItems: [{ id: "e1", eventTime: "2023-01-01T00:00:00Z", recordTime: "2023-01-01T00:00:00Z", provenance: "news-report", epistemicStatus: "DOCUMENTED" }],
+    candidateHistories: [{
+      id: "h1", label: "Chronology-only guess",
+      edges: [{ id: "e1", from: "a", to: "b", nominatedBy: ["CHRONOLOGY"], mechanismClass: null, temporalStatus: "BEFORE", provenanceRoots: [], testableImplication: null, knownContradictions: [], epistemicLabel: "UNKNOWN" }],
+    }],
+  };
+  const res = await handleCanonicalRequest({
+    text: "Why did signups drop after the redesign?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    ebrInput,
+  });
+  const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
+  assert(ebrMode);
+  assertEquals(ebrMode!.executed, true, "the engine genuinely ran and evaluated the input -- abstaining is a real outcome, not a skip");
+  assert(ebrMode!.contribution && ebrMode!.contribution.includes("abstains"));
+});
+
+Deno.test("EBR: no consciousness claim appears anywhere in a canonical response that genuinely executed EBR", async () => {
+  const ebrInput: EBRInput = {
+    actor: "operator-1", decisionTime: "2026-09-10T09:58:00Z", auditCutoff: "2026-09-10T12:00:00Z",
+    evidenceItems: [{ id: "warning-957", eventTime: "2026-09-10T09:57:00Z", recordTime: "2026-09-10T09:57:30Z", provenance: "grid-sensor-7", epistemicStatus: "DOCUMENTED" }],
+    candidateHistories: [{
+      id: "h1", label: "Operator saw the grid warning",
+      edges: [{ id: "e1", from: "warning-957", to: "decision", nominatedBy: ["MECHANISM"], mechanismClass: "M", temporalStatus: "BEFORE", provenanceRoots: ["grid-sensor-7"], testableImplication: "x", knownContradictions: [], epistemicLabel: "DOCUMENTED" }],
+    }],
+  };
+  const res = await handleCanonicalRequest({
+    text: "Why did the operator change the plan right before the incident?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    ebrInput,
+  });
+  assert(!/conscious/i.test(JSON.stringify(res)), "no canonical response may ever claim consciousness -- see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md");
 });
