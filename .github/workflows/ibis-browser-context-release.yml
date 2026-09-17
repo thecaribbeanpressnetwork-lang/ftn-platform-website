@@ -93,6 +93,7 @@ jobs:
               ]
             }
           }
+          JSON
           code=$(curl -sS -o /tmp/ibis-browser-context-live.json -w '%{http_code}' \
             -X POST "https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/ibis-browser-context" \
             -H 'content-type: application/json' \
