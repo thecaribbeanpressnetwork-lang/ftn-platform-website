@@ -74,6 +74,12 @@
   // the multi-agent orchestrator's raw result shape, not the {answer,...} shape serverAI() otherwise
   // returns, so this normalizes it the same way Headspace already does.
   function bestRuntimeText(result){var direct=result&&(result.data||result.result)||{};if(direct.answer)return direct.answer;var outputs=result&&result.run&&result.run.result&&result.run.result.outputs||[];for(var i=outputs.length-1;i>=0;i--){var o=outputs[i].output||{},d=o.data||o.result||{};if(d.answer)return d.answer;if(o.result&&o.result.answer)return o.result.answer;if(typeof d==='string')return d;}return null;}
+  // Freshness-grounding correction: true when ANY task output in this runtime run carries
+  // js/ibis-multi-agent-orchestrator.js's fallbackFromCapability tag -- meaning a real capability
+  // (e.g. LIVE_INTELLIGENCE) was requested and failed, and the orchestrator silently substituted a
+  // bare TEXT completion instead. Used only to decide whether a freshness-required answer can be
+  // trusted; never changes what the orchestrator itself does.
+  function runtimeGroundingDegraded(result){var outputs=result&&result.run&&result.run.result&&result.run.result.outputs||[];return outputs.some(function(o){return !!(o&&o.output&&o.output.fallbackFromCapability);});}
   // Pass 16: IBIS Live Intelligence lazy-load. js/ibis-provider-registry.js is already a static
   // script tag on this page; the eligibility engine and the live-research capability itself are
   // loaded on demand, same pattern as every other ensure* helper here.
@@ -388,8 +394,24 @@
         return{available:true,degraded:false,answer:'This needs your approval before ibis can continue -- it would take an action outside this conversation. Open Headspace to approve or decline it.',provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:'Action requires explicit permission.',answerClass:'WAITING_PERMISSION',provenance:{route:route},receipt:canonicalReceipt(route,null)};
       }
       var runtimeAnswer=bestRuntimeText(runtimeResult);
-      if(runtimeAnswer){
+      // Freshness-grounding correction: FTN.UniversalRouter already flags a query needing a
+      // current fact (epistemicMode 'CURRENT_FACT_REQUIRED', e.g. "latest"/"today"/"current") and
+      // routes it toward the LIVE_INTELLIGENCE capability -- but FTN.MultiAgentOrchestrator's
+      // executor silently falls back to a bare TEXT completion whenever that capability fails or
+      // has nothing, with no signal that happened (confirmed live: "What are the latest major
+      // business developments in Trinidad and Tobago?" returned a fabricated, unsourced answer
+      // that falsely claimed "I've checked the latest information... According to FTN
+      // Parliament..."). runtimeGroundingDegraded() reads the new fallbackFromCapability tag that
+      // marks exactly this silent degradation. When it fires on a freshness-required query, this
+      // runtime answer is refused -- never presented as current/verified -- and the request falls
+      // through to the SAME canonical/SearXNG-grounded path already used when the runtime fails
+      // outright, so the user still gets a real, honestly-sourced answer instead of a guess.
+      var freshnessRequired=!!(route&&route.epistemicMode==='CURRENT_FACT_REQUIRED');
+      if(runtimeAnswer&&!(freshnessRequired&&runtimeGroundingDegraded(runtimeResult))){
         return{available:true,degraded:false,answer:runtimeAnswer,provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:null,answerClass:'RUNTIME_RESPONSE',provenance:{route:route,runtime:true},receipt:canonicalReceipt(route,null)};
+      }
+      if(freshnessRequired&&runtimeGroundingDegraded(runtimeResult)){
+        return degradedTextFallback(prompt,products,context,'FRESHNESS_GROUNDING_DEGRADED',route);
       }
       // The canonical planner ran but produced nothing usable -- degrade explicitly rather than
       // silently retrying a different route the user can't see was different.

@@ -117,6 +117,12 @@
   // error in the receipt they show the user.
   function withTimeoutMs(promise,ms,timeoutValue){return new Promise(function(resolve,reject){var settled=false;var timer=setTimeout(function(){if(!settled){settled=true;resolve(timeoutValue);}},ms);promise.then(function(v){if(!settled){settled=true;clearTimeout(timer);resolve(v);}},function(err){if(!settled){settled=true;clearTimeout(timer);reject(err);}});});}
   function bestText(result){var direct=result&&(result.data||result.result)||{};if(direct.answer)return direct.answer;var outputs=result&&result.run&&result.run.result&&result.run.result.outputs||[];for(var i=outputs.length-1;i>=0;i--){var o=outputs[i].output||{},d=o.data||o.result||{};if(d.answer)return d.answer;if(o.result&&o.result.answer)return o.result.answer;if(typeof d==='string')return d;}return null;}
+  // Freshness-grounding correction (same fix as js/ibis-ai-workspace.js): true when any task
+  // output in this runtime run carries js/ibis-multi-agent-orchestrator.js's
+  // fallbackFromCapability tag -- a real capability (e.g. LIVE_INTELLIGENCE) failed and the
+  // orchestrator silently substituted a bare TEXT completion. Used only to decide whether a
+  // freshness-required answer can be trusted here in Headspace too.
+  function runtimeGroundingDegraded(result){var outputs=result&&result.run&&result.run.result&&result.run.result.outputs||[];return outputs.some(function(o){return !!(o&&o.output&&o.output.fallbackFromCapability);});}
 
   // Bubble-phase fallback is deliberate: specialist Headspace capabilities register capture
   // handlers and may stop propagation first. The universal route only owns requests nobody else claimed.
@@ -132,7 +138,15 @@
       var context={attachments:((FTN.HeadspaceInputContext&&FTN.HeadspaceInputContext.attachments)||[]).slice()};
       var wrapped=await ask(text,context);if(FTN.HeadspaceRequestState&&!FTN.HeadspaceRequestState.active(token))return;
       if(wrapped.kind==='DEGRADED'){renderAnswer(wrapped.data.answer,Object.assign({},wrapped.data,{degraded:true,failedStage:wrapped.failedStage}));return;}
-      var result=wrapped.data;if(result&&result.status==='WAITING_PERMISSION'){renderWaiting(result);return;}var answer=bestText(result);if(answer)renderAnswer(answer,{provider:'FTN ibis runtime',degraded:false});else renderFailure('The selected capability returned no usable answer.');
+      var result=wrapped.data;if(result&&result.status==='WAITING_PERMISSION'){renderWaiting(result);return;}
+      // Freshness-grounding correction: a route the classifier flagged as needing a current fact
+      // (e.g. "latest"/"today") must never be answered from a silently-degraded bare completion --
+      // fall through to the same canonical/SearXNG-grounded path used when the runtime has nothing
+      // at all, rather than presenting an ungrounded guess as current, verified information.
+      if(result&&result.route&&result.route.epistemicMode==='CURRENT_FACT_REQUIRED'&&runtimeGroundingDegraded(result)){
+        var grounded=await directText(text);renderAnswer(grounded.answer,Object.assign({},grounded,{degraded:true,failedStage:'FRESHNESS_GROUNDING_DEGRADED'}));return;
+      }
+      var answer=bestText(result);if(answer)renderAnswer(answer,{provider:'FTN ibis runtime',degraded:false});else renderFailure('The selected capability returned no usable answer.');
     }catch(err){if(FTN.HeadspaceRequestState&&!FTN.HeadspaceRequestState.active(token))return;renderFailure(esc(err&&err.message||'The intelligence route failed.'));}
   });
 })(typeof window!=='undefined'?window:globalThis);
