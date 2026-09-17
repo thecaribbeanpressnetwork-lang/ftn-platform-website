@@ -34,4 +34,20 @@ for (const term of ['user value', 'ecosystem value', 'ownership', 'economic valu
   assert.ok(instruction.toLowerCase().includes(term), `must still reference "${term}" as an internal judgment factor`);
 }
 
-console.log('ibis-founder-reasoning-instruction-audit: Founder Reasoning still shapes internal judgment on every response and still structures strategic/outcome/planning answers; no longer instructed to mechanically print its category headings on ordinary factual/current-event questions.');
+// Live-confirmed regression (independent audit, founder-completion pass): an EARLIER version of
+// this instruction's reasoning-synthesis-block guidance explicitly named the internal lens labels
+// ("Truthmode", "Red Team", "80/20", "FutureYou", "Value Lens") in a "never print these" sentence --
+// Cloudflare Workers AI's Llama 3.1 8B treated the prohibition's own vocabulary as a template and
+// printed "Truthmode:", "Value Lens:", "EcoMap:", "Butterfly:", "Red Team:" as literal headings in
+// a live answer about an UNRELATED topic (a search-engine mismatch pulled in fantasy-football
+// content for the acronym "FTN") -- the exact same failure class this file already guards against
+// above, just re-introduced via a different, later instruction addition. The fix: never name a lens
+// label at all in the instruction, describe the prohibition structurally instead.
+const FORBIDDEN_LENS_LABELS = ['Truthmode', 'Red Team', '80/20', 'FutureYou', 'Value Lens'];
+for (const label of FORBIDDEN_LENS_LABELS) {
+  assert.ok(!instruction.includes(label), `must never name the internal lens label "${label}" anywhere in the instruction -- naming it (even to forbid it) teaches a small model that vocabulary`);
+}
+assert.match(instruction, /reasoning synthesis for this request/i, 'must still describe how to treat the reasoning-synthesis block when present');
+assert.match(instruction, /never copy|never .*(?:reproduce|invent a heading)/i, 'must still forbid copying the synthesis block\'s own labels/markers into the answer, described generically');
+
+console.log('ibis-founder-reasoning-instruction-audit: Founder Reasoning still shapes internal judgment on every response and still structures strategic/outcome/planning answers; no longer instructed to mechanically print its category headings on ordinary factual/current-event questions; the reasoning-synthesis guidance never names an internal lens label.');
