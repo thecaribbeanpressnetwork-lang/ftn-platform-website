@@ -2,11 +2,14 @@
   "manifest_version": 3,
   "name": "FTN ibis — Caribbean Intelligence",
   "short_name": "FTN ibis",
-  "version": "0.1.1",
-  "description": "Search source-backed Caribbean opportunities and intelligence from your browser.",
-  "homepage_url": "https://ftnplatform.org/ibis/",
-  "permissions": ["contextMenus"],
-  "host_permissions": ["https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-ibis-mcp"],
+  "version": "0.2.0",
+  "description": "Bring browser search results into FTN ibis for Caribbean-first reasoning without sharing browser cookies or account credentials.",
+  "homepage_url": "https://ftnplatform.org/ibis-ai/",
+  "permissions": ["contextMenus", "activeTab", "scripting"],
+  "host_permissions": [
+    "https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-ibis-mcp",
+    "https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-browser-context"
+  ],
   "background": { "service_worker": "background.js" },
   "action": {
     "default_title": "Ask FTN ibis",
