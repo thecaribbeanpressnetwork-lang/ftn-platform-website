@@ -1668,3 +1668,221 @@ Deno.test("FRESHNESS: 'recent' classifies CURRENT_WEB_RESEARCH just like 'latest
   assertEquals(classifyIntent("What are the most recent business developments in Tobago?").queryClass, "CURRENT_WEB_RESEARCH");
   assertEquals(classifyIntent("What has recently changed in Trinidad's energy sector?").queryClass, "CURRENT_WEB_RESEARCH");
 });
+
+// ==================================================================================================
+// CAUSAL-INFLUENCE PROOFS (founder-completion pass, Phase 11): an engine executing and populating
+// reasoningModesUsed/contradictions/actions is NOT the same as its output shaping the final answer.
+// Every test below proves the reasoning-synthesis TEXT actually handed to the answer-generating
+// provider (captured via providerFactory's second argument) materially changes when the underlying
+// engine's real input changes -- these tests FAIL if ibis-canonical-brain.ts is ever changed to
+// build the synthesis packet without wiring it into providerFactory, or if a lens stops reacting to
+// its real inputs.
+// ==================================================================================================
+
+async function captureSynthesisBlock(overrides: Parameters<typeof handleCanonicalRequest>[0]): Promise<string | null> {
+  let captured: string | null | undefined = undefined;
+  await handleCanonicalRequest({
+    ...overrides,
+    providerFactory: (evidenceBlock, reasoningSynthesisBlock) => { captured = reasoningSynthesisBlock ?? null; return [evidenceEchoProvider()]; },
+  });
+  assert(captured !== undefined, "providerFactory must be called for this request");
+  return captured as string | null;
+}
+
+Deno.test("CAUSAL PROOF A (Founder reasoning): a different strategic objective changes the synthesis block's Founder Thinking content", async () => {
+  const buildBlock = await captureSynthesisBlock({
+    text: "I want to build a Caribbean food delivery business.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  const fundingBlock = await captureSynthesisBlock({
+    text: "I want to start a funding campaign for my venture.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(buildBlock && buildBlock.includes("Founder Thinking"), "a BUSINESS-domain outcome question must produce a Founder Thinking section");
+  assert(fundingBlock && fundingBlock.includes("Founder Thinking"), "a FUNDING-domain outcome question must produce a Founder Thinking section");
+  assertNotEquals(buildBlock, fundingBlock, "different strategic domains/objectives must produce a genuinely different synthesis block, not a static template");
+  assert(buildBlock!.includes("BUILD_NOW") || buildBlock!.includes("Decision: BUILD"), "the BUSINESS domain's real decision (BUILD NOW) must appear");
+  assert(fundingBlock!.includes("PREPARE_NOW") || fundingBlock!.includes("Decision: PREPARE"), "the FUNDING domain's real decision (PREPARE NOW) must appear");
+});
+
+Deno.test("CAUSAL PROOF B (EBR): a source asserting a causal claim changes the synthesis block's EBR content and the final causal explanation available to the model", async () => {
+  const withCausalClaim = await captureSynthesisBlock({
+    text: "Why did the ferry service face repeated delays?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    ebrInput: {
+      auditCutoff: new Date().toISOString(),
+      evidenceItems: [{ id: "s1", eventTime: "2026-09-01T00:00:00Z", recordTime: "2026-09-01T00:00:00Z", provenance: "Guardian", epistemicStatus: "DOCUMENTED" }],
+      candidateHistories: [{
+        id: "h1", label: "Mechanical failure -> ferry delays",
+        edges: [{ id: "e1", from: "mechanical failure", to: "ferry delays", nominatedBy: ["MECHANISM"], mechanismClass: "SOURCE_ASSERTED_CAUSATION", temporalStatus: "UNKNOWN", provenanceRoots: ["Guardian"], testableImplication: "Check maintenance records.", knownContradictions: [], epistemicLabel: "INFERRED" }],
+      }],
+    },
+  });
+  const withoutCausalClaim = await captureSynthesisBlock({
+    text: "Why did the ferry service face repeated delays?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    ebrInput: {
+      auditCutoff: new Date().toISOString(),
+      evidenceItems: [{ id: "s1", eventTime: "2026-09-01T00:00:00Z", recordTime: "2026-09-01T00:00:00Z", provenance: "Guardian", epistemicStatus: "DOCUMENTED" }],
+      candidateHistories: [],
+    },
+  });
+  assert(withCausalClaim && withCausalClaim.includes("EBR"), "an EBR section must appear when evidence exists");
+  assert(withoutCausalClaim && withoutCausalClaim.includes("EBR"), "an EBR section must appear when evidence exists, even with no candidate history");
+  assertNotEquals(withCausalClaim, withoutCausalClaim, "a real candidate causal history must change the EBR section content, not be ignored");
+  assert(withCausalClaim!.includes("Mechanical failure"), "the admissible candidate's real content must reach the synthesis block");
+  assert(/no candidate|abstains|Unmodeled-history reserve/i.test(withoutCausalClaim!), "with no candidate history, EBR must honestly report it could not rank a cause");
+});
+
+// EcoMap-signal query text (see ECOMAP_PATHWAY_SIGNAL_MARKERS) also always plans RESEARCH
+// (planCapabilities()'s `ecomapRequested` branch -- mapping real services/steps needs grounded
+// evidence too), so these tests must mock search the same way every other RESEARCH-planning test
+// in this file does; without it, the request degrades honestly at "no working live-search route"
+// before ever reaching providerFactory, which is correct production behavior but not what these
+// tests are proving.
+const MINIMAL_SEARCH_FETCH: typeof fetch = async () =>
+  new Response(JSON.stringify({ results: [{ title: "Generic search result", url: "https://example.org/generic", content: "generic snippet", engine: "test" }] }), { status: 200 });
+
+Deno.test("CAUSAL PROOF C (EcoMap): different pathway evidence changes the synthesis block's EcoMap Pathway content", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const stepsA = [{ id: "src-a", title: "Register with the Business Development Unit", text: "Register with the Business Development Unit (BDU) -- free registration.", url: "https://bdu.example/register", publisher: "BDU", origin: "SEARCH" as const, recordedAt: new Date().toISOString(), confidence: "INFERRED" as const }];
+  const stepsB = [{ id: "src-b", title: "Apply through the Ministry of Trade export desk", text: "Apply through the Ministry of Trade's export desk for a licence.", url: "https://trade.example/export-desk", publisher: "Ministry of Trade", origin: "SEARCH" as const, recordedAt: new Date().toISOString(), confidence: "INFERRED" as const }];
+  const blockA = await captureSynthesisBlock({
+    text: "What steps are needed to register a small food business?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+    searchFetchImpl: MINIMAL_SEARCH_FETCH,
+    ecomapPathwayContext: { outcome: "register a small food business", sources: stepsA },
+  });
+  const blockB = await captureSynthesisBlock({
+    text: "What steps are needed to register a small food business?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+    searchFetchImpl: MINIMAL_SEARCH_FETCH,
+    ecomapPathwayContext: { outcome: "register a small food business", sources: stepsB },
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assert(blockA && blockA.includes("EcoMap Pathway"), "EcoMap Pathway section must appear for source set A");
+  assert(blockB && blockB.includes("EcoMap Pathway"), "EcoMap Pathway section must appear for source set B");
+  assertNotEquals(blockA, blockB, "different real pathway evidence must produce a different EcoMap Pathway section");
+  assert(blockA!.includes("Business Development Unit"), "source set A's real organization name must reach the synthesis block");
+  assert(blockB!.includes("Ministry of Trade"), "source set B's real organization name must reach the synthesis block");
+});
+
+Deno.test("CAUSAL PROOF D (Butterfly): different EcoMap Pathway zero-cost signals change the synthesis block's Butterfly second-order-effect value", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const zeroCostSteps = [{ id: "z1", title: "Free vendor registration", text: "Free, no-cost vendor registration is available online.", url: "https://example.org/free-reg", publisher: "Example", origin: "SEARCH" as const, recordedAt: new Date().toISOString(), confidence: "CONFIRMED" as const }];
+  const paidSteps = [{ id: "p1", title: "Paid consultancy filing service", text: "A paid consultancy handles the filing for a fee.", url: "https://example.org/paid-filing", publisher: "Example", origin: "SEARCH" as const, recordedAt: new Date().toISOString(), confidence: "CONDITIONAL" as const }];
+  const zeroCostBlock = await captureSynthesisBlock({
+    text: "I want to launch a small vendor business -- what steps are required, with no budget?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+    searchFetchImpl: MINIMAL_SEARCH_FETCH,
+    ecomapPathwayContext: { outcome: "launch a small vendor business", sources: zeroCostSteps },
+  });
+  const paidBlock = await captureSynthesisBlock({
+    text: "I want to launch a small vendor business -- what steps are required, with no budget?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+    searchFetchImpl: MINIMAL_SEARCH_FETCH,
+    ecomapPathwayContext: { outcome: "launch a small vendor business", sources: paidSteps },
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assert(zeroCostBlock && zeroCostBlock.includes("Butterfly"), "Butterfly section must appear once EcoMap Pathway produced real steps");
+  assert(paidBlock && paidBlock.includes("Butterfly"), "Butterfly section must appear for the paid-step scenario too");
+  assertNotEquals(zeroCostBlock, paidBlock, "a zero-cost-flagged step must produce a different (higher-strategic-value) Butterfly result than a non-zero-cost step");
+});
+
+Deno.test("CAUSAL PROOF E (Caribbean lens): the same business question with vs without a Caribbean/Trinidad mention changes whether the synthesis block surfaces regional constraints", async () => {
+  const caribbeanBlock = await captureSynthesisBlock({
+    text: "I want to build a food delivery business in Trinidad and Tobago.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  const genericBlock = await captureSynthesisBlock({
+    text: "I want to build a food delivery business.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(caribbeanBlock && caribbeanBlock.includes("Caribbean lens"), "a Trinidad & Tobago-named business question must surface the Caribbean lens");
+  assert(!genericBlock || !genericBlock.includes("Caribbean lens"), "an otherwise-identical question with no Caribbean/jurisdiction mention must NOT force the Caribbean lens");
+});
+
+Deno.test("CAUSAL PROOF F (Truthmode): a declared evidence contradiction is preserved in the synthesis block, never silently resolved", async () => {
+  const block = await captureSynthesisBlock({
+    text: "Why did the project stall?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    ebrInput: {
+      auditCutoff: new Date().toISOString(),
+      evidenceItems: [
+        { id: "a", eventTime: "2026-09-01T00:00:00Z", recordTime: "2026-09-01T00:00:00Z", provenance: "Source A", epistemicStatus: "DOCUMENTED", contradicts: ["b"], contradictionSeverity: "HARD" },
+        { id: "b", eventTime: "2026-09-01T00:00:00Z", recordTime: "2026-09-01T00:00:00Z", provenance: "Source B", epistemicStatus: "DOCUMENTED" },
+      ],
+      candidateHistories: [],
+    },
+  });
+  assert(block && /contradiction/i.test(block), "a declared HARD contradiction between two evidence items must appear in the synthesis block");
+  assert(block!.includes("do not silently resolve") || block!.includes("Unresolved contradictions"), "the block must instruct the model not to silently resolve the contradiction");
+});
+
+Deno.test("CAUSAL PROOF G (Red Team): Red Team only activates on a genuine strategy/outcome question, never on an ordinary factual one", async () => {
+  const strategyBlock = await captureSynthesisBlock({
+    text: "I want to launch a Caribbean civic-tech service with almost no budget.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  const factualBlock = await captureSynthesisBlock({
+    text: "What is photosynthesis?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+  });
+  assert(strategyBlock && strategyBlock.includes("Red Team"), "an outcome/strategy question must produce a Red Team section");
+  assert(!factualBlock, "an ordinary factual question with no evidence/engines must produce no synthesis block at all (never a forced Red Team or any other section)");
+});
+
+Deno.test("CAUSAL PROOF H (Pareto/80-20): many candidate pathway steps are compressed to at most 3 highest-leverage actions in the synthesis block", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const manySteps = Array.from({ length: 8 }, (_, i) => ({
+    id: `step-${i}`, title: `Candidate step ${i}`, text: i === 0 ? "Free, no-cost first step to register." : `Generic candidate step number ${i} description text here.`,
+    url: `https://example.org/step-${i}`, publisher: "Example", origin: "SEARCH" as const, recordedAt: new Date().toISOString(), confidence: "INFERRED" as const,
+  }));
+  const block = await captureSynthesisBlock({
+    text: "What steps are required to register this project?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+    searchFetchImpl: MINIMAL_SEARCH_FETCH,
+    ecomapPathwayContext: { outcome: "register this project", sources: manySteps },
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assert(block && block.includes("80/20"), "a Pareto/80-20 section must appear once real candidate actions exist");
+  const paretoLine = block!.split("\n").find((l) => l.includes("80/20"))!;
+  const actionCount = paretoLine.split("|").length;
+  assert(actionCount <= 3, `80/20 must list at most 3 actions, found ${actionCount}: ${paretoLine}`);
+});
+
+// --- SEMANTIC ROBUSTNESS (Phase 10): a user should not need the exact keyword the classifier's
+// first version happened to check for. Each assertion below is a genuine paraphrase of an already-
+// supported trigger, not a new capability. ---
+Deno.test("SEMANTIC ROBUSTNESS: 'how did X happen' paraphrases 'why did X happen' for retrodiction", () => {
+  assertEquals(classifyIntent("How did this outage happen in the first place?").signals.retrodiction, true);
+  assertEquals(classifyIntent("How has the shortage come about?").signals.retrodiction, true);
+});
+
+Deno.test("SEMANTIC ROBUSTNESS: 'who can help' paraphrases 'who connects/refers' for EcoMap Relationship", () => {
+  assertEquals(classifyIntent("Who can help a Tobago food entrepreneur find funding?").signals.ecomapRelationship, true);
+});
+
+Deno.test("SEMANTIC ROBUSTNESS: 'how do I get from A to B' paraphrases pathway/apply/register for EcoMap Pathway", () => {
+  assertEquals(classifyIntent("How do I get from an idea to a registered business?").signals.ecomapPathway, true);
+});
+
+Deno.test("SEMANTIC ROBUSTNESS: a direct second-order-effects question plans Butterfly without needing an outcome/build marker", () => {
+  const result = classifyIntent("What are the second-order effects of this policy change?");
+  assertEquals(result.signals.secondOrderEffects, true);
+  assertEquals(result.signals.outcome, false, "this phrasing must not need to also match an outcome/build marker");
+});

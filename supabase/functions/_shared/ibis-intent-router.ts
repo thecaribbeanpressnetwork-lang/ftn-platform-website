@@ -58,7 +58,11 @@ const TOOL_ACTION_MARKERS = /\b(?:connect|integrate|link|sync)\s+(?:my|with|to)?
 // freshness/correlation/tool-action for PRIMARY classification purposes so a retrodiction question
 // that also needs live current data still gets CURRENT_WEB_RESEARCH as its primary class, but the
 // RETRODICTION signal itself is independent and additive (see IntentSignals below).
-const RETRODICTION_MARKERS = /\b(why (?:has|have|did|does|do|is|are|was|were)\b|what (?:really )?caused|what led to|in hindsight|looking back(?:,| at)|reconstruct (?:what|why|how)|given what we (?:now |later )?know|what did .+ know at the time|knowing what we know now)\b/i;
+// Semantic-robustness pass (independent audit): "how did this happen"/"how did X come about" is a
+// genuine paraphrase of "why did this happen" -- same evidence-bounded-retrodiction need, just a
+// "how" framing instead of "why". Added as its own alternative rather than folded into the
+// existing "why ..." branch so neither pattern's specificity is loosened.
+const RETRODICTION_MARKERS = /\b(why (?:has|have|did|does|do|is|are|was|were)\b|how (?:did|has|have) .{0,60}(?:happen|come about|occur)|what (?:really )?caused|what led to|in hindsight|looking back(?:,| at)|reconstruct (?:what|why|how)|given what we (?:now |later )?know|what did .+ know at the time|knowing what we know now)\b/i;
 
 // New this checkpoint: detects a request explicitly asking for EVIDENCE behind a cause, distinct
 // from a bare "why" question. This independently signals that (a) grounded sources should be
@@ -76,12 +80,25 @@ const CAUSE_EVIDENCE_MARKERS = /\b(evidence (?:supports?|for|shows?)|possible ca
 // ibis-canonical-brain.ts and never touch `queryClass` -- so broadening them here is safe and
 // carries zero risk of changing any existing classification result.
 const ECOMAP_PLACE_SIGNAL_MARKERS = /\b(map (?:the )?(?:services|organizations?)|which services|find services|organizations? that could help|where (?:is|are|can i find)|nearest|near me|nearby|in my area|close to me|around (?:here|me))\b/i;
-const ECOMAP_PATHWAY_SIGNAL_MARKERS = /\b(steps? (?:and|to|needed|required|involved)|requirements? (?:i need|needed|to follow|to register)|how do i (?:apply|register|start)|register (?:a|my)|what (?:steps|documents) (?:are|is) required|eligibility|documents? (?:needed|required)|deadline)\b/i;
+// "how do i get from Trinidad's public registry to a business licence" / "how do i get to X" is a
+// genuine A-to-B pathway paraphrase, distinct from the existing "how do i apply/register/start"
+// phrasings -- added as its own alternative (additive capability planning only, same discipline as
+// the rest of this signal's broadening history below).
+const ECOMAP_PATHWAY_SIGNAL_MARKERS = /\b(steps? (?:and|to|needed|required|involved)|requirements? (?:i need|needed|to follow|to register)|how do i (?:apply|register|start|get (?:from|to))|register (?:a|my)|what (?:steps|documents) (?:are|is) required|eligibility|documents? (?:needed|required)|deadline)\b/i;
 // Broadened to a bare "relationship(s)" (in addition to the more specific referral/funding
 // phrasings) -- additive capability planning only, never primary classification, so erring toward
 // MORE scrutiny here just plans a capability that honestly reports SKIPPED_MISSING_INPUT when it
-// turns out not to be relevant, never a false claim of execution.
-const ECOMAP_RELATIONSHIP_SIGNAL_MARKERS = /\b(relationships?|referrals?|which organi[sz]ations (?:fund|refer|support|help)|who (?:connects|refers|funds)|fund or refer)\b/i;
+// turns out not to be relevant, never a false claim of execution. "who can help" added (semantic-
+// robustness pass, independent audit) as a plain-language paraphrase of "who connects/refers".
+const ECOMAP_RELATIONSHIP_SIGNAL_MARKERS = /\b(relationships?|referrals?|which organi[sz]ations (?:fund|refer|support|help)|who (?:connects|refers|funds|can help)|fund or refer)\b/i;
+
+// Semantic-robustness pass (independent audit): a direct ask for second-order/downstream/ripple
+// effects should plan BUTTERFLY even without an accompanying "I want to build/start/launch..."
+// outcome marker -- e.g. "What are the second-order effects of this decision?" alone. Additive
+// capability planning only (see planCapabilities() in ibis-canonical-brain.ts): Butterfly's own
+// adapter already honestly reports SKIPPED when no real structured effect data can be derived, so
+// broadening what SELECTS it only ever risks an honest skip, never a fabricated result.
+const SECOND_ORDER_EFFECT_MARKERS = /\b(second-order effects?|downstream effects?|unintended consequences?|knock-on effects?|ripple effects?)\b/i;
 
 export type IntentSignals = {
   freshness: boolean;
@@ -96,6 +113,7 @@ export type IntentSignals = {
   ecomapPlace: boolean;
   ecomapPathway: boolean;
   ecomapRelationship: boolean;
+  secondOrderEffects: boolean;
 };
 
 export type IntentClassification = {
@@ -121,6 +139,7 @@ export function classifyIntent(text: string): IntentClassification {
     ecomapPlace: ECOMAP_PLACE_SIGNAL_MARKERS.test(q),
     ecomapPathway: ECOMAP_PATHWAY_SIGNAL_MARKERS.test(q),
     ecomapRelationship: ECOMAP_RELATIONSHIP_SIGNAL_MARKERS.test(q),
+    secondOrderEffects: SECOND_ORDER_EFFECT_MARKERS.test(q),
   };
   const reasons: string[] = [];
 

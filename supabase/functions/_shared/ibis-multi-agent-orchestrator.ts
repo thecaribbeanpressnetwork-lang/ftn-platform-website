@@ -36,7 +36,7 @@ import {
   type EBRInput, type EcoMapPlaceInput, type EcoMapPathwayInput, type EcoMapRelationshipInput,
   type ButterflyInput, type PredictionInput, type EngineResult,
 } from "./ibis-reasoning-engines.ts";
-import { findContradictions, type EvidenceItem } from "./ibis-ebr-engine.ts";
+import { findContradictions, type EvidenceItem, type CandidateHistory, type CausalEdgeProposal } from "./ibis-ebr-engine.ts";
 import {
   buildPlaceMap, buildPathwayMap, extractStatedJurisdiction,
   type EcoMapSourceRecord, type PlaceEntity, type PathwayStep, type EvidenceConfidence,
@@ -60,9 +60,60 @@ export function evidenceItemFromSource(source: SourceRecord, index: number): Evi
   };
 }
 
+// Founder-completion pass: candidate-history derivation for EBR's automatic bridge. Before this,
+// buildEbrInputFromSources() always supplied candidateHistories: [] -- EBR could genuinely execute
+// against real evidence, but a why/cause/retrodiction question always landed on the "no candidate
+// supplied" branch, never actually ranking a cause. This derives a SMALL, BOUNDED set of candidate
+// single-edge histories, but ONLY from a source's OWN explicit causal language (a real, deterministic,
+// inspectable keyword heuristic -- see CAUSAL_CONNECTORS below -- matching the exact discipline
+// classifyPlaceKind()/detectZeroCost() already use in ibis-ecomap-engine.ts). It never asks a model
+// to imagine a mechanism, and it never upgrades chronology/correlation alone into a causal claim:
+// each derived edge is honestly labeled mechanismClass "SOURCE_ASSERTED_CAUSATION" (the source
+// ITSELF asserts a cause, which is real, disclosed, weaker evidence than an independently verified
+// mechanism -- never described as more than that) with epistemicLabel "INFERRED" and temporalStatus
+// "UNKNOWN" (no source date-ordering is assumed). A source with no causal-language match contributes
+// no candidate at all -- when NONE do, candidateHistories stays [] and EBR's own existing "no
+// candidate supplied" honest-abstention path is reached exactly as before this change.
+const CAUSAL_CONNECTORS = /\b([a-z0-9 ,'’-]{4,80}?)\s+(?:was |were |is |are |has |have )?(?:caused by|due to|driven by|blamed on|attributed to|stems? from|resulted? from)\s+([a-z0-9 ,'’-]{4,80}?)(?:[.,;]|$)/i;
+const CAUSAL_CONNECTORS_FORWARD = /\b([a-z0-9 ,'’-]{4,80}?)\s+(?:has |have |had )?(?:led to|resulted in|caused|triggered|sparked|driven)\s+([a-z0-9 ,'’-]{4,80}?)(?:[.,;]|$)/i;
+const MAX_DERIVED_CANDIDATES = 3;
+
+export function extractCausalClaim(text: string): { cause: string; effect: string } | null {
+  const clean = (text || "").replace(/\s+/g, " ").trim();
+  if (!clean) return null;
+  let m = clean.match(CAUSAL_CONNECTORS);
+  if (m) return { effect: m[1].trim().slice(0, 100), cause: m[2].trim().slice(0, 100) };
+  m = clean.match(CAUSAL_CONNECTORS_FORWARD);
+  if (m) return { cause: m[1].trim().slice(0, 100), effect: m[2].trim().slice(0, 100) };
+  return null;
+}
+
+export function deriveCandidateHistoriesFromSources(sources: SourceRecord[]): CandidateHistory[] {
+  const histories: CandidateHistory[] = [];
+  for (let i = 0; i < sources.length && histories.length < MAX_DERIVED_CANDIDATES; i++) {
+    const source = sources[i];
+    const claim = extractCausalClaim(`${source.title} ${source.snippet || ""}`);
+    if (!claim) continue;
+    const edge: CausalEdgeProposal = {
+      id: `derived-edge-${i}`,
+      from: claim.cause,
+      to: claim.effect,
+      nominatedBy: ["MECHANISM"],
+      mechanismClass: "SOURCE_ASSERTED_CAUSATION",
+      temporalStatus: "UNKNOWN",
+      provenanceRoots: [source.publisher || source.url],
+      testableImplication: `Check ${source.publisher || "the cited source"}'s own reporting directly, and look for a contradicting source, before treating "${claim.cause}" as an established cause of "${claim.effect}".`,
+      knownContradictions: [],
+      epistemicLabel: "INFERRED",
+    };
+    histories.push({ id: `derived-history-${i}`, label: `${claim.cause} -> ${claim.effect} (as asserted by ${source.publisher || source.url})`, edges: [edge] });
+  }
+  return histories;
+}
+
 export function buildEbrInputFromSources(sources: SourceRecord[]): EBRInput | null {
   if (!sources.length) return null;
-  return { auditCutoff: new Date().toISOString(), evidenceItems: sources.map(evidenceItemFromSource), candidateHistories: [] };
+  return { auditCutoff: new Date().toISOString(), evidenceItems: sources.map(evidenceItemFromSource), candidateHistories: deriveCandidateHistoriesFromSources(sources) };
 }
 
 export function ecoMapSourceFromSearchResult(source: SourceRecord, index: number): EcoMapSourceRecord {
@@ -127,80 +178,95 @@ export const BUTTERFLY_BRIDGE_DISCLOSURE =
 
 // --- Per-capability record builders (moved from ibis-canonical-brain.ts this checkpoint) ---------
 
-function founderThinkingRecord(text: string, products: IbisProduct[]): ReasoningModeRecord {
+function founderThinkingRecord(text: string, products: IbisProduct[]): { record: ReasoningModeRecord; result: EngineResult } {
   const result = runFounderThinking(text, products);
-  if (!result.executed) return { mode: "FOUNDER_COGNITIVE_LAYER", executed: false, unavailableReason: result.reason || "skipped" };
+  if (!result.executed) return { record: { mode: "FOUNDER_COGNITIVE_LAYER", executed: false, unavailableReason: result.reason || "skipped" }, result };
   return {
-    mode: "FOUNDER_COGNITIVE_LAYER",
-    executed: true,
-    contribution: `${result.findings.join(" ")} This classification and decision directly produced the answer text below (same domain/guidance table, extracted from the real founderReasoningAnswer() logic in ibis-intelligence-gateway.ts, not reinvented).`,
+    record: {
+      mode: "FOUNDER_COGNITIVE_LAYER",
+      executed: true,
+      contribution: `${result.findings.join(" ")} This classification and decision directly produced the answer text below (same domain/guidance table, extracted from the real founderReasoningAnswer() logic in ibis-intelligence-gateway.ts, not reinvented).`,
+    },
+    result,
   };
 }
 
-function correlationRecord(input: { seriesA: Series; seriesB: Series } | null): ReasoningModeRecord {
+function correlationRecord(input: { seriesA: Series; seriesB: Series } | null): { record: ReasoningModeRecord; result: EngineResult } {
   const result = runCorrelation(input?.seriesA ?? null, input?.seriesB ?? null);
-  return result.executed
-    ? { mode: "CORRELATION", executed: true, contribution: result.findings.join(" ") }
-    : { mode: "CORRELATION", executed: false, unavailableReason: result.reason || "skipped" };
+  return {
+    record: result.executed
+      ? { mode: "CORRELATION", executed: true, contribution: result.findings.join(" ") }
+      : { mode: "CORRELATION", executed: false, unavailableReason: result.reason || "skipped" },
+    result,
+  };
 }
 
-function butterflyRecord(input: ButterflyInput | null, disclosure?: string): ReasoningModeRecord {
+function butterflyRecord(input: ButterflyInput | null, disclosure?: string): { record: ReasoningModeRecord; result: EngineResult } {
   const result = runButterfly(input);
-  if (!result.executed) return { mode: "BUTTERFLY", executed: false, unavailableReason: result.reason || "skipped" };
-  return { mode: "BUTTERFLY", executed: true, contribution: `${result.findings.join(" ")}${disclosure ? ` ${disclosure}` : ""}` };
+  if (!result.executed) return { record: { mode: "BUTTERFLY", executed: false, unavailableReason: result.reason || "skipped" }, result };
+  return { record: { mode: "BUTTERFLY", executed: true, contribution: `${result.findings.join(" ")}${disclosure ? ` ${disclosure}` : ""}` }, result };
 }
 
-function predictionRecord(input: PredictionInput | null): ReasoningModeRecord {
+function predictionRecord(input: PredictionInput | null): { record: ReasoningModeRecord; result: EngineResult } {
   const result = runPrediction(input);
-  return result.executed
-    ? { mode: "PREDICTION", executed: true, contribution: result.findings.join(" ") }
-    : { mode: "PREDICTION", executed: false, unavailableReason: result.reason || "skipped" };
+  return {
+    record: result.executed
+      ? { mode: "PREDICTION", executed: true, contribution: result.findings.join(" ") }
+      : { mode: "PREDICTION", executed: false, unavailableReason: result.reason || "skipped" },
+    result,
+  };
 }
 
-function contextGraphRecord(products: IbisProduct[], ecoMapEntities: PlaceEntity[]): ReasoningModeRecord {
+function contextGraphRecord(products: IbisProduct[], ecoMapEntities: PlaceEntity[]): { record: ReasoningModeRecord; result: EngineResult } {
   const result = runContextGraph(products, [], ecoMapEntities);
-  return result.executed
-    ? { mode: "CONTEXT_GRAPH", executed: true, contribution: result.findings.join(" ") }
-    : { mode: "CONTEXT_GRAPH", executed: false, unavailableReason: result.reason || "skipped" };
+  return {
+    record: result.executed
+      ? { mode: "CONTEXT_GRAPH", executed: true, contribution: result.findings.join(" ") }
+      : { mode: "CONTEXT_GRAPH", executed: false, unavailableReason: result.reason || "skipped" },
+    result,
+  };
 }
 
-function connectionFabricRecord(provider: string | null): ReasoningModeRecord {
+function connectionFabricRecord(provider: string | null): { record: ReasoningModeRecord; result: EngineResult } {
   const result = runConnectionFabric(provider);
-  return result.executed
-    ? { mode: "CONNECTION_FABRIC", executed: true, contribution: result.findings.join(" ") }
-    : { mode: "CONNECTION_FABRIC", executed: false, unavailableReason: result.reason || "skipped" };
+  return {
+    record: result.executed
+      ? { mode: "CONNECTION_FABRIC", executed: true, contribution: result.findings.join(" ") }
+      : { mode: "CONNECTION_FABRIC", executed: false, unavailableReason: result.reason || "skipped" },
+    result,
+  };
 }
 
-function ebrRecord(input: EBRInput | null): { record: ReasoningModeRecord; contradictions: string[]; uncertainties: string[] } {
+function ebrRecord(input: EBRInput | null): { record: ReasoningModeRecord; result: EngineResult; contradictions: string[]; uncertainties: string[] } {
   const result = runEBR(input);
   if (!result.executed || !input) {
-    return { record: { mode: "EBR", executed: false, unavailableReason: result.reason || "skipped" }, contradictions: [], uncertainties: [] };
+    return { record: { mode: "EBR", executed: false, unavailableReason: result.reason || "skipped" }, result, contradictions: [], uncertainties: [] };
   }
   const contradictions = findContradictions(input.evidenceItems).map(
     (p) => `EBR: evidence "${p.a}" contradicts "${p.b}" (${p.severity}) -- preserved, not resolved into a single score.`,
   );
   const uncertainties = ["EBR: an unmodeled-history reserve (⊥) is preserved -- the candidate histories examined are not claimed to exhaust reality."];
-  return { record: { mode: "EBR", executed: true, contribution: result.findings.join(" ") }, contradictions, uncertainties };
+  return { record: { mode: "EBR", executed: true, contribution: result.findings.join(" ") }, result, contradictions, uncertainties };
 }
 
-function ecoMapPlaceRecord(input: EcoMapPlaceInput | null): { record: ReasoningModeRecord; missing: string[] } {
+function ecoMapPlaceRecord(input: EcoMapPlaceInput | null): { record: ReasoningModeRecord; result: EngineResult; missing: string[] } {
   const result = runEcoMapPlace(input);
-  if (!result.executed) return { record: { mode: "ECOMAP_PLACE", executed: false, unavailableReason: result.reason || "skipped" }, missing: [] };
-  return { record: { mode: "ECOMAP_PLACE", executed: true, contribution: result.findings.join(" ") }, missing: result.downstreamEffects };
+  if (!result.executed) return { record: { mode: "ECOMAP_PLACE", executed: false, unavailableReason: result.reason || "skipped" }, result, missing: [] };
+  return { record: { mode: "ECOMAP_PLACE", executed: true, contribution: result.findings.join(" ") }, result, missing: result.downstreamEffects };
 }
 
-function ecoMapPathwayRecord(input: EcoMapPathwayInput | null): { record: ReasoningModeRecord; actions: string[] } {
+function ecoMapPathwayRecord(input: EcoMapPathwayInput | null): { record: ReasoningModeRecord; result: EngineResult; actions: string[] } {
   const result = runEcoMapPathway(input);
-  if (!result.executed) return { record: { mode: "ECOMAP_PATHWAY", executed: false, unavailableReason: result.reason || "skipped" }, actions: [] };
+  if (!result.executed) return { record: { mode: "ECOMAP_PATHWAY", executed: false, unavailableReason: result.reason || "skipped" }, result, actions: [] };
   const actions = result.findings.filter((f) => f.startsWith("Step ") || f.toLowerCase().includes("zero-cost"));
-  return { record: { mode: "ECOMAP_PATHWAY", executed: true, contribution: result.findings.join(" ") }, actions: actions.length ? actions : result.findings.slice(0, 3) };
+  return { record: { mode: "ECOMAP_PATHWAY", executed: true, contribution: result.findings.join(" ") }, result, actions: actions.length ? actions : result.findings.slice(0, 3) };
 }
 
-function ecoMapRelationshipRecord(input: EcoMapRelationshipInput | null): { record: ReasoningModeRecord; ecosystemConnections: string[] } {
+function ecoMapRelationshipRecord(input: EcoMapRelationshipInput | null): { record: ReasoningModeRecord; result: EngineResult; ecosystemConnections: string[] } {
   const result = runEcoMapRelationship(input);
-  if (!result.executed) return { record: { mode: "ECOMAP_RELATIONSHIP", executed: false, unavailableReason: result.reason || "skipped" }, ecosystemConnections: [] };
+  if (!result.executed) return { record: { mode: "ECOMAP_RELATIONSHIP", executed: false, unavailableReason: result.reason || "skipped" }, result, ecosystemConnections: [] };
   const ecosystemConnections = result.findings.filter((f) => f.includes("->"));
-  return { record: { mode: "ECOMAP_RELATIONSHIP", executed: true, contribution: result.findings.join(" ") }, ecosystemConnections };
+  return { record: { mode: "ECOMAP_RELATIONSHIP", executed: true, contribution: result.findings.join(" ") }, result, ecosystemConnections };
 }
 
 // --- Execution-state tracking ----------------------------------------------------------------
@@ -274,6 +340,12 @@ export type OrchestrationResult = {
   uncertainties: string[];
   actions: string[];
   ecosystemConnections: string[];
+  // Founder-completion pass: the raw, structured EngineResult for every capability that actually
+  // executed this request (findings/assumptions/evidenceReferences/confidence/downstreamEffects) --
+  // ibis-canonical-brain.ts's buildReasoningSynthesisPacket() reads these to build a bounded,
+  // per-engine synthesis packet. `reasoningModesUsed` above stays exactly as before (a flattened
+  // contribution string per mode) for every existing caller; this is purely additive.
+  engineResults: EngineResult[];
 };
 
 const DEFAULT_EXECUTION_BUDGET_MS = 5_000;
@@ -286,6 +358,7 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
   const uncertainties: string[] = [];
   const actions: string[] = [];
   const ecosystemConnections: string[] = [];
+  const engineResults: EngineResult[] = [];
 
   const receipts = new Map<CapabilityKind, CapabilityReceiptEntry>();
   if (input.researchReceipt) receipts.set("RESEARCH", input.researchReceipt);
@@ -327,9 +400,10 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
     else {
       move(entry, "INPUT_READY"); // text+products are always structurally present
       try {
-        const result = runFounderThinking(input.text, input.products);
-        reasoningModesUsed.push(founderThinkingRecord(input.text, input.products));
-        move(entry, terminalStateFor(result));
+        const founder = founderThinkingRecord(input.text, input.products);
+        reasoningModesUsed.push(founder.record);
+        engineResults.push(founder.result);
+        move(entry, terminalStateFor(founder.result));
       } catch (err) {
         move(entry, "FAILED", describeError(err));
         reasoningModesUsed.push({ mode: "FOUNDER_COGNITIVE_LAYER", executed: false, unavailableReason: `Threw an unexpected error: ${describeError(err)}` });
@@ -343,9 +417,10 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
     else {
       if (input.toolAction) move(entry, "INPUT_READY");
       try {
-        const record = connectionFabricRecord(input.toolAction);
-        reasoningModesUsed.push(record);
-        move(entry, input.toolAction ? (record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
+        const fabric = connectionFabricRecord(input.toolAction);
+        reasoningModesUsed.push(fabric.record);
+        engineResults.push(fabric.result);
+        move(entry, input.toolAction ? (fabric.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
       } catch (err) {
         move(entry, "FAILED", describeError(err));
         reasoningModesUsed.push({ mode: "CONNECTION_FABRIC", executed: false, unavailableReason: `Threw an unexpected error: ${describeError(err)}` });
@@ -360,9 +435,10 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
       const corrInput = input.advanced.correlationInput ?? null;
       if (corrInput) move(entry, "INPUT_READY");
       try {
-        const record = correlationRecord(corrInput);
-        reasoningModesUsed.push(record);
-        move(entry, corrInput ? (record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
+        const correlation = correlationRecord(corrInput);
+        reasoningModesUsed.push(correlation.record);
+        engineResults.push(correlation.result);
+        move(entry, corrInput ? (correlation.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
       } catch (err) {
         move(entry, "FAILED", describeError(err));
         reasoningModesUsed.push({ mode: "CORRELATION", executed: false, unavailableReason: `Threw an unexpected error: ${describeError(err)}` });
@@ -381,6 +457,7 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
         if (ebrInput) move(entry, "INPUT_READY");
         const ebr = ebrRecord(ebrInput);
         reasoningModesUsed.push(ebr.record);
+        engineResults.push(ebr.result);
         contradictions.push(...ebr.contradictions);
         uncertainties.push(...ebr.uncertainties);
         move(entry, ebrInput ? (ebr.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
@@ -401,6 +478,7 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
         if (placeInputUsed) move(entry, "INPUT_READY");
         const place = ecoMapPlaceRecord(placeInputUsed);
         reasoningModesUsed.push(place.record);
+        engineResults.push(place.result);
         uncertainties.push(...place.missing.map((m) => `EcoMap Place: ${m}`));
         move(entry, placeInputUsed ? (place.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
         if (place.record.executed && placeInputUsed) {
@@ -423,6 +501,7 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
         if (pathwayInputUsed) move(entry, "INPUT_READY");
         const pathway = ecoMapPathwayRecord(pathwayInputUsed);
         reasoningModesUsed.push(pathway.record);
+        engineResults.push(pathway.result);
         actions.push(...pathway.actions);
         move(entry, pathwayInputUsed ? (pathway.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
         if (pathway.record.executed && pathwayInputUsed) {
@@ -445,6 +524,7 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
         if (relationshipInput) move(entry, "INPUT_READY");
         const relationship = ecoMapRelationshipRecord(relationshipInput);
         reasoningModesUsed.push(relationship.record);
+        engineResults.push(relationship.result);
         ecosystemConnections.push(...relationship.ecosystemConnections);
         move(entry, relationshipInput ? (relationship.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
       } catch (err) {
@@ -462,9 +542,10 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
     else {
       move(entry, "INPUT_READY"); // product list (possibly empty) + any EcoMap entities found above
       try {
-        const record = contextGraphRecord(input.products, placeEntities);
-        reasoningModesUsed.push(record);
-        move(entry, record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT");
+        const graph = contextGraphRecord(input.products, placeEntities);
+        reasoningModesUsed.push(graph.record);
+        engineResults.push(graph.result);
+        move(entry, graph.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT");
       } catch (err) {
         move(entry, "FAILED", describeError(err));
         reasoningModesUsed.push({ mode: "CONTEXT_GRAPH", executed: false, unavailableReason: `Threw an unexpected error: ${describeError(err)}` });
@@ -480,9 +561,10 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
         const usingBridge = !input.advanced.butterflyInput;
         const derived = input.advanced.butterflyInput ?? deriveButterflyInputFromPathway(goal, pathwaySteps);
         if (derived) move(entry, "INPUT_READY");
-        const record = butterflyRecord(derived, derived && usingBridge ? BUTTERFLY_BRIDGE_DISCLOSURE : undefined);
-        reasoningModesUsed.push(record);
-        move(entry, derived ? (record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
+        const butterfly = butterflyRecord(derived, derived && usingBridge ? BUTTERFLY_BRIDGE_DISCLOSURE : undefined);
+        reasoningModesUsed.push(butterfly.record);
+        engineResults.push(butterfly.result);
+        move(entry, derived ? (butterfly.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
       } catch (err) {
         move(entry, "FAILED", describeError(err));
         reasoningModesUsed.push({ mode: "BUTTERFLY", executed: false, unavailableReason: `Threw an unexpected error: ${describeError(err)}` });
@@ -497,9 +579,10 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
       try {
         const derived = input.advanced.predictionInput ?? deriveForesightInputFromPlace(placeEntities);
         if (derived) move(entry, "INPUT_READY");
-        const record = predictionRecord(derived);
-        reasoningModesUsed.push(record);
-        move(entry, derived ? (record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
+        const prediction = predictionRecord(derived);
+        reasoningModesUsed.push(prediction.record);
+        engineResults.push(prediction.result);
+        move(entry, derived ? (prediction.record.executed ? "EXECUTED" : "SKIPPED_MISSING_INPUT") : "SKIPPED_MISSING_INPUT");
       } catch (err) {
         move(entry, "FAILED", describeError(err));
         reasoningModesUsed.push({ mode: "PREDICTION", executed: false, unavailableReason: `Threw an unexpected error: ${describeError(err)}` });
@@ -537,5 +620,5 @@ export function runOrchestration(plan: PlannedCapability[], input: Orchestration
     }
   }
 
-  return { reasoningModesUsed, capabilityExecution: Array.from(receipts.values()), contradictions, uncertainties, actions, ecosystemConnections };
+  return { reasoningModesUsed, capabilityExecution: Array.from(receipts.values()), contradictions, uncertainties, actions, ecosystemConnections, engineResults };
 }

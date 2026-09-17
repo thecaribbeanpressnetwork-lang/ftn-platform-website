@@ -4,6 +4,12 @@
 // reasoning modes ran. The visible UI answer leads; everything else here is expandable provenance.
 // Nothing in this module invents a field's value -- a mode that did not run is listed as such
 // (executed:false with a reason), never omitted or silently implied to have happened.
+//
+// `reasoningSynthesis` (added this pass) is typed as `import("./ibis-reasoning-synthesis.ts").
+// ReasoningSynthesisPacket` inline rather than via a top-level `import type` -- ibis-reasoning-
+// synthesis.ts itself imports QueryClass/ReasoningModeRecord/CapabilityReceiptEntry/CapabilityKind
+// FROM this file, so a top-level import back would be circular. An inline type-only import resolves
+// to the exact same real type without that cycle.
 
 export type QueryClass =
   | "SIMPLE_TEXT"
@@ -224,6 +230,12 @@ export type CanonicalResponse = {
   receipt: CanonicalReceipt;
   executionInstruction: ExecutionInstruction;
   generatedAt: string;
+  // Founder-completion pass: the bounded, typed reasoning-synthesis packet (see
+  // ibis-reasoning-synthesis.ts) built from whatever advanced engines genuinely executed this
+  // request -- structured decision provenance, never private hidden chain-of-thought. null only
+  // when no packet was built for this response shape (e.g. the empty-request/error-path envelopes
+  // in ibis-assistant/index.ts that never reach handleCanonicalRequest's main body).
+  reasoningSynthesis: import("./ibis-reasoning-synthesis.ts").ReasoningSynthesisPacket | null;
 };
 
 export function buildEnvelope(input: {
@@ -253,6 +265,7 @@ export function buildEnvelope(input: {
   degradedStages?: string[];
   permissions?: CanonicalResponse["permissions"];
   handoff?: CanonicalResponse["handoff"];
+  reasoningSynthesis?: CanonicalResponse["reasoningSynthesis"];
 }): CanonicalResponse {
   const respondedAt = new Date().toISOString();
   return {
@@ -281,6 +294,7 @@ export function buildEnvelope(input: {
     artifacts: [],
     handoff: input.handoff || { external: false, note: null },
     executionInstruction: input.executionInstruction,
+    reasoningSynthesis: input.reasoningSynthesis ?? null,
     receipt: {
       requestId: input.requestId,
       queryClass: input.queryClass,

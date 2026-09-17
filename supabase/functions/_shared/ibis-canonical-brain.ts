@@ -31,7 +31,7 @@
 // (SELECTED/INPUT_READY/EXECUTED/SKIPPED_*/DEGRADED/UNAVAILABLE/FAILED), is delegated to
 // ibis-multi-agent-orchestrator.ts's runOrchestration() -- this file remains the single canonical
 // orchestrator/endpoint; that module is a function it calls, not a competing router or brain.
-import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct, type IbisTurn } from "./ibis-intelligence-gateway.ts";
+import { runGateway, gatewayHealth, deterministicAnswer, type GatewayProvider, type IbisProduct, type IbisTurn } from "./ibis-intelligence-gateway.ts";
 import { classifyIntent, type IntentSignals } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
 import {
@@ -42,6 +42,8 @@ import { sha256Hex, type LifecycleStore } from "./ibis-lifecycle-store.ts";
 import type { EBRInput, EcoMapPlaceInput, EcoMapPathwayInput, EcoMapRelationshipInput, ButterflyInput, PredictionInput } from "./ibis-reasoning-engines.ts";
 import type { Series } from "./ibis-correlation-engine.ts";
 import { runOrchestration, type OrchestrationAdvancedInputs } from "./ibis-multi-agent-orchestrator.ts";
+import { extractStatedJurisdiction } from "./ibis-ecomap-engine.ts";
+import { buildReasoningSynthesisPacket, buildReasoningSynthesisBlock, type ReasoningSynthesisPacket } from "./ibis-reasoning-synthesis.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -51,13 +53,21 @@ export type CanonicalRequest = {
   // was constructed by the caller BEFORE this function ever ran, so it has no way to know what (if
   // anything) search retrieved -- the answer-generation call below was genuinely ungrounded even on
   // a successful search (sources were returned to the caller to read, never given to the model).
-  // When supplied, `providerFactory` is called AFTER search completes, with a real evidence block
-  // (numbered source titles/publishers/dates/URLs) when sources exist, or null when RESEARCH wasn't
-  // planned or produced none -- so the SAME provider construction that already reads real secrets
-  // (ibis-assistant/index.ts's cloudflare()/anthropic()/gemini()/etc.) can bake the evidence into
-  // its own system prompt before calling out. Optional and purely additive: every existing caller
-  // that only supplies `providers` keeps its exact prior (evidence-blind) behavior unchanged.
-  providerFactory?: (evidenceBlock: string | null) => GatewayProvider[];
+  // When supplied, `providerFactory` is called AFTER search completes AND after the internal
+  // reasoning scheduler runs, with a real evidence block (numbered source titles/publishers/dates/
+  // URLs) when sources exist, or null when RESEARCH wasn't planned or produced none -- so the SAME
+  // provider construction that already reads real secrets (ibis-assistant/index.ts's
+  // cloudflare()/anthropic()/gemini()/etc.) can bake the evidence into its own system prompt before
+  // calling out. Founder-completion pass: a SECOND, optional argument now carries the bounded
+  // reasoning-synthesis text block (see ibis-reasoning-synthesis.ts) built from whatever advanced
+  // engines (Founder Thinking/EBR/EcoMap/Butterfly/Prediction/Correlation/Context Graph/Connection
+  // Fabric) genuinely executed this request -- this is what actually closes the gap where an engine
+  // could run and populate reasoningModesUsed/contradictions/actions without ever shaping the final
+  // prose. A caller's factory that only declares one parameter is entirely unaffected (JS simply
+  // never passes the second argument to it) -- fully backward compatible. Optional and purely
+  // additive overall: every existing caller that only supplies `providers` keeps its exact prior
+  // (evidence-blind, synthesis-blind) behavior unchanged.
+  providerFactory?: (evidenceBlock: string | null, reasoningSynthesisBlock?: string | null) => GatewayProvider[];
   requestId?: string;
   searchFetchImpl?: typeof fetch;
   // Slice 3 serverless correction: the lifecycle store is INJECTED, never resolved internally --
@@ -170,6 +180,14 @@ function planCapabilities(signals: IntentSignals): PlannedCapability[] {
     addCapability(plan, "BUTTERFLY", "Outcome-building questions may involve second-order effects worth surfacing if structured effect data exists.");
     addCapability(plan, "PREDICTION", "Outcome-building questions may involve timing/opportunity foresight worth surfacing if structured opportunity data exists.");
     addCapability(plan, "CONTEXT_GRAPH", "An outcome/build marker matched -- grounding the answer to FTN's own product ecosystem is relevant.");
+  }
+  // Semantic-robustness pass (independent audit): a direct ask for second-order/downstream effects
+  // plans Butterfly even without an accompanying outcome/build marker -- e.g. "What are the
+  // second-order effects of this decision?" alone. Butterfly's own adapter still honestly reports
+  // SKIPPED when no real structured effect data can be derived (see runButterfly()) -- this only
+  // ever risks an honest skip, never a fabricated result.
+  if (signals.secondOrderEffects) {
+    addCapability(plan, "BUTTERFLY", "The request explicitly asks about second-order/downstream/ripple effects.");
   }
   if (signals.relationship) {
     addCapability(plan, "CONTEXT_GRAPH", "A relationship marker matched (which organizations/who connects) -- an ecosystem-connection question.");
@@ -381,6 +399,31 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   const capabilityExecution: CapabilityReceiptEntry[] = orchestration.capabilityExecution;
   reasoningModesUsed.push(...relevantUnavailableModes(intent.queryClass));
 
+  // FOUNDER-COMPLETION PASS: build the ONE bounded, typed reasoning synthesis packet from whatever
+  // the scheduler above actually executed (see ibis-reasoning-synthesis.ts's module header for why
+  // this exists -- an engine executing and populating reasoningModesUsed/contradictions/actions is
+  // NOT the same as its output actually shaping the final answer; this packet is what closes that
+  // gap). Built unconditionally (cheap, pure, no I/O) so it is available to BOTH the early
+  // local-execution-authorized return below (for inspection/debug parity, Phase 13) and the main
+  // answer-generation path further down (where it actually feeds providerFactory).
+  const reasoningSynthesis: ReasoningSynthesisPacket = buildReasoningSynthesisPacket({
+    objective: intent.objective, queryClass: intent.queryClass, text, jurisdiction: extractStatedJurisdiction(text),
+    capabilityPlan, capabilityExecution, engineResults: orchestration.engineResults,
+    // Deliberately NOT intent.reasons here: those are the classifier's own bookkeeping for why a
+    // query landed in a given queryClass (e.g. "no freshness/pathway/place/relationship/outcome
+    // marker matched -- treated as an ordinary question") -- always non-empty, including for the
+    // most mundane factual question, so including them would make buildReasoningSynthesisBlock()
+    // attach a "material uncertainty" section to EVERY request and defeat the whole point of
+    // leaving an ordinary question's prompt untouched. Only genuine engine-produced uncertainty
+    // (EBR's unmodeled-history reserve, EcoMap's missing-disclosure notes, etc.) belongs here. The
+    // response envelope's own top-level `uncertainties` field (returned to the caller) is unrelated
+    // and still includes intent.reasons, unchanged, at the call site below.
+    contradictions, uncertainties: extraUncertainties, ecosystemConnections, actions,
+    sourceCount: sources.length, searchCacheState, evidenceState,
+    isDeterministicAnswer: !!deterministicAnswer(text, products),
+  });
+  const reasoningSynthesisBlock = buildReasoningSynthesisBlock(reasoningSynthesis);
+
   // Slice 3 correction: when local execution is authorized, this endpoint must NOT also generate
   // a provider answer -- doing so and then letting the browser generate a second, local answer is
   // duplicate answer generation. The plan is persisted (never in this module's own memory -- see
@@ -400,7 +443,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       confidence: "UNVERIFIED", confidenceBasis: "Execution deferred to authorized browser-local generation; no server provider was called.",
       status: "OK", degradedStages, handoff, alternatives,
       uncertainties: [...intent.reasons, ...extraUncertainties],
-      contradictions, actions, ecosystemConnections,
+      contradictions, actions, ecosystemConnections, reasoningSynthesis,
     });
   }
 
@@ -426,7 +469,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   } else {
     capabilitiesAttempted.push("TEXT");
     const evidenceBlock = sources.length ? buildEvidenceBlock(sources) : null;
-    const effectiveProviders = input.providerFactory ? input.providerFactory(evidenceBlock) : input.providers;
+    const effectiveProviders = input.providerFactory ? input.providerFactory(evidenceBlock, reasoningSynthesisBlock) : input.providers;
     const gatewayResult = await runGateway({ text, products, providers: effectiveProviders, requestId });
     providerPath.push(gatewayResult.provider);
     answer = gatewayResult.answer;
@@ -466,7 +509,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, searchCacheState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: [...intent.reasons, ...extraUncertainties],
-    contradictions, actions, ecosystemConnections,
+    contradictions, actions, ecosystemConnections, reasoningSynthesis,
   });
 }
 

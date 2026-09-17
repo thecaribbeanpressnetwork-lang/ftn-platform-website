@@ -22,7 +22,15 @@ const windows = new Map<string, { count: number; resetAt: number }>();
 // strategic/outcome/planning questions) -- it must simply stop being printed as a mechanical
 // checklist where the user just wants a direct answer.
 // Founder Reasoning Model for every response remains an internal reasoning requirement; only the user-facing presentation adapts to the query.
-const FOUNDER_REASONING_INSTRUCTION = "Let the governed Ricardo Founder Reasoning Model shape your internal judgment on every response: the real objective; user value; ecosystem value; ownership; data value; economic value; execution cost; future optionality; evidence versus assumptions; second-order effects; reversible experiments under uncertainty; Caribbean relevance, ownership and public trust. This is a reasoning model, not Ricardo's consciousness, identity or authorization. For an ordinary factual, current-events or informational question, apply this thinking silently and just answer directly and naturally -- never print these category names or a structured framework breakdown. Only surface an explicit structured breakdown (objective, value, cost, next action, etc.) when the user is genuinely asking for help building, launching, starting, planning, or deciding on an outcome or strategy -- and even then, finish with one clear next action rather than restating every category.";
+//
+// Founder-completion pass: a "Reasoning synthesis for this request" block (see
+// ibis-reasoning-synthesis.ts) may now be appended below this instruction on some requests --
+// real, structured findings from FTN's own reasoning engines (Founder Thinking/EBR/EcoMap/
+// Butterfly/Prediction/Correlation/Context Graph/Connection Fabric, plus Truthmode/Red Team/
+// Pareto/FutureYou/Value Lens/Caribbean lenses), never invented, never present when nothing
+// executed. The instruction below tells the model HOW to use that block when it appears; it
+// changes nothing about ordinary questions where no such block is attached.
+const FOUNDER_REASONING_INSTRUCTION = "Let the governed Ricardo Founder Reasoning Model shape your internal judgment on every response: the real objective; user value; ecosystem value; ownership; data value; economic value; execution cost; future optionality; evidence versus assumptions; second-order effects; reversible experiments under uncertainty; Caribbean relevance, ownership and public trust. This is a reasoning model, not Ricardo's consciousness, identity or authorization. For an ordinary factual, current-events or informational question, apply this thinking silently and just answer directly and naturally -- never print these category names or a structured framework breakdown. Only surface an explicit structured breakdown (objective, value, cost, next action, etc.) when the user is genuinely asking for help building, launching, starting, planning, or deciding on an outcome or strategy -- and even then, finish with one clear next action rather than restating every category.\n\nWhen a 'Reasoning synthesis for this request' block is present below: treat it as decision support, not decorative metadata -- it must materially shape your answer's substance, not merely be acknowledged. Evidence always outranks a heuristic or lens judgment; never let a Founder Thinking/EcoMap/Butterfly/Prediction/Red Team/FutureYou/Value Lens/Caribbean finding override or contradict something the retrieved evidence itself supports -- those lenses are advisory, not proof. If the block lists unresolved contradictions, keep them unresolved in your answer; do not silently pick a side the evidence itself does not settle. State material uncertainty plainly rather than smoothing it over. For an ordinary factual/current-event question, use the block's substance silently -- never print its internal labels ('Truthmode', 'Red Team', '80/20', 'FutureYou', 'Value Lens', '[R1]' citation markers, etc.) as headings or literal text in the answer. For a genuine strategy/build/outcome question, synthesize the block into a real decision path in your own words: the objective, what the evidence actually supports, the real tradeoffs, Caribbean context only where the block says it is relevant, the second-order effects and ownership/control considerations it surfaced, and end with one clear, useful next action -- prefer the block's own highest-leverage action(s) over inventing a longer list.";
 const BASE_INSTRUCTION = `You are ibis, FTN Platform's intelligent Caribbean assistant. Help citizens, creators, investors and institutions navigate the Caribbean ecosystem. Be warm, precise and Caribbean-first. Never fabricate. If evidence is incomplete, say so. Mission Control is private institutional infrastructure. Keep answers concise.\n${FOUNDER_REASONING_INSTRUCTION}`;
 
 function cors(origin: string | null) {
@@ -184,8 +192,8 @@ Deno.serve(async (request) => {
     // found. `providerFactory` lets ibis-canonical-brain.ts hand back the real evidence block
     // (built from this SAME request's one search call) so these SAME real provider credentials
     // answer with it baked into their system prompt, instead of rebuilding providers a second time.
-    const providerFactory = (evidenceBlock: string | null) => {
-      const groundedSystem = evidenceBlock ? `${system}\n\n${evidenceBlock}` : system;
+    const providerFactory = (evidenceBlock: string | null, reasoningSynthesisBlock?: string | null) => {
+      const groundedSystem = [system, evidenceBlock, reasoningSynthesisBlock].filter((part): part is string => !!part).join("\n\n");
       return [cloudflare(turns, groundedSystem), anthropic(turns, groundedSystem), gemini(turns, groundedSystem), openAICompatible("PRIMARY", turns, groundedSystem), openAICompatible("SECONDARY", turns, groundedSystem), ollama(turns, groundedSystem)];
     };
     const envelope = await handleCanonicalRequest({ text: turns[turns.length - 1].content, products, providers, providerFactory, lifecycleStore });
@@ -201,8 +209,8 @@ Deno.serve(async (request) => {
   // ungrounded current-world claims. Reuse the SAME canonical classifier and canonical brain used
   // by the explicit action above. Non-freshness legacy callers retain their exact prior behavior.
   if (classifyIntent(text).queryClass === "CURRENT_WEB_RESEARCH") {
-    const providerFactory = (evidenceBlock: string | null) => {
-      const groundedSystem = evidenceBlock ? `${system}\n\n${evidenceBlock}` : system;
+    const providerFactory = (evidenceBlock: string | null, reasoningSynthesisBlock?: string | null) => {
+      const groundedSystem = [system, evidenceBlock, reasoningSynthesisBlock].filter((part): part is string => !!part).join("\n\n");
       return [cloudflare(turns, groundedSystem), anthropic(turns, groundedSystem), gemini(turns, groundedSystem), openAICompatible("PRIMARY", turns, groundedSystem), openAICompatible("SECONDARY", turns, groundedSystem), ollama(turns, groundedSystem)];
     };
     const envelope = await handleCanonicalRequest({ text, products, providers, providerFactory, lifecycleStore });
@@ -224,6 +232,7 @@ Deno.serve(async (request) => {
       sources: envelope.sources,
       searchCacheState: envelope.searchCacheState,
       status: envelope.status,
+      reasoningSynthesis: envelope.reasoningSynthesis,
     }, 200, origin);
   }
 
