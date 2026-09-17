@@ -10,6 +10,14 @@
 (function(global){'use strict';
   function loadScript(src){return new Promise(function(resolve){if(document.querySelector('script[src="'+src+'"]')){resolve();return;}var s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=resolve;document.head.appendChild(s);});}
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  // Security correction (independent audit): esc() escapes HTML special characters but never
+  // validated the URL SCHEME -- a source whose url happened to be "javascript:..." would render as
+  // a clickable, code-executing link (target="_blank" does not stop a javascript: href from
+  // executing in this page). The server now filters non-https source URLs before they reach here
+  // (see ibis-canonical-brain.ts's sourcesFromSearch()), but this is a second, independent check at
+  // the actual DOM-insertion point, since this file cannot assume every current or future caller of
+  // canonicalSourceCardHTML()/canonicalAlternativesHTML() already did that filtering.
+  function safeHref(url){return /^https:\/\//i.test(String(url||''))?url:'#';}
   function country(){return global.FTN&&global.FTN.Country&&global.FTN.Country.get?global.FTN.Country.get().name:'Trinidad & Tobago';}
   function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
   function wrap(ctx,text,x,y,maxWidth,lineHeight,maxLines){var words=String(text).split(/\s+/),line='',lines=[];for(var i=0;i<words.length;i++){var test=line?line+' '+words[i]:words[i];if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=words[i];if(lines.length>=maxLines-1)break;}else line=test;}if(line&&lines.length<maxLines)lines.push(line);lines.forEach(function(l,n){ctx.fillText(l,x,y+n*lineHeight);});return y+lines.length*lineHeight;}
@@ -102,7 +110,7 @@
   }
   var SOURCE_CLASS_LABEL={COMMUNITY_DISCUSSION:'Community discussion',REPUTABLE_JOURNALISM:'Journalism',OFFICIAL_GOVERNMENT:'Official government',ACADEMIC:'Academic',PRIMARY_EVIDENCE:'Primary evidence',CORPORATE_STATEMENT:'Corporate statement',CREATOR_SOCIAL:'Creator/social',PERSONAL_COMMENTARY:'Personal commentary',MARKETING_ADVOCACY:'Marketing/advocacy',LEGISLATION_PUBLIC_RECORD:'Legislation/public record',UNKNOWN:'Unknown'};
   function sourceCardHTML(source){
-    return '<a class="ibis-live-source" href="'+esc(source.url||'#')+'" target="_blank" rel="noopener noreferrer">'
+    return '<a class="ibis-live-source" href="'+esc(safeHref(source.url))+'" target="_blank" rel="noopener noreferrer">'
       +'<span class="ibis-live-source__platform">'+esc(source.platform||'Source')+'</span>'
       +'<span class="ibis-live-source__title">'+esc(source.title||source.url||'Untitled')+'</span>'
       +'<span class="ibis-live-source__meta">'+esc(SOURCE_CLASS_LABEL[source.sourceClass]||source.sourceClass)+(source.engagement?' · '+esc(source.engagement):'')+' · retrieved '+esc(new Date(source.retrievedAt).toLocaleTimeString())+'</span>'
@@ -117,7 +125,7 @@
   // that component's many other unrelated callers.
   function canonicalSourceCardHTML(source){
     var metaParts=[source.publisher,source.publishedAt?'published '+new Date(source.publishedAt).toLocaleDateString():null,'checked '+new Date(source.retrievedAt).toLocaleString()].filter(Boolean);
-    return '<a class="ibis-live-source" href="'+esc(source.url||'#')+'" target="_blank" rel="noopener noreferrer">'
+    return '<a class="ibis-live-source" href="'+esc(safeHref(source.url))+'" target="_blank" rel="noopener noreferrer">'
       +'<span class="ibis-live-source__title">'+esc(source.title||source.url||'Untitled source')+'</span>'
       +'<span class="ibis-live-source__meta">'+esc(metaParts.join(' · '))+'</span>'
       +'</a>';
@@ -135,7 +143,7 @@
   function canonicalAlternativesHTML(alternatives){
     if(!alternatives||!alternatives.length)return'';
     return '<div class="ibis-live-sources-block"><span class="ibis-live-kicker">ibis could not search live -- try these directly</span><div class="ibis-live-sources">'+alternatives.map(function(a){
-      return '<a class="ibis-live-source" href="'+esc(a.url||'#')+'" target="_blank" rel="noopener noreferrer">'
+      return '<a class="ibis-live-source" href="'+esc(safeHref(a.url))+'" target="_blank" rel="noopener noreferrer">'
         +'<span class="ibis-live-source__title">'+esc(a.label||a.url||'External link')+'</span>'
         +'<span class="ibis-live-source__meta">'+esc(a.costStatus||'')+(a.signInRequired?' · sign-in required':' · no sign-in required')+'</span>'
         +'</a>';

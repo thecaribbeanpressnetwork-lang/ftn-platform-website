@@ -63,6 +63,31 @@ Deno.test("search success normalizes source title/publisher/url/dates", async ()
   assertEquals(res.sources[0].snippet, "snippet", "SearXNG's own result `content` must become SourceRecord.snippet");
 });
 
+// Security correction (independent audit): a search result whose url is not https:// (e.g. a
+// javascript:/data: URI, which a search backend does not guarantee never to produce) must never
+// reach a client's sources[] array -- both browser renderers put source.url directly into an
+// anchor's href, where a non-http(s) scheme would be clickable and would execute in the page.
+Deno.test("search results with a non-https url are dropped from sources, never reaching a client renderer", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({
+      results: [
+        { title: "malicious result", url: "javascript:alert(document.cookie)", content: "snippet", engine: "test" },
+        { title: "another malicious result", url: "data:text/html,<script>alert(1)</script>", content: "snippet", engine: "test" },
+        { title: "a genuine result", url: "https://www.central-bank.org.tt/story", content: "snippet", engine: "official", publishedDate: "2026-09-10" },
+      ],
+    }), { status: 200 });
+  const res = await handleCanonicalRequest({
+    text: "What is the latest USD selling rate today?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assertEquals(res.sources.length, 1, "only the genuine https:// source must survive");
+  assertEquals(res.sources[0].url, "https://www.central-bank.org.tt/story");
+});
+
 // --- Gate 4: search-provider outage falls back honestly (SearXNG IS configured, but errors). ---
 Deno.test("search provider outage degrades honestly, no fabricated answer", async () => {
   Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");

@@ -15,6 +15,12 @@
 
   function answerCard(){return document.querySelector('[data-thought="answer"]');}
   function esc(v){return String(v==null?'':v);}
+  // Security correction (independent audit): a source's url was assigned to an anchor's .href with
+  // no scheme check -- a javascript:/data: URL would be clickable and would execute in this page
+  // (target="_blank" does not stop a javascript: href from executing). The server now filters
+  // non-https source URLs before they reach here (ibis-canonical-brain.ts's sourcesFromSearch()),
+  // but this is a second, independent check at the actual DOM-insertion point.
+  function safeHref(url){return /^https:\/\//i.test(String(url||''))?url:'#';}
   function focus(names){var F=global.FTN&&global.FTN.HeadspaceFabric;if(F&&F.focus)F.focus(names);else(names||[]).forEach(function(name){var n=document.querySelector('[data-thought="'+name+'"]');if(n)n.classList.remove('dematerialized','hs-minimized');});}
   function products(){var P=global.FTN&&global.FTN.ProductRegistry;try{return P&&P.publicProducts?P.publicProducts({includeSupporting:true}).map(function(p){return{name:p.name,route:p.route,tagline:p.tagline};}).slice(0,30):[];}catch(_){return[];}}
   function needsLiveEvidence(text){return /\b(today|latest|current|right now|news|price|rate|weather|score|election result|breaking)\b/i.test(text);}
@@ -70,7 +76,7 @@
       if(meta.searchCacheState&&CACHE_STATE_LABEL[meta.searchCacheState]){var badge=document.createElement('span');badge.className='ibis-live-kicker';badge.textContent=CACHE_STATE_LABEL[meta.searchCacheState];host.appendChild(badge);}
       var list=document.createElement('div');list.className='ibis-live-sources';
       sources.forEach(function(s){
-        var link=document.createElement('a');link.className='ibis-live-source';link.href=s.url||'#';link.target='_blank';link.rel='noopener noreferrer';
+        var link=document.createElement('a');link.className='ibis-live-source';link.href=safeHref(s.url);link.target='_blank';link.rel='noopener noreferrer';
         var title=document.createElement('span');title.className='ibis-live-source__title';title.textContent=s.title||s.url||'Untitled source';
         var metaParts=[s.publisher,s.publishedAt?'published '+new Date(s.publishedAt).toLocaleDateString():null,'checked '+new Date(s.retrievedAt).toLocaleString()].filter(Boolean);
         var metaSpan=document.createElement('span');metaSpan.className='ibis-live-source__meta';metaSpan.textContent=metaParts.join(' · ');
@@ -81,7 +87,7 @@
       var kicker=document.createElement('span');kicker.className='ibis-live-kicker';kicker.textContent='ibis could not search live -- try these directly';host.appendChild(kicker);
       var altList=document.createElement('div');altList.className='ibis-live-sources';
       alternatives.forEach(function(alt){
-        var link=document.createElement('a');link.className='ibis-live-source';link.href=alt.url||'#';link.target='_blank';link.rel='noopener noreferrer';
+        var link=document.createElement('a');link.className='ibis-live-source';link.href=safeHref(alt.url);link.target='_blank';link.rel='noopener noreferrer';
         var title=document.createElement('span');title.className='ibis-live-source__title';title.textContent=alt.label||alt.url||'External link';
         var metaSpan=document.createElement('span');metaSpan.className='ibis-live-source__meta';metaSpan.textContent=(alt.costStatus||'')+(alt.signInRequired?' · sign-in required':' · no sign-in required');
         link.append(title,metaSpan);altList.appendChild(link);

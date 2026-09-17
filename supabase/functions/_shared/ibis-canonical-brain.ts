@@ -198,18 +198,30 @@ function planCapabilities(signals: IntentSignals): PlannedCapability[] {
   return plan;
 }
 
+// Independent security audit finding: unlike ibis-browser-context/index.ts's safeHttpsUrl() (which
+// already strips a non-https source URL before it can reach a client), the search-adapter results
+// consumed here (searxngSearch()/braveSearch()) pass `url: r.url!` straight through with no
+// protocol check. Both browser-side renderers (js/ibis-ai-workspace.js's canonicalSourceCardHTML(),
+// js/ibis-headspace-universal.js's renderSourcesAndAlternatives()) put `source.url` directly into
+// an anchor's href -- a javascript:/data: URL would be clickable and would execute in the page,
+// not merely open a new tab, since target="_blank" does not apply to non-http(s) schemes. A search
+// result returning such a URL would be unusual but is not something either search backend
+// guarantees against. Filtering to https-only here protects every current and future consumer of
+// `sources[]` from one place, rather than requiring each renderer to defend itself.
 function sourcesFromSearch(result: SearchResult): SourceRecord[] {
   if (result.status !== "OK") return [];
-  return result.sources.map((s) => ({
-    title: s.title,
-    publisher: s.publisher,
-    url: s.url,
-    publishedAt: s.publishedAt,
-    updatedAt: s.updatedAt,
-    retrievedAt: s.retrievedAt,
-    snippet: s.snippet,
-    evidenceDepth: s.evidenceDepth,
-  }));
+  return result.sources
+    .filter((s) => /^https:\/\//i.test(s.url))
+    .map((s) => ({
+      title: s.title,
+      publisher: s.publisher,
+      url: s.url,
+      publishedAt: s.publishedAt,
+      updatedAt: s.updatedAt,
+      retrievedAt: s.retrievedAt,
+      snippet: s.snippet,
+      evidenceDepth: s.evidenceDepth,
+    }));
 }
 
 // Builds the evidence context handed to `providerFactory` (see CanonicalRequest.providerFactory
