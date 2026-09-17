@@ -114,3 +114,35 @@ jobs:
           if (/Objective:|User Value:|Ecosystem Value:|Ownership:|Data Value:/i.test(String(body.answer))) throw new Error('founder framework leaked into ordinary answer');
           console.log('LIVE BROWSER CONTEXT PASS', JSON.stringify({provider: body.provider, model: body.model, sources: body.sources.length, evidenceState: body.evidenceState}));
           NODE
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [verify, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ibis-browser-companion-v0.2.0
+      RELEASE_ASSET: ftn-ibis-chrome-store-0.2.0.zip
+    steps:
+      - name: Download verified browser companion artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ftn-ibis-browser-companion-0.2.0
+          path: /tmp/ibis-browser-companion
+      - name: Publish immutable browser companion release
+        run: |
+          asset="/tmp/ibis-browser-companion/${RELEASE_ASSET}"
+          test -s "$asset"
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; preserving its immutable asset."
+            gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$RELEASE_TAG" "$asset#FTN ibis Browser Companion 0.2.0" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "FTN ibis Browser Companion 0.2.0" \
+              --notes "Verified Chrome/Opera browser companion. Search normally in Google, Bing or DuckDuckGo, press Include browser search, and let FTN ibis reason over the visible titles, links and snippets. No browser cookies, passwords, account tokens or browsing history are sent to ibis."
+          fi
