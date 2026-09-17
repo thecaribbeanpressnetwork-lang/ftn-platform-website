@@ -1,4 +1,6 @@
 import { gatewayHealth, runGateway, type GatewayProvider, type IbisProduct, type IbisTurn } from "../_shared/ibis-intelligence-gateway.ts";
+import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "../_shared/ibis-canonical-brain.ts";
+import { resolveLifecycleStore } from "../_shared/ibis-lifecycle-store.ts";
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
 function originAllowed(origin: string | null) {
@@ -10,7 +12,15 @@ function originAllowed(origin: string | null) {
   } catch { return false; }
 }
 const windows = new Map<string, { count: number; resetAt: number }>();
-const FOUNDER_REASONING_INSTRUCTION = "Use the governed Ricardo Founder Reasoning Model for every response: identify the real objective; evaluate user value, ecosystem value, ownership, data value, economic value, execution cost and future optionality; challenge weak ideas; distinguish evidence from assumptions; consider second-order effects; prefer reversible experiments under uncertainty and shared FTN infrastructure where useful; protect Caribbean relevance, ownership and public trust; finish with the clearest useful next action. This is a reasoning model, not Ricardo's consciousness, identity or authorization.";
+// Answer-quality correction: this used to say "Use the governed Ricardo Founder Reasoning Model
+// for EVERY response" and enumerate the framework's category names as things to walk through --
+// smaller models (e.g. Cloudflare Workers AI's Llama 3.1 8B) took that literally and mechanically
+// printed "Evaluating user value: ... Evaluating ecosystem value: ..." as section headings on
+// ordinary factual and current-event questions, dominating and sometimes truncating the actual
+// answer. The framework still shapes every response's internal judgment (never removed for
+// strategic/outcome/planning questions) -- it must simply stop being printed as a mechanical
+// checklist where the user just wants a direct answer.
+const FOUNDER_REASONING_INSTRUCTION = "Let the governed Ricardo Founder Reasoning Model shape your internal judgment on every response: the real objective; user value; ecosystem value; ownership; data value; economic value; execution cost; future optionality; evidence versus assumptions; second-order effects; reversible experiments under uncertainty; Caribbean relevance, ownership and public trust. This is a reasoning model, not Ricardo's consciousness, identity or authorization. For an ordinary factual, current-events or informational question, apply this thinking silently and just answer directly and naturally -- never print these category names or a structured framework breakdown. Only surface an explicit structured breakdown (objective, value, cost, next action, etc.) when the user is genuinely asking for help building, launching, starting, planning, or deciding on an outcome or strategy -- and even then, finish with one clear next action rather than restating every category.";
 const BASE_INSTRUCTION = `You are ibis, FTN Platform's intelligent Caribbean assistant. Help citizens, creators, investors and institutions navigate the Caribbean ecosystem. Be warm, precise and Caribbean-first. Never fabricate. If evidence is incomplete, say so. Mission Control is private institutional infrastructure. Keep answers concise.\n${FOUNDER_REASONING_INSTRUCTION}`;
 
 function cors(origin: string | null) {
@@ -100,8 +110,9 @@ Deno.serve(async (request) => {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
   if (!withinLimit(ip)) return reply({ error: "ibis needs a short break. Please wait a few minutes and try again." }, 429, origin);
 
-  let payload: { action?: string; messages?: unknown; products?: unknown };
+  let payload: { action?: string; messages?: unknown; products?: unknown; receipt?: unknown };
   try { payload = await request.json(); } catch { return reply({ error: "Invalid request." }, 400, origin); }
+
   const products: IbisProduct[] = Array.isArray(payload.products) ? payload.products.filter((p): p is IbisProduct => !!p && typeof p === "object" && typeof p.name === "string" && typeof p.route === "string").slice(0, 30) : [];
   const raw = Array.isArray(payload.messages) ? payload.messages : [];
   const turns: IbisTurn[] = raw.filter((m) => !!m && typeof m === "object").map((m: any) => ({ role: m.role === "assistant" ? "assistant" : "user", content: typeof m.content === "string" ? m.content.trim().slice(0, 2_000) : "" })).filter((m) => m.content).slice(-20);
@@ -109,7 +120,68 @@ Deno.serve(async (request) => {
   // Cost order is intentional: deterministic handling occurs inside runGateway first; among
   // external models, the proven zero-cost Cloudflare allocation is attempted before paid keys.
   const providers = [cloudflare(turns, system), anthropic(turns, system), gemini(turns, system), openAICompatible("PRIMARY", turns, system), openAICompatible("SECONDARY", turns, system), ollama(turns, system)];
-  if (payload.action === "health") return reply(gatewayHealth(providers), 200, origin);
+
+  // Slice 3 serverless correction: resolved ONCE per request, from real environment configuration
+  // -- this is the ONLY place that decides whether durable lifecycle persistence is available.
+  // DATABASE when SUPABASE_URL+SUPABASE_SERVICE_ROLE_KEY are configured; IN_MEMORY_TEST_MODE only
+  // when IBIS_ALLOW_INMEMORY_LIFECYCLE='true' is explicitly set (local/test use only -- never set
+  // this in a real deployment); otherwise null, meaning no durable store exists at all, which
+  // ibis-canonical-brain.ts's handleCanonicalRequest() treats as a reason to fail closed on
+  // browser-local-execution authorization specifically (it still answers every question, just
+  // always server-side, never silently trusting process-local memory in what could be production).
+  const lifecycleStore = resolveLifecycleStore();
+  if (payload.action === "health") {
+    return reply({
+      ...gatewayHealth(providers),
+      lifecyclePersistence: lifecycleStore ? lifecycleStore.kind : "NOT_CONFIGURED",
+    }, 200, origin);
+  }
+
+  // Slice 3 correction: the RECEIPT stage of the plan/execute/receipt/final-response lifecycle
+  // (see ../_shared/ibis-canonical-brain.ts's recordReceiptAndMaybeFallback for the full contract).
+  // A client that received executionAuthorized:true from action:"canonical_query" and then ran
+  // localAI() posts the outcome back here. The server validates the receipt against the plan IT
+  // created and persisted earlier -- an unknown, already-terminal, expired, or mismatched planId
+  // is rejected outright; an arbitrary client-declared "success" is never taken at face value
+  // beyond that validation. The store's atomic PENDING->terminal transition (see
+  // ../_shared/ibis-lifecycle-store.ts) is what actually guarantees at most one fallback provider
+  // call ever happens per plan, even under concurrent/retried receipt requests across separate
+  // function instances -- this handler itself does no locking of its own. Every receipt this
+  // endpoint accepts or rejects is also still logged (visible in Supabase's own function logs) as
+  // an additional, non-durable observability layer.
+  if (payload.action === "record_execution_receipt") {
+    const outcome = await recordReceiptAndMaybeFallback({ receipt: (payload.receipt as any) || {}, providers, lifecycleStore });
+    if (outcome.status === "REJECTED") {
+      console.log("ibis execution receipt REJECTED", outcome.reason, JSON.stringify(payload.receipt));
+      return reply({ recorded: false, rejected: true, reason: outcome.reason }, 409, origin);
+    }
+    console.log("ibis execution receipt accepted", JSON.stringify(payload.receipt), "fallbackGenerated=", !!outcome.envelope);
+    if (outcome.envelope) return reply(outcome.envelope, 200, origin);
+    return reply({ recorded: true }, 200, origin);
+  }
+
+  // Canonical-orchestration slice (feature-flagged, additive): opt-in via action:"canonical_query"
+  // so every pre-existing client (regular IBIS, Headspace, and this same route's own default
+  // behavior below) is completely unaffected -- this branch changes nothing about the legacy
+  // request/response shape. See ../_shared/ibis-canonical-brain.ts for what this path actually
+  // does and does not yet do (search-eligible questions get real search; Founder/EcoMap/Butterfly/
+  // Correlation/Prediction are honestly reported unavailable, never claimed to have executed).
+  if (payload.action === "canonical_query") {
+    if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
+    // Live-search evidence-grounding correction: `providers` above was already built from the
+    // plain system prompt, before canonical processing (and any search it does) has even run --
+    // calling runGateway with it would generate an answer with zero knowledge of what search just
+    // found. `providerFactory` lets ibis-canonical-brain.ts hand back the real evidence block
+    // (built from this SAME request's one search call) so these SAME real provider credentials
+    // answer with it baked into their system prompt, instead of rebuilding providers a second time.
+    const providerFactory = (evidenceBlock: string | null) => {
+      const groundedSystem = evidenceBlock ? `${system}\n\n${evidenceBlock}` : system;
+      return [cloudflare(turns, groundedSystem), anthropic(turns, groundedSystem), gemini(turns, groundedSystem), openAICompatible("PRIMARY", turns, groundedSystem), openAICompatible("SECONDARY", turns, groundedSystem), ollama(turns, groundedSystem)];
+    };
+    const envelope = await handleCanonicalRequest({ text: turns[turns.length - 1].content, products, providers, providerFactory, lifecycleStore });
+    return reply(envelope, 200, origin);
+  }
+
   if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
   const result = await runGateway({ text: turns[turns.length - 1].content, products, providers });
   return reply(result, 200, origin);

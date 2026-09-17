@@ -1,0 +1,46 @@
+# FTN ibis -- SearXNG PREVIEW settings override.
+#
+# `use_default_settings: true` inherits every engine/UI default the base searxng/searxng image
+# ships (so this file stays small and easy to audit) -- only the keys below are overridden.
+use_default_settings: true
+
+general:
+  debug: false                     # never run a public-facing Flask debug console
+  instance_name: "FTN ibis SearXNG (PREVIEW)"
+  privacypolicy_url: false
+  donation_url: false
+  contact_url: false
+  enable_metrics: false            # no metrics/stats endpoint exposed on a preview instance
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "en"
+  # JSON is required for ibis-search-adapter.ts's searxngSearch() (?format=json); HTML is kept so
+  # the instance also renders a normal results page for a human sanity check after deploying.
+  formats:
+    - html
+    - json
+
+server:
+  # Placeholder only -- never a real secret in this committed file. SearXNG reads the
+  # SEARXNG_SECRET_KEY environment variable at startup and uses it as the effective
+  # server.secret_key, overriding this placeholder before its own "is not changed" startup check
+  # runs. The deploy environment (Render, etc.) MUST set SEARXNG_SECRET_KEY, or the container
+  # refuses to start -- see this folder's README.md, "Secret key" section.
+  secret_key: "ultrasecretkey"
+  # Enables SearXNG's built-in request limiter/bot-detection. No Redis is configured for this
+  # preview, so limiting is per-process (in-memory), not distributed across replicas -- adequate
+  # for a single free-tier instance, an explicit, disclosed limitation (see README.md).
+  limiter: true
+  image_proxy: true
+  method: "GET"
+
+outgoing:
+  # Conservative timeouts -- a free-tier host's outbound network and CPU are both limited; failing
+  # fast toward ibis-search-adapter.ts's own honest SEARCH_UNAVAILABLE path is preferable to a
+  # request hanging until ITS OWN timeout (8s, see searxngSearch()'s default timeoutMs).
+  request_timeout: 5.0
+  max_request_timeout: 8.0
+  pool_connections: 20
+  pool_maxsize: 10

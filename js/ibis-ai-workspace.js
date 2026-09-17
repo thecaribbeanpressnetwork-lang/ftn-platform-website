@@ -20,11 +20,17 @@
   function withTimeout(promise,ms,fallbackValue){return new Promise(function(resolve){var settled=false;var timer=setTimeout(function(){if(!settled){settled=true;resolve(fallbackValue);}},ms);promise.then(function(v){if(!settled){settled=true;clearTimeout(timer);resolve(v);}},function(){if(!settled){settled=true;clearTimeout(timer);resolve(fallbackValue);}});});}
   async function ensureData(){await loadScript('/js/ftn-media-discovery.js');if(!global.FTN.Auth)await loadScript('/js/ftn-auth.js');if(!global.FTN.Sources)await loadScript('/js/source-registry.js');if(!global.FTN.DataSource)await loadScript('/js/data-source.js');if(!global.FTN.indicators)await loadScript('/js/indicators-data.js');if(!global.FTN.Relationships)await loadScript('/js/relationships-data.js');}
   function ensureVisualState(){if(global.FTN&&global.FTN.IbisVisualState)return Promise.resolve();return loadScript('/js/ibis-visual-state.js');}
-  // Zero-dependency mirror of js/ibis-live-research.js's own LIVE_PHRASES list, so ordinary
-  // messages never pay the cost of loading the live-research module at all -- only a message that
-  // already looks like a live/current-events request triggers ensureLiveResearch() below.
-  var QUICK_LIVE_PHRASES=['right now','happening now','currently','as of today','latest on','latest news','current news','what are people saying',"what's new",'recent news','this week','up to date','up-to-date','today','this month'];
-  function quickLooksLikeLiveRequest(text){var lower=String(text||'').toLowerCase();return QUICK_LIVE_PHRASES.some(function(p){return lower.indexOf(p)!==-1;});}
+  // Correction (canonical-brain completion pass): a client-side keyword gate used to live here
+  // (QUICK_LIVE_PHRASES/quickLooksLikeLiveRequest) and decide, in the browser, that a message
+  // "looks like" a live/current-events request -- routing it straight to renderLiveResearch()
+  // (Hacker News + GitHub search only) and returning BEFORE serverAI()/the canonical brain ever
+  // ran. That is exactly the architecture being corrected: the browser must never decide a query
+  // is too current for canonical orchestration. Freshness classification now happens exactly once,
+  // inside supabase/functions/_shared/ibis-intent-router.ts's classifyIntent(), which every prompt
+  // reaches via serverAI() -> FTN.IbisRuntime.ask() (or, if that is unavailable, degradedTextFallback()
+  // -> canonicalServerQuery()'s action:'canonical_query' call). renderLiveResearch() itself is left
+  // in place below as an available capability, just no longer a pre-emptive authority over ordinary
+  // conversation.
   // Final integration pass (Caribbean intelligence): loads the real, cited lexical-marker
   // detector (js/ibis-caribbean-language-id.js, Phase 13) so ASK-mode requests can honestly note
   // when a user's own message already contains real Trinidad English/Creole vocabulary --
@@ -41,6 +47,39 @@
     if(!global.FTN||!global.FTN.IbisProvenance)await loadScript('/js/ibis-provenance.js');
     if(!global.FTN||!global.FTN.IbisClient)await loadScript('/js/ibis-client.js');
   }
+  // Canonical-routing fix: regular ibis previously never loaded or consulted the Universal Router at
+  // all -- every plain-text question went straight to the default TEXT provider, bypassing the Founder
+  // Cognitive Layer, Butterfly Engine, Connection Fabric and multi-agent orchestration entirely, even
+  // when the request genuinely called for one of them. js/ibis-headspace-universal.js already gates on
+  // this same router; this mirrors that exact pattern so regular ibis and Headspace share one
+  // classification step instead of the workspace silently short-circuiting past it. ibis-runtime-loader.js
+  // is idempotent (guards each script by testing the primitive it registers), so calling this from both
+  // surfaces on the same page never double-loads anything.
+  async function ensureRuntime(){
+    if(global.FTN&&global.FTN.IbisRuntime)return;
+    await loadScript('/js/ibis-runtime-loader.js');
+    if(global.FTN&&global.FTN.IbisRuntimeReady)await withTimeout(global.FTN.IbisRuntimeReady,15000,null);
+  }
+  // Correction (this pass): an isPlainAnswer() predicate used to live here, mirroring
+  // js/ibis-headspace-universal.js, and serverAI() used it to decide in the BROWSER whether a
+  // question was "plain" enough to skip FTN.IbisRuntime.ask() entirely. That is exactly the
+  // architectural violation this pass removes: the browser must never decide a question is simple
+  // and route around canonical orchestration on that basis. js/ibis-runtime.js's own ask() already
+  // calls FTN.UniversalRouter.route() and FTN.MultiAgentOrchestrator.execute() internally -- "this is
+  // a simple question, answer it directly" is a legitimate outcome, but it must be decided INSIDE
+  // that canonical planner, not by a client-side gate that prevents the planner from ever running.
+  // serverAI() below now calls FTN.IbisRuntime.ask() unconditionally for every prompt.
+  //
+  // Identical extraction to js/ibis-headspace-universal.js's bestText() -- FTN.IbisRuntime.ask() returns
+  // the multi-agent orchestrator's raw result shape, not the {answer,...} shape serverAI() otherwise
+  // returns, so this normalizes it the same way Headspace already does.
+  function bestRuntimeText(result){var direct=result&&(result.data||result.result)||{};if(direct.answer)return direct.answer;var outputs=result&&result.run&&result.run.result&&result.run.result.outputs||[];for(var i=outputs.length-1;i>=0;i--){var o=outputs[i].output||{},d=o.data||o.result||{};if(d.answer)return d.answer;if(o.result&&o.result.answer)return o.result.answer;if(typeof d==='string')return d;}return null;}
+  // Freshness-grounding correction: true when ANY task output in this runtime run carries
+  // js/ibis-multi-agent-orchestrator.js's fallbackFromCapability tag -- meaning a real capability
+  // (e.g. LIVE_INTELLIGENCE) was requested and failed, and the orchestrator silently substituted a
+  // bare TEXT completion instead. Used only to decide whether a freshness-required answer can be
+  // trusted; never changes what the orchestrator itself does.
+  function runtimeGroundingDegraded(result){var outputs=result&&result.run&&result.run.result&&result.run.result.outputs||[];return outputs.some(function(o){return !!(o&&o.output&&o.output.fallbackFromCapability);});}
   // Pass 16: IBIS Live Intelligence lazy-load. js/ibis-provider-registry.js is already a static
   // script tag on this page; the eligibility engine and the live-research capability itself are
   // loaded on demand, same pattern as every other ensure* helper here.
@@ -68,6 +107,47 @@
       +'<span class="ibis-live-source__title">'+esc(source.title||source.url||'Untitled')+'</span>'
       +'<span class="ibis-live-source__meta">'+esc(SOURCE_CLASS_LABEL[source.sourceClass]||source.sourceClass)+(source.engagement?' · '+esc(source.engagement):'')+' · retrieved '+esc(new Date(source.retrievedAt).toLocaleTimeString())+'</span>'
       +'</a>';
+  }
+  // Live-search UX correction: the canonical brain's own search() sources (ibis-search-adapter.ts's
+  // SourceRecord shape -- title/publisher/url/publishedAt/retrievedAt) previously reached this
+  // workspace but were never rendered as their own clickable list (only a single Trust Card summary
+  // existed, and even that never received them at this call site -- see canonicalSourcesExtra()
+  // below). Deliberately a plain, additive block appended directly under the answer, not routed
+  // through the shared Trust Card component (js/trust-card.js), so this fix carries zero risk to
+  // that component's many other unrelated callers.
+  function canonicalSourceCardHTML(source){
+    var metaParts=[source.publisher,source.publishedAt?'published '+new Date(source.publishedAt).toLocaleDateString():null,'checked '+new Date(source.retrievedAt).toLocaleString()].filter(Boolean);
+    return '<a class="ibis-live-source" href="'+esc(source.url||'#')+'" target="_blank" rel="noopener noreferrer">'
+      +'<span class="ibis-live-source__title">'+esc(source.title||source.url||'Untitled source')+'</span>'
+      +'<span class="ibis-live-source__meta">'+esc(metaParts.join(' · '))+'</span>'
+      +'</a>';
+  }
+  var CACHE_STATE_LABEL={LIVE:'Live search just now',CACHED:'From a recent search (cached)'};
+  function canonicalSourcesHTML(sources,cacheState){
+    if(!sources||!sources.length)return'';
+    var badge=cacheState&&CACHE_STATE_LABEL[cacheState]?'<span class="ibis-live-kicker">'+esc(CACHE_STATE_LABEL[cacheState])+'</span> ':'';
+    return '<div class="ibis-live-sources-block">'+badge+'<div class="ibis-live-sources">'+sources.map(canonicalSourceCardHTML).join('')+'</div></div>';
+  }
+  // Search-unavailable handoff (ibis-search-adapter.ts's ExternalHandoff[]) previously reached this
+  // workspace on the honest "I don't have a working live-search route yet..." answer but was never
+  // rendered -- a user hit a dead end with no direct link out. Plain, additive, same reasoning as
+  // canonicalSourcesHTML above.
+  function canonicalAlternativesHTML(alternatives){
+    if(!alternatives||!alternatives.length)return'';
+    return '<div class="ibis-live-sources-block"><span class="ibis-live-kicker">ibis could not search live -- try these directly</span><div class="ibis-live-sources">'+alternatives.map(function(a){
+      return '<a class="ibis-live-source" href="'+esc(a.url||'#')+'" target="_blank" rel="noopener noreferrer">'
+        +'<span class="ibis-live-source__title">'+esc(a.label||a.url||'External link')+'</span>'
+        +'<span class="ibis-live-source__meta">'+esc(a.costStatus||'')+(a.signInRequired?' · sign-in required':' · no sign-in required')+'</span>'
+        +'</a>';
+    }).join('')+'</div></div>';
+  }
+  // Shared by every canonical-envelope render site below (the fallback-after-authorized-local-
+  // failure path and the direct server_provider path) -- both carry the exact same real
+  // envelope.sources/searchCacheState fields, so building the mountEvidence() `extra` object the
+  // same way for both keeps the Trust Card's own single-source summary consistent with the fuller
+  // list this function also renders.
+  function canonicalSourcesExtra(envelope,q,limitations){
+    return {prompt:q,sources:envelope&&envelope.sources,limitations:limitations};
   }
   // Real evidence-backed current-source research -- distinct visual treatment (a bordered
   // "Live Intelligence" block with real linked sources) so this is never mistaken for ordinary
@@ -172,6 +252,48 @@
   // ready now) is allowed to use the on-device path; 'downloadable' and 'unavailable' both fall
   // straight through to the existing server/router fallback instead, same as before. The
   // capability itself is preserved -- an already-warm on-device model still answers locally.
+  // CORRECTED (this pass -- the prior version of this gate was itself still a bypass): local
+  // execution used to be gated by calling FTN.UniversalRouter.route() directly IN THE BROWSER --
+  // but that router is not the canonical server brain. A browser deciding, on its own, that a
+  // question is "plain" or "non-fresh" and therefore safe to answer locally is exactly the
+  // architecture being corrected, even when the classifier it consults is a real one. The
+  // authority now lives exclusively server-side: every prompt is sent to
+  // action:"canonical_query" FIRST, and that response's executionInstruction
+  // (see supabase/functions/_shared/ibis-response-envelope.ts) is the ONLY thing that may
+  // authorize FTN LanguageModel execution. A malformed, rejected, timed-out or unreachable
+  // canonical response never defaults to authorizing local execution -- it defaults to using the
+  // canonical answer itself (which the same response already carries), or, if canonical_query is
+  // entirely unreachable, falls through to the existing serverAI() path below. Local execution is
+  // never the "safe default" on any failure path.
+  var PUBLISHABLE_KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
+  var ASSISTANT_ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
+  function productsSummary(){return global.FTN.ProductRegistry&&global.FTN.ProductRegistry.publicProducts?global.FTN.ProductRegistry.publicProducts({includeSupporting:true}).map(function(p){return{name:p.name,route:p.route,tagline:p.tagline};}):[];}
+  async function requestCanonicalDecision(prompt){
+    try{
+      var response=await withTimeout(fetch(ASSISTANT_ENDPOINT,{
+        method:'POST',
+        headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},
+        body:JSON.stringify({action:'canonical_query',messages:[{role:'user',content:prompt}],products:productsSummary()}),
+      }),15000,null);
+      if(!response||!response.ok)return null;
+      var envelope=await response.json().catch(function(){return null;});
+      if(!envelope||typeof envelope.answer!=='string')return null;
+      return envelope;
+    }catch(e){return null;}
+  }
+  // The RECEIPT stage of the plan/execute/receipt/final-response lifecycle (Slice 3 correction).
+  // A SUCCESS receipt is fire-and-forget: the browser already has its answer, and the server
+  // returns only an acknowledgement (never a second, duplicate answer). A FAILURE receipt is the
+  // one legitimate trigger for an AUTHORIZED fallback generation -- the caller must await this and
+  // use the returned envelope's `answer`, never re-request or re-decide anything itself. Returns
+  // null on any network/parse failure so a failed receipt POST can never be mistaken for a
+  // fallback answer.
+  async function recordExecutionReceipt(receipt){
+    try{
+      var r=await fetch(ASSISTANT_ENDPOINT,{method:'POST',headers:{'content-type':'application/json',apikey:PUBLISHABLE_KEY,authorization:'Bearer '+PUBLISHABLE_KEY},body:JSON.stringify({action:'record_execution_receipt',receipt:receipt})});
+      return await r.json().catch(function(){return null;});
+    }catch(e){return null;}
+  }
   async function localAI(prompt){
     if(!('LanguageModel' in global))return null;
     try{
@@ -187,18 +309,114 @@
       return answer;
     }catch(e){return null;}
   }
+  // Builds the non-secret receipt every serverAI() response now carries: which reasoning modes the
+  // canonical planner actually ran (from the route FTN.IbisRuntime.ask() itself produced, never
+  // guessed), versus a degraded stage name when canonical orchestration could not run at all. This
+  // is the honest alternative to letting a fallback answer look identical to a canonical one.
+  function canonicalReceipt(route,failedStage){
+    return{
+      orchestration:failedStage?'DEGRADED':'CANONICAL',
+      failedStage:failedStage||null,
+      capabilityCandidates:(route&&route.capabilityCandidates)||[],
+      agents:(route&&route.agents)||[],
+      sideEffect:(route&&route.sideEffect)||null,
+    };
+  }
+  // Canonical-brain server slice (feature-flagged action:'canonical_query' on the ibis-assistant
+  // Edge Function -- see supabase/functions/_shared/ibis-canonical-brain.ts). Called as the FIRST
+  // fallback attempt below, ahead of the bare TEXT provider call, because it is a strict superset
+  // of that call for the cases it covers today: freshness-sensitive prompts get real search (or an
+  // honest SEARCH_UNAVAILABLE with direct-link alternatives) instead of silently answering from
+  // model memory, and every other prompt still gets the exact same deterministic/provider/founder-
+  // rules-fallback chain the bare TEXT call would have used anyway. Returns null (never throws) on
+  // any failure so the caller falls straight through to the unconditional bare TEXT call -- this
+  // must never be the only route to an answer.
+  async function canonicalServerQuery(prompt,products,context){
+    try{
+      var response=await withTimeout(fetch('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant',{
+        method:'POST',
+        headers:{'content-type':'application/json',apikey:'sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z',authorization:'Bearer sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z'},
+        body:JSON.stringify({action:'canonical_query',messages:[{role:'user',content:prompt}],products:products}),
+      }),12000,null);
+      if(!response||!response.ok)return null;
+      var envelope=await response.json().catch(function(){return null;});
+      if(!envelope||typeof envelope.answer!=='string'||!envelope.answer)return null;
+      return envelope;
+    }catch(e){return null;}
+  }
+  // Runtime unavailable, timed out, or returned nothing usable: answer through the canonical server
+  // brain first, then the direct TEXT provider, so the user is never dead-ended, but mark the
+  // response degraded and name the stage that failed -- never disguise this as a canonical response
+  // from FTN.IbisRuntime.ask() (the browser-side canonical path this function is a fallback FOR).
+  async function degradedTextFallback(prompt,products,context,failedStage,route){
+    var canonical=await canonicalServerQuery(prompt,products,context);
+    if(canonical){
+      return{available:true,degraded:true,failedStage:failedStage,answer:canonical.answer,provider:'FTN ibis canonical brain',providerId:(canonical.providerPath&&canonical.providerPath[0])||null,model:'',generatedAt:canonical.generatedAt||new Date().toISOString(),confidence:canonical.confidence||null,uncertainty:canonical.confidenceBasis||null,answerClass:canonical.queryClass||null,provenance:{sources:canonical.sources,alternatives:canonical.alternatives,queryClass:canonical.queryClass},receipt:Object.assign({},canonicalReceipt(route,failedStage),{serverEnvelope:canonical.receipt})};
+    }
+    var response=await global.FTN.IbisClient.request({nodeId:'ibis-ai',capability:'TEXT',context:context,payload:{prompt:prompt,products:products}});
+    if(!response||!response.success)return{available:false,degraded:true,failedStage:failedStage,reason:(response&&response.reason)||'No eligible ibis answer route is available.',receipt:canonicalReceipt(route,failedStage)};
+    var result=response.result||{};
+    return{available:true,degraded:true,failedStage:failedStage,answer:result.answer,provider:result.provider||response.provenance.provider||'FTN ibis',providerId:response.provenance.provider||null,model:result.model||response.provenance.model||'',generatedAt:result.generatedAt||new Date().toISOString(),confidence:result.confidence||null,uncertainty:result.uncertainty||null,answerClass:result.answerClass||null,provenance:response.provenance,receipt:canonicalReceipt(route,failedStage)};
+  }
   async function serverAI(prompt){
     try{
       await ensureIbisClient();
-      if(!global.FTN||!global.FTN.IbisClient)return{available:false,reason:'The ibis client did not load.'};
+      if(!global.FTN||!global.FTN.IbisClient)return{available:false,degraded:true,failedStage:'IBIS_CLIENT_LOAD',reason:'The ibis client did not load.',receipt:canonicalReceipt(null,'IBIS_CLIENT_LOAD')};
       var user=null;
       if(global.FTN.Auth&&global.FTN.Auth.getVerifiedUser)user=await withTimeout(global.FTN.Auth.getVerifiedUser(),4000,null);
       var products=global.FTN.ProductRegistry&&global.FTN.ProductRegistry.publicProducts?global.FTN.ProductRegistry.publicProducts({includeSupporting:true}).map(function(p){return{name:p.name,route:p.route,tagline:p.tagline};}):[];
-      var response=await global.FTN.IbisClient.request({nodeId:'ibis-ai',capability:'TEXT',context:{authenticated:!!user},payload:{prompt:prompt,products:products}});
-      if(!response||!response.success)return{available:false,reason:(response&&response.reason)||'No eligible ibis answer route is available.'};
-      var result=response.result||{};
-      return{available:true,answer:result.answer,provider:result.provider||response.provenance.provider||'FTN ibis',providerId:response.provenance.provider||null,model:result.model||response.provenance.model||'',generatedAt:result.generatedAt||new Date().toISOString(),confidence:result.confidence||null,uncertainty:result.uncertainty||null,answerClass:result.answerClass||null,provenance:response.provenance};
-    }catch(e){return{available:false,reason:e.message||'The ibis gateway is unavailable.'};}
+      var context={authenticated:!!user};
+
+      // Every prompt enters the canonical planner unconditionally -- no client-side "is this plain"
+      // gate exists any more (see the comment above where isPlainAnswer() used to live). If the
+      // runtime genuinely cannot load, that is a real degraded state, reported as one, not silently
+      // disguised as a normal answer.
+      var runtimeLoadFailed=null;
+      try{await ensureRuntime();}catch(e){runtimeLoadFailed=(e&&e.message)||'runtime failed to load';}
+      if(runtimeLoadFailed||!global.FTN||!global.FTN.IbisRuntime){
+        return degradedTextFallback(prompt,products,context,'RUNTIME_UNAVAILABLE',null);
+      }
+
+      var runtimeResult;
+      try{
+        var TIMED_OUT={};
+        runtimeResult=await withTimeout(global.FTN.IbisRuntime.ask(prompt,context),25000,TIMED_OUT);
+        if(runtimeResult===TIMED_OUT)return degradedTextFallback(prompt,products,context,'ORCHESTRATION_TIMEOUT',null);
+      }catch(e){
+        return degradedTextFallback(prompt,products,context,'ORCHESTRATION_EXCEPTION',null);
+      }
+
+      var route=runtimeResult&&runtimeResult.route;
+      if(runtimeResult&&runtimeResult.errorType==='RUNTIME_NOT_READY'){
+        return degradedTextFallback(prompt,products,context,'RUNTIME_NOT_READY',route);
+      }
+      if(runtimeResult&&runtimeResult.status==='WAITING_PERMISSION'){
+        return{available:true,degraded:false,answer:'This needs your approval before ibis can continue -- it would take an action outside this conversation. Open Headspace to approve or decline it.',provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:'Action requires explicit permission.',answerClass:'WAITING_PERMISSION',provenance:{route:route},receipt:canonicalReceipt(route,null)};
+      }
+      var runtimeAnswer=bestRuntimeText(runtimeResult);
+      // Freshness-grounding correction: FTN.UniversalRouter already flags a query needing a
+      // current fact (epistemicMode 'CURRENT_FACT_REQUIRED', e.g. "latest"/"today"/"current") and
+      // routes it toward the LIVE_INTELLIGENCE capability -- but FTN.MultiAgentOrchestrator's
+      // executor silently falls back to a bare TEXT completion whenever that capability fails or
+      // has nothing, with no signal that happened (confirmed live: "What are the latest major
+      // business developments in Trinidad and Tobago?" returned a fabricated, unsourced answer
+      // that falsely claimed "I've checked the latest information... According to FTN
+      // Parliament..."). runtimeGroundingDegraded() reads the new fallbackFromCapability tag that
+      // marks exactly this silent degradation. When it fires on a freshness-required query, this
+      // runtime answer is refused -- never presented as current/verified -- and the request falls
+      // through to the SAME canonical/SearXNG-grounded path already used when the runtime fails
+      // outright, so the user still gets a real, honestly-sourced answer instead of a guess.
+      var freshnessRequired=!!(route&&route.epistemicMode==='CURRENT_FACT_REQUIRED');
+      if(runtimeAnswer&&!(freshnessRequired&&runtimeGroundingDegraded(runtimeResult))){
+        return{available:true,degraded:false,answer:runtimeAnswer,provider:'FTN ibis runtime',providerId:'ibis-runtime',model:'',generatedAt:new Date().toISOString(),confidence:null,uncertainty:null,answerClass:'RUNTIME_RESPONSE',provenance:{route:route,runtime:true},receipt:canonicalReceipt(route,null)};
+      }
+      if(freshnessRequired&&runtimeGroundingDegraded(runtimeResult)){
+        return degradedTextFallback(prompt,products,context,'FRESHNESS_GROUNDING_DEGRADED',route);
+      }
+      // The canonical planner ran but produced nothing usable -- degrade explicitly rather than
+      // silently retrying a different route the user can't see was different.
+      return degradedTextFallback(prompt,products,context,'RUNTIME_NO_ANSWER',route);
+    }catch(e){return{available:false,degraded:true,failedStage:'SERVER_AI_EXCEPTION',reason:e.message||'The ibis gateway is unavailable.',receipt:canonicalReceipt(null,'SERVER_AI_EXCEPTION')};}
   }
   // A contextual entry point (e.g. Learn/Opportunities/Screen linking here with ?scope=learn)
   // biases ranking toward its own product without ever hard-filtering out a better FTN match --
@@ -310,18 +528,10 @@
         appendUserMessage(q);
         var out=appendIbisMessage();
         setStatus('thinking');
-        // Pass 16 IBIS Live Intelligence: only fires when the message itself reads as a live/
-        // current-events request (deterministic phrase match, never an LLM call to decide).
-        // quickLooksLikeLiveRequest() has zero dependencies, so ordinary requests never trigger
-        // ensureLiveResearch()'s script loads at all -- ibis's normal behavior is completely
-        // unaffected for every message that doesn't look like this.
-        if(quickLooksLikeLiveRequest(q)){
-          setStatus('working');
-          await renderLiveResearch(q,out);
-          setStatus('idle');
-          revealAnswer(out);
-          return;
-        }
+        // The freshness/live-events pre-filter that used to gate here is removed (see the note
+        // above QUICK_LIVE_PHRASES' old location, near the top of this file): a message reading
+        // as current-events now reaches serverAI() like any other message, and freshness
+        // classification happens once, canonically, in the server-side intent router.
         if(mode==='visual'||/create|generate|make/.test(q.toLowerCase())&&/image|visual|poster|graphic/.test(q.toLowerCase())){
           setStatus('generating');
           await createVisual(q,out);
@@ -329,33 +539,87 @@
           revealAnswer(out);
           return;
         }
-        if(mode==='find'||/find|search|movie|film|song|music|youtube/.test(q.toLowerCase())){
+        // Narrowed (canonical-brain completion pass): bare "find"/"search" used to be sufficient
+        // to divert free-typed text to media discovery -- "search the internet for X" is a general
+        // web-search request, not a media request, and must reach canonical orchestration like any
+        // other question, not be silently claimed by YouTube discovery first. A genuine
+        // media-domain term is still required for the free-text auto-trigger; the explicit Find
+        // mode button (mode==='find') is a deliberate user action and is unaffected.
+        if(mode==='find'||/movie|film|song|music|youtube|soca|reggae|dancehall|calypso|kaiso|chutney|kompa|zouk|steelpan/.test(q.toLowerCase())){
           setStatus('working');
           await renderMedia(q,out);
           setStatus('idle');
           revealAnswer(out);
           return;
         }
-        if(mode==='analyze'||/what changed|correlat|indicator|econom|inflation|weather|pressure/.test(q.toLowerCase())){
+        // Keyword-sniffed auto-trigger removed (canonical-brain completion pass): "indicator",
+        // "econom", "weather" etc. used to divert an ordinarily-typed question straight to the
+        // local FTN indicator lookup before serverAI() ever ran -- exactly the kind of "the
+        // browser decides this is too specialized for canonical orchestration" bypass being
+        // corrected, and it silently swallowed the mandatory forex-indicators acceptance test
+        // ("...foreign-exchange indicators" matches /indicator/). The explicit Analyze mode button
+        // (mode==='analyze') is a deliberate user action, not a keyword guess, and is preserved.
+        if(mode==='analyze'){
           out.innerHTML=renderAnalysis(q);
           setStatus('idle');
           revealAnswer(out);
           return;
         }
-        var answer=await localAI(q);
-        if(answer){
-          out.innerHTML='<span class="workspace-kicker">On-device AI</span>'+answerHTML(answer)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
-          // Phase 4B: on-device inference never leaves the browser and calls no FTN provider at
-          // all -- a synthetic envelope built here (localAI() doesn't route through IbisClient,
-          // same reasoning as the Live Intelligence path above), only ever shown when the
-          // decision matrix judges the TOPIC (not the capability) evidence-worthy.
+        setStatus('verifying');
+        // Every prompt reaches the canonical server brain FIRST, unconditionally. Only its own
+        // executionInstruction may authorize browser-local execution (see the note above
+        // requestCanonicalDecision() for why the browser must never make this call itself).
+        var canonical=await requestCanonicalDecision(q);
+        if(canonical&&canonical.executionInstruction&&canonical.executionInstruction.executionAuthorized===true){
+          var localStartedAt=Date.now();
+          var localAnswer=await localAI(q);
+          if(localAnswer){
+            recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:true,degraded:false,latencyMs:Date.now()-localStartedAt});
+            out.innerHTML='<span class="workspace-kicker">On-device AI (server-authorized)</span>'+answerHTML(localAnswer)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
+            // Phase 4B: on-device inference never leaves the browser and calls no FTN provider at
+            // all -- a synthetic envelope built here (localAI() doesn't route through IbisClient,
+            // same reasoning as the Live Intelligence path above), only ever shown when the
+            // decision matrix judges the TOPIC (not the capability) evidence-worthy.
+            await ensureEvidence();
+            mountEvidence(out,{capability:'TEXT',provider:'On-device browser AI (server-authorized: planId '+esc(canonical.executionInstruction.planId)+')',costToIbis:'ZERO_COST_TO_IBIS',confidenceBasis:'NOT_ASSESSED'},{prompt:q});
+            setStatus('idle');
+            scrollToEnd();
+            return;
+          }
+          // Authorized but local execution itself failed/unavailable. The server never generated
+          // an answer for an authorized plan (see ibis-canonical-brain.ts -- doing so up front
+          // would be exactly the duplicate generation this correction removes), so canonical.answer
+          // is empty here by design. Reporting the failure IS the request for the one authorized
+          // fallback generation; its response envelope (not canonical's) carries the real answer.
+          // `text` is resent here (never persisted server-side -- see the migration header in
+          // supabase/migrations/20260916120000_ibis_execution_receipts.sql) so the server can
+          // verify it against the hash taken when this plan was created, then use it for the one
+          // authorized fallback generation without ever having stored the prompt durably itself.
+          var fallback=await recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:false,degraded:true,latencyMs:Date.now()-localStartedAt,text:q,products:productsSummary()});
+          if(fallback&&typeof fallback.answer==='string'&&fallback.answer){
+            out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain (authorized fallback)</span>'+answerHTML(fallback.answer)+'<p class="ibis-answer-meta">'+esc((fallback.providerPath&&fallback.providerPath[0])||'Governed ibis route')+(fallback.confidence?' · '+esc(fallback.confidence):'')+'</p>'+canonicalSourcesHTML(fallback.sources,fallback.searchCacheState)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
+            await ensureEvidence();
+            mountEvidence(out,{capability:'TEXT',provider:(fallback.providerPath&&fallback.providerPath[0])||'FTN ibis canonical brain',sourceRetrievedAt:fallback.generatedAt,confidenceBasis:fallback.confidence||'NOT_ASSESSED'},canonicalSourcesExtra(fallback,q,fallback.confidenceBasis));
+            setStatus('idle');
+            revealAnswer(out);
+            return;
+          }
+          // The receipt itself was rejected (e.g. the plan already expired) or the fallback
+          // generation failed -- fall through to the existing non-fabricating serverAI() chain
+          // below rather than leaving the user with no answer at all.
+        }
+        if(canonical&&typeof canonical.answer==='string'&&canonical.answer){
+          out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain</span>'+answerHTML(canonical.answer)+'<p class="ibis-answer-meta">'+esc((canonical.providerPath&&canonical.providerPath[0])||'Governed ibis route')+(canonical.confidence?' · '+esc(canonical.confidence):'')+'</p>'+canonicalSourcesHTML(canonical.sources,canonical.searchCacheState)+canonicalAlternativesHTML(canonical.alternatives)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
           await ensureEvidence();
-          mountEvidence(out,{capability:'TEXT',provider:'On-device browser AI',costToIbis:'ZERO_COST_TO_IBIS',confidenceBasis:'NOT_ASSESSED'},{prompt:q});
+          mountEvidence(out,{capability:'TEXT',provider:(canonical.providerPath&&canonical.providerPath[0])||'FTN ibis canonical brain',sourceRetrievedAt:canonical.generatedAt,confidenceBasis:canonical.confidence||'NOT_ASSESSED'},canonicalSourcesExtra(canonical,q,canonical.confidenceBasis));
           setStatus('idle');
-          scrollToEnd();
+          revealAnswer(out);
           return;
         }
-        setStatus('verifying');
+        // canonical_query was entirely unreachable (network down, malformed response, etc.) --
+        // never invent a decision about local execution on this failure. Fall through to the
+        // existing serverAI() path (FTN.IbisRuntime.ask() -> degradedTextFallback() -> bare TEXT),
+        // itself already a real, tested, non-fabricating chain.
         var server=await serverAI(q);
         if(server.available){
           out.innerHTML='<span class="workspace-kicker">FTN ibis</span>'+answerHTML(server.answer)+answerMeta(server)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');

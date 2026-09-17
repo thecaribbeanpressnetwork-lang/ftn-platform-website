@@ -47,7 +47,7 @@ export function deterministicAnswer(text: string, products: IbisProduct[] = []) 
   return null;
 }
 
-type FounderReasoningDomain = "BUSINESS" | "FUNDING" | "MEDIA" | "CIVIC" | "DELIVERY" | "GENERAL";
+export type FounderReasoningDomain = "BUSINESS" | "FUNDING" | "MEDIA" | "CIVIC" | "DELIVERY" | "GENERAL";
 
 function founderDomain(q: string): FounderReasoningDomain {
   if (/fund|grant|invest|capital|pitch|sponsor|revenue|moneti[sz]|finance/.test(q)) return "FUNDING";
@@ -58,7 +58,7 @@ function founderDomain(q: string): FounderReasoningDomain {
   return "GENERAL";
 }
 
-function relevantProducts(text: string, domain: FounderReasoningDomain, products: IbisProduct[]) {
+export function relevantProducts(text: string, domain: FounderReasoningDomain, products: IbisProduct[]) {
   const terms = normalized(text).split(" ").filter((term) => term.length > 3);
   const domainTerms: Record<FounderReasoningDomain, string[]> = {
     FUNDING: ["opportunit", "grant", "fund", "invest"], BUSINESS: ["business", "market", "commerce", "enterprise"],
@@ -74,6 +74,11 @@ function relevantProducts(text: string, domain: FounderReasoningDomain, products
   }).filter((row) => row.score > 0).sort((a, b) => b.score - a.score).slice(0, 3).map((row) => row.product);
 }
 
+// Exported (was module-private) so ibis-reasoning-engines.ts's Founder Thinking adapter can reuse
+// the EXACT SAME classification this gateway's own prose-generating founderReasoningAnswer() uses
+// -- one real domain classifier, not two copies that could silently diverge.
+export { founderDomain };
+
 /**
  * Owned, zero-provider reasoning for ordinary planning questions. It deliberately makes no
  * current-world factual claims: the output is a decision framework derived only from the user's
@@ -84,6 +89,20 @@ export function founderReasoningAnswer(text: string, products: IbisProduct[] = [
   if (q.length < 4) return null;
   const domain = founderDomain(q);
   const matched = relevantProducts(text, domain, products);
+  const selected = FOUNDER_GUIDANCE[domain];
+  const routes = matched.length ? `\n\nRelevant FTN routes\n${matched.map((p) => `- ${p.name}: ${p.route}${p.tagline ? ` — ${p.tagline}` : ""}`).join("\n")}` : "";
+  return {
+    answer: `Decision: ${selected.decision}\n\nReal objective\n${selected.objective}\n\nStrongest path\n${selected.path}\n\nRisks to control\n${selected.risks}\n\nNext actions\n${selected.actions.map((action, index) => `${index + 1}. ${action}`).join("\n")}${routes}`,
+    answerClass: "FOUNDER_REASONING_FALLBACK",
+    evidenceState: "DETERMINISTIC_REASONING",
+  };
+}
+
+// The exact same decision table founderReasoningAnswer() above has always used -- lifted to module
+// scope (was a local const redeclared on every call) so ibis-reasoning-engines.ts's structured
+// Founder Thinking adapter can reuse it directly. No values changed.
+export type FounderGuidanceEntry = { decision: string; objective: string; path: string; risks: string; actions: string[] };
+export const FOUNDER_GUIDANCE: Record<FounderReasoningDomain, FounderGuidanceEntry> = (() => {
   const guidance: Record<FounderReasoningDomain, { decision: string; objective: string; path: string; risks: string; actions: string[] }> = {
     FUNDING: {
       decision: "PREPARE NOW",
@@ -128,14 +147,8 @@ export function founderReasoningAnswer(text: string, products: IbisProduct[] = [
       actions: ["State who benefits and what changes for them.", "List the three assumptions most likely to make the plan fail.", "Run the smallest test that resolves the riskiest assumption and set a date to decide what follows."],
     },
   };
-  const selected = guidance[domain];
-  const routes = matched.length ? `\n\nRelevant FTN routes\n${matched.map((p) => `- ${p.name}: ${p.route}${p.tagline ? ` — ${p.tagline}` : ""}`).join("\n")}` : "";
-  return {
-    answer: `Decision: ${selected.decision}\n\nReal objective\n${selected.objective}\n\nStrongest path\n${selected.path}\n\nRisks to control\n${selected.risks}\n\nNext actions\n${selected.actions.map((action, index) => `${index + 1}. ${action}`).join("\n")}${routes}`,
-    answerClass: "FOUNDER_REASONING_FALLBACK",
-    evidenceState: "DETERMINISTIC_REASONING",
-  };
-}
+  return guidance;
+})();
 
 function circuitAllows(id: string, now: number) { const circuit = circuits.get(id); return !circuit || circuit.openUntil <= now; }
 function recordSuccess(id: string) { circuits.delete(id); }

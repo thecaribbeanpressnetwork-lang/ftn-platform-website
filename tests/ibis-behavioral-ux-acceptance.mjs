@@ -23,7 +23,16 @@ async function askHead(page,text){await page.locator('#headspaceQuery').fill(tex
 
 const head=await context.newPage();
 await isolate(head);
+// Canonical-routing correction (this pass): "list the Caribbean islands" no longer takes
+// js/ibis-headspace-universal.js's old directText() shortcut straight to ibis-text-cloudflare --
+// it now always enters FTN.IbisRuntime.ask() -> FTN.MultiAgentOrchestrator.execute() ->
+// FTN.HeadspaceFabric.request('TEXT',...) -> FTN.IbisClient.request(), whose eligibility ranking
+// (js/ibis-eligibility.js) may pick either registered TEXT provider (ibis-assistant-anthropic or
+// cloudflare-workers-ai-text -- see js/ibis-client.js's TEXT_PROVIDER_ENDPOINTS). Both endpoints
+// must return the same fixture so the assertion below holds regardless of which one eligibility
+// selects; stubbing only one left the other making a real, unstubbed network call that failed.
 await head.route('**/functions/v1/ibis-text-cloudflare*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({answer:'GENERAL_ROUTE_MARKER: The Caribbean contains sovereign states and dependent territories.','provider':'behavioral-fixture'})}));
+await head.route('**/functions/v1/ibis-assistant*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({answer:'GENERAL_ROUTE_MARKER: The Caribbean contains sovereign states and dependent territories.','provider':'behavioral-fixture'})}));
 await head.route('https://api.github.com/repos/thecaribbeanpressnetwork-lang/ftn-platform-website/actions/runs?*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({total_count:1,workflow_runs:[{name:'FTN Scout 2.0',event:'schedule',status:'completed',conclusion:'success',run_number:18,run_started_at:'2026-09-09T14:41:22Z'}]})}));
 await head.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[]})}));
 await open(head,'/ibis-headspace-preview/','#headspaceQuery');

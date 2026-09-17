@@ -1,0 +1,14 @@
+-- Rollback for 20260916120000_ibis_execution_receipts.sql.
+--
+-- This is a companion file, not an automatically-applied migration -- Supabase applies migration
+-- files in order, so simply having this file present would DROP the table immediately on the
+-- next `db push` if it were named as a normal forward migration. It is intentionally documented
+-- here as the rollback statement to run manually (`supabase db execute` or the SQL editor)
+-- if 20260916120000 needs to be reverted after being applied:
+--
+--   drop table if exists public.ibis_execution_plans;
+--
+-- Before running that: confirm no other migration or application code has come to depend on
+-- public.ibis_execution_plans in the meantime, and that any real receipts recorded there are no
+-- longer needed (this table stores no prompt/answer text, only execution metadata -- but the
+-- fact-of-execution record itself may still be wanted for audit before it is dropped).

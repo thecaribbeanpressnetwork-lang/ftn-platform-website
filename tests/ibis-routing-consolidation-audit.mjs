@@ -120,14 +120,47 @@ function syntheticClickTrack(bpm) {
   assert.match(clientSource, /Promise\.race\(\[/, 'callGeminiQuery must race against a real timeout since ftn-auth.js\'s invoke() has none of its own');
 }
 
+// Extracts one function's full real body by brace-depth matching from its declaration, instead of
+// a fixed character-count guess (a fixed-length slice silently stops covering real assertions the
+// moment the function grows past that count, and previously did exactly that twice in this file).
+function functionBody(source, declaration) {
+  const start = source.indexOf(declaration);
+  assert(start >= 0, `could not find "${declaration}" in source`);
+  const openBrace = source.indexOf('{', start);
+  assert(openBrace >= 0, `could not find opening brace for "${declaration}"`);
+  let depth = 0;
+  for (let i = openBrace; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    else if (source[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`unterminated function body for "${declaration}"`);
+}
+
 // --- 3. serverAI() uses the shared, guest-capable governed client. ---
+// Canonical-routing correction (this pass): serverAI() now classifies every prompt through
+// FTN.UniversalRouter/FTN.IbisRuntime.ask() unconditionally (see js/ibis-ai-workspace.js's
+// ensureRuntime()) before ever falling through to this same IbisClient.request() call as an
+// explicitly-marked degraded fallback -- the assertions below check that the real requirement
+// (guest+authenticated TEXT routing through the shared client) still holds in the grown function.
 {
   const workspaceSource = fs.readFileSync('js/ibis-ai-workspace.js', 'utf8');
-  const serverAiBody = workspaceSource.slice(workspaceSource.indexOf('async function serverAI'), workspaceSource.indexOf('async function serverAI') + 2200);
+  const serverAiBody = functionBody(workspaceSource, 'async function serverAI(prompt){');
+  // The direct IbisClient.request(...) TEXT call now lives in degradedTextFallback() -- a
+  // sibling helper serverAI() calls only when canonical orchestration could not run -- rather
+  // than inline in serverAI() itself, so it is checked in its own real function body here.
+  const degradedFallbackBody = functionBody(workspaceSource, 'async function degradedTextFallback(prompt,products,context,failedStage,route){');
   assert.match(serverAiBody, /ensureIbisClient\(\)/, 'serverAI() must load the shared governed client');
-  assert.match(serverAiBody, /IbisClient\.request\(\{nodeId:'ibis-ai',capability:'TEXT'/, 'serverAI() must route TEXT through IbisClient');
-  assert.match(serverAiBody, /context:\{authenticated:!!user\}/, 'serverAI() must work for both guests and authenticated users');
+  assert.match(degradedFallbackBody, /IbisClient\.request\(\{nodeId:'ibis-ai',capability:'TEXT'/, 'the degraded fallback must still route TEXT through IbisClient');
+  assert.match(serverAiBody, /var context=\{authenticated:!!user\}/, 'serverAI() must work for both guests and authenticated users');
   assert.doesNotMatch(serverAiBody, /Auth\.invoke\('ibis-query'/, 'the public workspace must not retain the auth-only legacy Gemini bypass');
+  // Canonical-routing correction guards, in the real function bodies (not a fixed-length slice):
+  assert.doesNotMatch(workspaceSource, /function isPlainAnswer/, 'the browser must not decide a question is "plain" and skip canonical orchestration');
+  assert.match(serverAiBody, /FTN\.IbisRuntime\.ask\(prompt,context\)/, 'serverAI() must call FTN.IbisRuntime.ask() unconditionally for every prompt');
+  assert.match(degradedFallbackBody, /degraded:true/, 'a failure to reach canonical orchestration must be reported degraded, never disguised as a normal answer');
+  assert.match(degradedFallbackBody, /failedStage:failedStage/, 'a degraded response must name which orchestration stage failed');
   assert.match(workspaceSource, /wantsFtnRoutes\(q\)\?'<hr>'\+routeResults\(q\):''/, 'unrelated deterministic answers must not receive irrelevant FTN route cards');
   assert.match(workspaceSource, /answerClass==='CALCULATION'/, 'calculation responses must receive compact local provenance instead of raw model/timestamp clutter');
 }

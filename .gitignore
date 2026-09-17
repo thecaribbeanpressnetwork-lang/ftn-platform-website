@@ -40,3 +40,7 @@
 # Local Supabase CLI cache (CLI version + linked project ref/name only, no secret). Created
 # automatically by `supabase functions deploy`/`supabase link`; not part of the shipped site.
 /supabase/.temp/
+
+# Generated acceptance-test run output (tests/ibis-investor-readiness.mjs) -- one run-id directory
+# per invocation, never intentionally-maintained fixtures. Not committed.
+/test-results/

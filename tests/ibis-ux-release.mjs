@@ -20,7 +20,14 @@ assert.match(workspaceCss, /\.ibis-mode-row button\{min-height:44px/);
 assert.match(workspaceJs, /data-ftn-no-draft="true"/);
 assert.match(workspaceJs, /function revealAnswer\(out\)/);
 assert.match(workspaceJs, /replace\(\/\\\*\\\*\(\[\^\*\]\+\)\\\*\\\*\/g,'<strong>\$1<\/strong>'\)/);
-assert.equal((workspaceJs.match(/revealAnswer\(out\);/g) || []).length, 5);
+// Count history: 5 -> 4 (removed the client-side quickLooksLikeLiveRequest() freshness shortcut
+// and its own revealAnswer(out) call site) -> 5 (Slice 1 correction added a render path for the
+// canonical server's own answer) -> 6 (Slice 3 correction added a distinct render path for the
+// authorized-fallback answer returned by a failure receipt, separate from the initial
+// non-authorized canonical answer path -- a genuinely new call site each time, not a reversion).
+assert.equal((workspaceJs.match(/revealAnswer\(out\);/g) || []).length, 6);
+assert.doesNotMatch(workspaceJs, /function quickLooksLikeLiveRequest/, 'the freshness pre-filter function must not exist -- the browser must never decide a question is too current for canonical orchestration');
+assert.doesNotMatch(workspaceJs, /if\(quickLooksLikeLiveRequest/, 'nothing may call the freshness pre-filter as a bypass gate');
 assert.ok(widgetJs.includes("if (/^\\/ibis-ai\\/?$/.test(global.location.pathname)) return;"));
 
 console.log('IBIS UX release: full workspace, answer reveal, safe inline formatting, touch targets and public copy verified.');
