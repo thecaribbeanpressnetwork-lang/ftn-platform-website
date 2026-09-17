@@ -21,7 +21,7 @@ function braveResponse(title: string): Response {
 }
 
 function clearSearchEnv() {
-  for (const key of ["SEARXNG_BASE_URL", "BRAVE_SEARCH_API_KEY", "IBIS_SEARCH_CACHE_TTL_MS", "IBIS_SEARCH_DAILY_BUDGET_BRAVE_SEARCH", "IBIS_SEARCH_MONTHLY_BUDGET_BRAVE_SEARCH"]) {
+  for (const key of ["SEARXNG_BASE_URL", "BRAVE_SEARCH_API_KEY", "ANTHROPIC_API_KEY", "IBIS_SEARCH_CACHE_TTL_MS", "IBIS_SEARCH_DAILY_BUDGET_BRAVE_SEARCH", "IBIS_SEARCH_MONTHLY_BUDGET_BRAVE_SEARCH", "IBIS_SEARCH_DAILY_BUDGET_CLAUDE_WEB_SEARCH", "IBIS_SEARCH_MONTHLY_BUDGET_CLAUDE_WEB_SEARCH"]) {
     Deno.env.delete(key);
   }
 }
@@ -121,6 +121,44 @@ Deno.test("BUDGET: exhaustion never silently falls back to a paid or unconfigure
     const result = await search("zero budget query");
     assertEquals(result.status, "SEARCH_UNAVAILABLE");
     assert(result.status === "SEARCH_UNAVAILABLE" && result.alternatives.length > 0, "the same honest external-handoff alternatives must be offered as any other SEARCH_UNAVAILABLE result");
+  });
+  clearSearchEnv();
+});
+
+Deno.test("CASCADE: Claude Web Search sits between SearXNG and Brave -- tried only once SearXNG genuinely has nothing", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("ANTHROPIC_API_KEY", "test-key");
+  Deno.env.set("BRAVE_SEARCH_API_KEY", "test-key");
+  // No SEARXNG_BASE_URL -- SearXNG short-circuits without a network call.
+  let claudeCalls = 0, braveCalls = 0;
+  await withPatchedFetch(async (url) => {
+    if (String(url).includes("api.anthropic.com")) { claudeCalls++; return new Response(JSON.stringify({ content: [{ type: "web_search_tool_result", tool_use_id: "a", content: [{ type: "web_search_result", url: "https://example.tt/cascade", title: "Cascade result" }] }] }), { status: 200 }); }
+    braveCalls++;
+    return braveResponse("should not be reached");
+  }, async () => {
+    const result = await search("cascade order query");
+    assertEquals(result.status, "OK");
+    assert(result.status === "OK" && result.provider === "claude-web-search", "Claude must be tried (and win) before Brave once SearXNG has nothing");
+  });
+  assertEquals(claudeCalls, 1);
+  assertEquals(braveCalls, 0, "Brave must never be called once an earlier tier in the cascade succeeded");
+  clearSearchEnv();
+});
+
+Deno.test("CASCADE: Claude Web Search's own budget exhaustion falls through to Brave, independent of Brave's own budget", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("ANTHROPIC_API_KEY", "test-key");
+  Deno.env.set("BRAVE_SEARCH_API_KEY", "test-key");
+  Deno.env.set("IBIS_SEARCH_DAILY_BUDGET_CLAUDE_WEB_SEARCH", "0");
+  await withPatchedFetch(async (url) => {
+    if (String(url).includes("api.anthropic.com")) throw new Error("must never be called -- Claude budget is already zero");
+    return braveResponse("Brave took over after Claude's budget was exhausted");
+  }, async () => {
+    const result = await search("claude budget exhausted query");
+    assertEquals(result.status, "OK");
+    assert(result.status === "OK" && result.provider === "brave-search");
   });
   clearSearchEnv();
 });

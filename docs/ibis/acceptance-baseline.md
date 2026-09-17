@@ -31,7 +31,7 @@ evidence," which a prior draft of this document used to describe fixture data:
 ## Latest checkpoint
 
 - **Commit**: (this checkpoint -- see revision history below)
-- **Parent checkpoint**: `4864a9c`
+- **Parent checkpoint**: `050bd9c`
 - **Branch**: `fix/ibis-canonical-outcome-intelligence`
 - **Run date**: 2026-09-17
 - **Readiness classification**: **LOCALLY_VERIFIED**
@@ -47,7 +47,7 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 |---|---|---|
 | Canonical routing | PASS | L1/L2 |
 | Durable lifecycle state | PASS (local contract); BLOCKED_EXTERNAL (real DB) | L1 / L3 |
-| Real web search | PASS (adapter contracts + zero-cost controls + evidence-grounding, all L1); **BLOCKED_EXTERNAL** (no real SearXNG/Brave credential exists anywhere accessible this checkpoint -- see "Live Search Infrastructure" below) | L1 / L3-L4 |
+| Real web search | PASS (adapter contracts + zero-cost controls + evidence-grounding + Claude Web Search adapter, all L1); **BLOCKED_EXTERNAL** (SearXNG preview not yet deployed -- requires a founder Render/Hugging Face account; `ANTHROPIC_API_KEY` is configured but Anthropic's API rejects it with 401, live-verified; no `BRAVE_SEARCH_API_KEY` -- see "Live Search Infrastructure" below) | L1 / L3-L4 |
 | Reasoning engine execution | **PASS (11 of 11 connected: 4 `CONNECTED_OPERATIONAL` — Founder Thinking, Context Graph, Connection Fabric, Multi-Agent Orchestrator; 7 `CONNECTED_CONDITIONAL` — Correlation, Butterfly, Prediction, EBR, EcoMap Place, EcoMap Pathway, EcoMap Relationship); zero `UNAVAILABLE`, first checkpoint with an all-PASS Gate 4)** | L1 |
 | Capability truth | PASS (matrix assembled) | L1 |
 | Regular IBIS UX | PASS (core suites); NOT_RUN (viewport matrix, accessibility) | L1/L2 |
@@ -371,9 +371,106 @@ scheduler -- **not** a second router, canonical brain or competing orchestration
   negative execution-budget exhaustion test, a "every capability ends in exactly one terminal state"
   sweep test, and a no-consciousness-claim test.
 
-## Live Search Infrastructure (this checkpoint -- P0)
+## Live Search Infrastructure -- SearXNG preview + Claude Web Search (this checkpoint -- P0, cont.)
 
-Objective this checkpoint: make ordinary IBIS/Headspace queries perform real web searches with
+Continues the P0 objective from checkpoint `050bd9c` (below): a real SearXNG preview endpoint and
+a server-only Claude Web Search adapter, in that priority order, ahead of Brave. Per this
+checkpoint's own instruction, Brave/Google are not prerequisites for proving live open-source
+search, and reasoning-engine work stays paused until real search works through IBIS.
+
+### SearXNG preview deployment (prepared, not yet deployed -- requires a founder account action)
+
+`infra/searxng-preview/` (`Dockerfile`, `settings.yml`, `README.md`) is a ready-to-deploy PREVIEW
+configuration for the official `searxng/searxng` Docker image: JSON search output enabled
+(required by the **already-existing, unmodified** `searxngSearch()` in `ibis-search-adapter.ts`),
+the built-in request limiter turned on, debug mode off, never listed as a public instance. **Actual
+deployment requires creating an account on Render or Hugging Face and clicking through their own
+deploy flow -- account creation and any billing/verification step on a third-party site is a
+founder action this assistant does not perform.** Exact steps and links are in that folder's
+`README.md`, summarized:
+
+1. **Render** (recommended, simplest "Docker Web Service" flow): sign up at
+   https://render.com/register (GitHub sign-in is fastest) -> **New +** -> **Web Service** ->
+   connect this repo -> set **Root Directory** to `infra/searxng-preview`, **Instance Type** Free
+   -> **Create Web Service**.
+2. **Hugging Face** (alternative): sign up at https://huggingface.co/join -> **New Space** at
+   https://huggingface.co/new-space -> SDK **Docker**, template **Blank** -> push this folder's
+   `Dockerfile`/`settings.yml` (with the port adjustments the README notes for HF's 7860 default).
+3. Once live, verify it directly (`curl "<url>/search?q=test&format=json"` should return a real
+   JSON `results` array), then set the Supabase secret
+   `SEARXNG_BASE_URL=<that url>` on project `jshmidfpqrajxtukzges` (dashboard, or
+   `supabase secrets set` run by the founder, never pasted into a chat session) -- the very next
+   `canonical_query` that plans `RESEARCH` will use it automatically; no further code change is
+   required.
+4. **Known limitations documented in the README**: cold start after free-tier idle sleep (Render
+   ~15 min, Hugging Face variable), no persistent disk (SearXNG's `secret_key` regenerates on every
+   restart -- harmless for stateless JSON-API usage), shared free-tier outbound bandwidth/compute,
+   no uptime guarantee, and this exact `Dockerfile`/`settings.yml` pair has not been built or run
+   locally (no Docker available in this sandbox) -- verify the JSON endpoint before treating it as
+   working.
+
+This remains the intended zero-marginal-cost PRIMARY provider long-term (per the founder's own
+stated priority); Claude Web Search below and Brave (already implemented, still uncredentialed)
+exist for immediate demo capability and redundancy, not to replace it.
+
+### Claude Web Search adapter (implemented, unit-tested, blocked on a live credential fix)
+
+New `supabase/functions/_shared/ibis-claude-search-adapter.ts` requests Anthropic's server-side
+`web_search_20250305` tool on the Messages API -- a genuinely different call from the existing
+plain-completion `anthropic()` provider in `ibis-assistant/index.ts` (which never requests search
+grounding and answers from model memory only). Normalizes Anthropic's real
+`web_search_tool_result` content blocks into the exact same `SourceRecord`/`SearchResult` contract
+`searxngSearch()`/`braveSearch()` already produce (types split into a new shared
+`ibis-search-types.ts` so this adapter and `ibis-search-adapter.ts` don't import each other
+circularly), so its output flows into EBR/EcoMap/canonical reasoning identically to any other
+provider -- no special-casing downstream. Reports `provider: "claude-web-search"` distinctly,
+never `"google"` or `"searxng"`. Capped at `max_uses: 1` by default (one search per call; a deeper
+research pass requires the caller to explicitly opt in via `maxUses`), and carries its own,
+separately-configurable, more conservative daily/monthly budget
+(`IBIS_SEARCH_DAILY_BUDGET_CLAUDE_WEB_SEARCH` / `IBIS_SEARCH_MONTHLY_BUDGET_CLAUDE_WEB_SEARCH`,
+default 20/day, 200/month) than Brave's -- real money per search, unlike SearXNG or Brave's free
+tier. Wired into `search()`'s cascade between SearXNG and Brave (`SearXNG -> Claude Web Search ->
+Brave -> honest SEARCH_UNAVAILABLE`), reusing the exact same cache/dedup/budget layer added last
+checkpoint. 8 dedicated adapter tests (`ibis-claude-search-adapter.test.ts`) plus 2 cascade tests
+(`ibis-search-adapter.test.ts`) prove: no credential -> honest skip with zero network calls; a real
+mocked `web_search_tool_result` response normalizes correctly with no fabricated `publishedAt`
+from Anthropic's relative `page_age` string; duplicate URLs across result blocks are deduplicated;
+an HTTP error or a `web_search_tool_result_error` never crashes the adapter; Claude choosing not to
+search produces an honest `SEARCH_UNAVAILABLE`, never a fabricated source; `max_uses: 1` is sent by
+default and only raised when a caller explicitly opts in; the cascade tries Claude only after
+SearXNG has nothing, and Brave only after Claude's own budget (independent of Brave's) is
+exhausted.
+
+**`ANTHROPIC_API_KEY` audit result: `CONFIGURED_BUT_FAILING`, live-verified this checkpoint** -- a
+real HTTP call to the deployed `ibis-provider-health-preview` Edge Function (using this repo's own
+public Supabase publishable key, already shipped client-side in dozens of files -- not a secret
+newly exposed by this call) returned:
+```json
+{"capability":"MODEL_PROVIDER_HEALTH","healthyCount":0,"providers":[{"provider":"Anthropic","state":"UNHEALTHY","httpStatus":401},{"provider":"Gemini","state":"UNHEALTHY","httpStatus":401}]}
+```
+This function returns `NOT_CONFIGURED` when a key is absent (confirmed by reading its own source)
+-- `UNHEALTHY` with `httpStatus: 401` means a key IS set server-side, but Anthropic's real API
+rejects it as invalid/expired/revoked (Gemini's key is in the identical state, independently).
+Per instruction, this is not confused with the founder's `claude.ai` chat subscription, which
+carries no API entitlement at all -- a 401 here is consistent with either an expired/revoked
+`sk-ant-...` key, or a non-API credential having been pasted into the secret by mistake. **Exact
+founder action**: generate a fresh key at **https://console.anthropic.com/settings/keys** (requires
+its own console.anthropic.com account/login, separate from a claude.ai subscription -- API usage
+is billed separately from a Claude Pro/Max chat plan), then update the `ANTHROPIC_API_KEY` secret
+on project `jshmidfpqrajxtukzges` the same way as `SEARXNG_BASE_URL` above. Until then, this
+adapter's live end-to-end Trinidad-and-Tobago-query proof cannot run -- it is implemented and
+tested, not live-verified, and this document does not claim otherwise.
+
+### Not attempted this checkpoint
+
+Brave (`BRAVE_SEARCH_API_KEY`) and Google Search grounding remain exactly as documented in the
+prior checkpoint's audit below -- not prerequisites for this checkpoint's objective and not
+revisited. No Supabase secret was set by this session (no working credential/CLI access to do so);
+no Render/Hugging Face account was created (a founder-only action, see above).
+
+## Live Search Infrastructure (checkpoint `050bd9c` -- P0)
+
+Objective that checkpoint: make ordinary IBIS/Headspace queries perform real web searches with
 clickable sources and feed retrieved evidence into canonical reasoning. The canonical routing,
 search-adapter cascade and RESEARCH-capability planning already existed from prior checkpoints; this
 one performed a credential/infrastructure truth audit, fixed a real evidence-grounding gap, added
@@ -620,16 +717,32 @@ test doubles instead would not satisfy the live-search gate and was not attempte
 `ibis-canonical-routing-behavioral.mjs`, `ibis-local-ai-planner-gate-behavioral.mjs`,
 `ibis-routing-consolidation-audit.mjs`, `ibis-headspace-universal-routing-audit.mjs`, the shared
 Deno suite (`supabase/functions/_shared/*.test.ts`, now including
-`ibis-multi-agent-orchestrator.test.ts`, `ibis-search-adapter.test.ts` (new this checkpoint --
-cache/dedup/budget), and the `COMPOSABILITY`/`ACCEPTANCE QUERY`/`ECOMAP ACCEPTANCE QUERY`/
-`ECOMAP CONTRAST`/`MULTI-AGENT ACCEPTANCE`/`EVIDENCE GROUNDING` cases in
-`ibis-canonical-brain.test.ts`), `ibis-ux-release.mjs`, `ibis-behavioral-ux-acceptance.mjs`,
-`ibis-headspace-controls-audit.mjs`.
+`ibis-multi-agent-orchestrator.test.ts`, `ibis-search-adapter.test.ts` (cache/dedup/budget/cascade),
+`ibis-claude-search-adapter.test.ts` (new this checkpoint), and the `COMPOSABILITY`/
+`ACCEPTANCE QUERY`/`ECOMAP ACCEPTANCE QUERY`/`ECOMAP CONTRAST`/`MULTI-AGENT ACCEPTANCE`/
+`EVIDENCE GROUNDING` cases in `ibis-canonical-brain.test.ts`), `ibis-ux-release.mjs`,
+`ibis-behavioral-ux-acceptance.mjs`, `ibis-headspace-controls-audit.mjs`.
 
 ## Revision history
 
-- (this checkpoint, 2026-09-17, parent `4864a9c`): Live search infrastructure P0 slice. See "Live
-  Search Infrastructure (this checkpoint -- P0)" above for the full credential/infrastructure
+- (this checkpoint, 2026-09-17, parent `050bd9c`): SearXNG preview + Claude Web Search slice. See
+  "Live Search Infrastructure -- SearXNG preview + Claude Web Search (this checkpoint -- P0,
+  cont.)" above for the full detail. Summary: prepared a ready-to-deploy SearXNG PREVIEW
+  configuration (`infra/searxng-preview/`) for Render or Hugging Face's free Docker hosting --
+  deployment itself needs a founder account on one of those platforms (account creation on a
+  third-party site is not performed by this assistant); reuses the existing, unmodified
+  `searxngSearch()` adapter. Implemented and unit-tested a new server-only Claude Web Search
+  adapter (`ibis-claude-search-adapter.ts`, Anthropic's `web_search_20250305` tool, capped at one
+  search by default, its own conservative budget, wired into the cascade between SearXNG and
+  Brave) after a real, live-verified audit found `ANTHROPIC_API_KEY` is configured server-side but
+  currently rejected by Anthropic's API with HTTP 401 -- the exact founder action (a fresh key from
+  console.anthropic.com, distinct from a claude.ai chat subscription) is documented above. 12 new
+  Deno tests (8 adapter tests, 2 cascade tests, plus the pre-existing suite); full shared Deno
+  suite (182 tests, up from 172) passes. No SearXNG or Claude live request was made or could be
+  made this checkpoint -- both remain implemented-and-tested, not live-verified, exactly as
+  reported. Readiness remains **LOCALLY_VERIFIED**.
+- `050bd9c` (2026-09-17, parent `4864a9c`): Live search infrastructure P0 slice. See "Live
+  Search Infrastructure (checkpoint `050bd9c` -- P0)" above for the full credential/infrastructure
   audit, the evidence-grounding correction, zero-cost controls and source-disclosure UX fixes.
   Summary: fixed a real gap where a successful search never actually changed the answer text (only
   the displayed `sources` field) -- new additive `CanonicalRequest.providerFactory` hands the real

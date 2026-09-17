@@ -10,7 +10,17 @@
 //
 // Fallback order (zero-cost-first, per FTN policy):
 //   1. SEARXNG_BASE_URL, if configured -- a self-hosted, zero-cost, open-source metasearch index.
-//   2. BRAVE_SEARCH_API_KEY, if configured -- Brave Search's Web Search API. Brave's free tier
+//      A PREVIEW deployment (Render/Hugging Face free tier) is prepared in
+//      infra/searxng-preview/ -- see that folder's README.md for deploy steps and known
+//      cold-start/availability limitations. This is the intended zero-marginal-cost PRIMARY
+//      provider long-term; the other providers below exist for immediate demo capability and
+//      redundancy, not to replace it.
+//   2. Claude Web Search (ibis-claude-search-adapter.ts's claudeWebSearch()), if ANTHROPIC_API_KEY
+//      is configured AND actually authenticates -- an immediate investor-demo option (works today
+//      the moment a valid key exists, no deployment required), NOT the permanent zero-cost
+//      foundation: every search costs real money (Anthropic's per-search tool fee + tokens), so it
+//      sits after SearXNG and carries its own, more conservative budget.
+//   3. BRAVE_SEARCH_API_KEY, if configured -- Brave Search's Web Search API. Brave's free tier
 //      ("Data for AI" / "Free AI" plan, per Brave's own documented pricing at
 //      https://brave.com/search/api/ at the time this adapter was written) is usage-capped and
 //      requires a Brave account/API key -- this repo has no such key today (confirmed: no
@@ -18,66 +28,24 @@
 //      real and tested against Brave's documented response contract; it simply has nothing to
 //      call until a key is provisioned. See handleCanonicalRequest's search() call site / the
 //      final report for the exact account action required.
-//   3. Grounded Gemini (Gemini's "google_search" tool) is NOT implemented in this pass: enabling
+//   4. Grounded Gemini (Gemini's "google_search" tool) is NOT implemented in this pass: enabling
 //      it would require confirming, from Google's live billing dashboard, that grounding requests
 //      are within a genuinely zero-cost allowance -- an account/billing fact this environment has
 //      no way to verify without live secret access, and the existing GEMINI_API_KEY here is
 //      already used for plain (paid-tier, per ibis-intelligence-gateway.ts's provider cost
 //      ordering) text completions. Implementing a billing-uncertain path and calling it "search"
 //      would violate the zero-cost-first policy this whole module exists to enforce.
-//   4. SEARCH_UNAVAILABLE with a transparent external-handoff (official Caribbean sources plus a
+//   5. SEARCH_UNAVAILABLE with a transparent external-handoff (official Caribbean sources plus a
 //      general external search engine link) -- never a silent failure, never an answer that implies
 //      research happened when it did not.
-
-export type SourceRecord = {
-  title: string;
-  publisher: string | null;
-  url: string;
-  publishedAt: string | null;
-  updatedAt: string | null;
-  retrievedAt: string;
-  evidenceDepth: "SNIPPET" | "INSPECTED";
-};
-
-export type SearchResult =
-  // cacheState is always present on a real result so a caller/UI can honestly say "live" vs
-  // "cached" rather than implying every answer just made a fresh network call -- LIVE means this
-  // exact call reached the provider just now; CACHED means an earlier LIVE result within the TTL
-  // window was reused (see CACHE below), never a stale result served past its TTL.
-  | { status: "OK"; provider: string; query: string; sources: SourceRecord[]; retrievedAt: string; cacheState: "LIVE" | "CACHED" }
-  | { status: "SEARCH_UNAVAILABLE"; query: string; reason: string; alternatives: ExternalHandoff[] };
-
-export type ExternalHandoff = {
-  label: string;
-  url: string;
-  costStatus: "FREE" | "FREE_TIER" | "PAID" | "UNKNOWN";
-  signInRequired: boolean;
-  caribbeanAvailability: "AVAILABLE" | "UNKNOWN" | "RESTRICTED";
-  privacyNote: string;
-};
-
-// Official/primary Caribbean sources worth naming directly as a handoff when internal search
-// cannot run, rather than only a generic external search engine -- a user asking about a T&T FX
-// shortage is better served pointed at the Central Bank than at a bare Google query.
-const OFFICIAL_CARIBBEAN_HANDOFFS: ExternalHandoff[] = [
-  { label: "Central Bank of Trinidad and Tobago", url: "https://www.central-bank.org.tt/", costStatus: "FREE", signInRequired: false, caribbeanAvailability: "AVAILABLE", privacyNote: "Official government source; no FTN data is shared by following this link." },
-  { label: "Trinidad and Tobago Government News", url: "https://news.gov.tt/", costStatus: "FREE", signInRequired: false, caribbeanAvailability: "AVAILABLE", privacyNote: "Official government source; no FTN data is shared by following this link." },
-];
-
-function genericSearchHandoff(query: string): ExternalHandoff {
-  return {
-    label: "Search the web directly (DuckDuckGo)",
-    url: `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
-    costStatus: "FREE",
-    signInRequired: false,
-    caribbeanAvailability: "AVAILABLE",
-    privacyNote: "You are leaving FTN. DuckDuckGo does not require sign-in for a basic search; review its own privacy policy before searching sensitive terms.",
-  };
-}
-
-function unavailable(query: string, reason: string): SearchResult {
-  return { status: "SEARCH_UNAVAILABLE", query, reason, alternatives: [...OFFICIAL_CARIBBEAN_HANDOFFS, genericSearchHandoff(query)] };
-}
+//
+// Types (SourceRecord/SearchResult/ExternalHandoff) and the shared unavailable() builder live in
+// ibis-search-types.ts and are re-exported below for backward compatibility -- split out so
+// ibis-claude-search-adapter.ts can share them without a circular import (search() below calls
+// claudeWebSearch(), so the reverse dependency direction is intentionally never taken).
+export type { SourceRecord, SearchResult, ExternalHandoff } from "./ibis-search-types.ts";
+import { unavailable, type SearchResult, type SourceRecord } from "./ibis-search-types.ts";
+import { claudeWebSearch } from "./ibis-claude-search-adapter.ts";
 
 type SearXNGResponseItem = { title?: string; url?: string; content?: string; engine?: string; publishedDate?: string };
 type SearXNGResponse = { results?: SearXNGResponseItem[] };
@@ -210,8 +178,12 @@ export function resetSearchControlsForTests(): void {
 // IBIS_SEARCH_MONTHLY_BUDGET_<PROVIDER> once the real dashboard limits are confirmed. SearXNG (self-
 // hosted, zero marginal cost) has no default cap -- Infinity means "not budget-limited by this
 // module"; a real infra-level rate limit, if any, belongs to the SearXNG deployment itself.
-const DEFAULT_DAILY_BUDGET: Record<string, number> = { searxng: Infinity, "brave-search": 60 };
-const DEFAULT_MONTHLY_BUDGET: Record<string, number> = { searxng: Infinity, "brave-search": 1800 };
+// Claude Web Search costs real money PER SEARCH (Anthropic's documented web-search-tool fee, plus
+// ordinary token costs) -- a materially different cost profile from Brave's free tier or
+// self-hosted SearXNG, so its default budget is deliberately far more conservative pending the
+// founder's own confirmed comfort level from Anthropic's live billing dashboard.
+const DEFAULT_DAILY_BUDGET: Record<string, number> = { searxng: Infinity, "claude-web-search": 20, "brave-search": 60 };
+const DEFAULT_MONTHLY_BUDGET: Record<string, number> = { searxng: Infinity, "claude-web-search": 200, "brave-search": 1800 };
 const dailyCounters: Record<string, { day: string; count: number }> = {};
 const monthlyCounters: Record<string, { month: string; count: number }> = {};
 
@@ -245,7 +217,7 @@ function tryReserveBudget(provider: string, now: Date): boolean {
 // wasn't configured), so a caller inspecting `reason` can tell the two apart, but the CONTROL FLOW
 // treats both identically: not OK means try the next provider.
 async function searchProviderWithBudget(
-  provider: "searxng" | "brave-search",
+  provider: "searxng" | "claude-web-search" | "brave-search",
   label: string,
   query: string,
   run: () => Promise<SearchResult>,
@@ -258,8 +230,9 @@ async function searchProviderWithBudget(
 
 // The one exported entry point the canonical brain calls -- implements the fallback order in the
 // module header, PLUS the zero-cost controls above (cache -> dedup -> per-provider budget ->
-// SearXNG -> Brave -> honest SEARCH_UNAVAILABLE). Adding a further real provider later means adding
-// one more budgeted branch here, never changing what a caller passes in or gets back.
+// SearXNG -> Claude Web Search -> Brave -> honest SEARCH_UNAVAILABLE). Adding a further real
+// provider later means adding one more budgeted branch here, never changing what a caller passes
+// in or gets back.
 export async function search(query: string, options: { fetchImpl?: typeof fetch } = {}): Promise<SearchResult> {
   if (options.fetchImpl) {
     // An explicit fetch override means the caller (a deterministic unit test, or an advanced
@@ -273,6 +246,8 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
     // instead, precisely so they exercise this real path).
     const searxngResult = await searxngSearch(query, options);
     if (searxngResult.status === "OK") return searxngResult;
+    const claudeResult = await claudeWebSearch(query, options);
+    if (claudeResult.status === "OK") return claudeResult;
     return await braveSearch(query, options);
   }
   const key = cacheKey(query);
@@ -289,13 +264,18 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
       searchCache.set(key, { result: searxngResult, expiresAt: Date.now() + cacheTtlMs() });
       return searxngResult;
     }
+    const claudeResult = await searchProviderWithBudget("claude-web-search", "Claude Web Search", query, () => claudeWebSearch(query, options));
+    if (claudeResult.status === "OK") {
+      searchCache.set(key, { result: claudeResult, expiresAt: Date.now() + cacheTtlMs() });
+      return claudeResult;
+    }
     const braveResult = await searchProviderWithBudget("brave-search", "Brave Search", query, () => braveSearch(query, options));
     if (braveResult.status === "OK") {
       searchCache.set(key, { result: braveResult, expiresAt: Date.now() + cacheTtlMs() });
       return braveResult;
     }
-    // Neither provider produced a result -- same precedent as before this correction: return the
-    // LAST attempted provider's own real reason (already carries the correct query/alternatives).
+    // No provider produced a result -- same precedent as before this correction: return the LAST
+    // attempted provider's own real reason (already carries the correct query/alternatives).
     return braveResult;
   })();
   inFlight.set(key, promise);
