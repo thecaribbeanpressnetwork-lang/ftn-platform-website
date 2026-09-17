@@ -46,6 +46,7 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF: jshmidfpqrajxtukzges
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
@@ -55,11 +56,60 @@ jobs:
         run: test -n "$SUPABASE_ACCESS_TOKEN"
       - name: Deploy browser-context reasoning lane
         run: supabase functions deploy ibis-browser-context --project-ref "$SUPABASE_PROJECT_REF"
-      - name: Verify public function rejects empty evidence safely
+      - name: Verify authenticated function rejects empty evidence safely
         run: |
-          code=$(curl -sS -o /tmp/ibis-browser-context.json -w '%{http_code}' \
+          code=$(curl -sS -o /tmp/ibis-browser-context-empty.json -w '%{http_code}' \
             -X POST "https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/ibis-browser-context" \
             -H 'content-type: application/json' \
+            -H "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+            -H "authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}" \
             --data '{"question":"test","context":{}}')
-          cat /tmp/ibis-browser-context.json
+          cat /tmp/ibis-browser-context-empty.json
           test "$code" = "400"
+      - name: Prove live browser-result reasoning with synthetic evidence
+        run: |
+          cat > /tmp/browser-proof.json <<'JSON'
+          {
+            "question": "What should a Caribbean research assistant conclude from these results?",
+            "context": {
+              "engine": "google",
+              "query": "Caribbean digital public infrastructure research",
+              "sourceUrl": "https://www.google.com/search?q=Caribbean+digital+public+infrastructure+research",
+              "capturedAt": "2026-09-17T17:00:00Z",
+              "captureMode": "USER_BROWSER",
+              "results": [
+                {
+                  "rank": 1,
+                  "title": "Caribbean digital transformation research",
+                  "url": "https://example.org/caribbean-digital-transformation",
+                  "snippet": "Regional digital transformation work emphasizes interoperable public infrastructure, trusted data governance and practical local capacity."
+                },
+                {
+                  "rank": 2,
+                  "title": "Caribbean innovation ecosystems",
+                  "url": "https://example.net/caribbean-innovation",
+                  "snippet": "Caribbean innovation programs increasingly connect government, business, research and community organizations around shared digital capabilities."
+                }
+              ]
+            }
+          }
+          code=$(curl -sS -o /tmp/ibis-browser-context-live.json -w '%{http_code}' \
+            -X POST "https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/ibis-browser-context" \
+            -H 'content-type: application/json' \
+            -H "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+            -H "authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}" \
+            --data-binary @/tmp/browser-proof.json)
+          cat /tmp/ibis-browser-context-live.json
+          test "$code" = "200"
+          node - <<'NODE'
+          const fs = require('fs');
+          const body = JSON.parse(fs.readFileSync('/tmp/ibis-browser-context-live.json', 'utf8'));
+          if (!String(body.answer || '').trim()) throw new Error('browser context returned no answer');
+          if (body.evidenceState !== 'USER_PROVIDED_WEB_CONTEXT') throw new Error('wrong evidenceState: ' + body.evidenceState);
+          if (!Array.isArray(body.sources) || body.sources.length !== 2) throw new Error('browser sources missing');
+          if (!body.sources.every((source) => source.evidenceDepth === 'SNIPPET' && /^https:\/\//.test(source.url || ''))) throw new Error('source provenance invalid');
+          if (!body.browserContext || body.browserContext.engine !== 'google' || body.browserContext.captureMode !== 'USER_BROWSER') throw new Error('browser context metadata invalid');
+          if (!String(body.provenanceNotice || '').includes('browser')) throw new Error('provenance notice missing');
+          if (/Objective:|User Value:|Ecosystem Value:|Ownership:|Data Value:/i.test(String(body.answer))) throw new Error('founder framework leaked into ordinary answer');
+          console.log('LIVE BROWSER CONTEXT PASS', JSON.stringify({provider: body.provider, model: body.model, sources: body.sources.length, evidenceState: body.evidenceState}));
+          NODE
