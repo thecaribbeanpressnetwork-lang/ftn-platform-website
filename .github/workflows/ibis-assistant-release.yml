@@ -2,6 +2,12 @@ name: Deploy and verify ibis assistant gateway
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'supabase/functions/ibis-assistant/**'
+      - '.github/workflows/ibis-assistant-release.yml'
 
 permissions:
   contents: read
