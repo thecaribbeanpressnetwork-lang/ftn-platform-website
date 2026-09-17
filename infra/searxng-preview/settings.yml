@@ -12,9 +12,6 @@ general:
   contact_url: false
   enable_metrics: false            # no metrics/stats endpoint exposed on a preview instance
 
-brand:
-  public_instance: false           # never listed as a public, third-party-usable instance
-
 search:
   safe_search: 0
   autocomplete: ""
