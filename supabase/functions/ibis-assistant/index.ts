@@ -199,6 +199,7 @@ Deno.serve(async (request) => {
     };
     const envelope = await handleCanonicalRequest({ text, products, providers, providerFactory, lifecycleStore });
     const visibleProvider = envelope.providerPath.find((entry) => !entry.startsWith("search:")) || envelope.providerPath[envelope.providerPath.length - 1] || "FTN ibis canonical";
+    const degradedStages = envelope.receipt.degradedStages || [];
     return reply({
       answer: envelope.answer,
       provider: visibleProvider,
@@ -207,7 +208,7 @@ Deno.serve(async (request) => {
       evidenceState: envelope.evidenceState,
       generatedAt: envelope.generatedAt,
       requestId: envelope.requestId,
-      fallbackUsed: envelope.degradedStages.length > 0,
+      fallbackUsed: degradedStages.length > 0,
       fallbackState: envelope.status === "OK" ? "NOT_NEEDED" : "DEGRADED",
       confidence: envelope.confidence,
       uncertainty: envelope.uncertainties.length ? envelope.uncertainties.join(" ") : envelope.confidenceBasis,
