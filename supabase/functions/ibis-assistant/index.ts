@@ -1,5 +1,6 @@
 import { gatewayHealth, runGateway, type GatewayProvider, type IbisProduct, type IbisTurn } from "../_shared/ibis-intelligence-gateway.ts";
 import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "../_shared/ibis-canonical-brain.ts";
+import { classifyIntent } from "../_shared/ibis-intent-router.ts";
 import { resolveLifecycleStore } from "../_shared/ibis-lifecycle-store.ts";
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
@@ -184,6 +185,39 @@ Deno.serve(async (request) => {
   }
 
   if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
-  const result = await runGateway({ text: turns[turns.length - 1].content, products, providers });
+  const text = turns[turns.length - 1].content;
+
+  // Legacy TEXT safety net: some browser-side callers still post the historical payload shape
+  // without action:"canonical_query". A freshness-sensitive question must never reach the bare
+  // model gateway through that compatibility route, because doing so can produce confident but
+  // ungrounded current-world claims. Reuse the SAME canonical classifier and canonical brain used
+  // by the explicit action above. Non-freshness legacy callers retain their exact prior behavior.
+  if (classifyIntent(text).queryClass === "CURRENT_WEB_RESEARCH") {
+    const providerFactory = (evidenceBlock: string | null) => {
+      const groundedSystem = evidenceBlock ? `${system}\n\n${evidenceBlock}` : system;
+      return [cloudflare(turns, groundedSystem), anthropic(turns, groundedSystem), gemini(turns, groundedSystem), openAICompatible("PRIMARY", turns, groundedSystem), openAICompatible("SECONDARY", turns, groundedSystem), ollama(turns, groundedSystem)];
+    };
+    const envelope = await handleCanonicalRequest({ text, products, providers, providerFactory, lifecycleStore });
+    const visibleProvider = envelope.providerPath.find((entry) => !entry.startsWith("search:")) || envelope.providerPath[envelope.providerPath.length - 1] || "FTN ibis canonical";
+    return reply({
+      answer: envelope.answer,
+      provider: visibleProvider,
+      model: null,
+      answerClass: envelope.queryClass,
+      evidenceState: envelope.evidenceState,
+      generatedAt: envelope.generatedAt,
+      requestId: envelope.requestId,
+      fallbackUsed: envelope.degradedStages.length > 0,
+      fallbackState: envelope.status === "OK" ? "NOT_NEEDED" : "DEGRADED",
+      confidence: envelope.confidence,
+      uncertainty: envelope.uncertainties.length ? envelope.uncertainties.join(" ") : envelope.confidenceBasis,
+      gatewayVersion: "ibis-canonical-compat-v1",
+      sources: envelope.sources,
+      searchCacheState: envelope.searchCacheState,
+      status: envelope.status,
+    }, 200, origin);
+  }
+
+  const result = await runGateway({ text, products, providers });
   return reply(result, 200, origin);
 });
