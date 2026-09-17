@@ -200,6 +200,10 @@ export type CanonicalResponse = {
   capabilitiesAttempted: string[];
   providerPath: string[];
   evidenceState: "DETERMINISTIC" | "MODEL_GENERATED" | "SEARCH_GROUNDED" | "NO_ANSWER_GENERATED";
+  // Live-search UX correction: lets a caller honestly show "live" vs "cached" rather than implying
+  // every grounded answer just made a fresh network call. null when no search ran this request (no
+  // RESEARCH capability was planned) -- distinct from "unavailable", which is `handoff.external`.
+  searchCacheState: "LIVE" | "CACHED" | null;
   sources: SourceRecord[];
   confidence: "HIGH" | "MODERATE" | "UNVERIFIED" | "UNAVAILABLE";
   confidenceBasis: string;
@@ -231,6 +235,7 @@ export function buildEnvelope(input: {
   capabilitiesAttempted: string[];
   providerPath: string[];
   evidenceState: CanonicalResponse["evidenceState"];
+  searchCacheState?: CanonicalResponse["searchCacheState"];
   sources?: SourceRecord[];
   confidence: CanonicalResponse["confidence"];
   confidenceBasis: string;
@@ -257,6 +262,7 @@ export function buildEnvelope(input: {
     capabilitiesAttempted: input.capabilitiesAttempted,
     providerPath: input.providerPath,
     evidenceState: input.evidenceState,
+    searchCacheState: input.searchCacheState ?? null,
     sources: input.sources || [],
     confidence: input.confidence,
     confidenceBasis: input.confidenceBasis,

@@ -160,7 +160,17 @@ Deno.serve(async (request) => {
   // Correlation/Prediction are honestly reported unavailable, never claimed to have executed).
   if (payload.action === "canonical_query") {
     if (!turns.length || turns[turns.length - 1].role !== "user") return reply({ error: "Ask ibis something first." }, 400, origin);
-    const envelope = await handleCanonicalRequest({ text: turns[turns.length - 1].content, products, providers, lifecycleStore });
+    // Live-search evidence-grounding correction: `providers` above was already built from the
+    // plain system prompt, before canonical processing (and any search it does) has even run --
+    // calling runGateway with it would generate an answer with zero knowledge of what search just
+    // found. `providerFactory` lets ibis-canonical-brain.ts hand back the real evidence block
+    // (built from this SAME request's one search call) so these SAME real provider credentials
+    // answer with it baked into their system prompt, instead of rebuilding providers a second time.
+    const providerFactory = (evidenceBlock: string | null) => {
+      const groundedSystem = evidenceBlock ? `${system}\n\n${evidenceBlock}` : system;
+      return [cloudflare(turns, groundedSystem), anthropic(turns, groundedSystem), gemini(turns, groundedSystem), openAICompatible("PRIMARY", turns, groundedSystem), openAICompatible("SECONDARY", turns, groundedSystem), ollama(turns, groundedSystem)];
+    };
+    const envelope = await handleCanonicalRequest({ text: turns[turns.length - 1].content, products, providers, providerFactory, lifecycleStore });
     return reply(envelope, 200, origin);
   }
 

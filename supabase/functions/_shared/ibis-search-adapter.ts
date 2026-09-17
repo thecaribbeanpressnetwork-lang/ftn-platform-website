@@ -40,7 +40,11 @@ export type SourceRecord = {
 };
 
 export type SearchResult =
-  | { status: "OK"; provider: string; query: string; sources: SourceRecord[]; retrievedAt: string }
+  // cacheState is always present on a real result so a caller/UI can honestly say "live" vs
+  // "cached" rather than implying every answer just made a fresh network call -- LIVE means this
+  // exact call reached the provider just now; CACHED means an earlier LIVE result within the TTL
+  // window was reused (see CACHE below), never a stale result served past its TTL.
+  | { status: "OK"; provider: string; query: string; sources: SourceRecord[]; retrievedAt: string; cacheState: "LIVE" | "CACHED" }
   | { status: "SEARCH_UNAVAILABLE"; query: string; reason: string; alternatives: ExternalHandoff[] };
 
 export type ExternalHandoff = {
@@ -113,7 +117,7 @@ export async function searxngSearch(
         evidenceDepth: "SNIPPET",
       }));
     if (!sources.length) return unavailable(query, "SearXNG returned results with no usable title/url.");
-    return { status: "OK", provider: "searxng", query, sources, retrievedAt };
+    return { status: "OK", provider: "searxng", query, sources, retrievedAt, cacheState: "LIVE" };
   } catch (error) {
     const timedOut = error instanceof DOMException && error.name === "TimeoutError";
     return unavailable(query, timedOut ? "SearXNG request timed out." : "SearXNG request failed.");
@@ -154,20 +158,150 @@ export async function braveSearch(
         evidenceDepth: "SNIPPET",
       }));
     if (!sources.length) return unavailable(query, "Brave Search returned results with no usable title/url.");
-    return { status: "OK", provider: "brave-search", query, sources, retrievedAt };
+    return { status: "OK", provider: "brave-search", query, sources, retrievedAt, cacheState: "LIVE" };
   } catch (error) {
     const timedOut = error instanceof DOMException && error.name === "TimeoutError";
     return unavailable(query, timedOut ? "Brave Search request timed out." : "Brave Search request failed.");
   }
 }
 
+// --- Zero-cost controls (live-search P0 correction) --------------------------------------------
+// Per FTN policy: search only when the canonical brain already decided freshness/evidence/discovery
+// is required (that decision is made once, by ibis-intent-router.ts/planCapabilities(), before this
+// module is ever called -- nothing here re-decides that); cache safe public-query results with a
+// TTL; deduplicate identical in-flight queries; never make more than one default search per
+// ordinary query (already true above -- SearXNG OR Brave, first success wins, never both); enforce
+// a hard daily/monthly provider budget and fall through (with honest disclosure), never silently
+// cross it or silently enable a paid route.
+//
+// Honest limitation: this cache/budget state is process-local (an in-memory Map/counter), not a
+// database table. A Supabase Edge Function instance can be recycled at any time, so this reduces
+// real duplicate calls within a warm instance's lifetime but is NOT a durable, cross-instance cache
+// or a strictly enforced global daily cap -- a genuinely durable version would need a DB-backed
+// table (out of scope for this pass; a natural next step once a search provider is actually live).
+
+type CacheEntry = { result: SearchResult; expiresAt: number };
+const DEFAULT_CACHE_TTL_MS = 15 * 60_000; // 15 minutes -- long enough to dedupe repeat questions in one session, short enough that "current" queries don't go stale.
+const searchCache = new Map<string, CacheEntry>();
+const inFlight = new Map<string, Promise<SearchResult>>();
+
+function cacheKey(query: string): string {
+  return query.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function cacheTtlMs(): number {
+  const configured = Number(Deno.env.get("IBIS_SEARCH_CACHE_TTL_MS"));
+  return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_CACHE_TTL_MS;
+}
+
+// Test-only: real callers never need to reset shared module state -- a fresh Deno test run holds
+// this same in-memory Map across Deno.test() blocks in one file, so tests that care about cache/
+// dedup/budget behavior in isolation call this first.
+export function resetSearchControlsForTests(): void {
+  searchCache.clear();
+  inFlight.clear();
+  for (const key of Object.keys(dailyCounters)) delete dailyCounters[key];
+  for (const key of Object.keys(monthlyCounters)) delete monthlyCounters[key];
+}
+
+// Conservative defaults pending the founder's actual confirmed plan tier for whichever paid
+// provider is configured (see this module's header comment on Brave's free-tier uncertainty at
+// the time this adapter was written) -- override via IBIS_SEARCH_DAILY_BUDGET_<PROVIDER>/
+// IBIS_SEARCH_MONTHLY_BUDGET_<PROVIDER> once the real dashboard limits are confirmed. SearXNG (self-
+// hosted, zero marginal cost) has no default cap -- Infinity means "not budget-limited by this
+// module"; a real infra-level rate limit, if any, belongs to the SearXNG deployment itself.
+const DEFAULT_DAILY_BUDGET: Record<string, number> = { searxng: Infinity, "brave-search": 60 };
+const DEFAULT_MONTHLY_BUDGET: Record<string, number> = { searxng: Infinity, "brave-search": 1800 };
+const dailyCounters: Record<string, { day: string; count: number }> = {};
+const monthlyCounters: Record<string, { month: string; count: number }> = {};
+
+function budgetFor(provider: string, kind: "DAILY" | "MONTHLY"): number {
+  const envKey = `IBIS_SEARCH_${kind}_BUDGET_${provider.toUpperCase().replace(/-/g, "_")}`;
+  const configured = Number(Deno.env.get(envKey));
+  if (Number.isFinite(configured) && configured >= 0) return configured;
+  return (kind === "DAILY" ? DEFAULT_DAILY_BUDGET : DEFAULT_MONTHLY_BUDGET)[provider] ?? Infinity;
+}
+
+// Returns true (and reserves the call) only if the provider is still within BOTH its daily and
+// monthly budget -- never partially reserves one and not the other. Deliberately synchronous and
+// side-effecting in one step so two near-simultaneous checks for the same provider cannot both
+// pass right at the boundary (best-effort within one warm instance -- see the module-level honesty
+// note above about this not being a durable, cross-instance guarantee).
+function tryReserveBudget(provider: string, now: Date): boolean {
+  const day = now.toISOString().slice(0, 10);
+  const month = now.toISOString().slice(0, 7);
+  const dailyLimit = budgetFor(provider, "DAILY");
+  const monthlyLimit = budgetFor(provider, "MONTHLY");
+  const dailyEntry = dailyCounters[provider]?.day === day ? dailyCounters[provider] : (dailyCounters[provider] = { day, count: 0 });
+  const monthlyEntry = monthlyCounters[provider]?.month === month ? monthlyCounters[provider] : (monthlyCounters[provider] = { month, count: 0 });
+  if (dailyEntry.count >= dailyLimit || monthlyEntry.count >= monthlyLimit) return false;
+  dailyEntry.count += 1;
+  monthlyEntry.count += 1;
+  return true;
+}
+
+// Runs one provider only if it still has budget; returns its real result either way -- a budget
+// exhaustion is reported as SEARCH_UNAVAILABLE (never silently skipped as if the provider simply
+// wasn't configured), so a caller inspecting `reason` can tell the two apart, but the CONTROL FLOW
+// treats both identically: not OK means try the next provider.
+async function searchProviderWithBudget(
+  provider: "searxng" | "brave-search",
+  label: string,
+  query: string,
+  run: () => Promise<SearchResult>,
+): Promise<SearchResult> {
+  if (!tryReserveBudget(provider, new Date())) {
+    return unavailable(query, `${label}'s configured daily or monthly search budget has been reached -- falling through to the next provider rather than silently crossing it.`);
+  }
+  return run();
+}
+
 // The one exported entry point the canonical brain calls -- implements the fallback order in the
-// module header. Adding a further real provider later means adding one more branch here, never
-// changing what a caller passes in or gets back.
+// module header, PLUS the zero-cost controls above (cache -> dedup -> per-provider budget ->
+// SearXNG -> Brave -> honest SEARCH_UNAVAILABLE). Adding a further real provider later means adding
+// one more budgeted branch here, never changing what a caller passes in or gets back.
 export async function search(query: string, options: { fetchImpl?: typeof fetch } = {}): Promise<SearchResult> {
-  const searxngResult = await searxngSearch(query, options);
-  if (searxngResult.status === "OK") return searxngResult;
-  const braveResult = await braveSearch(query, options);
-  if (braveResult.status === "OK") return braveResult;
-  return braveResult;
+  if (options.fetchImpl) {
+    // An explicit fetch override means the caller (a deterministic unit test, or an advanced
+    // caller that wants full control of the network layer) is already fully in charge of what
+    // "the provider" returns -- bypass the cache/dedup/budget layer below so this behaves exactly
+    // like a fresh, real attempt every time, matching this function's behavior before the
+    // zero-cost-controls correction (every existing test that injects a fetch double is
+    // unaffected). Real production requests never supply this, so the controls below cover 100%
+    // of genuine network traffic; the controls themselves are proven separately (see
+    // ibis-search-adapter.test.ts's CACHE/DEDUP/BUDGET tests, which monkey-patch globalThis.fetch
+    // instead, precisely so they exercise this real path).
+    const searxngResult = await searxngSearch(query, options);
+    if (searxngResult.status === "OK") return searxngResult;
+    return await braveSearch(query, options);
+  }
+  const key = cacheKey(query);
+  const cached = searchCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    return { ...(cached.result as Extract<SearchResult, { status: "OK" }>), cacheState: "CACHED" };
+  }
+  const existing = inFlight.get(key);
+  if (existing) return existing;
+
+  const promise = (async (): Promise<SearchResult> => {
+    const searxngResult = await searchProviderWithBudget("searxng", "SearXNG", query, () => searxngSearch(query, options));
+    if (searxngResult.status === "OK") {
+      searchCache.set(key, { result: searxngResult, expiresAt: Date.now() + cacheTtlMs() });
+      return searxngResult;
+    }
+    const braveResult = await searchProviderWithBudget("brave-search", "Brave Search", query, () => braveSearch(query, options));
+    if (braveResult.status === "OK") {
+      searchCache.set(key, { result: braveResult, expiresAt: Date.now() + cacheTtlMs() });
+      return braveResult;
+    }
+    // Neither provider produced a result -- same precedent as before this correction: return the
+    // LAST attempted provider's own real reason (already carries the correct query/alternatives).
+    return braveResult;
+  })();
+  inFlight.set(key, promise);
+  try {
+    return await promise;
+  } finally {
+    inFlight.delete(key);
+  }
 }

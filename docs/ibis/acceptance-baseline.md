@@ -31,9 +31,9 @@ evidence," which a prior draft of this document used to describe fixture data:
 ## Latest checkpoint
 
 - **Commit**: (this checkpoint -- see revision history below)
-- **Parent checkpoint**: `533b9df`
+- **Parent checkpoint**: `4864a9c`
 - **Branch**: `fix/ibis-canonical-outcome-intelligence`
-- **Run date**: 2026-09-16
+- **Run date**: 2026-09-17
 - **Readiness classification**: **LOCALLY_VERIFIED**
 
 LOCALLY_VERIFIED means: every gate below that shows PASS is backed by real L1 (deterministic
@@ -47,7 +47,7 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 |---|---|---|
 | Canonical routing | PASS | L1/L2 |
 | Durable lifecycle state | PASS (local contract); BLOCKED_EXTERNAL (real DB) | L1 / L3 |
-| Real web search | PASS (adapter contracts only); BLOCKED_EXTERNAL (live provider) | L1 / L3-L4 |
+| Real web search | PASS (adapter contracts + zero-cost controls + evidence-grounding, all L1); **BLOCKED_EXTERNAL** (no real SearXNG/Brave credential exists anywhere accessible this checkpoint -- see "Live Search Infrastructure" below) | L1 / L3-L4 |
 | Reasoning engine execution | **PASS (11 of 11 connected: 4 `CONNECTED_OPERATIONAL` — Founder Thinking, Context Graph, Connection Fabric, Multi-Agent Orchestrator; 7 `CONNECTED_CONDITIONAL` — Correlation, Butterfly, Prediction, EBR, EcoMap Place, EcoMap Pathway, EcoMap Relationship); zero `UNAVAILABLE`, first checkpoint with an all-PASS Gate 4)** | L1 |
 | Capability truth | PASS (matrix assembled) | L1 |
 | Regular IBIS UX | PASS (core suites); NOT_RUN (viewport matrix, accessibility) | L1/L2 |
@@ -371,6 +371,127 @@ scheduler -- **not** a second router, canonical brain or competing orchestration
   negative execution-budget exhaustion test, a "every capability ends in exactly one terminal state"
   sweep test, and a no-consciousness-claim test.
 
+## Live Search Infrastructure (this checkpoint -- P0)
+
+Objective this checkpoint: make ordinary IBIS/Headspace queries perform real web searches with
+clickable sources and feed retrieved evidence into canonical reasoning. The canonical routing,
+search-adapter cascade and RESEARCH-capability planning already existed from prior checkpoints; this
+one performed a credential/infrastructure truth audit, fixed a real evidence-grounding gap, added
+the required zero-cost controls, and improved source-disclosure UX. **No real external search
+request was made or could be made this checkpoint -- no live provider credential exists anywhere
+this environment could reach.** See "Credential and infrastructure truth audit" below.
+
+### Credential and infrastructure truth audit
+
+No secret value was ever printed; only presence/state was inspected.
+
+| Provider / capability | Status | Basis |
+|---|---|---|
+| `SEARXNG_BASE_URL` (FTN-controlled SearXNG) | `MISSING_INFRASTRUCTURE` | Unset in this local environment; no Docker/hosting config for a SearXNG instance exists anywhere in this repository (confirmed by `ibis-search-adapter.ts`'s own header audit, unchanged this checkpoint). No `supabase` CLI or access token was available in this session to inspect the live Edge Function project's own configured secrets remotely. |
+| `BRAVE_SEARCH_API_KEY` | `MISSING_CREDENTIAL` | Unset in this local environment; no GitHub Actions secret of this name exists in any `.github/workflows/*.yml` in this repo (a full grep of every `secrets.*` reference found none); no evidence a key was ever provisioned. |
+| Gemini API key (`GEMINI_API_KEY`, plain text completions) | Unverifiable from this session (no remote credential/CLI access) -- **not** the same thing as Google Search grounding | The deployed `ibis-provider-health-preview` function can check this live, but the anon key checked into `.github/workflows/ibis-live-adapter-gate.yml` (project `jshmidfpqrajxtukzges`) was tested this checkpoint and is now rejected by Supabase's gateway (`401 UNAUTHORIZED_LEGACY_JWT`) -- that CI workflow's embedded credential appears stale/rotated, independent of this checkpoint's work. |
+| Google Search grounding (Gemini's `google_search` tool) | `MISSING_INFRASTRUCTURE` / `NOT_AUTHORIZED_FOR_SPEND` | Never implemented in this codebase (confirmed in `ibis-search-adapter.ts`'s own header comment, unchanged from a prior audit): enabling it requires confirming from Google's live billing dashboard that grounding requests are within a genuinely zero-cost allowance, which this environment cannot verify without live secret/billing access. A plain (non-grounding) Gemini completions key existing elsewhere in the stack is not evidence Search grounding is configured or authorized -- these are different capabilities, not conflated here. |
+| FTN-controlled host capable of running SearXNG | `MISSING_INFRASTRUCTURE` | No hosting/Docker/deployment config for SearXNG exists anywhere in this repository. |
+| Preview Supabase Edge Function configuration | Real project exists and is genuinely deployed (`jshmidfpqrajxtukzges.supabase.co`, confirmed via `.github/workflows/ibis-assistant-release.yml`'s `SUPABASE_PROJECT_REF` and by this checkpoint's own live call to `ibis-provider-health-preview`) -- but this session has no working credential to call it successfully (the only checked-in anon key is now rejected) or to inspect/set its Edge Function secrets. | Confirmed live infra, unconfirmed live credentials, from this session. |
+| Cloudflare capabilities | `CONFIGURED_AND_LIVE` for other capabilities (`ibis-image-cloudflare`/`ibis-speech-cloudflare`/`ibis-text-cloudflare` exist as deployed functions using Cloudflare Workers AI), but Cloudflare has **no general web-search product** -- not applicable to this gate regardless of credential state. | Not a search provider; not pursued for this objective. |
+
+### What was fixed this checkpoint (real, tested, L1)
+
+- **Evidence-grounding correction (the core gap)**: `handleCanonicalRequest()` already ran one real
+  search and returned `sources` to the caller, but the actual answer-generation call
+  (`runGateway()`) had **zero knowledge of what search found** -- a successful search never
+  changed the answer TEXT, only the `sources` field displayed alongside it. Fixed via a new,
+  purely additive `CanonicalRequest.providerFactory` -- when supplied, `ibis-canonical-brain.ts`
+  calls it AFTER search completes with a real, numbered evidence block (source titles, publishers,
+  dates, URLs, and an explicit "only treat this as verified" instruction), so the SAME real
+  provider credentials (`supabase/functions/ibis-assistant/index.ts`'s
+  `cloudflare()`/`anthropic()`/`gemini()`/etc.) can bake it into their own system prompt before
+  calling out. Every caller that only supplies the legacy `providers` array is completely
+  unaffected (proven by a dedicated backward-compatibility test). Proven by 5 new
+  `EVIDENCE GROUNDING` tests in `ibis-canonical-brain.test.ts`: a real evidence block is built and
+  passed only when search genuinely produced sources; it is `null` for an ordinary
+  non-search query; `providerFactory` is never even called on the honest
+  `SEARCH_UNAVAILABLE` degradation path (no wasted provider construction); the envelope's new
+  `searchCacheState` field reflects the real result.
+- **Zero-cost controls** (new `ibis-search-adapter.test.ts`, 7 tests): an in-memory, TTL-based
+  cache (`IBIS_SEARCH_CACHE_TTL_MS`, default 15 minutes) so a repeated identical query within the
+  TTL is served `CACHED` with **zero** additional network calls; request deduplication so two
+  genuinely concurrent identical in-flight queries share exactly one real call; a hard per-provider
+  daily/monthly budget (`IBIS_SEARCH_DAILY_BUDGET_<PROVIDER>` /
+  `IBIS_SEARCH_MONTHLY_BUDGET_<PROVIDER>`, conservative defaults pending the founder's confirmed
+  real plan tier) that, once reached, honestly falls through to the next provider (or
+  `SEARCH_UNAVAILABLE`) rather than silently crossing the cap or silently enabling a paid route.
+  Honest limitation: this state is process-local (an in-memory `Map`/counter), not a durable,
+  cross-instance database counter -- a Supabase Edge Function instance can be recycled at any time,
+  so this meaningfully reduces duplicate calls and enforces a real ceiling within one warm
+  instance's lifetime, but is not a strictly enforced global cap across every instance. A durable
+  version would need a DB-backed counter table -- a natural next step once a provider is actually
+  live, not attempted this checkpoint (no Supabase schema change was made). The cache/dedup/budget
+  layer only activates when no `fetchImpl` override is supplied (i.e. only for genuine network
+  traffic) -- every existing test in this repo that injects a fetch double for deterministic
+  testing is completely unaffected; the new zero-cost-controls tests exercise the real path by
+  monkey-patching `globalThis.fetch` for their own duration instead.
+- **Canonical-path routing was already correct, verified not rebuilt**: both `js/ibis-ai-workspace.js`
+  (regular IBIS) and `js/ibis-headspace-universal.js` (Headspace) already call
+  `action:'canonical_query'` on `ibis-assistant`, which already calls `handleCanonicalRequest()`
+  unconditionally -- a prior checkpoint's own header comment in `ibis-ai-workspace.js` documents
+  that a client-side "this looks like a live request" bypass (`renderLiveResearch()` as a
+  pre-emptive authority) was already removed. No browser shortcut around the canonical path was
+  found or needed fixing this checkpoint.
+- **Source-disclosure UX**: a real, confirmed gap -- `canonical.sources`/`canonical.alternatives`
+  were computed server-side but never passed into the `mountEvidence()`/Trust Card call for the
+  main canonical-answer render path in `ibis-ai-workspace.js` (`sources` was simply missing from
+  the `extra` object at that call site), and `js/ibis-headspace-universal.js`'s `renderAnswer()`
+  never rendered `sources`/`alternatives` at all despite `directText()` already carrying them.
+  Fixed additively in both files (new `canonicalSourcesHTML()`/`canonicalAlternativesHTML()` in the
+  workspace file; new `renderSourcesAndAlternatives()` built with DOM APIs, not `innerHTML`, in the
+  Headspace file) -- reuses the already-shipped `.ibis-live-source(s)`/`.ibis-live-kicker` CSS
+  classes from `css/components/ibis-ai.css` (now also loaded by the Headspace file) rather than
+  writing new styles. Renders, per source: clickable title, publisher, publication date when known,
+  and a "checked <time>" retrieval timestamp; a "Live search just now" / "From a recent search
+  (cached)" badge from the new `searchCacheState` field; and, on the honest `SEARCH_UNAVAILABLE`
+  path, the existing `alternatives` direct-link handoffs (Central Bank of T&T, T&T Government News,
+  DuckDuckGo) that were computed server-side but previously reached no UI at all. **Not
+  live-browser-verified against real search results** -- there is no real search credential in this
+  environment to produce any, and no CORS-eligible origin from this session to exercise the live
+  deployed function end-to-end; verified by `node --check` (syntax) and by tracing every call site
+  by hand against the real server-side field names.
+
+### Required live tests -- BLOCKED_EXTERNAL, not fabricated
+
+Per this checkpoint's own explicit instruction, mocked responses do not satisfy this gate, so none
+of the three required live queries ("Central Bank of Trinidad and Tobago... foreign-exchange
+availability", "funding or business-support opportunities... Tobago food entrepreneurs", "what
+happened in Trinidad and Tobago today") were run against a real provider -- there is no
+`SEARXNG_BASE_URL`, `BRAVE_SEARCH_API_KEY`, or working Supabase credential anywhere this session
+could reach (see the audit table above). Running them against the existing `MOCK_SEARCH_FIXTURE`
+test doubles instead would not satisfy the live-search gate and was not attempted as a substitute.
+
+### Smallest founder action to unblock this gate
+
+1. Sign up at **https://brave.com/search/api/** (Brave Search API, "Data for AI" / free tier at
+   the time this was written).
+2. Set the exact secret name **`BRAVE_SEARCH_API_KEY`** as a Supabase Edge Function secret on
+   project `jshmidfpqrajxtukzges` (`supabase secrets set BRAVE_SEARCH_API_KEY=<key> --project-ref
+   jshmidfpqrajxtukzges`, or via the Supabase dashboard's Edge Functions -> Secrets panel) --
+   **never** pasted into a chat session or entered by an AI assistant on the founder's behalf.
+3. Billing: Brave's free tier has historically required a card on file for verification even at
+   $0 spend (confirm current terms at signup -- this adapter was written before that could be
+   re-verified live). Free allowance and exact rate limits should be confirmed on the real
+   dashboard at signup time and used to set real
+   `IBIS_SEARCH_DAILY_BUDGET_BRAVE_SEARCH`/`IBIS_SEARCH_MONTHLY_BUDGET_BRAVE_SEARCH` values (this
+   checkpoint's defaults are conservative placeholders, not a confirmed plan limit).
+4. Privacy: search queries are sent to Brave's API over HTTPS; no FTN user-identifying data is
+   included in the query today (only the request text itself).
+5. Once set, the very next `canonical_query` request that plans `RESEARCH` will make a real,
+   live Brave call automatically -- no further code change is required to activate it; this
+   checkpoint's cascade already tries `SEARXNG_BASE_URL` first, then falls through to
+   `BRAVE_SEARCH_API_KEY` today.
+6. FTN-controlled SearXNG (the zero-marginal-cost long-term primary, per the founder's own stated
+   priority) is a separate, larger action: provisioning a small always-on host and running the
+   SearXNG Docker image, then setting `SEARXNG_BASE_URL` to it. Not started this checkpoint (no
+   hosting decision was made on the founder's behalf).
+
 ## Reasoning engines connected this checkpoint
 
 - **Founder Thinking**: the browser-only `js/ibis-founder-cognitive-layer.js` is an append-only
@@ -499,14 +620,36 @@ scheduler -- **not** a second router, canonical brain or competing orchestration
 `ibis-canonical-routing-behavioral.mjs`, `ibis-local-ai-planner-gate-behavioral.mjs`,
 `ibis-routing-consolidation-audit.mjs`, `ibis-headspace-universal-routing-audit.mjs`, the shared
 Deno suite (`supabase/functions/_shared/*.test.ts`, now including
-`ibis-multi-agent-orchestrator.test.ts` and the `COMPOSABILITY`/`ACCEPTANCE QUERY`/
-`ECOMAP ACCEPTANCE QUERY`/`ECOMAP CONTRAST`/`MULTI-AGENT ACCEPTANCE` cases in
+`ibis-multi-agent-orchestrator.test.ts`, `ibis-search-adapter.test.ts` (new this checkpoint --
+cache/dedup/budget), and the `COMPOSABILITY`/`ACCEPTANCE QUERY`/`ECOMAP ACCEPTANCE QUERY`/
+`ECOMAP CONTRAST`/`MULTI-AGENT ACCEPTANCE`/`EVIDENCE GROUNDING` cases in
 `ibis-canonical-brain.test.ts`), `ibis-ux-release.mjs`, `ibis-behavioral-ux-acceptance.mjs`,
 `ibis-headspace-controls-audit.mjs`.
 
 ## Revision history
 
-- (this checkpoint, 2026-09-16, parent `533b9df`): Multi-Agent Orchestration slice. Implemented the
+- (this checkpoint, 2026-09-17, parent `4864a9c`): Live search infrastructure P0 slice. See "Live
+  Search Infrastructure (this checkpoint -- P0)" above for the full credential/infrastructure
+  audit, the evidence-grounding correction, zero-cost controls and source-disclosure UX fixes.
+  Summary: fixed a real gap where a successful search never actually changed the answer text (only
+  the displayed `sources` field) -- new additive `CanonicalRequest.providerFactory` hands the real
+  retrieved evidence to the same real provider credentials before they answer, backward-compatible
+  with every existing caller. Added an in-memory TTL cache, request dedup and hard per-provider
+  daily/monthly budgets to `ibis-search-adapter.ts` (bypassed automatically for every existing test
+  that injects its own fetch double, so zero risk to the 160+ tests already in this repo). Fixed
+  `js/ibis-ai-workspace.js`/`js/ibis-headspace-universal.js` to actually render retrieved
+  sources/alternatives, which previously reached neither UI despite being computed server-side. No
+  live external search request was made or could be made -- no real `SEARXNG_BASE_URL`/
+  `BRAVE_SEARCH_API_KEY`/working Supabase credential exists anywhere this session could reach; the
+  smallest founder action to unblock this (a Brave Search API key) is documented above. 12 new Deno
+  tests (7 in `ibis-search-adapter.test.ts`, 5 `EVIDENCE GROUNDING` tests in
+  `ibis-canonical-brain.test.ts`); full shared Deno suite (171 tests, up from 160) passes. Readiness
+  classification remains **LOCALLY_VERIFIED** -- explicitly not claiming search "works" in
+  production; only that the code path is real, tested, and ready the moment a real credential
+  exists. Per instruction, the Butterfly/Prediction input-fidelity correction (queued immediately
+  before this pivot) was deliberately paused, mid-research, with zero code changes made toward it --
+  it remains fully pending for a future checkpoint.
+- `4864a9c` (2026-09-16): Multi-Agent Orchestration slice. Implemented the
   internal, canonical, dependency-aware execution scheduler (see "Multi-Agent Orchestration (this
   checkpoint)" above) as the 11th and final reasoning capability -- Gate 4 (reasoning engine
   execution) now shows all-PASS for the first time, zero `UNAVAILABLE` engines remaining. New

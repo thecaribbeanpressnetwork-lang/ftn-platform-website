@@ -47,6 +47,17 @@ export type CanonicalRequest = {
   text: string;
   products?: IbisProduct[];
   providers: GatewayProvider[];
+  // Live-search evidence-grounding correction: a provider built from the plain `providers` array
+  // was constructed by the caller BEFORE this function ever ran, so it has no way to know what (if
+  // anything) search retrieved -- the answer-generation call below was genuinely ungrounded even on
+  // a successful search (sources were returned to the caller to read, never given to the model).
+  // When supplied, `providerFactory` is called AFTER search completes, with a real evidence block
+  // (numbered source titles/publishers/dates/URLs) when sources exist, or null when RESEARCH wasn't
+  // planned or produced none -- so the SAME provider construction that already reads real secrets
+  // (ibis-assistant/index.ts's cloudflare()/anthropic()/gemini()/etc.) can bake the evidence into
+  // its own system prompt before calling out. Optional and purely additive: every existing caller
+  // that only supplies `providers` keeps its exact prior (evidence-blind) behavior unchanged.
+  providerFactory?: (evidenceBlock: string | null) => GatewayProvider[];
   requestId?: string;
   searchFetchImpl?: typeof fetch;
   // Slice 3 serverless correction: the lifecycle store is INJECTED, never resolved internally --
@@ -200,6 +211,26 @@ function sourcesFromSearch(result: SearchResult): SourceRecord[] {
   }));
 }
 
+// Builds the evidence context handed to `providerFactory` (see CanonicalRequest.providerFactory
+// above). Deliberately plain, numbered, inspectable text -- never a hidden system-only claim of
+// certainty -- with an explicit instruction that anything NOT listed here remains unverified, so a
+// provider cannot treat this block as license to assert unlisted "current" facts either. Returns
+// null (never an empty string) when there is nothing to ground, so callers can tell "no evidence
+// block" apart from "an evidence block with zero sources" (which should never occur, since this is
+// only ever called with sources.length > 0).
+function buildEvidenceBlock(sources: SourceRecord[]): string | null {
+  if (!sources.length) return null;
+  const lines = sources.map((s, i) => {
+    const meta = [s.publisher, s.publishedAt ? `published ${s.publishedAt}` : null, `retrieved ${s.retrievedAt}`].filter(Boolean).join(", ");
+    return `[${i + 1}] "${s.title}"${meta ? ` (${meta})` : ""} -- ${s.url}`;
+  });
+  return [
+    "Retrieved evidence for this request (from a real search just performed for this question):",
+    ...lines,
+    "Only use the above as current/verified information. Cite a source by its [n] when you rely on it directly. Do not present anything else as current or verified -- if the evidence above doesn't answer part of the question, say so plainly rather than filling the gap from memory.",
+  ].join("\n");
+}
+
 export async function handleCanonicalRequest(input: CanonicalRequest): Promise<CanonicalResponse> {
   const startedAt = new Date().toISOString();
   const requestId = input.requestId || crypto.randomUUID();
@@ -249,6 +280,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   const providerPath: string[] = [];
   let sources: SourceRecord[] = [];
   let evidenceState: CanonicalResponse["evidenceState"] = "NO_ANSWER_GENERATED";
+  let searchCacheState: CanonicalResponse["searchCacheState"] = null;
   let degradedStages: string[] = [];
   const contradictions: string[] = [];
   const extraUncertainties: string[] = [];
@@ -280,7 +312,13 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       providerPath.push(`search:${result.provider}`);
       sources = sourcesFromSearch(result);
       evidenceState = "SEARCH_GROUNDED";
-      reasoningModesUsed.push({ mode: "MODEL_TEXT", executed: true, contribution: "Search results retrieved; no synthesis model was called on them in this pass -- sources are returned directly for the caller to read, not summarized." });
+      searchCacheState = result.cacheState;
+      // No reasoningModesUsed entry is pushed here (live-search evidence-grounding correction):
+      // this used to claim "no synthesis model was called on them in this pass -- sources are
+      // returned directly for the caller to read, not summarized", which was true before that
+      // correction but is no longer accurate -- the answer-generation step below now genuinely
+      // receives this same evidence (via providerFactory) and reports its own real MODEL_TEXT
+      // contribution once it runs, so pushing a second, now-stale claim here would be misleading.
       researchReceipt.history.push({ state: "EXECUTED", at: new Date().toISOString() });
       researchReceipt.finalState = "EXECUTED";
     } else {
@@ -363,7 +401,9 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     status = "DEGRADED";
   } else {
     capabilitiesAttempted.push("TEXT");
-    const gatewayResult = await runGateway({ text, products, providers: input.providers, requestId });
+    const evidenceBlock = sources.length ? buildEvidenceBlock(sources) : null;
+    const effectiveProviders = input.providerFactory ? input.providerFactory(evidenceBlock) : input.providers;
+    const gatewayResult = await runGateway({ text, products, providers: effectiveProviders, requestId });
     providerPath.push(gatewayResult.provider);
     answer = gatewayResult.answer;
     evidenceState = evidenceState === "SEARCH_GROUNDED" ? "SEARCH_GROUNDED" : (gatewayResult.evidenceState === "DETERMINISTIC" ? "DETERMINISTIC" : "MODEL_GENERATED");
@@ -375,7 +415,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     } else if (gatewayResult.answerClass === "CALCULATION") {
       reasoningModesUsed.push({ mode: "DETERMINISTIC", executed: true, contribution: "Local arithmetic, no model call." });
     } else if (gatewayResult.answerClass === "MODEL_RESPONSE") {
-      reasoningModesUsed.push({ mode: "MODEL_TEXT", executed: true, contribution: `Answered by ${gatewayResult.provider}.` });
+      reasoningModesUsed.push({ mode: "MODEL_TEXT", executed: true, contribution: evidenceBlock ? `Answered by ${gatewayResult.provider}, grounded in ${sources.length} retrieved source(s) from this request's own search.` : `Answered by ${gatewayResult.provider}.` });
     }
   }
 
@@ -399,7 +439,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     requestId, startedAt, answer, objective: intent.objective, queryClass: intent.queryClass,
     capabilityPlan, capabilityExecution,
     executionInstruction,
-    reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, sources,
+    reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, searchCacheState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: [...intent.reasons, ...extraUncertainties],
     contradictions, actions, ecosystemConnections,

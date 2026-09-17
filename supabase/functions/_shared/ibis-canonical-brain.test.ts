@@ -1368,3 +1368,106 @@ Deno.test("MULTI-AGENT ACCEPTANCE (group 6): mock fixtures are never classified 
   assertEquals(res.evidenceState, "SEARCH_GROUNDED");
   assert(!JSON.stringify(res).includes("LIVE_SEARCH_GROUNDED"));
 });
+
+// --- LIVE-SEARCH EVIDENCE GROUNDING (P0 correction): retrieved sources were previously returned to
+// the caller but never handed to the answer-generation call itself -- runGateway({text, ...}) had
+// zero knowledge of what search found, so even a successful search never actually changed the
+// answer TEXT, only the `sources` field alongside it. `providerFactory`, when supplied, is called
+// AFTER search completes with a real evidence block (or null) so the SAME real provider credentials
+// can bake it into their own system prompt before answering. Purely additive: every test above that
+// only supplies `providers` (not `providerFactory`) keeps its exact prior behavior, unchanged. ---
+
+function evidenceEchoProvider(): GatewayProvider {
+  return {
+    id: "evidence-echo", label: "evidence-echo", model: "test-model", configured: true,
+    run: async () => ({ answer: "ECHO", model: "test-model" }),
+  };
+}
+
+Deno.test("EVIDENCE GROUNDING: providerFactory is called with a real evidence block (source titles + URLs) when search produced sources", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({
+      results: [{ title: "Central Bank of T&T: forex allocation update", url: "https://www.central-bank.org.tt/forex-update", content: "snippet", engine: "central-bank", publishedDate: "2026-08-20" }],
+    }), { status: 200 });
+  let capturedEvidenceBlock: string | null | undefined = undefined;
+  const res = await handleCanonicalRequest({
+    text: "What is the latest USD exchange rate today?",
+    providers: [fakeProvider("test", "unused")],
+    providerFactory: (evidenceBlock) => { capturedEvidenceBlock = evidenceBlock; return [evidenceEchoProvider()]; },
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  assert(capturedEvidenceBlock !== undefined, "providerFactory must be called");
+  assert(capturedEvidenceBlock !== null, "a real evidence block must be built once search produced sources");
+  const evidenceBlockText = capturedEvidenceBlock as string;
+  assert(evidenceBlockText.includes("Central Bank of T&T: forex allocation update"), "the evidence block must contain the real retrieved source title");
+  assert(evidenceBlockText.includes("https://www.central-bank.org.tt/forex-update"), "the evidence block must contain the real retrieved source URL");
+  assert(evidenceBlockText.includes("2026-08-20"), "the evidence block must carry the real publication date when known");
+  assertEquals(res.answer, "ECHO", "the provider actually constructed from providerFactory (with evidence available to it) must be the one that answers");
+  const modelTextMode = res.reasoningModesUsed.find((m) => m.mode === "MODEL_TEXT" && m.executed);
+  assert(modelTextMode?.contribution?.includes("grounded in 1 retrieved source"), "the disclosed contribution must state the answer was grounded in retrieved evidence, not just that search happened");
+});
+
+Deno.test("EVIDENCE GROUNDING: providerFactory is called with null when RESEARCH was not planned (no fabricated evidence block for an ordinary query)", async () => {
+  let capturedEvidenceBlock: string | null | undefined = undefined;
+  const res = await handleCanonicalRequest({
+    text: "What is photosynthesis?",
+    providers: [fakeProvider("test", "unused")],
+    providerFactory: (evidenceBlock) => { capturedEvidenceBlock = evidenceBlock; return [evidenceEchoProvider()]; },
+    // null, not an in-memory store: a real store would authorize browser_local execution for this
+    // SIMPLE_TEXT query, which never calls any server-side provider at all (a separate, existing,
+    // unrelated code path) -- null forces the server_provider path this test actually means to check.
+    lifecycleStore: null,
+  });
+  assert(capturedEvidenceBlock !== undefined, "providerFactory must still be called so an ordinary query can be answered");
+  assertEquals(capturedEvidenceBlock, null, "no search ran -- there is nothing real to ground the answer in, so the block must be null, never fabricated");
+  assertEquals(res.answer, "ECHO");
+});
+
+Deno.test("EVIDENCE GROUNDING: providerFactory is never called when search was needed but unavailable (no wasted provider construction on a request that already degrades)", async () => {
+  Deno.env.delete("SEARXNG_BASE_URL");
+  Deno.env.delete("BRAVE_SEARCH_API_KEY");
+  let providerFactoryCalled = false;
+  const res = await handleCanonicalRequest({
+    text: "What is the latest USD exchange rate today?",
+    providers: [fakeProvider("test", "unused")],
+    providerFactory: () => { providerFactoryCalled = true; return [evidenceEchoProvider()]; },
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(providerFactoryCalled, false, "the honest SEARCH_UNAVAILABLE degradation path must never construct providers or attempt generation");
+  assertEquals(res.status, "DEGRADED");
+});
+
+Deno.test("EVIDENCE GROUNDING: the envelope's searchCacheState reflects the real search result (LIVE via a fetch mock, null when no search ran)", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ results: [{ title: "T&T forex note", url: "https://www.central-bank.org.tt/note", content: "snippet", engine: "central-bank", publishedDate: "2026-08-01" }] }), { status: 200 });
+  const withSearch = await handleCanonicalRequest({
+    text: "What is the latest USD exchange rate today?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assertEquals(withSearch.searchCacheState, "LIVE", "a fetchImpl-backed test call is reported LIVE, matching the search adapter's own contract for a non-cached result");
+
+  const withoutSearch = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: null });
+  assertEquals(withoutSearch.searchCacheState, null, "no search ran for this query -- searchCacheState must be null, never a fabricated LIVE/CACHED claim");
+});
+
+Deno.test("EVIDENCE GROUNDING: omitting providerFactory keeps the exact prior (evidence-blind) behavior via the plain providers array", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ results: [{ title: "T&T forex note", url: "https://www.central-bank.org.tt/note", content: "snippet", engine: "central-bank", publishedDate: "2026-08-01" }] }), { status: 200 });
+  const res = await handleCanonicalRequest({
+    text: "What is the latest USD exchange rate today?",
+    providers: [fakeProvider("test", "Plain provider answer, no providerFactory supplied.")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assertEquals(res.answer, "Plain provider answer, no providerFactory supplied.", "backward compatibility: a caller that never supplies providerFactory must be entirely unaffected by this correction");
+});

@@ -102,6 +102,47 @@
       +'<span class="ibis-live-source__meta">'+esc(SOURCE_CLASS_LABEL[source.sourceClass]||source.sourceClass)+(source.engagement?' · '+esc(source.engagement):'')+' · retrieved '+esc(new Date(source.retrievedAt).toLocaleTimeString())+'</span>'
       +'</a>';
   }
+  // Live-search UX correction: the canonical brain's own search() sources (ibis-search-adapter.ts's
+  // SourceRecord shape -- title/publisher/url/publishedAt/retrievedAt) previously reached this
+  // workspace but were never rendered as their own clickable list (only a single Trust Card summary
+  // existed, and even that never received them at this call site -- see canonicalSourcesExtra()
+  // below). Deliberately a plain, additive block appended directly under the answer, not routed
+  // through the shared Trust Card component (js/trust-card.js), so this fix carries zero risk to
+  // that component's many other unrelated callers.
+  function canonicalSourceCardHTML(source){
+    var metaParts=[source.publisher,source.publishedAt?'published '+new Date(source.publishedAt).toLocaleDateString():null,'checked '+new Date(source.retrievedAt).toLocaleString()].filter(Boolean);
+    return '<a class="ibis-live-source" href="'+esc(source.url||'#')+'" target="_blank" rel="noopener noreferrer">'
+      +'<span class="ibis-live-source__title">'+esc(source.title||source.url||'Untitled source')+'</span>'
+      +'<span class="ibis-live-source__meta">'+esc(metaParts.join(' · '))+'</span>'
+      +'</a>';
+  }
+  var CACHE_STATE_LABEL={LIVE:'Live search just now',CACHED:'From a recent search (cached)'};
+  function canonicalSourcesHTML(sources,cacheState){
+    if(!sources||!sources.length)return'';
+    var badge=cacheState&&CACHE_STATE_LABEL[cacheState]?'<span class="ibis-live-kicker">'+esc(CACHE_STATE_LABEL[cacheState])+'</span> ':'';
+    return '<div class="ibis-live-sources-block">'+badge+'<div class="ibis-live-sources">'+sources.map(canonicalSourceCardHTML).join('')+'</div></div>';
+  }
+  // Search-unavailable handoff (ibis-search-adapter.ts's ExternalHandoff[]) previously reached this
+  // workspace on the honest "I don't have a working live-search route yet..." answer but was never
+  // rendered -- a user hit a dead end with no direct link out. Plain, additive, same reasoning as
+  // canonicalSourcesHTML above.
+  function canonicalAlternativesHTML(alternatives){
+    if(!alternatives||!alternatives.length)return'';
+    return '<div class="ibis-live-sources-block"><span class="ibis-live-kicker">ibis could not search live -- try these directly</span><div class="ibis-live-sources">'+alternatives.map(function(a){
+      return '<a class="ibis-live-source" href="'+esc(a.url||'#')+'" target="_blank" rel="noopener noreferrer">'
+        +'<span class="ibis-live-source__title">'+esc(a.label||a.url||'External link')+'</span>'
+        +'<span class="ibis-live-source__meta">'+esc(a.costStatus||'')+(a.signInRequired?' · sign-in required':' · no sign-in required')+'</span>'
+        +'</a>';
+    }).join('')+'</div></div>';
+  }
+  // Shared by every canonical-envelope render site below (the fallback-after-authorized-local-
+  // failure path and the direct server_provider path) -- both carry the exact same real
+  // envelope.sources/searchCacheState fields, so building the mountEvidence() `extra` object the
+  // same way for both keeps the Trust Card's own single-source summary consistent with the fuller
+  // list this function also renders.
+  function canonicalSourcesExtra(envelope,q,limitations){
+    return {prompt:q,sources:envelope&&envelope.sources,limitations:limitations};
+  }
   // Real evidence-backed current-source research -- distinct visual treatment (a bordered
   // "Live Intelligence" block with real linked sources) so this is never mistaken for ordinary
   // model reasoning. Routed through the existing eligibility/provider engine, not a bypass.
@@ -534,9 +575,9 @@
           // authorized fallback generation without ever having stored the prompt durably itself.
           var fallback=await recordExecutionReceipt({planId:canonical.executionInstruction.planId,executionTarget:'browser_local',provider:'browser_local_language_model',success:false,degraded:true,latencyMs:Date.now()-localStartedAt,text:q,products:productsSummary()});
           if(fallback&&typeof fallback.answer==='string'&&fallback.answer){
-            out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain (authorized fallback)</span>'+answerHTML(fallback.answer)+'<p class="ibis-answer-meta">'+esc((fallback.providerPath&&fallback.providerPath[0])||'Governed ibis route')+(fallback.confidence?' · '+esc(fallback.confidence):'')+'</p>'+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
+            out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain (authorized fallback)</span>'+answerHTML(fallback.answer)+'<p class="ibis-answer-meta">'+esc((fallback.providerPath&&fallback.providerPath[0])||'Governed ibis route')+(fallback.confidence?' · '+esc(fallback.confidence):'')+'</p>'+canonicalSourcesHTML(fallback.sources,fallback.searchCacheState)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
             await ensureEvidence();
-            mountEvidence(out,{capability:'TEXT',provider:(fallback.providerPath&&fallback.providerPath[0])||'FTN ibis canonical brain',sourceRetrievedAt:fallback.generatedAt,confidenceBasis:fallback.confidence||'NOT_ASSESSED'},{prompt:q,limitations:fallback.confidenceBasis});
+            mountEvidence(out,{capability:'TEXT',provider:(fallback.providerPath&&fallback.providerPath[0])||'FTN ibis canonical brain',sourceRetrievedAt:fallback.generatedAt,confidenceBasis:fallback.confidence||'NOT_ASSESSED'},canonicalSourcesExtra(fallback,q,fallback.confidenceBasis));
             setStatus('idle');
             revealAnswer(out);
             return;
@@ -546,9 +587,9 @@
           // below rather than leaving the user with no answer at all.
         }
         if(canonical&&typeof canonical.answer==='string'&&canonical.answer){
-          out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain</span>'+answerHTML(canonical.answer)+'<p class="ibis-answer-meta">'+esc((canonical.providerPath&&canonical.providerPath[0])||'Governed ibis route')+(canonical.confidence?' · '+esc(canonical.confidence):'')+'</p>'+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
+          out.innerHTML='<span class="workspace-kicker">FTN ibis canonical brain</span>'+answerHTML(canonical.answer)+'<p class="ibis-answer-meta">'+esc((canonical.providerPath&&canonical.providerPath[0])||'Governed ibis route')+(canonical.confidence?' · '+esc(canonical.confidence):'')+'</p>'+canonicalSourcesHTML(canonical.sources,canonical.searchCacheState)+canonicalAlternativesHTML(canonical.alternatives)+(wantsFtnRoutes(q)?'<hr>'+routeResults(q):'');
           await ensureEvidence();
-          mountEvidence(out,{capability:'TEXT',provider:(canonical.providerPath&&canonical.providerPath[0])||'FTN ibis canonical brain',sourceRetrievedAt:canonical.generatedAt,confidenceBasis:canonical.confidence||'NOT_ASSESSED'},{prompt:q,limitations:canonical.confidenceBasis});
+          mountEvidence(out,{capability:'TEXT',provider:(canonical.providerPath&&canonical.providerPath[0])||'FTN ibis canonical brain',sourceRetrievedAt:canonical.generatedAt,confidenceBasis:canonical.confidence||'NOT_ASSESSED'},canonicalSourcesExtra(canonical,q,canonical.confidenceBasis));
           setStatus('idle');
           revealAnswer(out);
           return;

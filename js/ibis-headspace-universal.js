@@ -4,6 +4,11 @@
   'use strict';
   var form=document.getElementById('inputOrbit'),input=document.getElementById('headspaceQuery'),hint=document.getElementById('commandHint');
   if(!form||!input)return;
+  // Reuses the already-shipped .ibis-live-source(s)/.ibis-live-kicker rules from the ibis workspace
+  // stylesheet (js/ibis-ai-workspace.js's injectStyle()) instead of writing new CSS -- these class
+  // names are unique to this feature, so loading this stylesheet here carries no collision risk
+  // with Headspace's own styling.
+  if(!document.querySelector('link[data-ibis-live-sources-style]')){var liveSourcesStyle=document.createElement('link');liveSourcesStyle.rel='stylesheet';liveSourcesStyle.href='/css/components/ibis-ai.css?v=20260911.1';liveSourcesStyle.setAttribute('data-ibis-live-sources-style','');document.head.appendChild(liveSourcesStyle);}
   var ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-text-cloudflare';
   var ASSISTANT_ENDPOINT='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
   var KEY='sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z';
@@ -34,7 +39,7 @@
 
   async function directText(text){
     var canonical=await canonicalServerQuery(text);
-    if(canonical)return{answer:canonical.answer,provider:'FTN ibis canonical brain',queryClass:canonical.queryClass,sources:canonical.sources,alternatives:canonical.alternatives};
+    if(canonical)return{answer:canonical.answer,provider:'FTN ibis canonical brain',queryClass:canonical.queryClass,sources:canonical.sources,alternatives:canonical.alternatives,searchCacheState:canonical.searchCacheState};
     var guard='Answer the user directly. Do not output internal FTN decision-framework headings or scorecards. Do not invent facts, capabilities, links, biographies, current events or data access. If evidence is required and none is supplied, say what must be verified. ';
     if(needsLiveEvidence(text))guard+='This request may depend on current information. Do not pretend model memory is live evidence. ';
     if(personLookup(text))guard+='This is a person lookup. Do not guess the person\'s profession, credits, biography or economic role if you cannot verify them. ';
@@ -46,7 +51,45 @@
 
   function renderWaiting(result){focus(['answer','tools']);var a=answerCard();if(a){a.querySelector('.thought-bar>span').textContent='PERMISSION REQUIRED';a.querySelector('h2').textContent='ibis is ready to continue, but this action changes something outside Headspace.';var waits=result&&result.run&&result.run.result&&result.run.result.waitingPermissions||[];a.querySelector('p').textContent=waits.length?'Approval required for '+waits.map(function(x){return x.agent.toLowerCase();}).join(', ')+'.':'Approval is required before ibis can perform the external step.';}if(hint)hint.textContent='Execution paused at the permission boundary.';}
 
-  function renderAnswer(text,meta){focus(['answer']);var a=answerCard();if(!a)return;a.querySelector('.thought-bar>span').textContent=(meta&&meta.degraded)?'IBIS ANSWER (DEGRADED)':'IBIS ANSWER';a.querySelector('h2').textContent='';a.querySelector('p').textContent=text;var actions=a.querySelector('.actions');if(actions)actions.style.display='flex';var stageNote=meta&&meta.degraded?' -- canonical orchestration did not run ('+(meta.failedStage||'unknown stage')+'); this is a direct fallback answer.':'';if(hint)hint.textContent='Answer returned through '+(meta&&meta.provider?meta.provider:'the governed IBIS route')+'.'+stageNote;}
+  // Live-search UX correction: canonicalServerQuery()'s real sources/alternatives (see
+  // directText() above) previously reached this file but were never rendered anywhere -- only the
+  // plain answer text was shown. Built with DOM APIs (not innerHTML) to match this file's existing
+  // style; a plain text node per field, never trusting the server string as markup. Cleared and
+  // rebuilt on every render so a later answer with no sources doesn't leave a stale list behind.
+  var CACHE_STATE_LABEL={LIVE:'Live search just now',CACHED:'From a recent search (cached)'};
+  function sourcesHost(card){
+    var host=card.querySelector('[data-ibis-sources]');
+    if(!host){host=document.createElement('div');host.setAttribute('data-ibis-sources','');host.className='ibis-live-sources-block';var p=card.querySelector('p');if(p&&p.parentNode)p.parentNode.insertBefore(host,p.nextSibling);else card.appendChild(host);}
+    host.innerHTML='';
+    return host;
+  }
+  function renderSourcesAndAlternatives(card,meta){
+    var host=sourcesHost(card);
+    var sources=meta&&meta.sources,alternatives=meta&&meta.alternatives;
+    if(sources&&sources.length){
+      if(meta.searchCacheState&&CACHE_STATE_LABEL[meta.searchCacheState]){var badge=document.createElement('span');badge.className='ibis-live-kicker';badge.textContent=CACHE_STATE_LABEL[meta.searchCacheState];host.appendChild(badge);}
+      var list=document.createElement('div');list.className='ibis-live-sources';
+      sources.forEach(function(s){
+        var link=document.createElement('a');link.className='ibis-live-source';link.href=s.url||'#';link.target='_blank';link.rel='noopener noreferrer';
+        var title=document.createElement('span');title.className='ibis-live-source__title';title.textContent=s.title||s.url||'Untitled source';
+        var metaParts=[s.publisher,s.publishedAt?'published '+new Date(s.publishedAt).toLocaleDateString():null,'checked '+new Date(s.retrievedAt).toLocaleString()].filter(Boolean);
+        var metaSpan=document.createElement('span');metaSpan.className='ibis-live-source__meta';metaSpan.textContent=metaParts.join(' · ');
+        link.append(title,metaSpan);list.appendChild(link);
+      });
+      host.appendChild(list);
+    }else if(alternatives&&alternatives.length){
+      var kicker=document.createElement('span');kicker.className='ibis-live-kicker';kicker.textContent='ibis could not search live -- try these directly';host.appendChild(kicker);
+      var altList=document.createElement('div');altList.className='ibis-live-sources';
+      alternatives.forEach(function(alt){
+        var link=document.createElement('a');link.className='ibis-live-source';link.href=alt.url||'#';link.target='_blank';link.rel='noopener noreferrer';
+        var title=document.createElement('span');title.className='ibis-live-source__title';title.textContent=alt.label||alt.url||'External link';
+        var metaSpan=document.createElement('span');metaSpan.className='ibis-live-source__meta';metaSpan.textContent=(alt.costStatus||'')+(alt.signInRequired?' · sign-in required':' · no sign-in required');
+        link.append(title,metaSpan);altList.appendChild(link);
+      });
+      host.appendChild(altList);
+    }
+  }
+  function renderAnswer(text,meta){focus(['answer']);var a=answerCard();if(!a)return;a.querySelector('.thought-bar>span').textContent=(meta&&meta.degraded)?'IBIS ANSWER (DEGRADED)':'IBIS ANSWER';a.querySelector('h2').textContent='';a.querySelector('p').textContent=text;var actions=a.querySelector('.actions');if(actions)actions.style.display='flex';renderSourcesAndAlternatives(a,meta);var stageNote=meta&&meta.degraded?' -- canonical orchestration did not run ('+(meta.failedStage||'unknown stage')+'); this is a direct fallback answer.':'';if(hint)hint.textContent='Answer returned through '+(meta&&meta.provider?meta.provider:'the governed IBIS route')+'.'+stageNote;}
   function renderFailure(message){focus(['answer']);var a=answerCard();if(a){a.querySelector('.thought-bar>span').textContent='IBIS';a.querySelector('h2').textContent='I could not complete that reliably.';a.querySelector('p').textContent=message||'The intelligence route is temporarily unavailable. No answer was invented.';}if(hint)hint.textContent='The request failed closed instead of falling back to prototype copy.';}
 
   // Correction (this pass): an isPlainAnswer() predicate used to live here and decide, in the
