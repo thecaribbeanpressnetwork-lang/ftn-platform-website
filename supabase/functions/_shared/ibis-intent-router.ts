@@ -24,7 +24,12 @@ import type { QueryClass } from "./ibis-response-envelope.ts";
 // caused..." framing, not the bare word "recent").
 const FRESHNESS_MARKERS = /\b(today|latest|recent(?:ly)?|current(?:ly)?|right now|this week|this month|breaking|as of \d{4}|news|price|exchange rate|fx rate|selling rate|indicators?|shortage|election result|score)\b/i;
 
-const OUTCOME_MARKERS = /\b(i want to (build|start|launch|create|design|grow)|help me (build|start|launch|create|design)|how do i (build|start|launch|create)|i(?:'m| am) trying to (build|start|launch|create|earn)|i need to (build|achieve|design|change|accomplish))\b/i;
+// "what could go wrong if/with ..." / "what are the risks of ..." added (semantic-robustness pass,
+// independent audit, live-confirmed gap: "What could go wrong if FTN depends too heavily on free AI
+// providers?" matched nothing and never planned Founder Thinking/Butterfly/Red Team at all). A risk
+// question is the same kind of strategic-judgment question FOUNDER_STRATEGY already exists for --
+// this is a genuine paraphrase, not a new capability.
+const OUTCOME_MARKERS = /\b(i want to (build|start|launch|create|design|grow)|help me (build|start|launch|create|design)|how do i (build|start|launch|create)|i(?:'m| am) trying to (build|start|launch|create|earn)|i need to (build|achieve|design|change|accomplish)|what could go wrong (?:if|with)|what might go wrong|what are the risks (?:of|with))\b/i;
 
 const PATHWAY_MARKERS = /\b(steps? to|how do i apply|apply for|eligibility|documents? (?:needed|required)|deadline)\b/i;
 

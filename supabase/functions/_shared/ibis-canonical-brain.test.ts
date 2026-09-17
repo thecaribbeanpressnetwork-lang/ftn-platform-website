@@ -1915,3 +1915,13 @@ Deno.test("EXECUTION AUTHORIZATION: an ordinary SIMPLE_TEXT question with zero p
   assertEquals(res.capabilityPlan.length, 0);
   assertEquals(res.executionInstruction.executionAuthorized, true, "an ordinary question with nothing else planned must keep the existing local-execution optimization");
 });
+
+// Live-confirmed gap (independent audit, mission-required test query #5): "What could go wrong if
+// FTN depends too heavily on free AI providers?" matched no marker at all and never planned Founder
+// Thinking/Butterfly/Red Team -- a risk question is the same strategic-judgment need
+// FOUNDER_STRATEGY already exists for.
+Deno.test("SEMANTIC ROBUSTNESS: 'what could go wrong if...' plans Founder Thinking/Red Team like an outcome question", () => {
+  const result = classifyIntent("What could go wrong if FTN depends too heavily on free AI providers?");
+  assertEquals(result.signals.outcome, true);
+  assertEquals(result.queryClass, "FOUNDER_STRATEGY");
+});
