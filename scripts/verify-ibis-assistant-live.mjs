@@ -37,6 +37,30 @@ if (legacyFresh.evidenceState !== 'SEARCH_GROUNDED') throw new Error(`Legacy fre
 if (!Array.isArray(legacyFresh.sources) || !legacyFresh.sources.length || legacyFresh.sources.some((source) => !/^https:\/\//.test(source?.url || ''))) throw new Error(`Legacy freshness sources missing or invalid: ${JSON.stringify(legacyFresh)}`);
 if (/don['’]?t have real[- ]?time access|cannot access real[- ]?time/i.test(legacyFresh.answer || '')) throw new Error(`Legacy freshness answer incorrectly denied live access: ${JSON.stringify(legacyFresh)}`);
 
+// Investor-demo safety proof #2: the authorized-fallback path (browser-local execution declared
+// authorized, then reported failed) must resend the ACTUAL question to the fallback provider, not
+// a bare system prompt. Confirmed live before this fix: a plain ordinary question here answered
+// with a generic greeting ("Wah gwaan? How can I assist you today?") because the provider closures
+// were built from the record_execution_receipt request's own (nonexistent) `messages` array.
+const ordinaryPlan = await post({ action: 'canonical_query', messages: [{ role: 'user', content: 'What is photosynthesis?' }], products: [] });
+if (ordinaryPlan.executionInstruction?.executionAuthorized !== true || !ordinaryPlan.executionInstruction?.planId) {
+  throw new Error(`Expected an authorized local-execution plan for an ordinary question: ${JSON.stringify(ordinaryPlan)}`);
+}
+const fallback = await post({
+  action: 'record_execution_receipt',
+  receipt: {
+    planId: ordinaryPlan.executionInstruction.planId,
+    executionTarget: 'browser_local',
+    provider: 'browser_local_language_model',
+    success: false,
+    text: 'What is photosynthesis?',
+    products: [],
+  },
+}, 30_000);
+if (!/photosynthes|chlorophyll|sunlight|plants?.{0,20}(energy|glucose|light)/i.test(fallback.answer || '')) {
+  throw new Error(`Authorized-fallback answer did not actually address the question: ${JSON.stringify(fallback)}`);
+}
+
 console.log(JSON.stringify({
   ok: true,
   endpoint,
@@ -48,4 +72,6 @@ console.log(JSON.stringify({
   legacyFreshnessEvidenceState: legacyFresh.evidenceState,
   legacyFreshnessSourceCount: legacyFresh.sources.length,
   legacyFreshnessProvider: legacyFresh.provider,
+  authorizedFallbackRequestId: fallback.requestId,
+  authorizedFallbackAnswerPreview: (fallback.answer || '').slice(0, 120),
 }));

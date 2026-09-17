@@ -31,7 +31,7 @@
 // (SELECTED/INPUT_READY/EXECUTED/SKIPPED_*/DEGRADED/UNAVAILABLE/FAILED), is delegated to
 // ibis-multi-agent-orchestrator.ts's runOrchestration() -- this file remains the single canonical
 // orchestrator/endpoint; that module is a function it calls, not a competing router or brain.
-import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct } from "./ibis-intelligence-gateway.ts";
+import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct, type IbisTurn } from "./ibis-intelligence-gateway.ts";
 import { classifyIntent, type IntentSignals } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
 import {
@@ -469,6 +469,17 @@ export async function recordReceiptAndMaybeFallback(input: {
   receipt: ExecutionReceiptInput;
   providers: GatewayProvider[];
   lifecycleStore: LifecycleStore | null;
+  // Optional: rebuilds `providers` with the ACTUAL resent user text as the one real user turn,
+  // right before the fallback provider call. Without this, `input.providers` are whatever the
+  // caller built when the ORIGINAL action:"record_execution_receipt" request arrived -- a request
+  // that carries only {action, receipt}, no `messages` -- so every provider closure was built with
+  // an empty turns array. The fallback call below still worked (recordSuccess/recordFailure, the
+  // deterministic/founder-reasoning checks against `resentText` were already correct), but the
+  // external model itself received a system prompt with no user message at all, and answered a
+  // generic greeting instead of the user's real question (confirmed live: "What is photosynthesis?"
+  // returned "Wah gwaan? How can I assist you today?"). Callers that omit this (existing tests, any
+  // future non-HTTP caller) keep the exact prior behavior.
+  providerFactory?: (turns: IbisTurn[]) => GatewayProvider[];
   // Test-only override for LEASE_DURATION_MS, so lease/fencing tests can prove real behavior
   // deterministically and fast rather than sleeping 45+ real seconds for a lease to expire. Never
   // pass this in production request handling.
@@ -534,7 +545,8 @@ export async function recordReceiptAndMaybeFallback(input: {
   const products: IbisProduct[] = Array.isArray(r.products) ? (r.products as IbisProduct[]) : [];
 
   const startedAt = new Date().toISOString();
-  const gatewayResult = await runGateway({ text: resentText, products, providers: input.providers, requestId: plan.planId });
+  const fallbackProviders = input.providerFactory ? input.providerFactory([{ role: "user", content: resentText }]) : input.providers;
+  const gatewayResult = await runGateway({ text: resentText, products, providers: fallbackProviders, requestId: plan.planId });
 
   // Finalize: requires the EXACT (leaseOwner, leaseVersion) this call was issued at claim time.
   // If another worker reclaimed this plan's lease in the meantime (this worker's own call ran

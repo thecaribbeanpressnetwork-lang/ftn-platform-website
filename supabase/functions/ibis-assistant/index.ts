@@ -152,7 +152,15 @@ Deno.serve(async (request) => {
   // endpoint accepts or rejects is also still logged (visible in Supabase's own function logs) as
   // an additional, non-durable observability layer.
   if (payload.action === "record_execution_receipt") {
-    const outcome = await recordReceiptAndMaybeFallback({ receipt: (payload.receipt as any) || {}, providers, lifecycleStore });
+    // Bug found in independent live audit: a record_execution_receipt request carries only
+    // {action, receipt} -- no `messages` -- so `providers` above was built from an EMPTY turns
+    // array. The fallback call inside recordReceiptAndMaybeFallback() reused those same closures,
+    // so the external model received a system prompt with no user message at all and answered a
+    // generic greeting instead of the user's real (resent, hash-verified) question. This factory
+    // rebuilds providers with the actual resent text as the one real user turn, used ONLY for the
+    // one authorized fallback call this endpoint may make for this receipt.
+    const fallbackProviderFactory = (fallbackTurns: IbisTurn[]) => [cloudflare(fallbackTurns, system), anthropic(fallbackTurns, system), gemini(fallbackTurns, system), openAICompatible("PRIMARY", fallbackTurns, system), openAICompatible("SECONDARY", fallbackTurns, system), ollama(fallbackTurns, system)];
+    const outcome = await recordReceiptAndMaybeFallback({ receipt: (payload.receipt as any) || {}, providers, providerFactory: fallbackProviderFactory, lifecycleStore });
     if (outcome.status === "REJECTED") {
       console.log("ibis execution receipt REJECTED", outcome.reason, JSON.stringify(payload.receipt));
       return reply({ recorded: false, rejected: true, reason: outcome.reason }, 409, origin);

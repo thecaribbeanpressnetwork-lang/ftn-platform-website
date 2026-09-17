@@ -1565,3 +1565,72 @@ Deno.test("EVIDENCE GROUNDING: omitting providerFactory keeps the exact prior (e
   Deno.env.delete("SEARXNG_BASE_URL");
   assertEquals(res.answer, "Plain provider answer, no providerFactory supplied.", "backward compatibility: a caller that never supplies providerFactory must be entirely unaffected by this correction");
 });
+
+// --- Independent live audit finding: the authorized-fallback provider call silently answered with
+// no user question at all. ---
+//
+// action:"record_execution_receipt" requests carry only {action, receipt} -- never `messages` --
+// so a caller building `providers` from that request's own (nonexistent) messages array bakes an
+// EMPTY turns array into every provider closure. recordReceiptAndMaybeFallback() correctly
+// verifies the resent text's hash and passes it to runGateway({text: resentText, ...}), but
+// runGateway only uses `text` for its own deterministic/founder-reasoning checks -- the actual
+// external provider call uses `provider.run()`, whose messages were fixed at construction time.
+// Confirmed live: the deployed production endpoint answered "What is photosynthesis?" with "Wah
+// gwaan? How can I assist you today?" -- a generic greeting, because the model never received the
+// question. providerFactory (mirroring handleCanonicalRequest's own evidence-grounding pattern)
+// closes this by rebuilding providers with the real resent text as the one user turn.
+Deno.test("AUTHORIZED FALLBACK: without providerFactory, the fallback provider receives no user question at all", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  let receivedTurns: unknown = "NEVER_CALLED";
+  const capturingProvider: GatewayProvider = {
+    id: "test", label: "test", model: "fake-model", configured: true,
+    run: async () => { receivedTurns = "PROVIDER_CALLED_BUT_TURNS_WERE_BAKED_IN_EMPTY_AT_CONSTRUCTION"; return { answer: "Wah gwaan? How can I assist you today?", model: "fake-model" }; },
+  };
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is photosynthesis?" },
+    providers: [capturingProvider],
+    lifecycleStore: store,
+  });
+  assert(outcome.status === "ACCEPTED" && outcome.envelope, "the (buggy) fallback must still succeed at the transport level -- the defect is in what the model receives, not a transport failure");
+  assertEquals(outcome.envelope.answer, "Wah gwaan? How can I assist you today?", "demonstrates the exact live-observed defect: a real question produces a generic greeting when providers are not rebuilt with the resent text");
+});
+
+Deno.test("AUTHORIZED FALLBACK FIX: providerFactory rebuilds providers with the resent user text, so the fallback model actually receives the question", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  let capturedTurns: Array<{ role: string; content: string }> = [];
+  const providerFactory = (turns: Array<{ role: "user" | "assistant"; content: string }>): GatewayProvider[] => {
+    capturedTurns = turns;
+    return [{
+      id: "test", label: "test", model: "fake-model", configured: true,
+      run: async () => ({ answer: `Photosynthesis is the process plants use to convert light into energy. (asked: "${turns[0]?.content}")`, model: "fake-model" }),
+    }];
+  };
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is photosynthesis?" },
+    providers: [],
+    providerFactory,
+    lifecycleStore: store,
+  });
+  assert(outcome.status === "ACCEPTED" && outcome.envelope);
+  assertEquals(capturedTurns.length, 1, "providerFactory must be called with exactly one real user turn");
+  assertEquals(capturedTurns[0].role, "user");
+  assertEquals(capturedTurns[0].content, "What is photosynthesis?", "the fallback provider must receive the ACTUAL resent, hash-verified question, not an empty turns array");
+  assertMatch(outcome.envelope.answer, /Photosynthesis is the process/, "the answer must actually address the real question once the model receives it");
+});
+
+Deno.test("AUTHORIZED FALLBACK FIX: omitting providerFactory keeps exact prior behavior (backward compatible)", async () => {
+  const store = createInMemoryLifecycleStore();
+  const res = await handleCanonicalRequest({ text: "What is a compatibility test?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  const planId = res.executionInstruction.planId;
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text: "What is a compatibility test?" },
+    providers: [fakeProvider("test", "unchanged legacy behavior")],
+    lifecycleStore: store,
+  });
+  assert(outcome.status === "ACCEPTED" && outcome.envelope);
+  assertEquals(outcome.envelope.answer, "unchanged legacy behavior", "a caller that never supplies providerFactory must be entirely unaffected by this correction");
+});
