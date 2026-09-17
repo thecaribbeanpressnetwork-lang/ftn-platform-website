@@ -127,6 +127,10 @@ export type SourceRecord = {
   publishedAt: string | null;
   updatedAt: string | null;
   retrievedAt: string;
+  // The search provider's own result text (SearXNG's `content`, Brave's `description`) -- real
+  // evidence a synthesis step can summarize from, but still only ever a snippet: never treated as
+  // having inspected the full source page. null when the provider returned none.
+  snippet: string | null;
   // SNIPPET: only a search-result snippet was inspected, never treated as verified full-source
   // content. INSPECTED: the retrieval adapter actually fetched and read the page body.
   evidenceDepth: "SNIPPET" | "INSPECTED";

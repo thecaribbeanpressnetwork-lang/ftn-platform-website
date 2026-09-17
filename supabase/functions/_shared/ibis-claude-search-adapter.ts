@@ -63,6 +63,10 @@ function sourcesFromClaudeResponse(response: ClaudeMessagesResponse, retrievedAt
         publishedAt: null,
         updatedAt: null,
         retrievedAt,
+        // Anthropic's web_search_result items carry no readable excerpt field (only an opaque
+        // encrypted_content blob used internally for citation verification, never exposed as
+        // text) -- honestly null rather than fabricating a snippet.
+        snippet: null,
         evidenceDepth: "SNIPPET",
       });
     }

@@ -60,6 +60,7 @@ Deno.test("search success normalizes source title/publisher/url/dates", async ()
   assertEquals(res.sources[0].url, "https://www.central-bank.org.tt/story");
   assertEquals(res.sources[0].publishedAt, "2026-09-10");
   assertEquals(res.sources[0].evidenceDepth, "SNIPPET");
+  assertEquals(res.sources[0].snippet, "snippet", "SearXNG's own result `content` must become SourceRecord.snippet");
 });
 
 // --- Gate 4: search-provider outage falls back honestly (SearXNG IS configured, but errors). ---
@@ -238,7 +239,24 @@ Deno.test("Brave Search success normalizes title/publisher/url", async () => {
     assertEquals(result.provider, "brave-search");
     assertEquals(result.sources[0].publisher, "central-bank.org.tt");
     assertEquals(result.sources[0].evidenceDepth, "SNIPPET");
+    assertEquals(result.sources[0].snippet, "snippet", "Brave's own result `description` must become SourceRecord.snippet");
   }
+});
+
+Deno.test("SearXNG/Brave: a result with no content/description field leaves snippet null, never breaking normalization", async () => {
+  const searxngResult = await searxngSearch("test", {
+    baseUrl: "http://fake-searxng.test",
+    fetchImpl: async () => new Response(JSON.stringify({ results: [{ title: "No snippet here", url: "https://example.tt/none" }] }), { status: 200 }),
+  });
+  assert(searxngResult.status === "OK");
+  assertEquals(searxngResult.sources[0].snippet, null);
+
+  const braveResult = await braveSearch("test", {
+    apiKey: "fake-key",
+    fetchImpl: async () => new Response(JSON.stringify({ web: { results: [{ title: "No description here", url: "https://example.tt/none2" }] } }), { status: 200 }),
+  });
+  assert(braveResult.status === "OK");
+  assertEquals(braveResult.sources[0].snippet, null);
 });
 
 Deno.test("Brave Search with no API key returns SEARCH_UNAVAILABLE", async () => {
@@ -1369,6 +1387,34 @@ Deno.test("MULTI-AGENT ACCEPTANCE (group 6): mock fixtures are never classified 
   assert(!JSON.stringify(res).includes("LIVE_SEARCH_GROUNDED"));
 });
 
+// --- DUPLICATE-RECEIPT correction: runOrchestration() already seeds its own receipts Map with
+// researchReceipt (so orchestration.capabilityExecution already contains it); ibis-canonical-
+// brain.ts used to prepend researchReceipt a second time on top, producing two RESEARCH entries
+// in capabilityExecution for a single search execution. ---
+Deno.test("DUPLICATE RECEIPT: a single search execution produces exactly one RESEARCH plan entry and exactly one RESEARCH capabilityExecution receipt", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ results: [{ title: "T&T forex note", url: "https://www.central-bank.org.tt/note", content: "snippet", engine: "central-bank", publishedDate: "2026-08-01" }] }), { status: 200 });
+  const res = await handleCanonicalRequest({
+    text: "What is the latest USD exchange rate today?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  const plannedResearch = res.capabilityPlan.filter((p) => p.capability === "RESEARCH");
+  assertEquals(plannedResearch.length, 1, "exactly one RESEARCH entry must appear in capabilityPlan");
+
+  const researchReceipts = res.capabilityExecution.filter((r) => r.capability === "RESEARCH");
+  assertEquals(researchReceipts.length, 1, "exactly one RESEARCH entry must appear in capabilityExecution -- never duplicated");
+  assertEquals(researchReceipts[0].finalState, "EXECUTED");
+
+  // The receipt's own nested copy must match exactly (same object, not a second, differently-built list).
+  assertEquals(res.receipt.capabilityExecution, res.capabilityExecution);
+  assertEquals(res.receipt.capabilityExecution.filter((r) => r.capability === "RESEARCH").length, 1);
+});
+
 // --- LIVE-SEARCH EVIDENCE GROUNDING (P0 correction): retrieved sources were previously returned to
 // the caller but never handed to the answer-generation call itself -- runGateway({text, ...}) had
 // zero knowledge of what search found, so even a successful search never actually changed the
@@ -1406,9 +1452,57 @@ Deno.test("EVIDENCE GROUNDING: providerFactory is called with a real evidence bl
   assert(evidenceBlockText.includes("Central Bank of T&T: forex allocation update"), "the evidence block must contain the real retrieved source title");
   assert(evidenceBlockText.includes("https://www.central-bank.org.tt/forex-update"), "the evidence block must contain the real retrieved source URL");
   assert(evidenceBlockText.includes("2026-08-20"), "the evidence block must carry the real publication date when known");
+  assert(evidenceBlockText.includes("Snippet: snippet"), "the evidence block must include the source's own snippet text, not just title/date/URL");
   assertEquals(res.answer, "ECHO", "the provider actually constructed from providerFactory (with evidence available to it) must be the one that answers");
   const modelTextMode = res.reasoningModesUsed.find((m) => m.mode === "MODEL_TEXT" && m.executed);
   assert(modelTextMode?.contribution?.includes("grounded in 1 retrieved source"), "the disclosed contribution must state the answer was grounded in retrieved evidence, not just that search happened");
+});
+
+Deno.test("GROUNDED SYNTHESIS: the evidence block instructs summarizing snippets, explicitly disclaims full-page inspection, and requires [n] citations", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({
+      results: [
+        { title: "T&T PM announces new port project", url: "https://news.gov.tt/port", content: "The Prime Minister announced a new deep-water port project today.", engine: "gov.tt", publishedDate: "2026-09-17" },
+        { title: "Central Bank forex update", url: "https://www.central-bank.org.tt/x", content: "Foreign reserves rose slightly this quarter.", engine: "central-bank", publishedDate: null },
+      ],
+    }), { status: 200 });
+  let capturedEvidenceBlock: string | null | undefined = undefined;
+  await handleCanonicalRequest({
+    text: "What is happening in Trinidad and Tobago today?",
+    providers: [fakeProvider("test", "unused")],
+    providerFactory: (evidenceBlock) => { capturedEvidenceBlock = evidenceBlock; return [evidenceEchoProvider()]; },
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  const block = capturedEvidenceBlock as unknown as string;
+  assert(block.includes("The Prime Minister announced a new deep-water port project today."), "the first source's real snippet text must appear");
+  assert(block.includes("Foreign reserves rose slightly this quarter."), "the second source's real snippet text must appear");
+  assert(/is NOT equivalent to a full-page inspection/i.test(block), "the instruction must explicitly disclaim full-page verification");
+  assert(/summarize/i.test(block), "the instruction must direct the model to actually summarize supported developments, not merely list sources");
+  assert(/\[n\]/.test(block), "the instruction must require [n]-style citations");
+  assert(/never|do not|only what/i.test(block) && /memory/i.test(block), "the instruction must forbid filling unsupported/current facts from memory");
+});
+
+Deno.test("GROUNDED SYNTHESIS: a source with no snippet still renders in the evidence block (title/date/URL only), never crashing evidence-block construction", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ results: [{ title: "No snippet source", url: "https://example.tt/none", engine: "gov.tt" }] }), { status: 200 });
+  let capturedEvidenceBlock: string | null | undefined = undefined;
+  const res = await handleCanonicalRequest({
+    text: "What is the latest USD exchange rate today?",
+    providers: [fakeProvider("test", "unused")],
+    providerFactory: (evidenceBlock) => { capturedEvidenceBlock = evidenceBlock; return [evidenceEchoProvider()]; },
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assertEquals(res.status, "OK");
+  const block = capturedEvidenceBlock as unknown as string;
+  assert(block.includes("No snippet source"), "the source must still appear by title even with no snippet");
+  assert(!block.includes("Snippet: null") && !block.includes("Snippet: undefined"), "a missing snippet must never render as a literal null/undefined string");
 });
 
 Deno.test("EVIDENCE GROUNDING: providerFactory is called with null when RESEARCH was not planned (no fabricated evidence block for an ordinary query)", async () => {

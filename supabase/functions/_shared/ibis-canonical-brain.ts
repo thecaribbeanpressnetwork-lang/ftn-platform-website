@@ -207,6 +207,7 @@ function sourcesFromSearch(result: SearchResult): SourceRecord[] {
     publishedAt: s.publishedAt,
     updatedAt: s.updatedAt,
     retrievedAt: s.retrievedAt,
+    snippet: s.snippet,
     evidenceDepth: s.evidenceDepth,
   }));
 }
@@ -218,16 +219,24 @@ function sourcesFromSearch(result: SearchResult): SourceRecord[] {
 // null (never an empty string) when there is nothing to ground, so callers can tell "no evidence
 // block" apart from "an evidence block with zero sources" (which should never occur, since this is
 // only ever called with sources.length > 0).
+// Grounded-synthesis correction: each source's own snippet text is now included (SearXNG's
+// `content`, Brave's `description`) so the model can actually SUMMARIZE current developments,
+// not just list sources to visit -- the prior version omitted snippet text entirely, which is why
+// a genuinely search-grounded answer still degraded to "check Al Jazeera / BBC / Guardian"
+// instead of describing what those sources actually say. The instruction below is explicit that a
+// snippet is still only search-result evidence, never a full-page read, so this must never be
+// misread as license to claim deeper verification than a snippet supports.
 function buildEvidenceBlock(sources: SourceRecord[]): string | null {
   if (!sources.length) return null;
   const lines = sources.map((s, i) => {
     const meta = [s.publisher, s.publishedAt ? `published ${s.publishedAt}` : null, `retrieved ${s.retrievedAt}`].filter(Boolean).join(", ");
-    return `[${i + 1}] "${s.title}"${meta ? ` (${meta})` : ""} -- ${s.url}`;
+    const header = `[${i + 1}] "${s.title}"${meta ? ` (${meta})` : ""} -- ${s.url}`;
+    return s.snippet ? `${header}\n    Snippet: ${s.snippet}` : header;
   });
   return [
     "Retrieved evidence for this request (from a real search just performed for this question):",
     ...lines,
-    "Only use the above as current/verified information. Cite a source by its [n] when you rely on it directly. Do not present anything else as current or verified -- if the evidence above doesn't answer part of the question, say so plainly rather than filling the gap from memory.",
+    "Each numbered item above is search-result evidence (a title plus a short snippet of the page's own text where available) -- it is NOT equivalent to a full-page inspection, and none of it has been independently verified beyond what the snippet itself states. Summarize and describe current developments using ONLY what these snippets actually support; where several snippets describe different current events, synthesize them into an actual summary rather than merely listing the sources. Cite a source by its [n] when you rely on it directly. Do not present any current or specific fact as true unless a snippet above supports it -- if part of the question isn't covered by the evidence, say so plainly rather than filling the gap from memory.",
   ].join("\n");
 }
 
@@ -352,9 +361,12 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   extraUncertainties.push(...orchestration.uncertainties);
   actions.push(...orchestration.actions);
   ecosystemConnections.push(...orchestration.ecosystemConnections);
-  const capabilityExecution: CapabilityReceiptEntry[] = researchReceipt
-    ? [researchReceipt, ...orchestration.capabilityExecution]
-    : orchestration.capabilityExecution;
+  // Duplicate-receipt correction: runOrchestration() already seeds its own internal receipts Map
+  // with `researchReceipt` (when present) BEFORE building every other capability's entry, and
+  // `orchestration.capabilityExecution` is that same Map's values -- it already contains the one
+  // RESEARCH entry. Prepending `researchReceipt` again here used to produce two RESEARCH entries
+  // in the final receipt for a single search execution.
+  const capabilityExecution: CapabilityReceiptEntry[] = orchestration.capabilityExecution;
   reasoningModesUsed.push(...relevantUnavailableModes(intent.queryClass));
 
   // Slice 3 correction: when local execution is authorized, this endpoint must NOT also generate

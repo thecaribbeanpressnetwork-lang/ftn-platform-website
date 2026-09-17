@@ -8,7 +8,7 @@
 // always restore it afterward, and call resetSearchControlsForTests() first so no cache/budget
 // state leaks between tests (module-level state is process-wide within one Deno test run).
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { search, resetSearchControlsForTests } from "./ibis-search-adapter.ts";
+import { search, resetSearchControlsForTests, searxngSearch } from "./ibis-search-adapter.ts";
 
 function withPatchedFetch<T>(impl: typeof fetch, run: () => Promise<T>): Promise<T> {
   const original = globalThis.fetch;
@@ -161,6 +161,106 @@ Deno.test("CASCADE: Claude Web Search's own budget exhaustion falls through to B
     assert(result.status === "OK" && result.provider === "brave-search");
   });
   clearSearchEnv();
+});
+
+Deno.test("DIAGNOSTICS: when every provider fails, the combined reason names each provider's own real failure, not just the last one's", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  Deno.env.set("ANTHROPIC_API_KEY", "test-key");
+  // BRAVE_SEARCH_API_KEY left unset -- Brave will report "not configured", but that must not be
+  // the ONLY thing the caller sees.
+  await withPatchedFetch(async (url) => {
+    if (String(url).includes("fake-searxng.test")) return new Response("", { status: 500 });
+    if (String(url).includes("api.anthropic.com")) return new Response(JSON.stringify({ error: { type: "authentication_error", message: "invalid x-api-key" } }), { status: 401 });
+    throw new Error("must never reach Brave's real endpoint -- no key is configured");
+  }, async () => {
+    const result = await search("all providers fail query");
+    assertEquals(result.status, "SEARCH_UNAVAILABLE");
+    assert(result.status === "SEARCH_UNAVAILABLE");
+    assert(result.reason.includes("SearXNG:"), "the combined reason must name SearXNG's own failure");
+    assert(result.reason.includes("Claude Web Search:"), "the combined reason must name Claude Web Search's own failure");
+    assert(result.reason.includes("Brave Search:"), "the combined reason must name Brave Search's own failure");
+    assert(result.reason.includes("HTTP 500"), "SearXNG's real failure detail (HTTP 500) must be preserved, not masked by a later provider's message");
+    assert(result.reason.includes("No BRAVE_SEARCH_API_KEY is configured"), "Brave's own honest reason must still appear");
+    assert(!/x-api-key|Bearer |sk-ant-|Authorization:/i.test(result.reason), "no credential/header value may ever appear in the combined reason");
+    assert(!/at\s+\S+:\d+:\d+|\.ts:\d+/.test(result.reason), "no stack trace must ever appear in the combined reason");
+  });
+  clearSearchEnv();
+});
+
+Deno.test("DIAGNOSTICS: the combined-failure result still carries the standard external-handoff alternatives", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  await withPatchedFetch(async () => new Response("", { status: 500 }), async () => {
+    const result = await search("no providers configured query");
+    assert(result.status === "SEARCH_UNAVAILABLE");
+    assert(result.alternatives.length > 0, "the same honest external-handoff alternatives must still be offered");
+  });
+  clearSearchEnv();
+});
+
+// --- COLD-START RESILIENCE: a genuine timeout on SearXNG's first (short) attempt earns exactly
+// one retry with a longer, still-bounded window; any OTHER failure (HTTP error, empty results)
+// never retries, since retrying those would not help. ---
+
+function abortAwareFetch(delaysMs: number[], onCall: (callIndex: number) => Response): typeof fetch {
+  let call = 0;
+  return ((_url: unknown, init?: RequestInit) => {
+    const thisCall = call;
+    const delay = delaysMs[Math.min(call, delaysMs.length - 1)];
+    call++;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => resolve(onCall(thisCall)), delay);
+      init?.signal?.addEventListener("abort", () => {
+        clearTimeout(timer);
+        reject(new DOMException("The signal has been aborted", "TimeoutError"));
+      });
+    });
+  }) as typeof fetch;
+}
+
+Deno.test("COLD START: a genuine timeout on the first attempt gets exactly one retry with a longer window, which succeeds", async () => {
+  let calls = 0;
+  const fetchImpl = abortAwareFetch([50, 5], () => {
+    calls++;
+    return new Response(JSON.stringify({ results: [{ title: "Cold start recovered", url: "https://example.tt/cold", content: "warmed up", engine: "test" }] }), { status: 200 });
+  });
+  const result = await searxngSearch("cold start query", { baseUrl: "http://fake-searxng.test", timeoutMs: 10, retryTimeoutMs: 200, fetchImpl });
+  assertEquals(result.status, "OK");
+  assert(result.status === "OK" && result.sources[0].title === "Cold start recovered");
+  assertEquals(calls, 1, "the slow first attempt must time out and abort before completing; only the fast retry actually resolves");
+});
+
+Deno.test("COLD START: if the retry ALSO times out, the final result is an honest SEARCH_UNAVAILABLE naming the retry, never an infinite wait", async () => {
+  let calls = 0;
+  const alwaysSlowFetch: typeof fetch = (_url, init) => {
+    calls++;
+    return new Promise((_resolve, reject) => {
+      const timer = setTimeout(() => {}, 10_000);
+      (init as RequestInit)?.signal?.addEventListener("abort", () => { clearTimeout(timer); reject(new DOMException("aborted", "TimeoutError")); });
+    });
+  };
+  const result = await searxngSearch("always cold query", { baseUrl: "http://fake-searxng.test", timeoutMs: 5, retryTimeoutMs: 15, fetchImpl: alwaysSlowFetch });
+  assertEquals(result.status, "SEARCH_UNAVAILABLE");
+  assert(result.status === "SEARCH_UNAVAILABLE" && /retry/i.test(result.reason));
+  assertEquals(calls, 2, "exactly two attempts total -- never more, never an unbounded loop");
+});
+
+Deno.test("COLD START: a non-timeout failure (HTTP error) never retries -- retrying would not help", async () => {
+  let calls = 0;
+  const httpErrorFetch: typeof fetch = async () => { calls++; return new Response("", { status: 500 }); };
+  const result = await searxngSearch("http error query", { baseUrl: "http://fake-searxng.test", timeoutMs: 10, retryTimeoutMs: 200, fetchImpl: httpErrorFetch });
+  assertEquals(result.status, "SEARCH_UNAVAILABLE");
+  assertEquals(calls, 1, "an HTTP error must never trigger the cold-start retry -- only a genuine timeout does");
+});
+
+Deno.test("COLD START: empty results never retries -- retrying would not help", async () => {
+  let calls = 0;
+  const emptyResultsFetch: typeof fetch = async () => { calls++; return new Response(JSON.stringify({ results: [] }), { status: 200 }); };
+  const result = await searxngSearch("empty results query", { baseUrl: "http://fake-searxng.test", timeoutMs: 10, retryTimeoutMs: 200, fetchImpl: emptyResultsFetch });
+  assertEquals(result.status, "SEARCH_UNAVAILABLE");
+  assertEquals(calls, 1, "an empty-results response must never trigger the cold-start retry");
 });
 
 Deno.test("An explicit fetchImpl override (every existing test in this repo) bypasses cache/dedup/budget entirely -- always a fresh attempt", async () => {

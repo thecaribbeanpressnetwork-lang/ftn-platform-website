@@ -54,42 +54,71 @@ type SearXNGResponse = { results?: SearXNGResponseItem[] };
 // repo's sandbox has no Docker, so a live SearXNG instance could not be run and tested here; this
 // adapter is proven against SearXNG's documented JSON response contract, not against a live
 // instance. That gap is real and is reported as such, not hidden behind a passing test.
+// Cold-start resilience (PREVIEW-appropriate, disclosed): a free-tier SearXNG preview (Render/
+// Hugging Face) sleeps after inactivity and can take well over this adapter's normal timeout to
+// wake -- but the common case (already warm) answers in ~2 seconds, so the FIRST attempt keeps a
+// short timeout rather than punishing every ordinary request with a long wait. Only a genuine
+// TIMEOUT on that first attempt (never an HTTP error, empty-results, or malformed response --
+// retrying those would not help and would only add latency) earns exactly ONE retry with a longer,
+// still-bounded window, giving a cold instance a real chance to finish waking without ever
+// approaching an unacceptable wait. If the retry ALSO fails, this still fails closed with an
+// honest SEARCH_UNAVAILABLE -- never an infinite wait, never a fabricated answer. Evaluated and
+// explicitly rejected for this pass: a scheduled warm-up ping to keep the free instance always
+// awake -- that would consume Edge Function invocations on a recurring schedule and edge toward
+// defeating the free tier's own sleep policy, which is a founder infrastructure decision, not one
+// this repair makes unilaterally.
+const SEARXNG_FIRST_TIMEOUT_MS = 8000;
+const SEARXNG_RETRY_TIMEOUT_MS = 20000;
+
 export async function searxngSearch(
   query: string,
-  options: { baseUrl?: string; timeoutMs?: number; fetchImpl?: typeof fetch } = {}
+  options: { baseUrl?: string; timeoutMs?: number; retryTimeoutMs?: number; fetchImpl?: typeof fetch } = {}
 ): Promise<SearchResult> {
   const baseUrl = (options.baseUrl ?? Deno.env.get("SEARXNG_BASE_URL") ?? "").replace(/\/$/, "");
   if (!baseUrl) return unavailable(query, "No SEARXNG_BASE_URL is configured -- no self-hosted search index is running yet.");
   const doFetch = options.fetchImpl ?? fetch;
   const retrievedAt = new Date().toISOString();
-  try {
-    const response = await doFetch(`${baseUrl}/search?q=${encodeURIComponent(query)}&format=json`, {
-      signal: AbortSignal.timeout(options.timeoutMs ?? 8000),
-    });
-    if (!response.ok) return unavailable(query, `SearXNG responded HTTP ${response.status}.`);
-    const data = (await response.json().catch(() => ({}))) as SearXNGResponse;
-    const results = Array.isArray(data.results) ? data.results : [];
-    if (!results.length) return unavailable(query, "SearXNG returned no results for this query.");
-    const sources: SourceRecord[] = results.slice(0, 8)
-      .filter((r): r is Required<Pick<SearXNGResponseItem, "title" | "url">> & SearXNGResponseItem => !!r.title && !!r.url)
-      .map((r) => ({
-        title: r.title!,
-        publisher: r.engine || null,
-        url: r.url!,
-        publishedAt: r.publishedDate || null,
-        updatedAt: null,
-        retrievedAt,
-        // A search result is a snippet, never treated as verified full-source content until a
-        // RetrievalAdapter actually fetches and reads the page -- that fetch step is not
-        // implemented in this pass (see module header); every source here is honestly SNIPPET.
-        evidenceDepth: "SNIPPET",
-      }));
-    if (!sources.length) return unavailable(query, "SearXNG returned results with no usable title/url.");
-    return { status: "OK", provider: "searxng", query, sources, retrievedAt, cacheState: "LIVE" };
-  } catch (error) {
-    const timedOut = error instanceof DOMException && error.name === "TimeoutError";
-    return unavailable(query, timedOut ? "SearXNG request timed out." : "SearXNG request failed.");
+
+  async function attempt(timeoutMs: number): Promise<{ timedOut: true } | SearchResult> {
+    try {
+      const response = await doFetch(`${baseUrl}/search?q=${encodeURIComponent(query)}&format=json`, {
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (!response.ok) return unavailable(query, `SearXNG responded HTTP ${response.status}.`);
+      const data = (await response.json().catch(() => ({}))) as SearXNGResponse;
+      const results = Array.isArray(data.results) ? data.results : [];
+      if (!results.length) return unavailable(query, "SearXNG returned no results for this query.");
+      const sources: SourceRecord[] = results.slice(0, 8)
+        .filter((r): r is Required<Pick<SearXNGResponseItem, "title" | "url">> & SearXNGResponseItem => !!r.title && !!r.url)
+        .map((r) => ({
+          title: r.title!,
+          publisher: r.engine || null,
+          url: r.url!,
+          publishedAt: r.publishedDate || null,
+          updatedAt: null,
+          retrievedAt,
+          // SearXNG's own result text -- real evidence a synthesis step can summarize from, but
+          // still only ever what SearXNG's index snippet says, never a full-page fetch/read.
+          snippet: r.content?.trim() || null,
+          // A search result is a snippet, never treated as verified full-source content until a
+          // RetrievalAdapter actually fetches and reads the page -- that fetch step is not
+          // implemented in this pass (see module header); every source here is honestly SNIPPET.
+          // The snippet field above does not change this -- it is still SNIPPET, never INSPECTED.
+          evidenceDepth: "SNIPPET",
+        }));
+      if (!sources.length) return unavailable(query, "SearXNG returned results with no usable title/url.");
+      return { status: "OK", provider: "searxng", query, sources, retrievedAt, cacheState: "LIVE" };
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "TimeoutError") return { timedOut: true };
+      return unavailable(query, "SearXNG request failed.");
+    }
   }
+
+  const first = await attempt(options.timeoutMs ?? SEARXNG_FIRST_TIMEOUT_MS);
+  if (!("timedOut" in first)) return first;
+  const retry = await attempt(options.retryTimeoutMs ?? SEARXNG_RETRY_TIMEOUT_MS);
+  if (!("timedOut" in retry)) return retry;
+  return unavailable(query, "SearXNG request timed out (including one retry with a longer window -- likely a cold, sleeping preview instance).");
 }
 
 type BraveResponseItem = { title?: string; url?: string; description?: string; age?: string; page_age?: string; meta_url?: { hostname?: string } };
@@ -123,6 +152,9 @@ export async function braveSearch(
         publishedAt: null,
         updatedAt: null,
         retrievedAt,
+        // Brave's own result text -- same discipline as SearXNG's `content` above: real evidence,
+        // still only ever a snippet, never a full-page fetch/read.
+        snippet: r.description?.trim() || null,
         evidenceDepth: "SNIPPET",
       }));
     if (!sources.length) return unavailable(query, "Brave Search returned results with no usable title/url.");
@@ -233,6 +265,21 @@ async function searchProviderWithBudget(
 // SearXNG -> Claude Web Search -> Brave -> honest SEARCH_UNAVAILABLE). Adding a further real
 // provider later means adding one more budgeted branch here, never changing what a caller passes
 // in or gets back.
+// Failure-diagnostics correction: when every provider in the cascade fails, the caller used to see
+// only the LAST attempted provider's reason (e.g. "No BRAVE_SEARCH_API_KEY is configured."), which
+// masks what actually went wrong upstream (a SearXNG timeout, an unauthenticated Claude key, etc.).
+// This builds one honest, secret-free, per-provider diagnostic chain instead -- no stack traces, no
+// credential values, just each provider's own already-sanitized reason under its own label. The
+// SAME `alternatives` external handoffs are preserved (from the last attempt, identical to every
+// other unavailable() result) so callers relying on that field are unaffected.
+function combinedUnavailableReason(query: string, attempts: { label: string; result: SearchResult }[]): SearchResult {
+  const chain = attempts
+    .filter((a): a is { label: string; result: Extract<SearchResult, { status: "SEARCH_UNAVAILABLE" }> } => a.result.status === "SEARCH_UNAVAILABLE")
+    .map((a) => `${a.label}: ${a.result.reason}`)
+    .join(" ");
+  return unavailable(query, chain || "Search is unavailable.");
+}
+
 export async function search(query: string, options: { fetchImpl?: typeof fetch } = {}): Promise<SearchResult> {
   if (options.fetchImpl) {
     // An explicit fetch override means the caller (a deterministic unit test, or an advanced
@@ -248,7 +295,13 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
     if (searxngResult.status === "OK") return searxngResult;
     const claudeResult = await claudeWebSearch(query, options);
     if (claudeResult.status === "OK") return claudeResult;
-    return await braveSearch(query, options);
+    const braveResult = await braveSearch(query, options);
+    if (braveResult.status === "OK") return braveResult;
+    return combinedUnavailableReason(query, [
+      { label: "SearXNG", result: searxngResult },
+      { label: "Claude Web Search", result: claudeResult },
+      { label: "Brave Search", result: braveResult },
+    ]);
   }
   const key = cacheKey(query);
   const cached = searchCache.get(key);
@@ -274,9 +327,14 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
       searchCache.set(key, { result: braveResult, expiresAt: Date.now() + cacheTtlMs() });
       return braveResult;
     }
-    // No provider produced a result -- same precedent as before this correction: return the LAST
-    // attempted provider's own real reason (already carries the correct query/alternatives).
-    return braveResult;
+    // No provider produced a result -- report the full per-provider failure chain (never just the
+    // last attempt's reason), so the true root cause (e.g. a SearXNG timeout) is never masked by a
+    // later, unrelated provider's own honest "not configured" message.
+    return combinedUnavailableReason(query, [
+      { label: "SearXNG", result: searxngResult },
+      { label: "Claude Web Search", result: claudeResult },
+      { label: "Brave Search", result: braveResult },
+    ]);
   })();
   inFlight.set(key, promise);
   try {
