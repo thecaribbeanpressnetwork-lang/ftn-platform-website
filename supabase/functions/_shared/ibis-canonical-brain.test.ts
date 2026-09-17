@@ -157,7 +157,7 @@ Deno.test("relationship question classifies RELATIONSHIP, executes Context Graph
 
 // --- Gate: a connect-my-X request classifies TOOL_ACTION and genuinely executes Connection
 // Fabric, honestly reporting no server-side gateway exists yet (never fabricating a live route). ---
-Deno.test("connect-my-X request classifies TOOL_ACTION, executes Connection Fabric honestly, lists Multi-Agent unavailable", async () => {
+Deno.test("connect-my-X request classifies TOOL_ACTION, executes Connection Fabric honestly, and does not plan MULTI_AGENT for a single-capability request", async () => {
   const res = await handleCanonicalRequest({
     text: "Please connect my gmail so ibis can send email for me.",
     providers: [fakeProvider("test", "unused")],
@@ -168,9 +168,15 @@ Deno.test("connect-my-X request classifies TOOL_ACTION, executes Connection Fabr
   assert(fabricMode, "CONNECTION_FABRIC must be listed for a TOOL_ACTION query");
   assertEquals(fabricMode!.executed, true);
   assert(fabricMode!.contribution && fabricMode!.contribution.toLowerCase().includes("gmail"));
-  const multiAgentMode = res.reasoningModesUsed.find((m) => m.mode === "MULTI_AGENT");
-  assert(multiAgentMode, "MULTI_AGENT must still be listed unavailable -- Connection Fabric alone cannot execute a connected action");
-  assertEquals(multiAgentMode!.executed, false);
+  // MULTI_AGENT (this checkpoint's internal scheduler -- see GOVERNANCE/
+  // MULTI_AGENT_SOURCE_AND_BOUNDARY.md) is only planned when 2+ other capabilities need dependency-
+  // aware coordination -- a single-capability request like this one has nothing to schedule, so it
+  // must not appear at all (neither executed nor unavailable). The fact that no EXTERNAL,
+  // side-effecting action can actually be executed is disclosed by Connection Fabric's own finding
+  // text, not a separate MULTI_AGENT-unavailable record.
+  assert(!res.capabilityPlan.some((p) => p.capability === "MULTI_AGENT"));
+  assert(!res.reasoningModesUsed.some((m) => m.mode === "MULTI_AGENT"));
+  assert(fabricMode!.contribution!.includes("No connection gateway"), "the inability to execute a connected action must remain disclosed via Connection Fabric itself");
 });
 
 // --- Gate: correlation must never be silently upgraded to causation language. ---
@@ -902,7 +908,10 @@ Deno.test("ACCEPTANCE QUERY: with a MOCK_SEARCH_FIXTURE (CONTRACT_GROUNDED), pla
   Deno.env.delete("SEARXNG_BASE_URL");
 
   assertEquals(res.queryClass, "RETRODICTION");
-  assertEquals(res.capabilityPlan.map((p) => p.capability).sort(), ["CORRELATION", "EBR", "RESEARCH"]);
+  // 3 capabilities planned (RESEARCH+EBR+CORRELATION) -- the internal scheduler (MULTI_AGENT, this
+  // checkpoint) is additively planned too, since dependency-aware coordination is genuinely
+  // relevant once there is more than one other capability.
+  assertEquals(res.capabilityPlan.map((p) => p.capability).sort(), ["CORRELATION", "EBR", "MULTI_AGENT", "RESEARCH"]);
   assertEquals(res.sources.length, 2, "the answer must be genuinely sourced (from the MOCK_SEARCH_FIXTURE, not fabricated)");
   assertEquals(res.evidenceState, "SEARCH_GROUNDED");
 
@@ -910,6 +919,10 @@ Deno.test("ACCEPTANCE QUERY: with a MOCK_SEARCH_FIXTURE (CONTRACT_GROUNDED), pla
   assert(ebrMode);
   assertEquals(ebrMode!.executed, true, "the MOCK_SEARCH_FIXTURE evidence exists (CONTRACT_GROUNDED) -- EBR must genuinely run");
   assert(ebrMode!.contribution && ebrMode!.contribution.includes("grounded evidence"), "must report a real, concrete finding, not a static label");
+
+  const multiAgentMode = res.reasoningModesUsed.find((m) => m.mode === "MULTI_AGENT");
+  assert(multiAgentMode, "the internal scheduler must genuinely run once there is more than one capability to coordinate");
+  assertEquals(multiAgentMode!.executed, true);
 
   const correlationMode = res.reasoningModesUsed.find((m) => m.mode === "CORRELATION");
   assert(correlationMode, "Correlation must be listed as planned and invoked");
@@ -1134,6 +1147,224 @@ Deno.test("ECOMAP: mock evidence is never classified LIVE_SEARCH_GROUNDED", asyn
   // The response's own evidenceState enum has no "LIVE_SEARCH_GROUNDED" value at all -- this test
   // documents that a MOCK_SEARCH_FIXTURE result is SEARCH_GROUNDED (CONTRACT_GROUNDED in this
   // test), never anything claiming production liveness.
+  assertEquals(res.evidenceState, "SEARCH_GROUNDED");
+  assert(!JSON.stringify(res).includes("LIVE_SEARCH_GROUNDED"));
+});
+
+// --- MULTI-AGENT ORCHESTRATION ACCEPTANCE (this checkpoint) -- see GOVERNANCE/
+// MULTI_AGENT_SOURCE_AND_BOUNDARY.md and ibis-multi-agent-orchestrator.ts. The six required
+// acceptance-test groups, using the exact query texts specified for this checkpoint. ---
+
+// Group 1: the exact required "full composable query" text.
+const FULL_COMPOSABLE_QUERY =
+  "I want to start a community food business in Tobago. Research the current support available, map the organizations and relationships, show the steps and alternatives, compare the likely effects of the strongest options, and explain the uncertainties.";
+
+Deno.test("MULTI-AGENT ACCEPTANCE (group 1): full composable query -- one evidence retrieval, EcoMap modes execute, Context Graph consumes EcoMap output, Butterfly/Foresight execute only via disclosed bridges with no fake probabilities, sensitive relationships stay protected, one final answer, one complete receipt, never LIVE_SEARCH_GROUNDED", async () => {
+  let fetchCalls = 0;
+  const baseFetch = ecoMapFakeFetch();
+  const countingFetch: typeof fetch = async (...args) => {
+    fetchCalls++;
+    return await baseFetch(...args);
+  };
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: FULL_COMPOSABLE_QUERY,
+    providers: [fakeProvider("test", "Draft answer text.")],
+    searchFetchImpl: countingFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  // Exactly one evidence retrieval feeds every capability that needs it.
+  assertEquals(fetchCalls, 1, "exactly one retrieval call must be made regardless of how many capabilities need evidence");
+  assertEquals(res.sources.length, 3);
+
+  // The full 9-capability plan (RESEARCH+FOUNDER_THINKING+BUTTERFLY+PREDICTION+CONTEXT_GRAPH+
+  // ECOMAP_PLACE+ECOMAP_PATHWAY+ECOMAP_RELATIONSHIP+MULTI_AGENT) is genuinely selected.
+  const planned = res.capabilityPlan.map((p) => p.capability).sort();
+  assertEquals(planned, ["BUTTERFLY", "CONTEXT_GRAPH", "ECOMAP_PATHWAY", "ECOMAP_PLACE", "ECOMAP_RELATIONSHIP", "FOUNDER_THINKING", "MULTI_AGENT", "PREDICTION", "RESEARCH"]);
+
+  // EcoMap modes execute.
+  const place = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_PLACE")!;
+  const pathway = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_PATHWAY")!;
+  const relationship = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_RELATIONSHIP")!;
+  assert(place?.executed, "ECOMAP_PLACE must genuinely execute against real search evidence");
+  assert(pathway?.executed, "ECOMAP_PATHWAY must genuinely execute against real search evidence");
+  assert(relationship?.executed, "ECOMAP_RELATIONSHIP must genuinely execute against real search evidence");
+
+  // Context Graph consumes EcoMap Place's output (not just the FTN product list).
+  const contextGraph = res.reasoningModesUsed.find((m) => m.mode === "CONTEXT_GRAPH")!;
+  assert(contextGraph.executed);
+  assert(contextGraph.contribution!.includes("EcoMap Place"), "Context Graph's own findings must disclose that it merged EcoMap Place's grounded entities");
+
+  // Butterfly executes only because EcoMap Pathway genuinely produced real steps -- via the
+  // disclosed heuristic bridge, never a measured/predicted value.
+  const butterfly = res.reasoningModesUsed.find((m) => m.mode === "BUTTERFLY")!;
+  assert(butterfly.executed, "EcoMap Pathway produced real steps for this request -- Butterfly must genuinely execute");
+  assert(butterfly.contribution!.includes("fixed, disclosed heuristic"), "the qualitative-to-quantitative bridge must be disclosed, never presented as measured data");
+
+  // Foresight (Prediction) produces a real scenario without inventing a numeric probability.
+  const prediction = res.reasoningModesUsed.find((m) => m.mode === "PREDICTION")!;
+  assert(prediction.executed, "EcoMap Place produced a real OPPORTUNITY entity (the grant programme) -- Prediction must genuinely execute");
+  assert(!/\bprobability\b\s*[:=]\s*0?\.\d/i.test(prediction.contribution || ""), "Foresight/Prediction must never fabricate a numeric probability");
+
+  // Sensitive relationships remain protected (none were supplied here -- confirm none leaked).
+  assert(!res.ecosystemConnections.some((e) => /\bsensitive\b|\bprivate\b/i.test(e)), "no sensitive/private relationship detail may appear in the customer-facing ecosystemConnections field");
+
+  // One final synthesized answer.
+  assert(res.answer.length > 0);
+
+  // One complete receipt: every planned capability ends in exactly one terminal state, and the
+  // top-level and receipt-nested capabilityExecution match.
+  assertEquals(res.receipt.capabilityExecution, res.capabilityExecution);
+  for (const entry of res.capabilityExecution) {
+    assert(!["SELECTED", "INPUT_READY"].includes(entry.finalState), `${entry.capability} must end in a terminal, non-transient state -- got ${entry.finalState}`);
+  }
+  const multiAgent = res.reasoningModesUsed.find((m) => m.mode === "MULTI_AGENT")!;
+  assert(multiAgent.executed, "the internal scheduler itself must genuinely run once 8 other capabilities were planned");
+
+  // Terminology: a MOCK_SEARCH_FIXTURE (CONTRACT_GROUNDED) must never be classified LIVE_SEARCH_GROUNDED.
+  assert(!JSON.stringify(res).includes("LIVE_SEARCH_GROUNDED"));
+});
+
+// Group 2: the exact required forex causal query.
+Deno.test("MULTI-AGENT ACCEPTANCE (group 2): forex causal query -- Research+EBR planned, Correlation executes only with a real valid time series, no duplicate retrieval/provider calls", async () => {
+  let fetchCalls = 0;
+  const fakeFetch: typeof fetch = async () => {
+    fetchCalls++;
+    return new Response(JSON.stringify({
+      results: [{ title: "Central Bank of T&T: forex allocation update", url: "https://www.central-bank.org.tt/forex-update", content: "snippet", engine: "central-bank", publishedDate: "2026-08-20" }],
+    }), { status: 200 });
+  };
+  let providerCalls = 0;
+  const countingProvider: GatewayProvider = {
+    id: "test", label: "test", model: "fake-model", configured: true,
+    run: async () => { providerCalls++; return { answer: "Draft answer text.", model: "fake-model" }; },
+  };
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const seriesA = { id: "remittances", periods: ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05"], values: [10, 12, 14, 15, 17] };
+  const seriesB = { id: "fx-shortage-index", periods: ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05"], values: [3, 4, 4, 5, 6] };
+  const res = await handleCanonicalRequest({
+    text: ACCEPTANCE_QUERY,
+    providers: [countingProvider],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+    correlationInput: { seriesA, seriesB },
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  assert(res.capabilityPlan.some((p) => p.capability === "RESEARCH"));
+  assert(res.capabilityPlan.some((p) => p.capability === "EBR"));
+  assert(res.capabilityPlan.some((p) => p.capability === "CORRELATION"));
+
+  const correlation = res.reasoningModesUsed.find((m) => m.mode === "CORRELATION")!;
+  assertEquals(correlation.executed, true, "a real, valid 5-point series pair must genuinely execute Correlation");
+  assert(correlation.contribution!.includes("r ="), "must report a real computed statistic, not a placeholder");
+
+  const ebr = res.reasoningModesUsed.find((m) => m.mode === "EBR")!;
+  assertEquals(ebr.executed, true);
+  assert(!res.uncertainties.some((u) => /causal/i.test(u) && /confirmed/i.test(u)), "an unsupported causal claim must never be asserted as confirmed");
+
+  assertEquals(fetchCalls, 1, "no duplicate retrieval call may occur across the whole capability plan");
+  assertEquals(providerCalls, 1, "no duplicate provider/synthesis call may occur across the whole capability plan");
+});
+
+// Group 3: missing-input test.
+Deno.test("MULTI-AGENT ACCEPTANCE (group 3): a generic outcome question does not falsely execute Butterfly/Correlation/Foresight, and the receipt shows the correct skip reason", async () => {
+  const res = await handleCanonicalRequest({
+    text: "I want to build a Caribbean-owned business that earns US dollars.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(!res.capabilityPlan.some((p) => p.capability === "CORRELATION"), "no correlation marker matched -- must not even be planned");
+
+  for (const mode of ["BUTTERFLY", "PREDICTION"]) {
+    const record = res.reasoningModesUsed.find((m) => m.mode === mode)!;
+    assertEquals(record.executed, false, `${mode} must not falsely execute without its required structured input`);
+  }
+  const butterflyReceipt = res.capabilityExecution.find((r) => r.capability === "BUTTERFLY")!;
+  assertEquals(butterflyReceipt.finalState, "SKIPPED_MISSING_INPUT");
+  const predictionReceipt = res.capabilityExecution.find((r) => r.capability === "PREDICTION")!;
+  assertEquals(predictionReceipt.finalState, "SKIPPED_MISSING_INPUT");
+});
+
+// Group 4: simple query.
+Deno.test("MULTI-AGENT ACCEPTANCE (group 4): 'What is photosynthesis?' does not activate the multi-agent scheduler or any conditional engine", async () => {
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
+  assertEquals(res.capabilityPlan.length, 0, "an ordinary factual question must plan zero capabilities");
+  assertEquals(res.capabilityExecution.length, 0);
+  assert(!res.reasoningModesUsed.some((m) => m.mode === "MULTI_AGENT"));
+});
+
+// Group 5: failure and budget tests.
+Deno.test("MULTI-AGENT ACCEPTANCE (group 5): one capability throwing produces a FAILED receipt for that capability only, and the request still returns one honest, non-fabricated partial answer", async () => {
+  const poisonedSources = new Proxy([], { get() { throw new Error("boom"); } });
+  const res = await handleCanonicalRequest({
+    text: "I want to start a food business. Map the organizations that could help.",
+    providers: [fakeProvider("test", "Real fallback answer text.")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    // deliberately malformed (not a real EcoMapPlaceInput) to prove the scheduler survives a
+    // throwing capability -- a poisoned Proxy that throws on any property access.
+    // deno-lint-ignore no-explicit-any
+    ecomapPlaceContext: { sources: poisonedSources, jurisdiction: null } as any,
+  });
+  const placeReceipt = res.capabilityExecution.find((r) => r.capability === "ECOMAP_PLACE")!;
+  assertEquals(placeReceipt.finalState, "FAILED", "the poisoned input must fail ONLY this one capability, never crash the whole scheduler");
+  assert(placeReceipt.history.some((h) => h.reason?.includes("boom")));
+
+  const founderReceipt = res.capabilityExecution.find((r) => r.capability === "FOUNDER_THINKING")!;
+  assertEquals(founderReceipt.finalState, "EXECUTED", "an unrelated capability must still execute normally despite ECOMAP_PLACE failing");
+
+  assert(res.answer.length > 0, "the overall request must still produce a real, honest answer despite one capability failing");
+  assert(!res.answer.includes("boom"), "an internal error must never leak into the customer-facing answer");
+});
+
+Deno.test("MULTI-AGENT ACCEPTANCE (group 5): execution-budget exhaustion produces an honest SKIPPED_BUDGET receipt, never a crash or a fabricated result", async () => {
+  const res = await handleCanonicalRequest({
+    text: "I want to build a Caribbean-owned business that earns US dollars.",
+    providers: [fakeProvider("test", "Real answer.")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+    executionBudgetMsOverride: -1,
+  });
+  const founderReceipt = res.capabilityExecution.find((r) => r.capability === "FOUNDER_THINKING")!;
+  assertEquals(founderReceipt.finalState, "SKIPPED_BUDGET");
+  for (const entry of res.capabilityExecution) {
+    assert(!["SELECTED", "INPUT_READY"].includes(entry.finalState), `${entry.capability} must not be left in a transient state after budget exhaustion`);
+  }
+  assert(res.answer.length > 0, "a fully budget-exhausted request must still return a real, honest answer, never a crash");
+});
+
+Deno.test("MULTI-AGENT ACCEPTANCE (group 5): search unavailable still produces exactly one honest degraded answer, with EcoMap/Butterfly/Foresight all correctly skipped rather than fabricated", async () => {
+  Deno.env.delete("SEARXNG_BASE_URL");
+  Deno.env.delete("BRAVE_SEARCH_API_KEY");
+  const res = await handleCanonicalRequest({
+    text: FULL_COMPOSABLE_QUERY,
+    providers: [fakeProvider("test", "SHOULD_NOT_APPEAR")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.status, "DEGRADED");
+  assert(res.receipt.degradedStages.includes("SEARCH_UNAVAILABLE"));
+  for (const mode of ["ECOMAP_PLACE", "ECOMAP_PATHWAY", "ECOMAP_RELATIONSHIP", "BUTTERFLY", "PREDICTION"]) {
+    const record = res.reasoningModesUsed.find((m) => m.mode === mode)!;
+    assertEquals(record.executed, false, `${mode} must honestly abstain with no grounded evidence, never fabricate`);
+  }
+  assert(res.answer.length > 0, "even a fully degraded request must return exactly one honest answer");
+});
+
+// Group 6: terminology -- mock fixtures never become LIVE_SEARCH_GROUNDED, across every acceptance
+// query used in this checkpoint (the individual group-1 test above already asserts this for the
+// full composable query; this asserts it for the forex query and the ECOMAP acceptance query too).
+Deno.test("MULTI-AGENT ACCEPTANCE (group 6): mock fixtures are never classified LIVE_SEARCH_GROUNDED for any acceptance query in this checkpoint", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () =>
+    new Response(JSON.stringify({ results: [{ title: "Central Bank of T&T: forex allocation update", url: "https://www.central-bank.org.tt/forex-update", content: "snippet", engine: "central-bank", publishedDate: "2026-08-20" }] }), { status: 200 });
+  const res = await handleCanonicalRequest({
+    text: ACCEPTANCE_QUERY,
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
   assertEquals(res.evidenceState, "SEARCH_GROUNDED");
   assert(!JSON.stringify(res).includes("LIVE_SEARCH_GROUNDED"));
 });

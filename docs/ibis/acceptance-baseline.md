@@ -31,7 +31,7 @@ evidence," which a prior draft of this document used to describe fixture data:
 ## Latest checkpoint
 
 - **Commit**: (this checkpoint -- see revision history below)
-- **Parent checkpoint**: `97322c7`
+- **Parent checkpoint**: `533b9df`
 - **Branch**: `fix/ibis-canonical-outcome-intelligence`
 - **Run date**: 2026-09-16
 - **Readiness classification**: **LOCALLY_VERIFIED**
@@ -48,7 +48,7 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 | Canonical routing | PASS | L1/L2 |
 | Durable lifecycle state | PASS (local contract); BLOCKED_EXTERNAL (real DB) | L1 / L3 |
 | Real web search | PASS (adapter contracts only); BLOCKED_EXTERNAL (live provider) | L1 / L3-L4 |
-| Reasoning engine execution | PASS (10 of 11 connected: 3 `CONNECTED_OPERATIONAL` — Founder Thinking, Context Graph, Connection Fabric; 7 `CONNECTED_CONDITIONAL` — Correlation, Butterfly, Prediction, EBR, EcoMap Place, EcoMap Pathway, EcoMap Relationship); **FAIL** (remaining 1 `UNAVAILABLE`: Multi-Agent) | L1 |
+| Reasoning engine execution | **PASS (11 of 11 connected: 4 `CONNECTED_OPERATIONAL` — Founder Thinking, Context Graph, Connection Fabric, Multi-Agent Orchestrator; 7 `CONNECTED_CONDITIONAL` — Correlation, Butterfly, Prediction, EBR, EcoMap Place, EcoMap Pathway, EcoMap Relationship); zero `UNAVAILABLE`, first checkpoint with an all-PASS Gate 4)** | L1 |
 | Capability truth | PASS (matrix assembled) | L1 |
 | Regular IBIS UX | PASS (core suites); NOT_RUN (viewport matrix, accessibility) | L1/L2 |
 | Headspace UX | PASS (controls suite) | L2 |
@@ -57,13 +57,12 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 
 ## Confirmed failures
 
-- **Reasoning engines (Gate 4), 1 of 11 remaining unported**: Multi-Agent Orchestrator is not
-  invoked by the canonical server path (`supabase/functions/_shared/ibis-canonical-brain.ts`). It
-  is real and separate but depends on browser-only `FTN.Auth`/`PermissionLedger`/`UniversalRouter`
-  plus Supabase persistence, unassessed for portability. Module presence and existing browser-only
-  test suites for it are explicitly not accepted as proof of canonical execution. See the
-  contract-map header comment in `supabase/functions/_shared/ibis-reasoning-engines.ts` for the
-  specific reason it is not yet ported.
+- **None remaining in Gate 4 (reasoning engine execution) as of this checkpoint.** Multi-Agent
+  Orchestration is now genuinely connected as an internal, server-side dependency-aware scheduler
+  (see "Multi-Agent Orchestration (this checkpoint)" below) -- the prior checkpoint's single
+  `UNAVAILABLE` entry is resolved. This is the first checkpoint where Gate 4 shows zero FAIL rows.
+  All other gates keep their existing L1/L2-only evidence-level caveats (see gate matrix above);
+  none of this checkpoint's work touches search, durable-state or deployment readiness.
 - **Reconciliation note (checkpoint `4f637c2`): the "8 of 10 unported" count was internally
   inconsistent.** That checkpoint's own prose named 9 distinct unported items (EBR + 3 EcoMap
   sub-modes + Butterfly + Prediction/Foresight + Context Graph + Connection Fabric + Multi-Agent),
@@ -74,10 +73,11 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
   distinct reasoning capabilities (treating each EcoMap sub-mode separately, matching how they are
   separately enumerated in `ReasoningMode`), not 10.
 - **Founder Thinking, Correlation, Butterfly, Prediction/Foresight, Context Graph, Connection
-  Fabric, EBR (Evidence-Bounded Retrodiction) and EcoMap Place/Pathway/Relationship are now
-  genuinely connected** (see "Reasoning engines connected this checkpoint" below) — this is a
-  correction, not a new regression. Multi-Agent Orchestration was deliberately NOT implemented this
-  pass, per instruction.
+  Fabric, EBR (Evidence-Bounded Retrodiction), EcoMap Place/Pathway/Relationship, and now
+  Multi-Agent Orchestration are all genuinely connected** (see "Reasoning engines connected this
+  checkpoint" and "Multi-Agent Orchestration (this checkpoint)" below) — corrections, not new
+  regressions. Butterfly and Prediction/Foresight remain `CONNECTED_CONDITIONAL`, NOT promoted to
+  `CONNECTED_OPERATIONAL`, this checkpoint -- see the engine readiness table below for why.
 
 ## Engine readiness classification
 
@@ -97,7 +97,7 @@ merely because its adapter exists or because a test manually injected structured
 | EcoMap Place | `CONNECTED_CONDITIONAL` | Genuinely executes given grounded search evidence (auto-built server-side, same discipline as EBR), but that evidence is not guaranteed for an ordinary query -- absent it, honestly SKIPPED. Methodology: `PARTIAL / FOUNDER-AUTHORIZED` (see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md) -- a founder-authorized product contract, not externally validated. |
 | EcoMap Pathway | `CONNECTED_CONDITIONAL` | Same evidence dependency as EcoMap Place; every auto-built step is `INFERRED`, never `CONFIRMED`. Methodology: `PARTIAL / FOUNDER-AUTHORIZED`. |
 | EcoMap Relationship | `CONNECTED_CONDITIONAL` | Same evidence dependency; auto-built edges are a generic `POTENTIAL_REFERRAL`, never a specific fabricated relation type; sensitive/private edges are counted but never named in customer-facing text. Methodology: `PARTIAL / FOUNDER-AUTHORIZED`. |
-| Multi-Agent Orchestrator | `UNAVAILABLE` | Real but browser-only (`FTN.Auth`/`PermissionLedger`/`UniversalRouter`); unassessed for server portability. Not implemented this pass, per instruction. |
+| Multi-Agent Orchestrator | `CONNECTED_OPERATIONAL` | An internal, read-only, dependency-aware scheduler (`ibis-multi-agent-orchestrator.ts`) over the existing pure reasoning engines -- requires no caller-supplied structured data, only that the request's own capability plan contains 2+ other capabilities (`planCapabilities()` adds it automatically whenever that is true). It never issues a new provider/LLM call and never gains external-action authority -- see GOVERNANCE/MULTI_AGENT_SOURCE_AND_BOUNDARY.md for the reconciliation with the browser-only, permission-gated predecessor of the same name. |
 
 ## Composable capability plan (this checkpoint)
 
@@ -178,7 +178,9 @@ causes" needs research AND a bounded causal reconstruction AND a correlation che
 
 Implements three of EcoMap's modes -- structured ecosystem intelligence (services, organizations,
 pathways, relationships) feeding IBIS/Butterfly/Correlation/Prediction, not merely a diagram.
-Multi-Agent Orchestration was deliberately NOT implemented this pass, per instruction.
+Multi-Agent Orchestration was deliberately NOT implemented this pass, per instruction (historical
+note -- resolved in the following checkpoint; see "Multi-Agent Orchestration (this checkpoint)"
+above).
 
 - **Methodology classification: `PARTIAL / FOUNDER-AUTHORIZED`** (see `GOVERNANCE/
   ECOMAP_SOURCE_AND_BOUNDARY.md`, written before any code, per the required source/boundary-note
@@ -258,6 +260,116 @@ Multi-Agent Orchestration was deliberately NOT implemented this pass, per instru
   organizations fund or refer Tobago food entrepreneurs?" plans `ECOMAP_RELATIONSHIP` + `RESEARCH`;
   a simple factual question plans none of the three. Proven by the `ECOMAP ACCEPTANCE QUERY` and
   `ECOMAP CONTRAST` test groups in `ibis-canonical-brain.test.ts`.
+
+## Multi-Agent Orchestration (this checkpoint)
+
+Implements Multi-Agent Orchestration as an internal, canonical, dependency-aware execution
+scheduler -- **not** a second router, canonical brain or competing orchestration endpoint.
+`ibis-canonical-brain.ts` remains the sole entry point and sole authority; the new
+`supabase/functions/_shared/ibis-multi-agent-orchestrator.ts` module is called from inside
+`handleCanonicalRequest()` and only executes the capability plan that module already produced.
+
+- **Source/boundary note written before any code** (required discipline): `GOVERNANCE/
+  MULTI_AGENT_SOURCE_AND_BOUNDARY.md` documents what the browser's
+  `js/ibis-multi-agent-orchestrator.js` actually does (role-playing STRATEGY/ENGINEERING/
+  MARKETING/COMMS/OPS/GENERAL agents, `FTN.PermissionLedger`-gated external actions, Supabase
+  `ibis_execution_runs`/`ibis_agent_tasks` persistence via the browser's authenticated client),
+  what's portable (the general run/task state-machine SHAPE only, not literal code) and what is
+  NOT portable and why (`FTN.Auth`/`FTN.PermissionLedger` -- no server authority exists to check
+  against; `FTN.UniversalRouter`/`HeadspaceFabric`/`IbisClient`/`ConnectionFabric`/`AppRegistry` --
+  browser-only dispatch; the Supabase tables -- RLS-scoped to the browser's own authenticated
+  client). This checkpoint's server-side "Multi-Agent Orchestration" is a deliberately different,
+  narrower thing: an internal scheduler with no external-action or connected-app authority.
+- **Execution dependency graph** (fixed, hardcoded, documented phase order -- not a generic graph
+  executor): classify intent -> decide research needed -> retrieve evidence once -> normalize
+  evidence once -> prepare eligible structured inputs -> run independent pure engines in parallel-
+  safe Phase A -> run downstream engines in Phase B only once their dependency is satisfied ->
+  Phase C records the scheduler's own summary -> synthesize one final response -> build one
+  complete receipt.
+  - RESEARCH is intentionally **not** scheduled inside the orchestrator module -- it is the one
+    genuinely asynchronous, real-I/O capability in the whole request lifecycle, so it stays in
+    `ibis-canonical-brain.ts` (already real, already tested); its own `CapabilityReceiptEntry` is
+    built there and passed into `runOrchestration()` via `researchReceipt` so the FINAL receipt is
+    still exactly one complete list, never a second one.
+  - Phase A (no dependency on any other capability this pass): FOUNDER_THINKING, CONNECTION_FABRIC,
+    CORRELATION, EBR, ECOMAP_PLACE, ECOMAP_PATHWAY, ECOMAP_RELATIONSHIP.
+  - Phase B (depends on a Phase A output): CONTEXT_GRAPH <- EcoMap Place's entities (grounds the
+    graph to real discovered services, in addition to the request's own FTN product list);
+    BUTTERFLY <- EcoMap Pathway's steps, via a disclosed confidence-to-P/V/D heuristic bridge;
+    PREDICTION <- EcoMap Place's `OPPORTUNITY`-kind entities, via a real (non-fabricated) bridge.
+  - Phase C: MULTI_AGENT's own record, summarizing which dependencies were genuinely exercised.
+  - Research -> normalized evidence; normalized evidence -> EBR and EcoMap; a valid numeric time
+    series -> Correlation; supported alternatives/actions -> Butterfly; supported scenarios/trends
+    -> Foresight/Prediction; EcoMap entities/edges -> Context Graph; every capability's result ->
+    the one final synthesis. Founder Thinking may guide planning/synthesis prose but never
+    overrides evidence, privacy, security or uncertainty disclosures.
+- **Structured-input bridges** (disclosed heuristics, never presented as measured/predicted data):
+  `deriveButterflyInputFromPathway()` maps each EcoMap Pathway step's confidence label to a fixed
+  `probability` (`CONFIRMED`=0.9/`INFERRED`=0.5/`CONDITIONAL`=0.3/`MISSING`or`UNKNOWN`=0.1) and
+  `strategicValue` (a zero-cost-flagged step gets 5, otherwise 2; `connectivity` is defaulted to 3,
+  not independently assessed) -- every genuine Butterfly execution via this bridge appends the
+  exact disclosure string naming this table, so the transformation and its provenance are never
+  hidden. `deriveForesightInputFromPlace()` maps each EcoMap Place `OPPORTUNITY`-kind entity to a
+  real `PredictionInput.opportunityMatches` entry with an honest `deadline: null` (no source states
+  a real deadline) rather than inventing one -- Foresight/Prediction's own `probabilitiesEstimated:
+  false` discipline is untouched. Both bridges return `null` (never invented data) when EcoMap
+  produced no qualifying output, so Butterfly/Prediction correctly stay `SKIPPED_MISSING_INPUT`.
+  An advanced/internal caller may still supply `correlationInput`/`butterflyInput`/`predictionInput`
+  directly, which always takes precedence over the auto-built bridge.
+- **Execution state contract** (new `CapabilityExecutionState` in `ibis-response-envelope.ts`):
+  every planned capability ends in exactly one of `SELECTED`, `INPUT_READY`, `EXECUTED`,
+  `SKIPPED_MISSING_INPUT`, `SKIPPED_NOT_RELEVANT`, `SKIPPED_BUDGET`, `DEGRADED`, `UNAVAILABLE` or
+  `FAILED`. `SELECTED`/`INPUT_READY` are transient -- the final `CapabilityReceiptEntry` in the
+  canonical receipt's new `capabilityExecution` array always carries the full transition `history`
+  plus a terminal `finalState`; a capability is never counted operational merely because it was
+  selected. A defensive execution-budget ceiling (`DEFAULT_EXECUTION_BUDGET_MS`, overridable only
+  via a test-only field) sweeps any capability that never got scheduled to `SKIPPED_BUDGET` rather
+  than leaving it transient. Every per-capability input-preparation call is wrapped in its own
+  try/catch, so one engine throwing produces `FAILED` for that capability alone and never crashes
+  the scheduler or the rest of the request.
+- **Zero-cost/execution discipline**: every reasoning engine in this codebase is already a pure,
+  synchronous function with no I/O -- confirmed by reading every adapter in
+  `ibis-reasoning-engines.ts` before writing the scheduler. The only two real I/O calls anywhere in
+  the request lifecycle are the search call and the final `runGateway()` answer-generation call,
+  both already called at most once each and unchanged by this refactor -- the scheduler adds
+  coordination and honest state-tracking, never a second provider/search call.
+- **MULTI_AGENT is planned only when genuinely relevant**: `planCapabilities()` adds it to the
+  capability plan only when `plan.length >= 2` (2+ OTHER capabilities already planned) -- never for
+  a single-capability or zero-capability request, where dependency ordering has nothing to
+  coordinate. This directly satisfies the requirement that Multi-Agent become connected only if the
+  canonical path genuinely invokes it and its scheduling changes execution behavior.
+- **Butterfly and Prediction/Foresight are deliberately NOT promoted** to `CONNECTED_OPERATIONAL`
+  this checkpoint, even though they now have real disclosed bridges from EcoMap output: genuine
+  execution still depends on EcoMap finding a qualifying Pathway step or `OPPORTUNITY` entity,
+  which is not guaranteed for every ordinary query. Promoting them without that guarantee would be
+  exactly the kind of over-promotion this checkpoint's instructions explicitly forbid.
+- **Acceptance queries** (exact text specified) proven by 8 new `MULTI-AGENT ACCEPTANCE` tests in
+  `ibis-canonical-brain.test.ts`, covering all 6 required groups: (1) the full composable query
+  ("I want to start a community food business in Tobago. Research the current support available,
+  map the organizations and relationships, show the steps and alternatives, compare the likely
+  effects of the strongest options, and explain the uncertainties.") -- one retrieval, all three
+  EcoMap modes execute, Context Graph consumes EcoMap Place's output, Butterfly/Prediction execute
+  genuinely via their disclosed bridges with no fabricated probability, no sensitive relationship
+  leak, one final answer, one complete receipt with every capability terminal; (2) the forex causal
+  query -- Research+EBR planned, Correlation executes only given a real valid 5-point time series,
+  exactly one retrieval and one provider call; (3) a generic outcome question with none of
+  Butterfly/Correlation/Foresight's required inputs -- correctly `SKIPPED_MISSING_INPUT`, never
+  falsely executed; (4) "What is photosynthesis?" -- zero capabilities planned, scheduler not
+  activated; (5) failure/budget tests -- a poisoned input makes exactly one capability `FAILED`
+  (never crashing the scheduler) while an unrelated capability still executes and the request still
+  returns one honest, non-fabricated answer; an execution-budget override of `-1` produces an
+  honest `SKIPPED_BUDGET` receipt with zero transient states remaining; search failure still yields
+  exactly one honest degraded answer with every evidence-dependent capability correctly skipped;
+  (6) terminology -- a `MOCK_SEARCH_FIXTURE` is never classified `LIVE_SEARCH_GROUNDED`, checked
+  across the full composable query, the forex query and the ECOMAP acceptance query.
+- 15 additional dedicated unit tests in `ibis-multi-agent-orchestrator.test.ts` cover the scheduler
+  module directly: empty-plan, solo Founder Thinking execution, Butterfly/Prediction correctly
+  `SKIPPED_MISSING_INPUT` without EcoMap output then genuinely executing once it exists (with a
+  disclosure-string assertion), Correlation `SKIPPED_MISSING_INPUT` -> `EXECUTED` with a real
+  series, Context Graph consuming EcoMap entities, the two bridge functions returning `null` on
+  empty input, a full MULTI_AGENT summary-record test, a poisoned-`Proxy` throw-isolation test, a
+  negative execution-budget exhaustion test, a "every capability ends in exactly one terminal state"
+  sweep test, and a no-consciousness-claim test.
 
 ## Reasoning engines connected this checkpoint
 
@@ -386,14 +498,46 @@ Multi-Agent Orchestration was deliberately NOT implemented this pass, per instru
 
 `ibis-canonical-routing-behavioral.mjs`, `ibis-local-ai-planner-gate-behavioral.mjs`,
 `ibis-routing-consolidation-audit.mjs`, `ibis-headspace-universal-routing-audit.mjs`, the shared
-Deno suite (`supabase/functions/_shared/*.test.ts`, now including `ibis-ecomap-engine.test.ts` and
-the `COMPOSABILITY`/`ACCEPTANCE QUERY`/`ECOMAP ACCEPTANCE QUERY`/`ECOMAP CONTRAST` cases in
+Deno suite (`supabase/functions/_shared/*.test.ts`, now including
+`ibis-multi-agent-orchestrator.test.ts` and the `COMPOSABILITY`/`ACCEPTANCE QUERY`/
+`ECOMAP ACCEPTANCE QUERY`/`ECOMAP CONTRAST`/`MULTI-AGENT ACCEPTANCE` cases in
 `ibis-canonical-brain.test.ts`), `ibis-ux-release.mjs`, `ibis-behavioral-ux-acceptance.mjs`,
 `ibis-headspace-controls-audit.mjs`.
 
 ## Revision history
 
-- (this checkpoint, 2026-09-16): EcoMap slice + evidence-terminology correction. Implemented
+- (this checkpoint, 2026-09-16, parent `533b9df`): Multi-Agent Orchestration slice. Implemented the
+  internal, canonical, dependency-aware execution scheduler (see "Multi-Agent Orchestration (this
+  checkpoint)" above) as the 11th and final reasoning capability -- Gate 4 (reasoning engine
+  execution) now shows all-PASS for the first time, zero `UNAVAILABLE` engines remaining. New
+  `supabase/functions/_shared/ibis-multi-agent-orchestrator.ts` module (fixed Phase A/B/C dependency
+  graph, disclosed structured-input bridges for Butterfly/Prediction from EcoMap output, per-
+  capability try/catch isolation, a defensive execution-budget ceiling); new
+  `CapabilityExecutionState`/`CapabilityStateTransition`/`CapabilityReceiptEntry` contract in
+  `ibis-response-envelope.ts` distinguishing `SELECTED`/`INPUT_READY` (transient) from `EXECUTED`/
+  `SKIPPED_MISSING_INPUT`/`SKIPPED_NOT_RELEVANT`/`SKIPPED_BUDGET`/`DEGRADED`/`UNAVAILABLE`/`FAILED`
+  (terminal) -- directly resolving the concern that Butterfly/Prediction were previously planned
+  merely because an outcome marker matched, without their required structured inputs existing.
+  `GOVERNANCE/MULTI_AGENT_SOURCE_AND_BOUNDARY.md` written before any implementation code, per the
+  required discipline, reconciling this internal scheduler with the browser-only, permission-gated
+  predecessor of the same name (which remains genuinely unportable and is not claimed connected).
+  `ibis-canonical-brain.ts` refactored to delegate all per-capability engine invocation to the new
+  scheduler via `runOrchestration()` -- RESEARCH stays in canonical-brain.ts as the one genuinely
+  async capability, its receipt passed in so the final receipt is still exactly one complete list.
+  Two EcoMap intent-router signal markers broadened (additive capability-planning only, zero
+  primary-`queryClass` regression risk) so the exact required "full composable query" acceptance
+  text triggers all three EcoMap modes. 23 new Deno tests (15 dedicated scheduler unit tests in
+  `ibis-multi-agent-orchestrator.test.ts`, 8 `MULTI-AGENT ACCEPTANCE` integration tests in
+  `ibis-canonical-brain.test.ts` covering all 6 required acceptance-test groups verbatim); full
+  shared Deno suite (160 tests, up from 152) and the authoritative acceptance runner both pass, with
+  zero remaining `UNAVAILABLE` engines. Butterfly and Prediction/Foresight deliberately remain
+  `CONNECTED_CONDITIONAL`, not promoted to `CONNECTED_OPERATIONAL`, since genuine execution still
+  depends on EcoMap finding a qualifying step/opportunity -- not guaranteed for every ordinary
+  query. Readiness classification remains **LOCALLY_VERIFIED** -- no preview/investor/production
+  claim is made; the reasoning architecture is now structurally complete, and per this checkpoint's
+  closing note, the next priority is real search and the Supabase preview database, not further
+  reasoning-module scaffolding.
+- `533b9df` (2026-09-16): EcoMap slice + evidence-terminology correction. Implemented
   EcoMap Place/Pathway/Relationship (methodology `PARTIAL / FOUNDER-AUTHORIZED` -- see
   `GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md`) as 3 more genuinely connected reasoning engines (10
   of 11 total; only Multi-Agent remains unported). New pure module `ibis-ecomap-engine.ts`; three

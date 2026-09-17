@@ -69,9 +69,13 @@ const CAUSE_EVIDENCE_MARKERS = /\b(evidence (?:supports?|for|shows?)|possible ca
 // text resolves to). These new markers are used ONLY for additive capability planning in
 // ibis-canonical-brain.ts and never touch `queryClass` -- so broadening them here is safe and
 // carries zero risk of changing any existing classification result.
-const ECOMAP_PLACE_SIGNAL_MARKERS = /\b(map (?:the )?services|which services|find services|organizations? that could help|where (?:is|are|can i find)|nearest|near me|nearby|in my area|close to me|around (?:here|me))\b/i;
+const ECOMAP_PLACE_SIGNAL_MARKERS = /\b(map (?:the )?(?:services|organizations?)|which services|find services|organizations? that could help|where (?:is|are|can i find)|nearest|near me|nearby|in my area|close to me|around (?:here|me))\b/i;
 const ECOMAP_PATHWAY_SIGNAL_MARKERS = /\b(steps? (?:and|to|needed|required|involved)|requirements? (?:i need|needed|to follow|to register)|how do i (?:apply|register|start)|register (?:a|my)|what (?:steps|documents) (?:are|is) required|eligibility|documents? (?:needed|required)|deadline)\b/i;
-const ECOMAP_RELATIONSHIP_SIGNAL_MARKERS = /\b(relationships? (?:or|and|between)|referrals?|which organi[sz]ations (?:fund|refer|support|help)|who (?:connects|refers|funds)|fund or refer)\b/i;
+// Broadened to a bare "relationship(s)" (in addition to the more specific referral/funding
+// phrasings) -- additive capability planning only, never primary classification, so erring toward
+// MORE scrutiny here just plans a capability that honestly reports SKIPPED_MISSING_INPUT when it
+// turns out not to be relevant, never a false claim of execution.
+const ECOMAP_RELATIONSHIP_SIGNAL_MARKERS = /\b(relationships?|referrals?|which organi[sz]ations (?:fund|refer|support|help)|who (?:connects|refers|funds)|fund or refer)\b/i;
 
 export type IntentSignals = {
   freshness: boolean;

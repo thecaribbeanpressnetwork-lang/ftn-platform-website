@@ -97,6 +97,18 @@ Deno.test("Context Graph: empty product list still executes honestly with zero n
   assert(result.findings[0].includes("zero nodes"));
 });
 
+Deno.test("Context Graph: consumes EcoMap Place entities as additional real nodes (dependency: EcoMap Place -> Context Graph)", () => {
+  const result = runContextGraph([], [], [{
+    id: "src-1", name: "Tobago Business Development Office", kind: "SERVICE", jurisdiction: "Tobago",
+    locationPrecision: "JURISDICTION", confirmedLocation: null, inferredCoverage: null, availability: "UNKNOWN",
+    eligibility: null, accessibilityNotes: null, geographicConstraints: null, provenance: "gov.tt",
+    confidence: "INFERRED", lastCheckedAt: "2026-01-10T00:00:00Z",
+  }]);
+  assertEquals(result.executed, true);
+  assert(result.findings.some((f) => f.includes("1 additional node(s)")));
+  assert(result.evidenceReferences.some((e) => e.includes("Tobago Business Development Office")));
+});
+
 Deno.test("Context Graph: Graph/explainConnection primitives work (direct + one-hop + not-connected)", () => {
   const g = new ContextGraph();
   g.addNode({ type: "FTN_PRODUCT", id: "ibis-ai", label: "FTN ibis" });

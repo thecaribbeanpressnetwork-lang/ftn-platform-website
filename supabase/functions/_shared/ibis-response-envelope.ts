@@ -54,10 +54,12 @@ export type ReasoningModeRecord = {
 // relationships are being assessed, a correlation check). CapabilityKind names the additive,
 // server-side-only capabilities the canonical brain can plan for a given request -- this is
 // SEPARATE from and additive to the single legacy `queryClass`, which callers that only understand
-// one class may keep reading. Multi-Agent is intentionally NOT listed here yet (not implemented --
-// see ibis-reasoning-engines.ts's contract-map header). EcoMap Place/Pathway/Relationship ARE
-// listed (implemented this checkpoint; see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md) and are each
-// independently selectable -- one request may plan all three at once.
+// one class may keep reading. EcoMap Place/Pathway/Relationship are each independently selectable
+// (see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md). MULTI_AGENT (this checkpoint -- see GOVERNANCE/
+// MULTI_AGENT_SOURCE_AND_BOUNDARY.md) is the internal dependency-aware execution SCHEDULER over
+// these other capabilities -- it is NOT the browser's role-playing/external-action orchestrator,
+// which remains genuinely absent server-side (disclosed via Connection Fabric's own
+// NO_READY_CONNECTION_PATH finding, not a separate unavailable record).
 export type CapabilityKind =
   | "RESEARCH"
   | "EBR"
@@ -69,7 +71,8 @@ export type CapabilityKind =
   | "CONNECTION_FABRIC"
   | "ECOMAP_PLACE"
   | "ECOMAP_PATHWAY"
-  | "ECOMAP_RELATIONSHIP";
+  | "ECOMAP_RELATIONSHIP"
+  | "MULTI_AGENT";
 
 export type PlannedCapability = {
   capability: CapabilityKind;
@@ -84,10 +87,38 @@ export type PlannedCapability = {
 // data. CONNECTED_CONDITIONAL: the adapter is real and genuinely invoked, but genuine execution
 // still depends on structured input an ordinary free-text query does not automatically produce
 // (e.g. Butterfly/Prediction's structured effects/opportunities, or EBR's candidate causal
-// histories). UNAVAILABLE: not ported / no methodology exists yet (EcoMap, Multi-Agent). An engine
-// must never be reported CONNECTED_OPERATIONAL merely because its adapter exists or because a test
-// manually injected structured data -- that is exactly the overclaim this type exists to prevent.
+// histories). UNAVAILABLE: not ported / no methodology exists yet. An engine must never be
+// reported CONNECTED_OPERATIONAL merely because its adapter exists or because a test manually
+// injected structured data -- that is exactly the overclaim this type exists to prevent.
 export type EngineReadiness = "CONNECTED_OPERATIONAL" | "CONNECTED_CONDITIONAL" | "UNAVAILABLE";
+
+// Execution-state contract (this checkpoint -- see GOVERNANCE/MULTI_AGENT_SOURCE_AND_BOUNDARY.md).
+// Every capability in a request's `capabilityPlan` ends in EXACTLY ONE terminal state below.
+// SELECTED and INPUT_READY are TRANSIENT -- a capability that never reaches EXECUTED/DEGRADED/
+// FAILED still shows them in its own `history`, but its `finalState` is always one of the other
+// six. A capability must never be counted operational merely because it was SELECTED.
+export type CapabilityExecutionState =
+  | "SELECTED"             // in the additive capabilityPlan for this request
+  | "INPUT_READY"          // real, non-fabricated structured input was prepared for it
+  | "EXECUTED"             // ran and genuinely produced a result
+  | "SKIPPED_MISSING_INPUT" // selected, but no real input could be prepared without fabrication
+  | "SKIPPED_NOT_RELEVANT"  // selected in error or superseded -- reserved for future use
+  | "SKIPPED_BUDGET"        // the execution budget was exhausted before this capability ran
+  | "DEGRADED"              // ran, but with a real, disclosed reduction in quality/certainty
+  | "UNAVAILABLE"           // not ported / no methodology exists (e.g. Multi-Agent's own external-action mode)
+  | "FAILED";               // threw an unexpected error -- never silently substituted with a fabricated result
+
+export type CapabilityStateTransition = {
+  state: CapabilityExecutionState;
+  at: string; // ISO 8601
+  reason?: string;
+};
+
+export type CapabilityReceiptEntry = {
+  capability: CapabilityKind;
+  history: CapabilityStateTransition[]; // full transition history, including SELECTED/INPUT_READY
+  finalState: CapabilityExecutionState; // the one terminal state this capability ended in
+};
 
 export type SourceRecord = {
   title: string;
@@ -139,6 +170,9 @@ export type CanonicalReceipt = {
   requestId: string;
   queryClass: QueryClass;
   capabilityPlan: PlannedCapability[];
+  // Complete per-capability execution receipt (this checkpoint) -- distinguishes SELECTED from
+  // genuinely EXECUTED; see CapabilityExecutionState above.
+  capabilityExecution: CapabilityReceiptEntry[];
   capabilitiesAttempted: string[];
   providerPath: string[];
   reasoningModesUsed: ReasoningModeRecord[];
@@ -157,6 +191,11 @@ export type CanonicalResponse = {
   // was planned appears in `reasoningModesUsed` too, with its actual executed/skipped/degraded
   // outcome -- this field is the PLAN, reasoningModesUsed is the OUTCOME.
   capabilityPlan: PlannedCapability[];
+  // Complete per-capability execution receipt (this checkpoint -- see GOVERNANCE/
+  // MULTI_AGENT_SOURCE_AND_BOUNDARY.md): one entry per planned capability, with its full state
+  // history and single terminal state. capabilityPlan says what was SELECTED; capabilityExecution
+  // says what actually happened.
+  capabilityExecution: CapabilityReceiptEntry[];
   reasoningModesUsed: ReasoningModeRecord[];
   capabilitiesAttempted: string[];
   providerPath: string[];
@@ -186,6 +225,7 @@ export function buildEnvelope(input: {
   objective?: string | null;
   queryClass: QueryClass;
   capabilityPlan?: PlannedCapability[];
+  capabilityExecution?: CapabilityReceiptEntry[];
   executionInstruction: ExecutionInstruction;
   reasoningModesUsed: ReasoningModeRecord[];
   capabilitiesAttempted: string[];
@@ -212,6 +252,7 @@ export function buildEnvelope(input: {
     objective: input.objective ?? null,
     queryClass: input.queryClass,
     capabilityPlan: input.capabilityPlan || [],
+    capabilityExecution: input.capabilityExecution || [],
     reasoningModesUsed: input.reasoningModesUsed,
     capabilitiesAttempted: input.capabilitiesAttempted,
     providerPath: input.providerPath,
@@ -234,6 +275,7 @@ export function buildEnvelope(input: {
       requestId: input.requestId,
       queryClass: input.queryClass,
       capabilityPlan: input.capabilityPlan || [],
+      capabilityExecution: input.capabilityExecution || [],
       capabilitiesAttempted: input.capabilitiesAttempted,
       providerPath: input.providerPath,
       reasoningModesUsed: input.reasoningModesUsed,

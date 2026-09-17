@@ -107,7 +107,7 @@ import {
 } from "./ibis-ebr-engine.ts";
 import {
   buildPlaceMap, buildPathwayMap, buildRelationshipMap,
-  type EcoMapSourceRecord, type RelationshipEdge,
+  type EcoMapSourceRecord, type RelationshipEdge, type PlaceEntity,
 } from "./ibis-ecomap-engine.ts";
 
 export type EngineName = "FOUNDER_THINKING" | "CORRELATION" | "BUTTERFLY" | "PREDICTION" | "CONTEXT_GRAPH" | "CONNECTION_FABRIC" | "EBR" | "ECOMAP_PLACE" | "ECOMAP_PATHWAY" | "ECOMAP_RELATIONSHIP";
@@ -461,22 +461,34 @@ export function explainConnection(g: ContextGraph, aType: string, aId: string, b
   return { connected: false, direct: false, path: [] as string[], relations: [] as string[], provenance: [] as unknown[] };
 }
 
-export function runContextGraph(products: IbisProduct[], focusRoutes: string[] = []): EngineResult {
+// Dependency (this checkpoint -- see GOVERNANCE/MULTI_AGENT_SOURCE_AND_BOUNDARY.md's dependency
+// graph): when EcoMap Place has already found real entities for this request, Context Graph
+// consumes them as ADDITIONAL nodes -- grounding the graph to real-world discovered
+// services/organizations, not only FTN's own product list. Only PUBLIC-safe entity data is ever
+// added (id/name/kind/provenance -- never a suppressed relationship detail); no EcoMap
+// RELATIONSHIP edges are merged into this graph's edge model this pass (the two edge shapes do not
+// naturally align without fabricating a connection -- disclosed honestly below, not silently
+// dropped).
+export function runContextGraph(products: IbisProduct[], focusRoutes: string[] = [], ecoMapEntities: PlaceEntity[] = []): EngineResult {
   const g = new ContextGraph();
   for (const p of products || []) g.addNode({ type: "FTN_PRODUCT", id: p.route, label: p.name, route: p.route });
+  for (const e of ecoMapEntities || []) g.addNode({ type: "ECOMAP_PLACE", id: e.id, label: e.name, kind: e.kind, provenance: e.provenance });
   const focusNodes = focusRoutes.length ? g.findNodes((n) => focusRoutes.includes(n.id)) : [];
   return {
     engine: "CONTEXT_GRAPH", requested: true, executed: true, status: "OK", reason: null,
-    inputsUsed: { productCount: (products || []).length, focusCount: focusNodes.length },
+    inputsUsed: { productCount: (products || []).length, focusCount: focusNodes.length, ecoMapEntityCount: (ecoMapEntities || []).length },
     findings: [
       (products || []).length
         ? `Grounded FTN-product slice: ${(products || []).length} node(s) built from this request's own product list.`
-        : "No FTN product list was supplied with this request -- the graph contains zero nodes.",
+        : "No FTN product list was supplied with this request -- zero nodes from that source.",
+      ...(ecoMapEntities && ecoMapEntities.length
+        ? [`${ecoMapEntities.length} additional node(s) grounded to EcoMap Place's real, sourced entities for this request.`]
+        : []),
       ...(focusNodes.length ? [`${focusNodes.length} node(s) directly relevant to this query: ${focusNodes.map((n) => n.label).join(", ")}.`] : []),
-      "No dependency-edge data (project/data dependencies) is available in this server request context yet -- only the browser FTN.NodeRegistry carries that; this graph is nodes-only in this pass.",
+      "No dependency-edge data (project/data dependencies) is available in this server request context yet -- only the browser FTN.NodeRegistry carries that; this graph is nodes-only in this pass. EcoMap Relationship edges are not merged into this graph's edges this pass -- the two edge shapes do not align without fabricating a connection.",
     ],
-    assumptions: ["Grounded strictly to the product list the caller supplied -- never invents an FTN product, organization or place node."],
-    evidenceReferences: g.findNodes().map((n) => `FTN product: ${n.label} (${n.id})`),
+    assumptions: ["Grounded strictly to the product list and EcoMap entities the caller/request already produced -- never invents an FTN product, organization or place node."],
+    evidenceReferences: g.findNodes().map((n) => `${n.type}: ${n.label} (${n.id})`),
     confidence: focusNodes.length ? "MODERATE" : "LOW",
     downstreamEffects: [],
   };
