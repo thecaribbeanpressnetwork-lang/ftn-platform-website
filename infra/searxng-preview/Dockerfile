@@ -6,10 +6,15 @@
 # adapter (supabase/functions/_shared/ibis-search-adapter.ts) something real to call -- that
 # adapter is REUSED as-is, never replaced or duplicated by this deployment.
 #
-# Built on the official SearXNG image; only settings.yml is overridden. The base image's own
-# docker-entrypoint.sh replaces the placeholder secret_key below with a fresh random one on every
-# container start (see README.md's "Secret key" section for why that's an accepted, disclosed
-# tradeoff for a stateless JSON-API preview with no persistent disk).
+# Built on the official SearXNG image; only settings.yml is overridden. settings.yml's
+# server.secret_key is left as the placeholder "ultrasecretkey" -- never a real secret in this
+# committed file. SearXNG itself reads the SEARXNG_SECRET_KEY environment variable at startup and
+# uses it as the effective server.secret_key, overriding that placeholder before its own startup
+# check runs. Render (or wherever this is deployed) MUST have SEARXNG_SECRET_KEY set, or the
+# container refuses to start with "server.secret_key is not changed" -- see README.md's "Secret
+# key" section. (An earlier version of this comment claimed the base image's entrypoint
+# auto-replaces the placeholder on its own; that claim was wrong -- confirmed by a real deploy
+# failure -- and is corrected here.)
 FROM searxng/searxng:latest
 
 COPY settings.yml /etc/searxng/settings.yml

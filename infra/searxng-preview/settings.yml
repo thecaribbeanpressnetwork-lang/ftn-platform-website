@@ -23,9 +23,11 @@ search:
     - json
 
 server:
-  # Placeholder the base image's own docker-entrypoint.sh replaces with a fresh, random secret on
-  # every container start (see this folder's README.md, "Secret key" section) -- never edit this
-  # to a fixed value in a version-controlled file.
+  # Placeholder only -- never a real secret in this committed file. SearXNG reads the
+  # SEARXNG_SECRET_KEY environment variable at startup and uses it as the effective
+  # server.secret_key, overriding this placeholder before its own "is not changed" startup check
+  # runs. The deploy environment (Render, etc.) MUST set SEARXNG_SECRET_KEY, or the container
+  # refuses to start -- see this folder's README.md, "Secret key" section.
   secret_key: "ultrasecretkey"
   # Enables SearXNG's built-in request limiter/bot-detection. No Redis is configured for this
   # preview, so limiting is per-process (in-memory), not distributed across replicas -- adequate

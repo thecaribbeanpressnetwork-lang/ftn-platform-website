@@ -17,6 +17,25 @@ The official `searxng/searxng` Docker image with one settings override
 built-in request limiter turned on, debug mode off, and this instance never listed as a public
 "community" SearXNG instance.
 
+## Secret key (required -- the container will not start without it)
+
+SearXNG refuses to start if `server.secret_key` is still the literal placeholder
+`"ultrasecretkey"` that ships in `settings.yml` (it exits with
+`server.secret_key is not changed. Please use something else instead of ultrasecretkey.`).
+`settings.yml` deliberately keeps that placeholder -- a real secret is never committed to Git.
+Instead, SearXNG reads the **`SEARXNG_SECRET_KEY`** environment variable at startup and uses it as
+the effective `server.secret_key`, overriding the placeholder.
+
+1. Generate a real value yourself, e.g. `openssl rand -hex 32` (or any equivalent 32+ byte random
+   generator) -- a long random hex string, not a memorable password.
+2. Set it as an environment variable named exactly `SEARXNG_SECRET_KEY` on whichever platform you
+   deploy to (Render: see step A4 below; Hugging Face: Space **Settings -> Variables and
+   secrets -> New secret**), marked **Secret**/hidden wherever the platform offers that option --
+   never paste this value into a chat session or commit it to Git.
+3. This value only needs to be internally consistent for this one deployed instance (it signs
+   session/CSRF tokens) -- it is not shared with, or read by, `ibis-search-adapter.ts` or any other
+   IBIS code; IBIS only ever calls the instance's public `/search?format=json` endpoint.
+
 ## Option A -- Render (recommended: simplest free "Docker Web Service" flow)
 
 1. Go to **https://render.com/register** and sign up (GitHub sign-in is fastest -- one click,
@@ -27,6 +46,8 @@ built-in request limiter turned on, debug mode off, and this instance never list
 4. Render should auto-detect a `Dockerfile`. Set:
    - **Root Directory**: `infra/searxng-preview`
    - **Instance Type**: Free
+   - **Environment Variable** (required, see "Secret key" above): name `SEARXNG_SECRET_KEY`,
+     your generated value, marked **Secret**.
 5. Click **Create Web Service**. Render builds the image and deploys it -- first build typically
    takes a few minutes.
 6. Once live, Render shows a URL like `https://ftn-searxng-preview.onrender.com`. Copy it -- you
@@ -50,7 +71,9 @@ built-in request limiter turned on, debug mode off, and this instance never list
    to the Space, and add `SEARXNG_BIND_ADDRESS: "0.0.0.0:7860"` under `server:` in your pushed copy
    of `settings.yml` -- do not change the copy kept in this repository, since Render (Option A)
    still expects port 8080.
-6. The Space builds automatically on push. Once live, its URL is
+6. Set the required `SEARXNG_SECRET_KEY` variable (see "Secret key" above) under the Space's
+   **Settings -> Variables and secrets -> New secret**.
+7. The Space builds automatically on push. Once live, its URL is
    `https://<your-username>-<space-name>.hf.space`.
 
 ## After it's live
@@ -93,9 +116,11 @@ completely separate systems.
   idling and gracefully fall through to the next configured provider (Brave, if configured, else
   an honest `SEARCH_UNAVAILABLE`) -- never a hang, never a fabricated answer, but also not a
   reliable first-request experience for a genuinely idle preview instance.
-- **No persistent disk on either free tier**: the SearXNG secret key (`server.secret_key`)
-  regenerates on every container restart (see `settings.yml`'s comment) -- fine for a stateless
-  JSON-API-only usage, but means the HTML UI's own session/CSRF state resets on every restart too.
+- **No persistent disk on either free tier**: nothing SearXNG writes to disk at runtime survives a
+  restart. This does not affect `server.secret_key` (set via the `SEARXNG_SECRET_KEY` environment
+  variable, stable across restarts as long as that variable itself doesn't change -- see "Secret
+  key" above), but any other on-disk state (e.g. a future Redis-backed limiter, if added) would
+  need to be reconfigured to not depend on local disk.
 - **Outbound traffic / rate limits**: both platforms cap free-tier bandwidth and compute (exact
   current numbers change -- confirm at signup). SearXNG itself fans a single search query out to
   several upstream engines (Google, Bing, DuckDuckGo, Wikipedia, etc. by default) -- each IBIS
