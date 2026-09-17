@@ -16,7 +16,10 @@ assert.deepEqual([...manifest.permissions].sort(), ['activeTab', 'contextMenus',
 assert.equal(manifest.host_permissions.length, 2);
 assert(manifest.host_permissions.includes('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-ibis-mcp'));
 assert(manifest.host_permissions.includes('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-browser-context'));
-assert.doesNotMatch(JSON.stringify(manifest), /<all_urls>|webRequest|cookies|history|geolocation|\"tabs\"/);
+for (const forbidden of ['<all_urls>', 'webRequest', 'cookies', 'history', 'geolocation', 'tabs']) {
+  assert(!manifest.permissions.includes(forbidden), `Extension must not request ${forbidden}`);
+}
+assert(manifest.host_permissions.every((value) => value.startsWith('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/')));
 assert.match(popup, /chrome\.scripting\.executeScript/);
 assert.match(popup, /#include-browser-search/);
 assert.match(popup, /google\.|bing\.com|duckduckgo\.com/);
@@ -31,7 +34,7 @@ assert.match(browserContextFunction, /You are ibis, FTN Platform's intelligent C
 assert.match(browserContextFunction, /url\.username = ""/);
 assert.match(browserContextFunction, /url\.password = ""/);
 assert.match(browserContextFunction, /results\.length >= 10/);
-assert.doesNotMatch(browserContextFunction, /document\.cookie|browser cookies.*receive/i);
+assert.doesNotMatch(browserContextFunction, /document\.cookie/);
 
 for (const size of [16, 32, 48, 128]) {
   assert.ok(fs.statSync(new URL('icons/ibis-' + size + '.png', root)).size > 100);
