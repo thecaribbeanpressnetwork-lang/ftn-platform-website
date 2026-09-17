@@ -12,21 +12,27 @@
     <div><strong>FTN ibis</strong><span>Caribbean Intelligence</span></div>
   </header>
   <main>
+    <section class="browser-context" aria-labelledby="browser-context-label">
+      <p id="browser-context-label" class="eyebrow">Your browser can be a research tool</p>
+      <p class="browser-context__copy">Search normally in Google, Bing or DuckDuckGo, then let ibis reason over the visible results. Cookies, login credentials and search history stay in your browser.</p>
+      <button type="button" id="include-browser-search" class="secondary wide-action">Include browser search</button>
+      <div id="browser-context-chip" class="context-chip" hidden></div>
+    </section>
     <form id="ask-form">
-      <label for="query">What are you looking for?</label>
-      <textarea id="query" maxlength="160" rows="3" placeholder="Funding, partners, procurement, Caribbean research…"></textarea>
+      <label for="query">What do you want ibis to work out?</label>
+      <textarea id="query" maxlength="1200" rows="3" placeholder="What matters here? Compare the evidence, identify the opportunity, check the risk…"></textarea>
       <div class="actions">
-        <button type="submit" data-tool="search">Search ibis</button>
+        <button type="submit" data-tool="search">Ask ibis</button>
         <button type="submit" data-tool="opportunity_scout" class="secondary">Find opportunities</button>
       </div>
     </form>
     <p id="status" class="status" role="status" aria-live="polite"></p>
-    <p class="privacy-note">Public searches only. Do not send passwords, payment details, private messages or sensitive records.</p>
+    <p class="privacy-note">Browser context is captured only when you press “Include browser search”. FTN ibis receives the visible result titles, links and snippets — never your Google cookies, passwords, account tokens or browsing history.</p>
     <section id="results" class="results" aria-label="Results"></section>
   </main>
   <footer>
-    <a href="https://ftnplatform.org/ibis/" target="_blank" rel="noopener noreferrer">Open FTN ibis</a>
-    <span>Read-only · source-backed</span>
+    <a href="https://ftnplatform.org/ibis-ai/" target="_blank" rel="noopener noreferrer">Open FTN ibis</a>
+    <span>Evidence in · reasoning out</span>
   </footer>
   <script type="module" src="popup.js"></script>
 </body>

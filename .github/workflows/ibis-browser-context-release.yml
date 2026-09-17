@@ -1,0 +1,65 @@
+name: ibis Browser Search Context Release
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/ftn-ibis-browser-extension/**'
+      - 'supabase/functions/ibis-browser-context/**'
+      - 'supabase/functions/_shared/ibis-intelligence-gateway.ts'
+      - '.github/workflows/ibis-browser-context-release.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/ftn-ibis-browser-extension/**'
+      - 'supabase/functions/ibis-browser-context/**'
+      - 'supabase/functions/_shared/ibis-intelligence-gateway.ts'
+      - '.github/workflows/ibis-browser-context-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify browser companion privacy, capture contract and package
+        run: node apps/ftn-ibis-browser-extension/test.mjs
+      - name: Upload browser companion package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftn-ibis-browser-companion-0.2.0
+          path: apps/ftn-ibis-browser-extension/dist/ftn-ibis-chrome-store-0.2.0.zip
+          if-no-files-found: error
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: jshmidfpqrajxtukzges
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Require scoped Supabase deployment credential
+        run: test -n "$SUPABASE_ACCESS_TOKEN"
+      - name: Deploy browser-context reasoning lane
+        run: supabase functions deploy ibis-browser-context --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Verify public function rejects empty evidence safely
+        run: |
+          code=$(curl -sS -o /tmp/ibis-browser-context.json -w '%{http_code}' \
+            -X POST "https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/ibis-browser-context" \
+            -H 'content-type: application/json' \
+            --data '{"question":"test","context":{}}')
+          cat /tmp/ibis-browser-context.json
+          test "$code" = "400"
