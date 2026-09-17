@@ -6,12 +6,12 @@ const key = config.supabase?.publishableKey;
 const endpoint = `${base}/functions/v1/ibis-assistant`;
 if (!base || !key) throw new Error('Public Supabase runtime configuration is incomplete.');
 
-async function post(body) {
+async function post(body, timeoutMs = 30_000) {
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { origin: 'https://ftnplatform.org', apikey: key, authorization: `Bearer ${key}`, 'content-type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(`ibis-assistant HTTP ${response.status}: ${payload.error || 'invalid response'}`);
@@ -25,4 +25,27 @@ if (!Array.isArray(health.providers) || typeof health.configuredProviders !== 'n
 const arithmetic = await post({ messages: [{ role: 'user', content: 'What is 7 times 8?' }], products: [] });
 if (arithmetic.answer !== '7 * 8 = 56.' || arithmetic.evidenceState !== 'DETERMINISTIC' || arithmetic.provider !== 'FTN ibis deterministic') throw new Error(`Deterministic proof failed: ${JSON.stringify(arithmetic)}`);
 
-console.log(JSON.stringify({ ok: true, endpoint, version: health.version, configuredProviders: health.configuredProviders, availableProviders: health.availableProviders, deterministicRequestId: arithmetic.requestId }));
+// Investor-demo safety proof: the historical browser TEXT payload does not include
+// action:"canonical_query". Freshness-sensitive questions on that compatibility route must still
+// be forced through the canonical search-grounded path and must never be answered by a bare model.
+const legacyFresh = await post({
+  messages: [{ role: 'user', content: 'What are the latest major business developments in Trinidad and Tobago?' }],
+  products: [],
+}, 55_000);
+if (legacyFresh.answerClass !== 'CURRENT_WEB_RESEARCH') throw new Error(`Legacy freshness classification failed: ${JSON.stringify(legacyFresh)}`);
+if (legacyFresh.evidenceState !== 'SEARCH_GROUNDED') throw new Error(`Legacy freshness grounding failed: ${JSON.stringify(legacyFresh)}`);
+if (!Array.isArray(legacyFresh.sources) || !legacyFresh.sources.length || legacyFresh.sources.some((source) => !/^https:\/\//.test(source?.url || ''))) throw new Error(`Legacy freshness sources missing or invalid: ${JSON.stringify(legacyFresh)}`);
+if (/don['’]?t have real[- ]?time access|cannot access real[- ]?time/i.test(legacyFresh.answer || '')) throw new Error(`Legacy freshness answer incorrectly denied live access: ${JSON.stringify(legacyFresh)}`);
+
+console.log(JSON.stringify({
+  ok: true,
+  endpoint,
+  version: health.version,
+  configuredProviders: health.configuredProviders,
+  availableProviders: health.availableProviders,
+  deterministicRequestId: arithmetic.requestId,
+  legacyFreshnessRequestId: legacyFresh.requestId,
+  legacyFreshnessEvidenceState: legacyFresh.evidenceState,
+  legacyFreshnessSourceCount: legacyFresh.sources.length,
+  legacyFreshnessProvider: legacyFresh.provider,
+}));
