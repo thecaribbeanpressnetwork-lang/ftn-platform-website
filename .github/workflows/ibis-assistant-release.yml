@@ -6,7 +6,13 @@ on:
     branches:
       - main
     paths:
+      # Independent audit finding: ibis-assistant's actual served behavior lives mostly in
+      # _shared/*.ts (the canonical brain, intent router, search adapter, lifecycle store, etc.) --
+      # this filter previously omitted that directory entirely, so a fix landing there (e.g. the
+      # freshness-marker correction in ibis-intent-router.ts, commit 75b5179) merged to main without
+      # ever triggering a deploy, silently leaving production on the old, unfixed code.
       - 'supabase/functions/ibis-assistant/**'
+      - 'supabase/functions/_shared/**'
       - 'scripts/verify-ibis-assistant-live.mjs'
       - '.github/workflows/ibis-assistant-release.yml'
 
