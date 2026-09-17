@@ -27,7 +27,7 @@ The browser remains the search tool. ibis is the research/CEO reasoning layer ov
 
 Run `node build-package.mjs` and `node test.mjs`, then use **Load unpacked** in a Chromium browser and select this directory. CI also deploys `ibis-browser-context` and executes a live authenticated acceptance proof against the public function, requiring `USER_PROVIDED_WEB_CONTEXT`, preserved snippet provenance and a non-empty ibis answer.
 
-The release workflow packages `dist/ftn-ibis-chrome-store-0.2.0.zip` and publishes the verified ZIP as a GitHub Release asset. Chrome Web Store / Opera Add-ons publication remains a separate store-review action because it requires developer-account attestations and marketplace review.
+The release workflow packages `dist/ftn-ibis-chrome-store-0.2.1.zip` and publishes the verified ZIP as a GitHub Release asset. Chrome Web Store / Opera Add-ons publication remains a separate store-review action because it requires developer-account attestations and marketplace review.
 
 ## Store identity
 

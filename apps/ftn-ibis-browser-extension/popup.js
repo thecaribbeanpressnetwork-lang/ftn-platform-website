@@ -172,12 +172,33 @@ function extractSearchContextFromPage() {
   const source = new URL(pageUrl.origin + pageUrl.pathname);
   if (query) source.searchParams.set('q', query);
 
+  // Confirmed live against real bing.com results (independent audit, 2026-09-17): every organic
+  // result anchor is now wrapped in a https://www.bing.com/ck/a?...&u=a1<base64url>&... click-
+  // tracking redirect. Before this fix, the plain "any bing.com URL is internal, discard" rule
+  // below silently dropped EVERY Bing result -- Bing capture returned zero results in practice,
+  // not merely degraded. The "a1" is a two-character format-version prefix Bing prepends before
+  // standard base64url (no padding); this decodes it the same way Google's /url and DuckDuckGo's
+  // uddg wrappers are already unwrapped just below.
+  function decodeBingRedirect(uParam) {
+    if (!uParam || !uParam.startsWith('a1')) return null;
+    try {
+      let b64 = uParam.slice(2).replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      return atob(b64);
+    } catch {
+      return null;
+    }
+  }
   function normalizedDestination(raw) {
     try {
       let url = new URL(raw, location.href);
       if (engine === 'google' && url.hostname.includes('google.') && url.pathname === '/url') {
         const nested = url.searchParams.get('q') || url.searchParams.get('url');
         if (nested) url = new URL(nested);
+      }
+      if (engine === 'bing' && (url.hostname === 'bing.com' || url.hostname.endsWith('.bing.com')) && url.pathname === '/ck/a') {
+        const decoded = decodeBingRedirect(url.searchParams.get('u'));
+        if (decoded) url = new URL(decoded);
       }
       if (url.protocol !== 'https:') return '';
       if (engine === 'google' && url.hostname.includes('google.')) return '';

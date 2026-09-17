@@ -34,8 +34,8 @@ jobs:
       - name: Upload browser companion package
         uses: actions/upload-artifact@v4
         with:
-          name: ftn-ibis-browser-companion-0.2.0
-          path: apps/ftn-ibis-browser-extension/dist/ftn-ibis-chrome-store-0.2.0.zip
+          name: ftn-ibis-browser-companion-0.2.1
+          path: apps/ftn-ibis-browser-extension/dist/ftn-ibis-chrome-store-0.2.1.zip
           if-no-files-found: error
 
   deploy:
@@ -124,13 +124,13 @@ jobs:
       contents: write
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: ibis-browser-companion-v0.2.0
-      RELEASE_ASSET: ftn-ibis-chrome-store-0.2.0.zip
+      RELEASE_TAG: ibis-browser-companion-v0.2.1
+      RELEASE_ASSET: ftn-ibis-chrome-store-0.2.1.zip
     steps:
       - name: Download verified browser companion artifact
         uses: actions/download-artifact@v4
         with:
-          name: ftn-ibis-browser-companion-0.2.0
+          name: ftn-ibis-browser-companion-0.2.1
           path: /tmp/ibis-browser-companion
       - name: Publish immutable browser companion release
         run: |
@@ -140,9 +140,9 @@ jobs:
             echo "Release $RELEASE_TAG already exists; preserving its immutable asset."
             gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "$RELEASE_TAG" "$asset#FTN ibis Browser Companion 0.2.0" \
+            gh release create "$RELEASE_TAG" "$asset#FTN ibis Browser Companion 0.2.1" \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "FTN ibis Browser Companion 0.2.0" \
-              --notes "Verified Chrome/Opera browser companion. Search normally in Google, Bing or DuckDuckGo, press Include browser search, and let FTN ibis reason over the visible titles, links and snippets. No browser cookies, passwords, account tokens or browsing history are sent to ibis."
+              --title "FTN ibis Browser Companion 0.2.1" \
+              --notes "Fixes Bing capture: every organic result was wrapped in a bing.com/ck/a click-tracking redirect that the 0.2.0 capture logic treated as internal and silently discarded, so Bing produced zero results. Verified Chrome/Opera browser companion. Search normally in Google, Bing or DuckDuckGo, press Include browser search, and let FTN ibis reason over the visible titles, links and snippets. No browser cookies, passwords, account tokens or browsing history are sent to ibis."
           fi

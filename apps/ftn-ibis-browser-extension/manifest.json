@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "FTN ibis — Caribbean Intelligence",
   "short_name": "FTN ibis",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Bring browser search results into FTN ibis for Caribbean-first reasoning without sharing browser cookies or account credentials.",
   "homepage_url": "https://ftnplatform.org/ibis-ai/",
   "permissions": ["contextMenus", "activeTab", "scripting"],

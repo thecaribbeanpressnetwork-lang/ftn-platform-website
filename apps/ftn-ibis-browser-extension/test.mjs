@@ -11,7 +11,7 @@ const browserContextFunction = fs.readFileSync(new URL('../../supabase/functions
 
 assert.equal(manifest.manifest_version, 3);
 assert.equal(manifest.name, 'FTN ibis — Caribbean Intelligence');
-assert.equal(manifest.version, '0.2.0');
+assert.equal(manifest.version, '0.2.1');
 assert.deepEqual([...manifest.permissions].sort(), ['activeTab', 'contextMenus', 'scripting'].sort());
 assert.equal(manifest.host_permissions.length, 2);
 assert(manifest.host_permissions.includes('https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ftn-ibis-mcp'));
@@ -26,6 +26,27 @@ assert.match(popup, /google\.|bing\.com|duckduckgo\.com/);
 assert.match(popup, /captureMode:\s*'USER_BROWSER'/);
 assert.match(popup, /results\.length\s*>=\s*10/);
 assert.doesNotMatch(popup, /document\.cookie|chrome\.cookies|chrome\.history|localStorage/);
+
+// Independent live audit finding (confirmed against real bing.com, 2026-09-17): every Bing organic
+// result anchor is wrapped in a https://www.bing.com/ck/a?...&u=a1<base64url>&... click-tracking
+// redirect. Before this fix, popup.js's normalizedDestination() treated ANY bing.com-hosted URL as
+// internal and discarded it -- Bing capture returned zero results in live testing, not merely
+// degraded snippets. This decodes the real destination the same way Google's /url and DuckDuckGo's
+// uddg wrappers are already unwrapped.
+assert.match(popup, /function decodeBingRedirect/, 'popup.js must decode Bing\'s /ck/a click-tracking redirect');
+{
+  const start = popup.indexOf('function decodeBingRedirect');
+  const end = popup.indexOf('function normalizedDestination');
+  assert.ok(start > -1 && end > start, 'decodeBingRedirect() body must be extractable');
+  const body = popup.slice(start, end).trim().replace(/;\s*$/, '');
+  const decodeBingRedirect = new Function('atob', `return (${body.replace('function decodeBingRedirect', 'function')})`)(
+    (s) => Buffer.from(s, 'base64').toString('binary'),
+  );
+  const real = 'a1aHR0cHM6Ly90cmluaWRhZGV4cHJlc3MuY29tL2J1c2luZXNzLw';
+  assert.equal(decodeBingRedirect(real), 'https://trinidadexpress.com/business/', 'must decode a real, live-captured Bing redirect to its actual destination');
+  assert.equal(decodeBingRedirect('notprefixed'), null, 'a param without the a1 prefix must not be treated as a Bing redirect');
+  assert.equal(decodeBingRedirect(null), null, 'a missing u param must not throw');
+}
 assert.doesNotMatch(api, /localStorage|chrome\.storage|document\.cookie/);
 assert.match(api, /ibis-browser-context/);
 assert.match(browserContextFunction, /USER_PROVIDED_WEB_CONTEXT/);
