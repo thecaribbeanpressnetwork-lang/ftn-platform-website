@@ -1634,3 +1634,12 @@ Deno.test("AUTHORIZED FALLBACK FIX: omitting providerFactory keeps exact prior b
   assert(outcome.status === "ACCEPTED" && outcome.envelope);
   assertEquals(outcome.envelope.answer, "unchanged legacy behavior", "a caller that never supplies providerFactory must be entirely unaffected by this correction");
 });
+
+// Independent live audit finding: "recent" was missing from FRESHNESS_MARKERS entirely, so a
+// plainly current-events question using that word instead of "latest"/"today" fell through to
+// SIMPLE_TEXT and never reached search grounding. Confirmed live: "What are the most recent
+// business developments in Tobago?" produced a bare, ungrounded model answer.
+Deno.test("FRESHNESS: 'recent' classifies CURRENT_WEB_RESEARCH just like 'latest'", () => {
+  assertEquals(classifyIntent("What are the most recent business developments in Tobago?").queryClass, "CURRENT_WEB_RESEARCH");
+  assertEquals(classifyIntent("What has recently changed in Trinidad's energy sector?").queryClass, "CURRENT_WEB_RESEARCH");
+});

@@ -16,7 +16,13 @@
 // ADDITIVE capability plan instead of only acting on whichever single class won the priority race.
 import type { QueryClass } from "./ibis-response-envelope.ts";
 
-const FRESHNESS_MARKERS = /\b(today|latest|current(?:ly)?|right now|this week|this month|breaking|as of \d{4}|news|price|exchange rate|fx rate|selling rate|indicators?|shortage|election result|score)\b/i;
+// "recent(ly)" added (independent live audit, commit 50a849e+): "What are the most recent business
+// developments in Tobago?" matched none of these markers and fell through to SIMPLE_TEXT, so a
+// question that plainly wants current information never reached search grounding at all. Confirmed
+// no existing test asserts a query containing "recent" classifies as anything other than
+// CURRENT_WEB_RESEARCH -- it does not overlap RETRODICTION_MARKERS (which requires a "why.../what
+// caused..." framing, not the bare word "recent").
+const FRESHNESS_MARKERS = /\b(today|latest|recent(?:ly)?|current(?:ly)?|right now|this week|this month|breaking|as of \d{4}|news|price|exchange rate|fx rate|selling rate|indicators?|shortage|election result|score)\b/i;
 
 const OUTCOME_MARKERS = /\b(i want to (build|start|launch|create|design|grow)|help me (build|start|launch|create|design)|how do i (build|start|launch|create)|i(?:'m| am) trying to (build|start|launch|create|earn)|i need to (build|achieve|design|change|accomplish))\b/i;
 
