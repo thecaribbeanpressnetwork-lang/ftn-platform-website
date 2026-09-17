@@ -291,15 +291,35 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // 3. INTENT/OUTCOME CLASSIFICATION.
   const intent = classifyIntent(text);
 
+  // 4. CAPABILITY PLANNING -- moved ahead of the execution-authorization decision below (founder-
+  // completion pass; see the note there for why). The ONE place capability selection happens,
+  // entirely server-side, entirely from intent.signals (see planCapabilities() above). Additive: a
+  // single request can plan several capabilities at once, unlike the single `queryClass` it is
+  // built alongside.
+  const capabilityPlan = planCapabilities(intent.signals);
+
   // Slice 1 correction: the execution-authorization decision lives here, server-side, and ONLY
   // here. Slice 3 correction: it ALSO now depends on whether a durable lifecycle store is
   // actually available -- authorizing browser-local execution without durable backing means a
   // later failure receipt has nowhere real to validate against, so this endpoint FAILS CLOSED on
   // the local-execution optimization (never on answering the user): it still answers the
   // question, just always server-side, exactly as if the query were never local-eligible.
+  //
+  // Founder-completion pass: ALSO now requires capabilityPlan.length === 0. Live-confirmed gap: "Map
+  // the organizations, funding pathways and relationships that could help a Trinidad and Tobago
+  // community technology project" classifies queryClass SIMPLE_TEXT (none of the legacy PATHWAY/
+  // PLACE/RELATIONSHIP/OUTCOME markers match this exact phrasing), yet genuinely plans RESEARCH +
+  // ECOMAP_PLACE + ECOMAP_RELATIONSHIP -- real, evidence-backed reasoning a bare on-device
+  // LanguageModel has no way to run or even receive (localAI() in js/ibis-ai-workspace.js sends only
+  // the raw prompt, no evidence/synthesis injection capability exists client-side). Authorizing
+  // local execution here would silently discard capabilities the canonical brain itself found
+  // relevant. This can only make authorization STRICTER (capabilityPlan.length === 0 is a
+  // conjunctive AND with the existing conditions), never authorize a query that wasn't already
+  // authorized before -- zero regression risk for the common case (an ordinary question with no
+  // planned capabilities is unaffected).
   const durableStoreAvailable = !!input.lifecycleStore;
   const freshnessRequired = intent.queryClass === "CURRENT_WEB_RESEARCH";
-  const executionAuthorized = intent.queryClass === "SIMPLE_TEXT" && durableStoreAvailable;
+  const executionAuthorized = intent.queryClass === "SIMPLE_TEXT" && durableStoreAvailable && capabilityPlan.length === 0;
   const executionInstruction: ExecutionInstruction = {
     planId: requestId,
     executionTarget: executionAuthorized ? "browser_local" : "server_provider",
@@ -310,9 +330,11 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       ? ["do_not_invent_current_facts", "max_output_tokens_600"]
       : freshnessRequired
         ? ["freshness_required_local_execution_prohibited"]
-        : !durableStoreAvailable && intent.queryClass === "SIMPLE_TEXT"
+        : !durableStoreAvailable && intent.queryClass === "SIMPLE_TEXT" && capabilityPlan.length === 0
           ? ["lifecycle_store_unavailable_local_execution_disabled"]
-          : ["specialist_reasoning_required_local_execution_prohibited"],
+          : intent.queryClass === "SIMPLE_TEXT" && capabilityPlan.length > 0
+            ? ["capabilities_planned_local_execution_would_discard_them"]
+            : ["specialist_reasoning_required_local_execution_prohibited"],
   };
   const reasoningModesUsed: ReasoningModeRecord[] = [];
   const capabilitiesAttempted: string[] = [];
@@ -327,11 +349,6 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   const ecosystemConnections: string[] = [];
   let handoff: CanonicalResponse["handoff"] = { external: false, note: null };
   let alternatives: CanonicalResponse["alternatives"] = [];
-
-  // 4. CAPABILITY PLANNING -- the ONE place capability selection happens, entirely server-side,
-  // entirely from intent.signals (see planCapabilities() above). Additive: a single request can
-  // plan several capabilities at once, unlike the single `queryClass` it is built alongside.
-  const capabilityPlan = planCapabilities(intent.signals);
 
   // 5/6. RETRIEVAL + SEARCH -- runs whenever RESEARCH is planned (freshness marker, OR an explicit
   // evidence-behind-a-cause request), regardless of which single class won PRIMARY classification.

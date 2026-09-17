@@ -1886,3 +1886,32 @@ Deno.test("SEMANTIC ROBUSTNESS: a direct second-order-effects question plans But
   assertEquals(result.signals.secondOrderEffects, true);
   assertEquals(result.signals.outcome, false, "this phrasing must not need to also match an outcome/build marker");
 });
+
+// Live-confirmed gap (independent audit, mission-required test query #4): "Map the organizations,
+// funding pathways and relationships that could help a Trinidad and Tobago community technology
+// project" classifies queryClass SIMPLE_TEXT (none of the legacy PATHWAY/PLACE/RELATIONSHIP/
+// OUTCOME markers match this exact phrasing) while genuinely planning RESEARCH + ECOMAP_PLACE +
+// ECOMAP_RELATIONSHIP -- capabilities a bare on-device LanguageModel cannot run or receive.
+// executionAuthorized must never defer a query with real planned capabilities to local execution,
+// which would silently discard them.
+Deno.test("EXECUTION AUTHORIZATION: a SIMPLE_TEXT query with real planned capabilities is never deferred to local execution", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Map the organizations, funding pathways and relationships that could help a Trinidad and Tobago community technology project.",
+    providers: [fakeProvider("test", "a real synthesized answer")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(res.capabilityPlan.length > 0, "this query must genuinely plan at least one capability (RESEARCH/ECOMAP_*), or this test no longer exercises the gap it proves");
+  assertEquals(res.executionInstruction.executionAuthorized, false, "a query with real planned capabilities must never be authorized for local execution");
+  assertEquals(res.executionInstruction.executionTarget, "server_provider");
+  assert(res.answer.length > 0, "the server must answer directly rather than deferring with an empty answer, since local execution cannot run these capabilities anyway");
+});
+
+Deno.test("EXECUTION AUTHORIZATION: an ordinary SIMPLE_TEXT question with zero planned capabilities remains authorized for local execution (no regression)", async () => {
+  const res = await handleCanonicalRequest({
+    text: "What is photosynthesis?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.capabilityPlan.length, 0);
+  assertEquals(res.executionInstruction.executionAuthorized, true, "an ordinary question with nothing else planned must keep the existing local-execution optimization");
+});
