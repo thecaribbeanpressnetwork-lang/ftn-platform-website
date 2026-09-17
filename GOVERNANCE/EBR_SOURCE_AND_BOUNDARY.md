@@ -53,10 +53,14 @@ from free text. A caller (the advanced/internal `CanonicalRequest.ebrInput` inte
 governance/audit tool built on this endpoint) must supply real `CandidateHistory[]` data for the
 mechanism-gated *causal admissibility* evaluation to run; absent one, EBR still genuinely executes
 -- reporting a CONDITIONAL, evidence-only finding (K_att disclosure, contradiction count, the `⊥`
-reserve) rather than a completed causal reconstruction, and never `SKIPPED` when real evidence
-exists (SKIPPED is reserved for when there is no evidence at all -- e.g. search failed or was never
-planned). Inventing candidate causal edges from free text would be exactly the "invent reasoning to
-fill a gap" this codebase's discipline forbids -- this is also why EBR remains classified
+reserve) rather than a completed causal reconstruction, and never `SKIPPED` when evidence items
+exist (SKIPPED is reserved for when there is no evidence at all -- e.g. search failed or was never
+planned). Note: "evidence items exist" describes the engine's own contract, not a claim about
+where the evidence came from -- see "Evidence terminology" in `docs/ibis/acceptance-baseline.md`
+for the `MOCK_SEARCH_FIXTURE`/`CONTRACT_GROUNDED`/`LIVE_SEARCH_GROUNDED` distinction; a test's
+fixture evidence is never itself `LIVE_SEARCH_GROUNDED`. Inventing candidate causal edges from free
+text would be exactly the "invent reasoning to fill a gap" this codebase's discipline forbids --
+this is also why EBR remains classified
 `CONNECTED_CONDITIONAL`, not `CONNECTED_OPERATIONAL`, in `docs/ibis/acceptance-baseline.md`'s engine
 readiness table.
 

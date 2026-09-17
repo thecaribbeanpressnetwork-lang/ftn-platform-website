@@ -7,9 +7,10 @@
 // genuinely EXECUTED with real structured input, so the port itself is proven correct and not just
 // "present but permanently dead."
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runButterfly, runPrediction, runContextGraph, runConnectionFabric, runEBR, ContextGraph, explainConnection, connectionPlan, type EBRInput } from "./ibis-reasoning-engines.ts";
+import { runButterfly, runPrediction, runContextGraph, runConnectionFabric, runEBR, runEcoMapPlace, runEcoMapPathway, runEcoMapRelationship, ContextGraph, explainConnection, connectionPlan, type EBRInput } from "./ibis-reasoning-engines.ts";
 import type { IbisProduct } from "./ibis-intelligence-gateway.ts";
 import type { EvidenceItem, CandidateHistory, CausalEdgeProposal } from "./ibis-ebr-engine.ts";
+import type { EcoMapSourceRecord } from "./ibis-ecomap-engine.ts";
 
 // --- BUTTERFLY -----------------------------------------------------------------------------------
 
@@ -232,4 +233,70 @@ Deno.test("EBR: no actor/decisionTime supplied -> never infers actor access, hon
   assertEquals(result.executed, true);
   assert(result.findings.some((f) => f.includes("Actor access is never inferred merely because evidence exists")), "must explicitly disclose the no-actor-context limitation rather than silently omitting K_att");
   assert(!result.findings.some((f) => f.includes("K_att) for")), "must not fabricate a K_att computation for an unnamed actor");
+});
+
+// --- EcoMap Place / Pathway / Relationship ------------------------------------------------------
+// See GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md. Methodology: PARTIAL / FOUNDER-AUTHORIZED (a
+// founder-authorized product contract, NOT an externally validated methodology).
+
+const ECOMAP_SOURCE: EcoMapSourceRecord = {
+  id: "src-1", title: "Tobago Business Development Office", text: "Tobago Business Development Office",
+  url: "https://example.tt/tbdo", publisher: "gov.tt", origin: "SEARCH", recordedAt: "2026-09-16T00:00:00Z", confidence: "INFERRED",
+};
+
+Deno.test("EcoMap Place: no sources -> honestly SKIPPED, never fabricated", () => {
+  const result = runEcoMapPlace(null);
+  assertEquals(result.executed, false);
+  assertEquals(result.status, "SKIPPED");
+});
+
+Deno.test("EcoMap Place: real sources genuinely execute with a real entity count and methodology disclosure", () => {
+  const result = runEcoMapPlace({ sources: [ECOMAP_SOURCE], jurisdiction: "Tobago" });
+  assertEquals(result.executed, true);
+  assertEquals(result.engine, "ECOMAP_PLACE");
+  assert(result.findings.some((f) => f.includes("PARTIAL / FOUNDER-AUTHORIZED")), "must disclose the methodology classification, never imply external validation");
+  assert(result.findings.some((f) => f.includes("Tobago Business Development Office")));
+});
+
+Deno.test("EcoMap Pathway: no sources -> honestly SKIPPED, never fabricated", () => {
+  const result = runEcoMapPathway(null);
+  assertEquals(result.executed, false);
+  assertEquals(result.status, "SKIPPED");
+});
+
+Deno.test("EcoMap Pathway: real sources genuinely execute, every step INFERRED not CONFIRMED", () => {
+  const result = runEcoMapPathway({ outcome: "Register a food business", sources: [ECOMAP_SOURCE] });
+  assertEquals(result.executed, true);
+  assert(result.findings.some((f) => f.includes("INFERRED")));
+  assert(!result.findings.some((f) => f.includes("[CONFIRMED]")), "an auto-built step from a search source must never be reported CONFIRMED");
+});
+
+Deno.test("EcoMap Relationship: no sources and no explicit edges -> honestly SKIPPED, never fabricated", () => {
+  const result = runEcoMapRelationship(null);
+  assertEquals(result.executed, false);
+  assertEquals(result.status, "SKIPPED");
+});
+
+Deno.test("EcoMap Relationship: real sources genuinely execute with a public edge, sensitive edges never named", () => {
+  const sensitiveEdge = {
+    id: "edge-s", sourceEntity: "Person A", targetEntity: "Person B", relationType: "FAMILY_REFERRAL",
+    direction: "SOURCE_TO_TARGET" as const, influence: "CONFIRMED" as const, dependency: true, incentive: null,
+    reciprocalValue: null, trustConfidence: "CONFIRMED" as const, provenance: "internal", sensitivity: "SENSITIVE" as const,
+  };
+  const result = runEcoMapRelationship({ subject: "My food business", sources: [ECOMAP_SOURCE], explicitEdges: [sensitiveEdge] });
+  assertEquals(result.executed, true);
+  assert(result.findings.some((f) => f.includes("My food business")));
+  assert(result.findings.some((f) => f.includes("sensitive relationship(s) detected but not disclosed")));
+  assert(!result.findings.some((f) => f.includes("Person A")), "a sensitive/private edge must never be named in the customer-facing findings text");
+});
+
+Deno.test("EcoMap: no consciousness claim or fake probability in any EcoMap engine's output", () => {
+  const results = [
+    runEcoMapPlace({ sources: [ECOMAP_SOURCE], jurisdiction: "Tobago" }),
+    runEcoMapPathway({ outcome: "Register a food business", sources: [ECOMAP_SOURCE] }),
+    runEcoMapRelationship({ subject: "My food business", sources: [ECOMAP_SOURCE] }),
+  ];
+  const serialized = JSON.stringify(results);
+  assert(!/conscious/i.test(serialized));
+  assert(!/"probability"\s*:/.test(serialized));
 });

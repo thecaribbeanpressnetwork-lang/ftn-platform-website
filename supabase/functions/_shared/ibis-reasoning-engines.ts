@@ -35,24 +35,25 @@
 // |                             |                                               | thesis-generation  |
 // |                             |                                               | pipeline is wired  |
 // |                             |                                               | server-side yet.   |
-// | EcoMap Place/Pathway        | No file found under this name.               | NOT ported (does   |
-// |                             |                                               | not exist).        |
-// | EcoMap Relationship         | No file literally named this. Closest: js/   | NOT claimed as     |
-// |                             | ibis-relationship-epistemics.js (10 lines,   | EcoMap Relationship|
-// |                             | pure classify()/describe() epistemic typing).| -- its classify()/ |
-// |                             |                                               | describe() ARE     |
-// |                             |                                               | ported below, but  |
-// |                             |                                               | only as internal    |
-// |                             |                                               | support for         |
-// |                             |                                               | runPrediction()'s   |
-// |                             |                                               | fromRelationship()  |
-// |                             |                                               | -- not exposed as   |
-// |                             |                                               | its own engine mode |
-// |                             |                                               | since the audit     |
-// |                             |                                               | could not confirm   |
-// |                             |                                               | it satisfies the    |
-// |                             |                                               | founder's intended  |
-// |                             |                                               | EcoMap methodology. |
+// | EcoMap Place/Pathway/       | No file found under either name. The founder | PORTED this pass   |
+// | Relationship                | supplied a PRODUCT CONTRACT (what fields     | (Place/Pathway/     |
+// |                             | each mode structures), not a methodology     | Relationship) --    |
+// |                             | file or an external validated methodology --  | see ibis-ecomap-    |
+// |                             | see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md, | engine.ts. Method-  |
+// |                             | which classifies it PARTIAL / FOUNDER-        | ology explicitly    |
+// |                             | AUTHORIZED. js/ibis-relationship-epistemics.js| labeled PARTIAL /   |
+// |                             | (10 lines, pure classify()/describe()         | FOUNDER-AUTHORIZED, |
+// |                             | epistemic typing) remains ported only as      | not scientifically  |
+// |                             | runPrediction()'s internal fromRelationship() | validated. Requires |
+// |                             | support (unchanged from the prior pass) --    | caller-supplied or  |
+// |                             | EcoMap Relationship here is a SEPARATE,       | server-built        |
+// |                             | independently-built engine, not a rename of   | EcoMapSourceRecord[]|
+// |                             | that support function.                        | -- no automatic     |
+// |                             |                                                | retrieval of its    |
+// |                             |                                                | own; reuses whatever|
+// |                             |                                                | ibis-canonical-     |
+// |                             |                                                | brain.ts already    |
+// |                             |                                                | retrieved.          |
 // | Butterfly Engine            | js/ibis-butterfly-engine.js (12 lines, pure  | PORTED (effectValue/|
 // |                             | math; formula matches GOVERNANCE/IBIS_       | value/chain -- see  |
 // |                             | FOUNDER_COGNITIVE_LAYER.md's B(a)=ΣP·V·D     | runButterfly()      |
@@ -104,8 +105,12 @@ import {
   attestedKnowledge, findContradictions, rankCandidates, rankKey, compareRankKeys,
   type EvidenceItem, type CandidateHistory,
 } from "./ibis-ebr-engine.ts";
+import {
+  buildPlaceMap, buildPathwayMap, buildRelationshipMap,
+  type EcoMapSourceRecord, type RelationshipEdge,
+} from "./ibis-ecomap-engine.ts";
 
-export type EngineName = "FOUNDER_THINKING" | "CORRELATION" | "BUTTERFLY" | "PREDICTION" | "CONTEXT_GRAPH" | "CONNECTION_FABRIC" | "EBR";
+export type EngineName = "FOUNDER_THINKING" | "CORRELATION" | "BUTTERFLY" | "PREDICTION" | "CONTEXT_GRAPH" | "CONNECTION_FABRIC" | "EBR" | "ECOMAP_PLACE" | "ECOMAP_PATHWAY" | "ECOMAP_RELATIONSHIP";
 
 // The minimum common engine result every adapter returns, per the required contract.
 export type EngineResult = {
@@ -610,5 +615,100 @@ export function runEBR(input: EBRInput | null): EngineResult {
     downstreamEffects: hasActorContext
       ? [`Do not appraise the ${input.decisionTime} decision using anything outside the ${attested.length}-item attested (K_att) set above.`]
       : ["No actor/decision-time context was supplied -- this result is a general causal-history reconstruction, not an appraisal of any specific individual's decision."],
+  };
+}
+
+// --- EcoMap Place / Pathway / Relationship -------------------------------------------------------
+// See GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md before extending these adapters. Methodology
+// classification: PARTIAL / FOUNDER-AUTHORIZED (a founder-authorized product contract, not an
+// externally validated methodology -- never describe it otherwise). Wraps the real, ported
+// ibis-ecomap-engine.ts logic. No automatic retrieval of its own: ibis-canonical-brain.ts builds
+// EcoMapSourceRecord[] from whatever it already retrieved (search results / the request's own
+// product list) -- the SAME evidence EBR/Correlation may also use, never a second search per mode.
+// Honestly SKIPPED absent any real source (same discipline as every other engine in this file).
+
+export type EcoMapPlaceInput = { sources: EcoMapSourceRecord[]; jurisdiction: string | null };
+
+export function runEcoMapPlace(input: EcoMapPlaceInput | null): EngineResult {
+  if (!input || !Array.isArray(input.sources) || input.sources.length === 0) {
+    return {
+      engine: "ECOMAP_PLACE", requested: true, executed: false, status: "SKIPPED",
+      reason: "EcoMap Place requires at least one real service/organization/opportunity source to map -- no grounded evidence was available for this request.",
+      inputsUsed: {}, findings: [], assumptions: [], evidenceReferences: [], confidence: "UNAVAILABLE", downstreamEffects: [],
+    };
+  }
+  const result = buildPlaceMap(input.sources, input.jurisdiction);
+  return {
+    engine: "ECOMAP_PLACE", requested: true, executed: true, status: "OK", reason: null,
+    inputsUsed: { sourceCount: input.sources.length, jurisdiction: input.jurisdiction },
+    findings: [
+      `${result.entities.length} place entit${result.entities.length === 1 ? "y" : "ies"} mapped${input.jurisdiction ? ` for ${input.jurisdiction}` : ""} (methodology: PARTIAL / FOUNDER-AUTHORIZED -- see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md).`,
+      ...result.entities.slice(0, 5).map((e) => `${e.name} [${e.kind}, ${e.confidence}] -- ${e.provenance}`),
+      ...result.missing,
+    ],
+    assumptions: [
+      "Entity kind is a real keyword heuristic, not confirmed classification.",
+      "Location is never finer than the request's own stated jurisdiction -- no coordinates or device location were used.",
+    ],
+    evidenceReferences: Array.from(new Set(result.entities.map((e) => e.provenance))),
+    confidence: result.entities.some((e) => e.kind !== "UNKNOWN") ? "LOW" : "UNAVAILABLE",
+    downstreamEffects: result.missing,
+  };
+}
+
+export type EcoMapPathwayInput = { outcome: string; sources: EcoMapSourceRecord[] };
+
+export function runEcoMapPathway(input: EcoMapPathwayInput | null): EngineResult {
+  if (!input || !input.outcome || !Array.isArray(input.sources) || input.sources.length === 0) {
+    return {
+      engine: "ECOMAP_PATHWAY", requested: true, executed: false, status: "SKIPPED",
+      reason: "EcoMap Pathway requires a stated outcome plus at least one real source to build a route from -- no grounded evidence was available for this request.",
+      inputsUsed: {}, findings: [], assumptions: [], evidenceReferences: [], confidence: "UNAVAILABLE", downstreamEffects: [],
+    };
+  }
+  const result = buildPathwayMap(input.outcome, input.sources);
+  return {
+    engine: "ECOMAP_PATHWAY", requested: true, executed: true, status: "OK", reason: null,
+    inputsUsed: { outcome: input.outcome, sourceCount: input.sources.length },
+    findings: [
+      `${result.steps.length} candidate step(s) toward "${result.outcome}" (methodology: PARTIAL / FOUNDER-AUTHORIZED) -- every step is INFERRED, not CONFIRMED, until verified with the responsible organization.`,
+      ...result.steps.slice(0, 5).map((s) => `Step ${s.order + 1} [${s.status}]: ${s.description}${s.zeroCostAlternative ? ` Zero-cost alternative: ${s.zeroCostAlternative}` : ""}`),
+      ...result.missing,
+    ],
+    assumptions: ["A search result plausibly relating to the outcome is never treated as a confirmed, required step."],
+    evidenceReferences: Array.from(new Set(result.steps.map((s) => s.provenance).filter((p): p is string => !!p))),
+    confidence: "LOW",
+    downstreamEffects: result.missing,
+  };
+}
+
+export type EcoMapRelationshipInput = { subject: string; sources: EcoMapSourceRecord[]; explicitEdges?: RelationshipEdge[] };
+
+export function runEcoMapRelationship(input: EcoMapRelationshipInput | null): EngineResult {
+  if (!input || !input.subject || !Array.isArray(input.sources) || (input.sources.length === 0 && !(input.explicitEdges && input.explicitEdges.length))) {
+    return {
+      engine: "ECOMAP_RELATIONSHIP", requested: true, executed: false, status: "SKIPPED",
+      reason: "EcoMap Relationship requires a stated subject plus at least one real source or explicit edge -- no grounded evidence was available for this request.",
+      inputsUsed: {}, findings: [], assumptions: [], evidenceReferences: [], confidence: "UNAVAILABLE", downstreamEffects: [],
+    };
+  }
+  const result = buildRelationshipMap(input.subject, input.sources, input.explicitEdges || []);
+  const publicEdges = result.edges.filter((e) => e.sensitivity === "PUBLIC");
+  return {
+    engine: "ECOMAP_RELATIONSHIP", requested: true, executed: true, status: "OK", reason: null,
+    inputsUsed: { subject: input.subject, sourceCount: input.sources.length },
+    findings: [
+      `${result.publicEdgeCount} public relationship edge(s) mapped for "${input.subject}" (methodology: PARTIAL / FOUNDER-AUTHORIZED).`,
+      ...publicEdges.slice(0, 5).map((e) => `${e.sourceEntity} -> ${e.targetEntity} [${e.relationType}, ${e.trustConfidence}]`),
+      ...(result.suppressedCount > 0 ? [`${result.suppressedCount} sensitive relationship(s) detected but not disclosed here.`] : []),
+      ...result.missing,
+    ],
+    assumptions: [
+      "Auto-built edges are a generic POTENTIAL_REFERRAL, never a specific relationship type invented from a search snippet.",
+      "Sensitive/private edges are never named in this customer-facing summary, even though they remain in the structured result for an authorized advanced caller.",
+    ],
+    evidenceReferences: Array.from(new Set(publicEdges.map((e) => e.provenance).filter((p): p is string => !!p))),
+    confidence: "LOW",
+    downstreamEffects: result.missing,
   };
 }

@@ -8,10 +8,30 @@ screenshots or machine-local paths.
 
 Controlling test: `tests/ibis-investor-readiness.mjs` (the one authoritative acceptance runner).
 
+## Evidence terminology (corrected checkpoint `97322c7` → this checkpoint)
+
+Every test and record in this document and in `tests/ibis-investor-readiness.mjs` that exercises
+search uses one of these three, precise labels -- never the ambiguous phrase "real grounded
+evidence," which a prior draft of this document used to describe fixture data:
+
+- **`MOCK_SEARCH_FIXTURE`** -- a canned, hand-written response standing in for a search provider in
+  a test, shaped like a realistic one so the adapter contract is genuinely exercised. There is no
+  live network call.
+- **`CONTRACT_GROUNDED`** -- the evidence level a `MOCK_SEARCH_FIXTURE` test proves: the
+  orchestration contract (parsing, normalization, downstream engine wiring) behaves correctly GIVEN
+  that shape of response. This proves L1/L2 behavior only -- nothing about production search
+  availability, quality, or that any specific real-world fact is true.
+- **`LIVE_SEARCH_GROUNDED`** -- reserved EXCLUSIVELY for a response produced by an actually
+  configured production search provider (a real `BRAVE_SEARCH_API_KEY` or `SEARXNG_BASE_URL` that a
+  real request was sent to and returned from). No test or record anywhere in this repository
+  currently claims `LIVE_SEARCH_GROUNDED` -- see the `real_search` gate's `BLOCKED_EXTERNAL`
+  entries. A `MOCK_SEARCH_FIXTURE` must never be reported as satisfying an L3/L4 production-search
+  gate, and no change in this checkpoint alters that.
+
 ## Latest checkpoint
 
 - **Commit**: (this checkpoint -- see revision history below)
-- **Parent checkpoint**: `acf46ff`
+- **Parent checkpoint**: `97322c7`
 - **Branch**: `fix/ibis-canonical-outcome-intelligence`
 - **Run date**: 2026-09-16
 - **Readiness classification**: **LOCALLY_VERIFIED**
@@ -28,7 +48,7 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 | Canonical routing | PASS | L1/L2 |
 | Durable lifecycle state | PASS (local contract); BLOCKED_EXTERNAL (real DB) | L1 / L3 |
 | Real web search | PASS (adapter contracts only); BLOCKED_EXTERNAL (live provider) | L1 / L3-L4 |
-| Reasoning engine execution | PASS (7 of 11 connected: 3 `CONNECTED_OPERATIONAL` — Founder Thinking, Context Graph, Connection Fabric; 4 `CONNECTED_CONDITIONAL` — Correlation, Butterfly, Prediction, EBR); **FAIL** (remaining 4 `UNAVAILABLE`: EcoMap Place/Pathway/Relationship, Multi-Agent) | L1 |
+| Reasoning engine execution | PASS (10 of 11 connected: 3 `CONNECTED_OPERATIONAL` — Founder Thinking, Context Graph, Connection Fabric; 7 `CONNECTED_CONDITIONAL` — Correlation, Butterfly, Prediction, EBR, EcoMap Place, EcoMap Pathway, EcoMap Relationship); **FAIL** (remaining 1 `UNAVAILABLE`: Multi-Agent) | L1 |
 | Capability truth | PASS (matrix assembled) | L1 |
 | Regular IBIS UX | PASS (core suites); NOT_RUN (viewport matrix, accessibility) | L1/L2 |
 | Headspace UX | PASS (controls suite) | L2 |
@@ -37,17 +57,14 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
 
 ## Confirmed failures
 
-- **Reasoning engines (Gate 4), 4 of 11 remaining unported**: EcoMap (Place/Pathway/Relationship)
-  and Multi-Agent Orchestrator are not invoked by the canonical server path (`supabase/functions/
-  _shared/ibis-canonical-brain.ts`). The EcoMap sub-modes do not exist under that name at all
-  (`js/ibis-relationship-epistemics.js` is the closest candidate for EcoMap Relationship, but is
-  not claimed as satisfying it -- see the reconciliation note below); Multi-Agent Orchestrator is
-  real and separate but depends on browser-only `FTN.Auth`/`PermissionLedger`/`UniversalRouter`
+- **Reasoning engines (Gate 4), 1 of 11 remaining unported**: Multi-Agent Orchestrator is not
+  invoked by the canonical server path (`supabase/functions/_shared/ibis-canonical-brain.ts`). It
+  is real and separate but depends on browser-only `FTN.Auth`/`PermissionLedger`/`UniversalRouter`
   plus Supabase persistence, unassessed for portability. Module presence and existing browser-only
-  test suites for them are explicitly not accepted as proof of canonical execution. See the
+  test suites for it are explicitly not accepted as proof of canonical execution. See the
   contract-map header comment in `supabase/functions/_shared/ibis-reasoning-engines.ts` for the
-  specific reason each one is not yet ported.
-- **Reconciliation note (prior checkpoint): the "8 of 10 unported" count was internally
+  specific reason it is not yet ported.
+- **Reconciliation note (checkpoint `4f637c2`): the "8 of 10 unported" count was internally
   inconsistent.** That checkpoint's own prose named 9 distinct unported items (EBR + 3 EcoMap
   sub-modes + Butterfly + Prediction/Foresight + Context Graph + Connection Fabric + Multi-Agent),
   while `tests/ibis-investor-readiness.mjs`'s machine-checked `UNPORTED_REASONING_ENGINES` array had
@@ -57,8 +74,10 @@ PREVIEW_READY, INVESTOR_DEMO_READY or PRODUCTION_READY, regardless of how many l
   distinct reasoning capabilities (treating each EcoMap sub-mode separately, matching how they are
   separately enumerated in `ReasoningMode`), not 10.
 - **Founder Thinking, Correlation, Butterfly, Prediction/Foresight, Context Graph, Connection
-  Fabric and EBR (Evidence-Bounded Retrodiction) are now genuinely connected** (see "Reasoning
-  engines connected this checkpoint" below) — this is a correction, not a new regression.
+  Fabric, EBR (Evidence-Bounded Retrodiction) and EcoMap Place/Pathway/Relationship are now
+  genuinely connected** (see "Reasoning engines connected this checkpoint" below) — this is a
+  correction, not a new regression. Multi-Agent Orchestration was deliberately NOT implemented this
+  pass, per instruction.
 
 ## Engine readiness classification
 
@@ -74,9 +93,11 @@ merely because its adapter exists or because a test manually injected structured
 | Correlation | `CONNECTED_CONDITIONAL` | Genuine execution needs two real numeric time series; no data source produces these from free text yet. |
 | Butterfly | `CONNECTED_CONDITIONAL` | Genuine execution needs structured action + effect data; none is produced from free text yet. |
 | Prediction/Foresight | `CONNECTED_CONDITIONAL` | Genuine execution needs reviewed-opportunity/relationship data; none is produced from free text yet. |
-| EBR | `CONNECTED_CONDITIONAL` | Evidence items are now built server-side from grounded search results (this checkpoint), but genuine mechanism-gated *causal admissibility* still needs a candidate causal history no automatic pipeline generates from free text. |
-| EcoMap Place/Pathway/Relationship | `UNAVAILABLE` | Not ported; no methodology exists under this name. |
-| Multi-Agent Orchestrator | `UNAVAILABLE` | Real but browser-only (`FTN.Auth`/`PermissionLedger`/`UniversalRouter`); unassessed for server portability. |
+| EBR | `CONNECTED_CONDITIONAL` | Evidence items are built server-side from grounded search results, but genuine mechanism-gated *causal admissibility* still needs a candidate causal history no automatic pipeline generates from free text. |
+| EcoMap Place | `CONNECTED_CONDITIONAL` | Genuinely executes given grounded search evidence (auto-built server-side, same discipline as EBR), but that evidence is not guaranteed for an ordinary query -- absent it, honestly SKIPPED. Methodology: `PARTIAL / FOUNDER-AUTHORIZED` (see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md) -- a founder-authorized product contract, not externally validated. |
+| EcoMap Pathway | `CONNECTED_CONDITIONAL` | Same evidence dependency as EcoMap Place; every auto-built step is `INFERRED`, never `CONFIRMED`. Methodology: `PARTIAL / FOUNDER-AUTHORIZED`. |
+| EcoMap Relationship | `CONNECTED_CONDITIONAL` | Same evidence dependency; auto-built edges are a generic `POTENTIAL_REFERRAL`, never a specific fabricated relation type; sensitive/private edges are counted but never named in customer-facing text. Methodology: `PARTIAL / FOUNDER-AUTHORIZED`. |
+| Multi-Agent Orchestrator | `UNAVAILABLE` | Real but browser-only (`FTN.Auth`/`PermissionLedger`/`UniversalRouter`); unassessed for server portability. Not implemented this pass, per instruction. |
 
 ## Composable capability plan (this checkpoint)
 
@@ -104,16 +125,18 @@ causes" needs research AND a bounded causal reconstruction AND a correlation che
   canonical brain, extended.
 - Search now runs whenever RESEARCH is planned, regardless of which single class won PRIMARY
   classification -- and always BEFORE any evidence-dependent reasoning (EBR) below it, so EBR can
-  actually use real grounded evidence rather than requiring a caller to pre-fetch it.
+  actually use grounded evidence (live in production once a provider is configured; a
+  `MOCK_SEARCH_FIXTURE` in every test in this repo today) rather than requiring a caller to
+  pre-fetch it.
 - **EBR reachability for ordinary users**: new `buildEbrInputFromSources()` in
-  `ibis-canonical-brain.ts` builds real `EvidenceItem[]` server-side directly from the SAME grounded
-  search results already retrieved for the request -- never a second retrieval, never inventing
-  data. It deliberately never sets `actorAccess`: an ordinary canonical request has no known actor
-  or decision time, and actor access must never be inferred merely because evidence exists.
+  `ibis-canonical-brain.ts` builds real `EvidenceItem[]` server-side directly from whatever sources
+  were already retrieved for the request -- never a second retrieval, never inventing data. It
+  deliberately never sets `actorAccess`: an ordinary canonical request has no known actor or
+  decision time, and actor access must never be inferred merely because evidence exists.
   `ibis-reasoning-engines.ts`'s `EBRInput.actor`/`decisionTime`/`candidateHistories` are now
   optional; `runEBR()` honestly discloses when `K_att`/`K_rec` were not evaluated (no actor context)
   rather than fabricating one, and now genuinely executes a **CONDITIONAL, evidence-only finding**
-  (K_att disclosure, contradiction count, the `⊥` reserve) when real evidence exists but no
+  (K_att disclosure, contradiction count, the `⊥` reserve) when evidence items exist but no
   candidate causal history was supplied — distinct from `SKIPPED` (no evidence at all). The
   advanced/internal `CanonicalRequest.ebrInput` interface is fully preserved and still takes
   precedence when supplied (proven by the existing checkpoint-`acf46ff` tests, unchanged). No
@@ -121,26 +144,120 @@ causes" needs research AND a bounded causal reconstruction AND a correlation che
   would be exactly the "invent reasoning to fill a gap" this codebase's discipline forbids (see
   `ibis-reasoning-engines.ts`'s EBR contract comment); this is why EBR stays `CONNECTED_CONDITIONAL`
   rather than being reclassified `CONNECTED_OPERATIONAL`.
+- **Evidence terminology** (corrected this checkpoint -- see "Evidence terminology" section below):
+  every test and record in this document that exercises search uses a **`MOCK_SEARCH_FIXTURE`** (a
+  canned response standing in for a provider), proving only **`CONTRACT_GROUNDED`** behavior (the
+  orchestration contract works given that response shape). None of it is **`LIVE_SEARCH_GROUNDED`**
+  -- that label is reserved exclusively for a response an actually configured production search
+  provider returned. A prior draft of this section called fixture data "real grounded evidence" and
+  "real-shaped sources"; both have been corrected below.
 - **Acceptance query** (exact text specified): *"Why has Trinidad and Tobago experienced
   foreign-exchange shortages, what evidence supports the possible causes, and what practical
   actions could improve the situation?"* -- classifies `RETRODICTION` (legacy primary class,
   unchanged priority order); signals `causeEvidence` and `retrodiction` both true, `freshness`
-  false. Capability plan: `[RESEARCH, EBR, CORRELATION]`. **With mocked grounded evidence** (two
-  real-shaped sources: Central Bank of T&T forex allocation update, IMF Article IV consultation):
-  `sources.length === 2`, `evidenceState === "SEARCH_GROUNDED"`, `EBR` executed:true with a real
-  evidence-grounded finding built from those sources (no `ebrInput` supplied), `CORRELATION`
-  honestly executed:false/SKIPPED (no numeric series in free text), and the canonical envelope's
-  own `uncertainties` array carries the `⊥` unmodeled-history-reserve disclosure. **Without grounded
-  evidence** (no search provider configured): `status: "DEGRADED"`, `degradedStages` includes
+  false. Capability plan: `[RESEARCH, EBR, CORRELATION]`. **With a `MOCK_SEARCH_FIXTURE`** (two
+  sources shaped like realistic provider responses: Central Bank of T&T forex allocation update,
+  IMF Article IV consultation -- `CONTRACT_GROUNDED`, never `LIVE_SEARCH_GROUNDED`):
+  `sources.length === 2`, `evidenceState === "SEARCH_GROUNDED"`, `EBR` executed:true with a finding
+  built from that fixture evidence (no `ebrInput` supplied), `CORRELATION` honestly
+  executed:false/SKIPPED (no numeric series in free text), and the canonical envelope's own
+  `uncertainties` array carries the `⊥` unmodeled-history-reserve disclosure. **Without any evidence
+  fixture** (no search provider configured): `status: "DEGRADED"`, `degradedStages` includes
   `SEARCH_UNAVAILABLE`, `sources.length === 0`, `EBR` honestly executed:false (abstains), and the
   answer is the same honest "can't verify" refusal used for every other research-dependent query --
-  never a fabricated researched answer. Live web-search verification is never claimed unless a real
-  search provider is configured and the evidence came from it -- both branches use an explicit
-  local test double or an explicitly unconfigured provider, never a real network call. Proven by
+  never a fabricated researched answer. `LIVE_SEARCH_GROUNDED` is never claimed unless a real search
+  provider is configured and the evidence came from it -- both branches use an explicit local test
+  double (`MOCK_SEARCH_FIXTURE`) or an explicitly unconfigured provider, never a real network call.
+  Proven by
   `ibis-canonical-brain.test.ts`'s `ACCEPTANCE QUERY` tests (and the `COMPOSABILITY` test group
   above them, covering non-invocation on a simple/current-fact-only query, invocation without
   requiring current search via the advanced `ebrInput` interface, and honest degradation on search
   failure).
+
+## EcoMap Place/Pathway/Relationship (this checkpoint)
+
+Implements three of EcoMap's modes -- structured ecosystem intelligence (services, organizations,
+pathways, relationships) feeding IBIS/Butterfly/Correlation/Prediction, not merely a diagram.
+Multi-Agent Orchestration was deliberately NOT implemented this pass, per instruction.
+
+- **Methodology classification: `PARTIAL / FOUNDER-AUTHORIZED`** (see `GOVERNANCE/
+  ECOMAP_SOURCE_AND_BOUNDARY.md`, written before any code, per the required source/boundary-note
+  discipline). The data model (what fields each mode structures) is a founder-authorized product
+  contract, not a peer-reviewed or externally validated methodology the way EBR is (EBR cites a
+  DOI and a public mathematics note; EcoMap here cites neither, because neither exists for this
+  model). No comment, test or doc may describe EcoMap as scientifically validated.
+- New pure module `supabase/functions/_shared/ibis-ecomap-engine.ts`: `buildPlaceMap()`,
+  `buildPathwayMap()`, `buildRelationshipMap()`, plus real, deterministic, inspectable keyword
+  heuristics (`classifyPlaceKind()`, `classifyAvailability()`, `detectZeroCost()`,
+  `extractStatedJurisdiction()`) -- never a claim of accurate NLP classification, and UNKNOWN/null
+  rather than a silent guess when nothing matches.
+- Wrapped by `runEcoMapPlace()`/`runEcoMapPathway()`/`runEcoMapRelationship()` in
+  `ibis-reasoning-engines.ts`, each honestly `SKIPPED` absent any real source (same discipline as
+  every other engine), and genuinely `OK` with a real partial map plus explicit `missing[]` gaps
+  when at least one source exists -- never fabricated completeness.
+- **Composability**: `ibis-intent-router.ts` adds three NEW, independent signals
+  (`ecomapPlace`/`ecomapPathway`/`ecomapRelationship`, via `ECOMAP_PLACE_SIGNAL_MARKERS`/
+  `ECOMAP_PATHWAY_SIGNAL_MARKERS`/`ECOMAP_RELATIONSHIP_SIGNAL_MARKERS`) -- deliberately SEPARATE,
+  broader regexes from the legacy `PATHWAY_MARKERS`/`PLACE_MARKERS`/`RELATIONSHIP_MARKERS` that
+  drive PRIMARY classification, so broadening them for capability planning carries zero risk of
+  changing any existing `queryClass` result. `ibis-canonical-brain.ts`'s `planCapabilities()` adds
+  `ECOMAP_PLACE`/`ECOMAP_PATHWAY`/`ECOMAP_RELATIONSHIP` independently -- one query may plan all
+  three at once (or just one), and an EcoMap-flavored query without an explicit freshness/
+  cause-evidence marker ALSO additively plans `RESEARCH` ("mapping real services/organizations/
+  steps/relationships requires grounded evidence, not internal FTN product data alone").
+- **One retrieval feeds all three modes**: new `buildEcoMapSourcesFromSearch()` in
+  `ibis-canonical-brain.ts` normalizes the SAME search results already retrieved for the request
+  into ONE list, passed to all three engine calls -- never a duplicate search per mode.
+- **Provenance and honesty**: every `PlaceEntity`/`PathwayStep`/`RelationshipEdge` carries a
+  `provenance` field and a confidence label (`CONFIRMED`/`INFERRED`/`CONDITIONAL`/`MISSING`/
+  `UNKNOWN`). Pathway steps built from a search source are always `INFERRED`, never `CONFIRMED`
+  ("a pathway must not pretend a step is confirmed when evidence is absent"). Relationship edges
+  built from a search source are always a generic `POTENTIAL_REFERRAL`, never a specific fabricated
+  relation type (e.g. "FUNDS").
+- **Location privacy**: only the request's OWN stated jurisdiction text is used
+  (`extractStatedJurisdiction()`, a closed Trinidad-and-Tobago place-name keyword list) -- no
+  device/IP location API, no coordinate collection anywhere in this module.
+  `PlaceEntity.confirmedLocation` (only ever source-stated) and `inferredCoverage` (an explicit,
+  separately-labeled guess) are kept as two distinct fields, never merged. Proven by a dedicated
+  test asserting no `coordinates`/`latitude`/`longitude` ever appear in a canonical response.
+- **Relationship sensitivity**: every edge carries a `sensitivity` classification (`PUBLIC`/
+  `SENSITIVE`/`PRIVATE`). Only `PUBLIC` edges are named in a reasoning engine's customer-facing
+  `contribution` text; `SENSITIVE`/`PRIVATE` edges (from the advanced/internal
+  `ecomapRelationshipContext.explicitEdges` interface) are counted ("N sensitive relationship(s)
+  detected but not disclosed") but never named there or in the envelope's `ecosystemConnections`
+  field -- proven by a dedicated test supplying an explicit sensitive edge.
+- **Materially changes the canonical result**: EcoMap Pathway output now populates the envelope's
+  own `actions` field, and EcoMap Relationship output populates `ecosystemConnections` -- BOTH
+  fields existed in the contract since the first checkpoint but were always empty for every query
+  class until this one. EcoMap Place's gap disclosures populate `uncertainties`. This is the
+  concrete, inspectable proof EcoMap changes the canonical result, not just an `executed:true` flag.
+- **Advanced/internal interface preserved**: `CanonicalRequest.ecomapPlaceContext` /
+  `ecomapPathwayContext` / `ecomapRelationshipContext` let an advanced caller (e.g. a governance/
+  audit tool with real place/pathway/relationship data, including sensitive relationship edges)
+  supply structured input directly, always taking precedence over the auto-built version. An
+  ordinary user never needs to construct these.
+- **Acceptance query** (exact text specified): *"I want to start a community food business in
+  Tobago. Map the services and organizations that could help, the steps and requirements I need to
+  follow, and the relationships or referrals that could move it forward."* -- signals `outcome`,
+  `ecomapPlace`, `ecomapPathway` and `ecomapRelationship` all true. Capability plan:
+  `[FOUNDER_THINKING, BUTTERFLY, PREDICTION, CONTEXT_GRAPH, RESEARCH, ECOMAP_PLACE, ECOMAP_PATHWAY,
+  ECOMAP_RELATIONSHIP]` (the outcome marker "I want to start..." also plans the pre-existing
+  Founder Thinking bundle, proving EcoMap composes with capabilities from the prior checkpoint, not
+  just with itself). **With a 3-source `MOCK_SEARCH_FIXTURE`** (`CONTRACT_GROUNDED`, never
+  `LIVE_SEARCH_GROUNDED`): `sources.length === 3`; `ECOMAP_PLACE` executed:true naming a real
+  sourced entity ("Tobago Business Development Office") with the `PARTIAL / FOUNDER-AUTHORIZED`
+  disclosure; `ECOMAP_PATHWAY` executed:true with every step `INFERRED` and an explicit
+  not-confirmed-by-any-source gap; `ECOMAP_RELATIONSHIP` executed:true with real `->` edge
+  descriptions; a genuinely zero-cost-flagged fixture source ("Free Food Safety Certification
+  Workshop (No Cost)") surfaces a real zero-cost alternative in `actions` -- grounded in actual
+  fixture text, never a generic filler. **Without any evidence fixture**: all three EcoMap modes
+  honestly report `executed:false` (SKIPPED), never a fabricated map, while the overall response
+  still shows `status: "DEGRADED"`. **Contrast tests** prove independent selectability: "Where is
+  the nearest public business-development office?" plans only `ECOMAP_PLACE` (+ `RESEARCH`); "What
+  steps are required to register a food business?" plans only `ECOMAP_PATHWAY`; "Which
+  organizations fund or refer Tobago food entrepreneurs?" plans `ECOMAP_RELATIONSHIP` + `RESEARCH`;
+  a simple factual question plans none of the three. Proven by the `ECOMAP ACCEPTANCE QUERY` and
+  `ECOMAP CONTRAST` test groups in `ibis-canonical-brain.test.ts`.
 
 ## Reasoning engines connected this checkpoint
 
@@ -239,10 +356,10 @@ causes" needs research AND a bounded causal reconstruction AND a correlation che
   honestly disclosing no dependency-edge data server-side yet); `BUTTERFLY` and `PREDICTION`
   correctly report `executed:false` with an honest reason (no structured effects/opportunity data
   in a free-text request); no engine is fabricated as executed. This prompt classifies
-  `FOUNDER_STRATEGY`, not `RETRODICTION`, so EBR is not exercised by it -- EBR is proven separately
-  by its own dedicated tests (see above). This is a **partial** pass of the full benchmark spec —
-  EcoMap and Multi-Agent are also expected by the benchmark and remain unported, so the benchmark
-  is not fully satisfied end-to-end.
+  `FOUNDER_STRATEGY`, not `RETRODICTION` or an EcoMap-flavored query, so EBR/EcoMap are not
+  exercised by it -- both are proven separately by their own dedicated tests (see above). This is a
+  **partial** pass of the full benchmark spec — Multi-Agent is also expected by the benchmark and
+  remains unported, so the benchmark is not fully satisfied end-to-end.
 
 ## External blockers
 
@@ -269,13 +386,32 @@ causes" needs research AND a bounded causal reconstruction AND a correlation che
 
 `ibis-canonical-routing-behavioral.mjs`, `ibis-local-ai-planner-gate-behavioral.mjs`,
 `ibis-routing-consolidation-audit.mjs`, `ibis-headspace-universal-routing-audit.mjs`, the shared
-Deno suite (`supabase/functions/_shared/*.test.ts`, now including the `COMPOSABILITY` and
-`ACCEPTANCE QUERY` cases in `ibis-canonical-brain.test.ts`), `ibis-ux-release.mjs`,
-`ibis-behavioral-ux-acceptance.mjs`, `ibis-headspace-controls-audit.mjs`.
+Deno suite (`supabase/functions/_shared/*.test.ts`, now including `ibis-ecomap-engine.test.ts` and
+the `COMPOSABILITY`/`ACCEPTANCE QUERY`/`ECOMAP ACCEPTANCE QUERY`/`ECOMAP CONTRAST` cases in
+`ibis-canonical-brain.test.ts`), `ibis-ux-release.mjs`, `ibis-behavioral-ux-acceptance.mjs`,
+`ibis-headspace-controls-audit.mjs`.
 
 ## Revision history
 
-- (this checkpoint, 2026-09-16): composable capability-plan correction. Replaced RETRODICTION's
+- (this checkpoint, 2026-09-16): EcoMap slice + evidence-terminology correction. Implemented
+  EcoMap Place/Pathway/Relationship (methodology `PARTIAL / FOUNDER-AUTHORIZED` -- see
+  `GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md`) as 3 more genuinely connected reasoning engines (10
+  of 11 total; only Multi-Agent remains unported). New pure module `ibis-ecomap-engine.ts`; three
+  new independent capability-plan signals (`ecomapPlace`/`ecomapPathway`/`ecomapRelationship`) so
+  Place/Pathway/Relationship are each independently selectable and composable in one request; one
+  retrieval (`buildEcoMapSourcesFromSearch()`) feeds all three, never a duplicate search per mode.
+  EcoMap Pathway/Relationship output now materially populates the previously-always-empty
+  `actions`/`ecosystemConnections` envelope fields. Also corrected this checkpoint: prior-draft
+  language that called `MOCK_SEARCH_FIXTURE` test data "real grounded evidence" or "real-shaped
+  sources" -- see "Evidence terminology" above; `MOCK_SEARCH_FIXTURE` test data is never classified
+  `LIVE_SEARCH_GROUNDED`, and no L3/L4 production-search gate is satisfied by it. 38 new Deno tests
+  (11 pure-module unit tests in `ibis-ecomap-engine.test.ts`, 9 adapter tests in
+  `ibis-reasoning-engines.test.ts`, 8 canonical-brain integration tests including the exact
+  specified EcoMap acceptance query, 4 contrast-selectivity tests, a sensitivity-suppression test
+  and a search-failure/honest-degradation test); full shared Deno suite (136 tests) and the
+  authoritative acceptance runner both pass, with the same honest FAIL entry for the 1 genuinely
+  unavailable engine (Multi-Agent) -- not touched this pass, per instruction.
+- `97322c7` (2026-09-16): composable capability-plan correction. Replaced RETRODICTION's
   exclusive competition with CURRENT_WEB_RESEARCH (and every other class) with an additive,
   server-side-only `capabilityPlan` (see "Composable capability plan" above) -- a request can now
   plan RESEARCH + EBR + CORRELATION (etc.) simultaneously, while the legacy single `queryClass`

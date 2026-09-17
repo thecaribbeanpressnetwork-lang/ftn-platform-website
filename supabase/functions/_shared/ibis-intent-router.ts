@@ -62,6 +62,17 @@ const RETRODICTION_MARKERS = /\b(why (?:has|have|did|does|do|is|are|was|were)\b|
 // natural preparatory step before treating anything as a supported cause.
 const CAUSE_EVIDENCE_MARKERS = /\b(evidence (?:supports?|for|shows?)|possible causes?|root cause|contributing factors?|what evidence)\b/i;
 
+// EcoMap signals (this checkpoint -- see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md). Deliberately
+// SEPARATE, broader regexes from the legacy PATHWAY_MARKERS/PLACE_MARKERS/RELATIONSHIP_MARKERS
+// above: those three drive PRIMARY classification and must keep their exact prior matching
+// behavior for backward compatibility (an existing test may depend on which single class a given
+// text resolves to). These new markers are used ONLY for additive capability planning in
+// ibis-canonical-brain.ts and never touch `queryClass` -- so broadening them here is safe and
+// carries zero risk of changing any existing classification result.
+const ECOMAP_PLACE_SIGNAL_MARKERS = /\b(map (?:the )?services|which services|find services|organizations? that could help|where (?:is|are|can i find)|nearest|near me|nearby|in my area|close to me|around (?:here|me))\b/i;
+const ECOMAP_PATHWAY_SIGNAL_MARKERS = /\b(steps? (?:and|to|needed|required|involved)|requirements? (?:i need|needed|to follow|to register)|how do i (?:apply|register|start)|register (?:a|my)|what (?:steps|documents) (?:are|is) required|eligibility|documents? (?:needed|required)|deadline)\b/i;
+const ECOMAP_RELATIONSHIP_SIGNAL_MARKERS = /\b(relationships? (?:or|and|between)|referrals?|which organi[sz]ations (?:fund|refer|support|help)|who (?:connects|refers|funds)|fund or refer)\b/i;
+
 export type IntentSignals = {
   freshness: boolean;
   causeEvidence: boolean;
@@ -72,6 +83,9 @@ export type IntentSignals = {
   place: boolean;
   relationship: boolean;
   outcome: boolean;
+  ecomapPlace: boolean;
+  ecomapPathway: boolean;
+  ecomapRelationship: boolean;
 };
 
 export type IntentClassification = {
@@ -94,6 +108,9 @@ export function classifyIntent(text: string): IntentClassification {
     place: PLACE_MARKERS.test(q),
     relationship: RELATIONSHIP_MARKERS.test(q),
     outcome: OUTCOME_MARKERS.test(q),
+    ecomapPlace: ECOMAP_PLACE_SIGNAL_MARKERS.test(q),
+    ecomapPathway: ECOMAP_PATHWAY_SIGNAL_MARKERS.test(q),
+    ecomapRelationship: ECOMAP_RELATIONSHIP_SIGNAL_MARKERS.test(q),
   };
   const reasons: string[] = [];
 

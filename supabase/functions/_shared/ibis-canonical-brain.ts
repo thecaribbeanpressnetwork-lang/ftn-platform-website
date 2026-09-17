@@ -6,36 +6,47 @@
 // (runGateway's deterministic + provider-fallback + rules-based founder-reasoning chain, the new
 // intent classifier, the new search adapter, the lifecycle store) behind one typed contract.
 //
-// Honesty boundary (read before extending this file): EcoMap Place/Pathway/Relationship,
-// Opportunity Graph and the Multi-Agent Orchestrator remain BROWSER-ONLY or genuinely missing --
-// they have not been ported or reproduced as server-safe modules. Founder Cognitive Layer,
-// Correlation, Butterfly, Prediction/Foresight, Context Graph, Connection Fabric and EBR (Evidence-
-// Bounded Retrodiction -- see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md) are now real, genuinely
-// invoked server-side engines (ibis-reasoning-engines.ts) -- this orchestrator calls them directly
-// and reports their ACTUAL result, which for Butterfly/Prediction/Correlation/EBR on an ordinary
-// free-text query is often honestly executed:false/SKIPPED or a CONDITIONAL evidence-only finding
-// (structured effects/opportunity/series/candidate-history data is not automatically produced by
-// an ordinary query for those -- an external blocker, disclosed, never silently upgraded). See
-// EngineReadiness in ibis-response-envelope.ts for the per-engine CONNECTED_OPERATIONAL /
-// CONNECTED_CONDITIONAL / UNAVAILABLE classification this drives in docs/ibis/acceptance-
-// baseline.md and tests/ibis-investor-readiness.mjs.
+// Honesty boundary (read before extending this file): Multi-Agent Orchestrator remains BROWSER-
+// ONLY. Founder Cognitive Layer, Correlation, Butterfly, Prediction/Foresight, Context Graph,
+// Connection Fabric, EBR (Evidence-Bounded Retrodiction -- see GOVERNANCE/
+// EBR_SOURCE_AND_BOUNDARY.md) and EcoMap Place/Pathway/Relationship (a founder-authorized product
+// contract, methodology PARTIAL / FOUNDER-AUTHORIZED -- see GOVERNANCE/
+// ECOMAP_SOURCE_AND_BOUNDARY.md) are now real, genuinely invoked server-side engines
+// (ibis-reasoning-engines.ts) -- this orchestrator calls them directly and reports their ACTUAL
+// result, which for Butterfly/Prediction/Correlation/EBR/EcoMap on an ordinary free-text query
+// with no grounded evidence is honestly executed:false/SKIPPED or a CONDITIONAL/partial finding
+// with explicit gaps (structured effects/opportunity/series/candidate-history/place-pathway-
+// relationship data is not automatically produced by an ordinary query absent search evidence --
+// an external blocker, disclosed, never silently upgraded). See EngineReadiness in
+// ibis-response-envelope.ts for the per-engine CONNECTED_OPERATIONAL / CONNECTED_CONDITIONAL /
+// UNAVAILABLE classification this drives in docs/ibis/acceptance-baseline.md and
+// tests/ibis-investor-readiness.mjs.
 //
-// COMPOSABILITY (this checkpoint): a single request can need several capabilities at once (e.g. a
-// current causal question needs live research AND a bounded causal reconstruction AND, when
-// relationships/patterns are being assessed, a correlation check). `intent.queryClass` remains a
-// single PRIMARY class (computed by ibis-intent-router.ts with the exact same priority order as
-// every prior checkpoint, so legacy code that only reads `queryClass` sees no change), but capability
-// SELECTION for what actually runs is driven by the ADDITIVE `capabilityPlan` built from
-// `intent.signals` by planCapabilities() below -- the ONE place that decision is made, entirely
-// server-side (a browser never sees or influences this). This is still the single canonical
-// orchestrator -- no second router or duplicate planner exists.
+// COMPOSABILITY (introduced in the prior checkpoint, extended this one): a single request can need
+// several capabilities at once (e.g. a current causal question needs live research AND a bounded
+// causal reconstruction AND, when relationships/patterns are being assessed, a correlation check;
+// or one ecosystem question needs Place AND Pathway AND Relationship all at once).
+// `intent.queryClass` remains a single PRIMARY class (computed by ibis-intent-router.ts with the
+// exact same priority order as every prior checkpoint, so legacy code that only reads `queryClass`
+// sees no change), but capability SELECTION for what actually runs is driven by the ADDITIVE
+// `capabilityPlan` built from `intent.signals` by planCapabilities() below -- the ONE place that
+// decision is made, entirely server-side (a browser never sees or influences this). This is still
+// the single canonical orchestrator -- no second router or duplicate planner exists. EcoMap Place/
+// Pathway/Relationship each independently selectable and reuse the SAME search results already
+// retrieved for the request (see buildEcoMapSourcesFromSearch() below) -- never a duplicate search
+// per mode.
 import { runGateway, gatewayHealth, type GatewayProvider, type IbisProduct } from "./ibis-intelligence-gateway.ts";
 import { classifyIntent, type IntentSignals } from "./ibis-intent-router.ts";
 import { search as runSearch, type SearchResult } from "./ibis-search-adapter.ts";
 import { buildEnvelope, type CanonicalResponse, type ExecutionInstruction, type QueryClass, type ReasoningModeRecord, type SourceRecord, type CapabilityKind, type PlannedCapability } from "./ibis-response-envelope.ts";
 import { sha256Hex, type LifecycleStore } from "./ibis-lifecycle-store.ts";
-import { runFounderThinking, runCorrelation, runButterfly, runPrediction, runContextGraph, runConnectionFabric, runEBR, type EBRInput } from "./ibis-reasoning-engines.ts";
+import {
+  runFounderThinking, runCorrelation, runButterfly, runPrediction, runContextGraph, runConnectionFabric, runEBR,
+  runEcoMapPlace, runEcoMapPathway, runEcoMapRelationship,
+  type EBRInput, type EcoMapPlaceInput, type EcoMapPathwayInput, type EcoMapRelationshipInput,
+} from "./ibis-reasoning-engines.ts";
 import { findContradictions, type EvidenceItem } from "./ibis-ebr-engine.ts";
+import { extractStatedJurisdiction, type EcoMapSourceRecord } from "./ibis-ecomap-engine.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -55,6 +66,15 @@ export type CanonicalRequest = {
   // causal histories (e.g. a governance/audit tool built on top of this endpoint) may supply them
   // here for genuine execution.
   ebrInput?: EBRInput | null;
+  // Optional real, structured EcoMap inputs (see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md and
+  // ibis-ecomap-engine.ts). An ordinary user never needs to construct these -- ibis-canonical-
+  // brain.ts auto-builds them server-side from whatever search evidence it already retrieved (see
+  // buildEcoMapSourcesFromSearch()). An advanced/internal caller (e.g. a governance/audit tool with
+  // real place/pathway/relationship data, including SENSITIVE/PRIVATE relationship edges) may
+  // supply these directly, which always takes precedence over the auto-built version.
+  ecomapPlaceContext?: EcoMapPlaceInput | null;
+  ecomapPathwayContext?: EcoMapPathwayInput | null;
+  ecomapRelationshipContext?: EcoMapRelationshipInput | null;
 };
 
 const PLAN_TTL_MS = 5 * 60_000;
@@ -88,23 +108,17 @@ function unavailableMode(mode: ReasoningModeRecord["mode"], reason = NOT_PORTED)
   return { mode, executed: false, unavailableReason: reason };
 }
 
-// Slice: FOUNDER_COGNITIVE_LAYER, CORRELATION, BUTTERFLY, PREDICTION, CONTEXT_GRAPH and
-// CONNECTION_FABRIC are no longer statically listed as unavailable here -- all six are now REAL,
-// genuinely invoked server-side engines (ibis-reasoning-engines.ts, extracted/adapted from the real
-// existing implementations, not invented). handleCanonicalRequest calls them directly and reports
-// their ACTUAL result, which for CORRELATION/BUTTERFLY/PREDICTION/CONNECTION_FABRIC on an ordinary
-// free-text query is honestly executed:false/SKIPPED (no series/effects/opportunity/provider data
-// exists for a plain question) -- never silently upgraded to executed:true. EBR, EcoMap Place/
-// Pathway/Relationship and Multi-Agent Orchestrator remain genuinely unported; see
+// Slice: FOUNDER_COGNITIVE_LAYER, CORRELATION, BUTTERFLY, PREDICTION, CONTEXT_GRAPH,
+// CONNECTION_FABRIC, EBR and EcoMap Place/Pathway/Relationship are no longer statically listed as
+// unavailable here -- all eight are now REAL, genuinely invoked server-side engines
+// (ibis-reasoning-engines.ts, extracted/adapted from the real existing implementations or built
+// from a founder-authorized product contract, not invented). handleCanonicalRequest calls them
+// directly and reports their ACTUAL result, which for several of them on an ordinary free-text
+// query with no grounded evidence is honestly executed:false/SKIPPED -- never silently upgraded to
+// executed:true. Only Multi-Agent Orchestrator remains genuinely unported; see
 // ibis-reasoning-engines.ts's own header for the full contract map and why.
 function relevantUnavailableModes(queryClass: QueryClass): ReasoningModeRecord[] {
   switch (queryClass) {
-    case "PATHWAY":
-      return [unavailableMode("ECOMAP_PATHWAY")];
-    case "PLACE":
-      return [unavailableMode("ECOMAP_PLACE", "not yet ported server-side; also requires explicit user location consent not collected by this endpoint.")];
-    case "RELATIONSHIP":
-      return [unavailableMode("ECOMAP_RELATIONSHIP")];
     case "TOOL_ACTION":
       return [unavailableMode("MULTI_AGENT", "not yet ported server-side (browser-only, depends on FTN.Auth/PermissionLedger/UniversalRouter and unassessed real-world portability); Connection Fabric alone can only report route READINESS, not execute a connected action.")];
     default:
@@ -128,10 +142,13 @@ function hasCapability(plan: PlannedCapability[], capability: CapabilityKind): b
 // one capability (previously impossible, since only the single highest-priority class ever ran).
 function planCapabilities(signals: IntentSignals): PlannedCapability[] {
   const plan: PlannedCapability[] = [];
+  const ecomapRequested = signals.ecomapPlace || signals.ecomapPathway || signals.ecomapRelationship;
   if (signals.freshness) {
     addCapability(plan, "RESEARCH", "A freshness marker matched (\"today\", \"latest\", a live-data term) -- model memory cannot honestly answer this without live retrieval.");
   } else if (signals.causeEvidence) {
     addCapability(plan, "RESEARCH", "The request explicitly asks for evidence behind a cause -- grounded sources are needed even without a live-freshness marker.");
+  } else if (ecomapRequested) {
+    addCapability(plan, "RESEARCH", "Mapping real services/organizations/steps/relationships requires grounded evidence, not internal FTN product data alone.");
   }
   if (signals.retrodiction) {
     addCapability(plan, "EBR", "The request asks why something happened / what caused it -- a bounded, evidence-based causal-history reconstruction (Evidence-Bounded Retrodiction) is relevant.");
@@ -152,6 +169,17 @@ function planCapabilities(signals: IntentSignals): PlannedCapability[] {
   }
   if (signals.toolAction) {
     addCapability(plan, "CONNECTION_FABRIC", `A named connection target ("${signals.toolAction}") was requested.`);
+  }
+  // EcoMap (this checkpoint -- see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md): Place, Pathway and
+  // Relationship are each independently selectable -- one query may plan all three at once.
+  if (signals.ecomapPlace) {
+    addCapability(plan, "ECOMAP_PLACE", "The request asks to map real services/organizations/opportunities in a place.");
+  }
+  if (signals.ecomapPathway) {
+    addCapability(plan, "ECOMAP_PATHWAY", "The request asks for the steps/requirements toward a stated outcome.");
+  }
+  if (signals.ecomapRelationship) {
+    addCapability(plan, "ECOMAP_RELATIONSHIP", "The request asks about relationships/referrals between ecosystem entities.");
   }
   return plan;
 }
@@ -249,6 +277,54 @@ function ebrRecord(input: EBRInput | null): { record: ReasoningModeRecord; contr
   return { record: { mode: "EBR", executed: true, contribution: result.findings.join(" ") }, contradictions, uncertainties };
 }
 
+// Normalizes the SAME search results already retrieved for this request into the shape EcoMap
+// Place/Pathway/Relationship all consume -- ONE normalization feeding all three modes, never a
+// duplicate search per mode (see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md).
+function ecoMapSourceFromSearchResult(source: SourceRecord, index: number): EcoMapSourceRecord {
+  return {
+    id: `search-source-${index}`,
+    title: source.title,
+    text: source.title,
+    url: source.url,
+    publisher: source.publisher,
+    origin: "SEARCH",
+    recordedAt: source.retrievedAt,
+    confidence: source.evidenceDepth === "INSPECTED" ? "CONFIRMED" : "INFERRED",
+  };
+}
+
+function buildEcoMapSourcesFromSearch(sources: SourceRecord[]): EcoMapSourceRecord[] {
+  return sources.map(ecoMapSourceFromSearchResult);
+}
+
+function ecoMapPlaceRecord(input: EcoMapPlaceInput | null): { record: ReasoningModeRecord; missing: string[] } {
+  const result = runEcoMapPlace(input);
+  if (!result.executed) return { record: { mode: "ECOMAP_PLACE", executed: false, unavailableReason: result.reason || "skipped" }, missing: [] };
+  return { record: { mode: "ECOMAP_PLACE", executed: true, contribution: result.findings.join(" ") }, missing: result.downstreamEffects };
+}
+
+// EcoMap Pathway materially changes the canonical envelope beyond its own reasoningModesUsed
+// entry: real step/zero-cost-alternative content is threaded into the envelope's own `actions`
+// field (previously always empty) -- the concrete, inspectable proof that Pathway changes the
+// canonical result, not just an executed:true flag.
+function ecoMapPathwayRecord(input: EcoMapPathwayInput | null): { record: ReasoningModeRecord; actions: string[] } {
+  const result = runEcoMapPathway(input);
+  if (!result.executed) return { record: { mode: "ECOMAP_PATHWAY", executed: false, unavailableReason: result.reason || "skipped" }, actions: [] };
+  const actions = result.findings.filter((f) => f.startsWith("Step ") || f.toLowerCase().includes("zero-cost"));
+  return { record: { mode: "ECOMAP_PATHWAY", executed: true, contribution: result.findings.join(" ") }, actions: actions.length ? actions : result.findings.slice(0, 3) };
+}
+
+// EcoMap Relationship materially changes the canonical envelope beyond its own reasoningModesUsed
+// entry: real, PUBLIC-only edge descriptions are threaded into the envelope's own
+// `ecosystemConnections` field (previously always empty) -- sensitive/private edges are never
+// named here, matching the suppression rule in GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md.
+function ecoMapRelationshipRecord(input: EcoMapRelationshipInput | null): { record: ReasoningModeRecord; ecosystemConnections: string[] } {
+  const result = runEcoMapRelationship(input);
+  if (!result.executed) return { record: { mode: "ECOMAP_RELATIONSHIP", executed: false, unavailableReason: result.reason || "skipped" }, ecosystemConnections: [] };
+  const ecosystemConnections = result.findings.filter((f) => f.includes("->"));
+  return { record: { mode: "ECOMAP_RELATIONSHIP", executed: true, contribution: result.findings.join(" ") }, ecosystemConnections };
+}
+
 function sourcesFromSearch(result: SearchResult): SourceRecord[] {
   if (result.status !== "OK") return [];
   return result.sources.map((s) => ({
@@ -314,6 +390,8 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   let degradedStages: string[] = [];
   const contradictions: string[] = [];
   const extraUncertainties: string[] = [];
+  const actions: string[] = [];
+  const ecosystemConnections: string[] = [];
   let handoff: CanonicalResponse["handoff"] = { external: false, note: null };
   let alternatives: CanonicalResponse["alternatives"] = [];
 
@@ -368,6 +446,32 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     contradictions.push(...ebr.contradictions);
     extraUncertainties.push(...ebr.uncertainties);
   }
+  // EcoMap Place/Pathway/Relationship (this checkpoint -- see GOVERNANCE/
+  // ECOMAP_SOURCE_AND_BOUNDARY.md): independently selectable, one request may plan all three. ONE
+  // normalization of the SAME search results already retrieved above feeds all three -- never a
+  // duplicate search per mode. `goal` is the request's own stated objective (falling back to the
+  // raw text) -- never a device/IP location or anything the user did not themselves state.
+  if (hasCapability(capabilityPlan, "ECOMAP_PLACE") || hasCapability(capabilityPlan, "ECOMAP_PATHWAY") || hasCapability(capabilityPlan, "ECOMAP_RELATIONSHIP")) {
+    const ecoMapSources = buildEcoMapSourcesFromSearch(sources);
+    const jurisdiction = extractStatedJurisdiction(text);
+    const goal = intent.objective || text;
+
+    if (hasCapability(capabilityPlan, "ECOMAP_PLACE")) {
+      const place = ecoMapPlaceRecord(input.ecomapPlaceContext ?? (ecoMapSources.length ? { sources: ecoMapSources, jurisdiction } : null));
+      reasoningModesUsed.push(place.record);
+      extraUncertainties.push(...place.missing.map((m) => `EcoMap Place: ${m}`));
+    }
+    if (hasCapability(capabilityPlan, "ECOMAP_PATHWAY")) {
+      const pathway = ecoMapPathwayRecord(input.ecomapPathwayContext ?? (ecoMapSources.length ? { outcome: goal, sources: ecoMapSources } : null));
+      reasoningModesUsed.push(pathway.record);
+      actions.push(...pathway.actions);
+    }
+    if (hasCapability(capabilityPlan, "ECOMAP_RELATIONSHIP")) {
+      const relationship = ecoMapRelationshipRecord(input.ecomapRelationshipContext ?? (ecoMapSources.length ? { subject: goal, sources: ecoMapSources } : null));
+      reasoningModesUsed.push(relationship.record);
+      ecosystemConnections.push(...relationship.ecosystemConnections);
+    }
+  }
   reasoningModesUsed.push(...relevantUnavailableModes(intent.queryClass));
 
   // Slice 3 correction: when local execution is authorized, this endpoint must NOT also generate
@@ -389,7 +493,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       confidence: "UNVERIFIED", confidenceBasis: "Execution deferred to authorized browser-local generation; no server provider was called.",
       status: "OK", degradedStages, handoff, alternatives,
       uncertainties: [...intent.reasons, ...extraUncertainties],
-      contradictions,
+      contradictions, actions, ecosystemConnections,
     });
   }
 
@@ -453,7 +557,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: [...intent.reasons, ...extraUncertainties],
-    contradictions,
+    contradictions, actions, ecosystemConnections,
   });
 }
 

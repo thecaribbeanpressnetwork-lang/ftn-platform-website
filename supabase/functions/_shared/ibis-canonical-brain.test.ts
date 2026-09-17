@@ -134,7 +134,7 @@ Deno.test("outcome question genuinely executes Context Graph, grounded to the re
 
 // --- Gate: a relationship question genuinely executes Context Graph, still honestly lists
 // EcoMap Relationship (genuinely missing methodology) as unavailable. ---
-Deno.test("relationship question classifies RELATIONSHIP, executes Context Graph, lists EcoMap Relationship unavailable", async () => {
+Deno.test("relationship question classifies RELATIONSHIP, executes Context Graph (an internal-ecosystem question, not an EcoMap Relationship-flavored one)", async () => {
   const res = await handleCanonicalRequest({
     text: "Which organizations are connected to FTN ibis?",
     products: [{ name: "FTN ibis", route: "/ibis-ai/" }],
@@ -145,9 +145,14 @@ Deno.test("relationship question classifies RELATIONSHIP, executes Context Graph
   const contextGraphMode = res.reasoningModesUsed.find((m) => m.mode === "CONTEXT_GRAPH");
   assert(contextGraphMode);
   assertEquals(contextGraphMode!.executed, true);
-  const ecoMapMode = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_RELATIONSHIP");
-  assert(ecoMapMode, "ECOMAP_RELATIONSHIP must still be listed (genuinely missing methodology, not fabricated)");
-  assertEquals(ecoMapMode!.executed, false);
+  // EcoMap Relationship (implemented this checkpoint -- see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md)
+  // is a SEPARATE, real-world-referral-flavored engine ("which organizations fund/refer/support",
+  // "referrals", "relationships or between") -- this text asks about FTN's own internal product
+  // ecosystem (handled by CONTEXT_GRAPH), not a real-world referral/funding question, so it must
+  // not be additively planned here. See the COMPOSABILITY / ECOMAP test group below for the
+  // dedicated contrast test proving ECOMAP_RELATIONSHIP genuinely invokes on the right query.
+  assert(!res.capabilityPlan.some((p) => p.capability === "ECOMAP_RELATIONSHIP"));
+  assert(!res.reasoningModesUsed.some((m) => m.mode === "ECOMAP_RELATIONSHIP"));
 });
 
 // --- Gate: a connect-my-X request classifies TOOL_ACTION and genuinely executes Connection
@@ -784,7 +789,7 @@ Deno.test("COMPOSABILITY: a current causal question invokes both RESEARCH and EB
   assert(!res.capabilityPlan.some((p) => p.capability === "CORRELATION"), "no correlation marker matched -- must not be planned");
   const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
   assert(ebrMode, "EBR must be invoked");
-  assertEquals(ebrMode!.executed, true, "real grounded search evidence exists -- EBR must genuinely run, not SKIP");
+  assertEquals(ebrMode!.executed, true, "a MOCK_SEARCH_FIXTURE evidence set exists (CONTRACT_GROUNDED, not LIVE_SEARCH_GROUNDED -- no real search provider is configured in this test) -- EBR must genuinely run, not SKIP");
 });
 
 Deno.test("COMPOSABILITY: a current causal question also invokes Correlation when a correlation marker is present", async () => {
@@ -870,12 +875,17 @@ Deno.test("COMPOSABILITY: the final receipt lists every planned capability along
   }
 });
 
-// --- ACCEPTANCE QUERY (exact text specified): with mocked grounded evidence, prove the plan
-// includes research + EBR + correlation and produces a sourced, uncertainty-aware answer; without
-// grounded evidence, prove it degrades honestly. ---
+// --- ACCEPTANCE QUERY (exact text specified): WITH a MOCK_SEARCH_FIXTURE (CONTRACT_GROUNDED --
+// this proves the L1/L2 orchestration contract, never claimed as LIVE_SEARCH_GROUNDED since no
+// real search provider is configured in this test environment), prove the plan includes research +
+// EBR + correlation and produces a sourced, uncertainty-aware answer; without any evidence fixture,
+// prove it degrades honestly. ---
 
-Deno.test("ACCEPTANCE QUERY: with mocked grounded evidence, plan includes research+EBR+correlation, answer is sourced and uncertainty-aware", async () => {
+Deno.test("ACCEPTANCE QUERY: with a MOCK_SEARCH_FIXTURE (CONTRACT_GROUNDED), plan includes research+EBR+correlation, answer is sourced and uncertainty-aware", async () => {
   Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  // MOCK_SEARCH_FIXTURE: a canned response standing in for a search provider, shaped like a real
+  // one so the test proves the orchestration CONTRACT (CONTRACT_GROUNDED) -- this is NEVER
+  // LIVE_SEARCH_GROUNDED evidence; no real network call to a search provider is made.
   const fakeFetch: typeof fetch = async () =>
     new Response(JSON.stringify({
       results: [
@@ -893,12 +903,12 @@ Deno.test("ACCEPTANCE QUERY: with mocked grounded evidence, plan includes resear
 
   assertEquals(res.queryClass, "RETRODICTION");
   assertEquals(res.capabilityPlan.map((p) => p.capability).sort(), ["CORRELATION", "EBR", "RESEARCH"]);
-  assertEquals(res.sources.length, 2, "the answer must be genuinely sourced");
+  assertEquals(res.sources.length, 2, "the answer must be genuinely sourced (from the MOCK_SEARCH_FIXTURE, not fabricated)");
   assertEquals(res.evidenceState, "SEARCH_GROUNDED");
 
   const ebrMode = res.reasoningModesUsed.find((m) => m.mode === "EBR");
   assert(ebrMode);
-  assertEquals(ebrMode!.executed, true, "real grounded evidence exists -- EBR must genuinely run");
+  assertEquals(ebrMode!.executed, true, "the MOCK_SEARCH_FIXTURE evidence exists (CONTRACT_GROUNDED) -- EBR must genuinely run");
   assert(ebrMode!.contribution && ebrMode!.contribution.includes("grounded evidence"), "must report a real, concrete finding, not a static label");
 
   const correlationMode = res.reasoningModesUsed.find((m) => m.mode === "CORRELATION");
@@ -942,4 +952,188 @@ Deno.test("EBR: no consciousness claim appears anywhere in a canonical response 
     ebrInput,
   });
   assert(!/conscious/i.test(JSON.stringify(res)), "no canonical response may ever claim consciousness -- see GOVERNANCE/EBR_SOURCE_AND_BOUNDARY.md");
+});
+
+// --- ECOMAP (Place / Pathway / Relationship) -- see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md.
+// Methodology: PARTIAL / FOUNDER-AUTHORIZED (a founder-authorized product contract, NOT an
+// externally validated methodology). Extends the additive capability plan introduced in the prior
+// checkpoint: Place, Pathway and Relationship are each independently selectable and composable. ---
+
+const ECOMAP_ACCEPTANCE_QUERY = "I want to start a community food business in Tobago. Map the services and organizations that could help, the steps and requirements I need to follow, and the relationships or referrals that could move it forward.";
+
+function ecoMapFakeFetch(): typeof fetch {
+  return async () =>
+    new Response(JSON.stringify({
+      results: [
+        { title: "Tobago Business Development Office", url: "https://example.tt/tbdo", content: "snippet", engine: "gov.tt", publishedDate: "2026-01-10" },
+        { title: "Youth Entrepreneurship Grant Programme - Tobago", url: "https://example.tt/grant", content: "snippet", engine: "gov.tt", publishedDate: "2026-02-01" },
+        { title: "Free Food Safety Certification Workshop (No Cost)", url: "https://example.tt/foodsafety", content: "snippet", engine: "health.gov.tt", publishedDate: "2026-03-05" },
+      ],
+    }), { status: 200 });
+}
+
+Deno.test("ECOMAP ACCEPTANCE QUERY: plan includes RESEARCH+ECOMAP_PLACE+ECOMAP_PATHWAY+ECOMAP_RELATIONSHIP+FOUNDER_THINKING, one retrieval feeds all three", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: ECOMAP_ACCEPTANCE_QUERY,
+    providers: [fakeProvider("test", "Draft answer text.")],
+    searchFetchImpl: ecoMapFakeFetch(),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  const planCapabilities = res.capabilityPlan.map((p) => p.capability).sort();
+  assert(planCapabilities.includes("RESEARCH"));
+  assert(planCapabilities.includes("ECOMAP_PLACE"));
+  assert(planCapabilities.includes("ECOMAP_PATHWAY"));
+  assert(planCapabilities.includes("ECOMAP_RELATIONSHIP"));
+  assert(planCapabilities.includes("FOUNDER_THINKING"));
+  assertEquals(res.sources.length, 3, "one retrieval result set (a MOCK_SEARCH_FIXTURE, CONTRACT_GROUNDED) must feed the request");
+
+  // Place produces sourced relevant entities and coverage.
+  const placeMode = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_PLACE");
+  assert(placeMode);
+  assertEquals(placeMode!.executed, true);
+  assert(placeMode!.contribution!.includes("Tobago Business Development Office"), "Place must report a real, sourced entity");
+  assert(placeMode!.contribution!.includes("PARTIAL / FOUNDER-AUTHORIZED"), "must disclose the methodology classification");
+
+  // Pathway produces sourced steps, dependencies and gaps.
+  const pathwayMode = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_PATHWAY");
+  assert(pathwayMode);
+  assertEquals(pathwayMode!.executed, true);
+  assert(pathwayMode!.contribution!.includes("INFERRED"), "a pathway must not pretend a step is confirmed when evidence is absent");
+  assert(pathwayMode!.contribution!.includes("not confirmed by any source"), "gaps must remain visible");
+
+  // Relationship produces sourced directional edges.
+  const relationshipMode = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_RELATIONSHIP");
+  assert(relationshipMode);
+  assertEquals(relationshipMode!.executed, true);
+  assert(relationshipMode!.contribution!.includes("->"), "relationship edges must be reported");
+
+  // Zero-cost alternatives appear when appropriate (the "Free ... (No Cost)" fixture source).
+  assert(res.actions.some((a) => a.toLowerCase().includes("zero-cost")), "a genuinely zero-cost-flagged source must surface a zero-cost alternative in the envelope's actions");
+
+  // EcoMap output materially changes the canonical result: actions/ecosystemConnections were
+  // previously ALWAYS empty for every query class; here they carry real content.
+  assert(res.actions.length > 0, "Pathway must materially populate the envelope's actions field");
+  assert(res.ecosystemConnections.length > 0, "Relationship must materially populate the envelope's ecosystemConnections field");
+
+  // Missing evidence remains visible (Place's gap disclosures feed uncertainties).
+  assert(res.uncertainties.some((u) => u.startsWith("EcoMap Place:")), "Place's gap disclosures must surface on the canonical envelope");
+
+  // The receipt distinguishes planned vs executed/skipped/degraded/unavailable capabilities.
+  assertEquals(res.receipt.capabilityPlan, res.capabilityPlan);
+  for (const mode of ["ECOMAP_PLACE", "ECOMAP_PATHWAY", "ECOMAP_RELATIONSHIP"]) {
+    const record = res.reasoningModesUsed.find((m) => m.mode === mode);
+    assert(record, `${mode} must appear in reasoningModesUsed with a real executed/unavailable state`);
+  }
+
+  // Precise personal location is neither requested nor exposed.
+  const serialized = JSON.stringify(res);
+  assert(!/\bcoordinates\b|\blatitude\b|\blongitude\b/i.test(serialized), "no precise location must ever be requested or exposed");
+});
+
+Deno.test("ECOMAP: sensitive/unsupported relationships are suppressed even when the plan includes ECOMAP_RELATIONSHIP", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: ECOMAP_ACCEPTANCE_QUERY,
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: ecoMapFakeFetch(),
+    lifecycleStore: createInMemoryLifecycleStore(),
+    ecomapRelationshipContext: {
+      subject: "My food business",
+      sources: [{ id: "s1", title: "Tobago Business Development Office", text: "Tobago Business Development Office", url: "https://example.tt/tbdo", publisher: "gov.tt", origin: "SEARCH", recordedAt: "2026-01-10T00:00:00Z", confidence: "INFERRED" }],
+      explicitEdges: [{
+        id: "edge-sensitive", sourceEntity: "Person A", targetEntity: "Person B", relationType: "FAMILY_REFERRAL",
+        direction: "SOURCE_TO_TARGET", influence: "CONFIRMED", dependency: true, incentive: null, reciprocalValue: null,
+        trustConfidence: "CONFIRMED", provenance: "internal-case-note", sensitivity: "SENSITIVE",
+      }],
+    },
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  const relationshipMode = res.reasoningModesUsed.find((m) => m.mode === "ECOMAP_RELATIONSHIP");
+  assert(relationshipMode);
+  assert(relationshipMode!.contribution!.includes("sensitive relationship(s) detected but not disclosed"));
+  assert(!relationshipMode!.contribution!.includes("Person A"), "a sensitive edge must never be named in the customer-facing contribution");
+  assert(!res.ecosystemConnections.some((e) => e.includes("Person A")), "a sensitive edge must never leak into the envelope's ecosystemConnections field");
+});
+
+Deno.test("ECOMAP CONTRAST: 'Where is the nearest public business-development office?' selects Place, not all three automatically", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: "Where is the nearest public business-development office?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: ecoMapFakeFetch(),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assert(res.capabilityPlan.some((p) => p.capability === "ECOMAP_PLACE"));
+  assert(!res.capabilityPlan.some((p) => p.capability === "ECOMAP_PATHWAY"), "must not additively select Pathway for a pure place lookup");
+  assert(!res.capabilityPlan.some((p) => p.capability === "ECOMAP_RELATIONSHIP"), "must not additively select Relationship for a pure place lookup");
+});
+
+Deno.test("ECOMAP CONTRAST: 'What steps are required to register a food business?' selects Pathway", async () => {
+  const res = await handleCanonicalRequest({
+    text: "What steps are required to register a food business?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(res.capabilityPlan.some((p) => p.capability === "ECOMAP_PATHWAY"));
+  assert(!res.capabilityPlan.some((p) => p.capability === "ECOMAP_PLACE"));
+  assert(!res.capabilityPlan.some((p) => p.capability === "ECOMAP_RELATIONSHIP"));
+});
+
+Deno.test("ECOMAP CONTRAST: 'Which organizations fund or refer Tobago food entrepreneurs?' selects Relationship and Research", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Which organizations fund or refer Tobago food entrepreneurs?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(res.capabilityPlan.some((p) => p.capability === "ECOMAP_RELATIONSHIP"));
+  assert(res.capabilityPlan.some((p) => p.capability === "RESEARCH"), "identifying real organizations requires grounded evidence, not internal data alone");
+  assert(!res.capabilityPlan.some((p) => p.capability === "ECOMAP_PLACE"));
+  assert(!res.capabilityPlan.some((p) => p.capability === "ECOMAP_PATHWAY"));
+});
+
+Deno.test("ECOMAP CONTRAST: a simple factual question invokes none of the EcoMap modes", async () => {
+  const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: createInMemoryLifecycleStore() });
+  for (const mode of ["ECOMAP_PLACE", "ECOMAP_PATHWAY", "ECOMAP_RELATIONSHIP"]) {
+    assert(!res.capabilityPlan.some((p) => p.capability === mode));
+    assert(!res.reasoningModesUsed.some((m) => m.mode === mode));
+  }
+});
+
+Deno.test("ECOMAP: search failure produces honest partial/degraded output, never a fabricated map", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async () => new Response("", { status: 500 });
+  const res = await handleCanonicalRequest({
+    text: ECOMAP_ACCEPTANCE_QUERY,
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assertEquals(res.status, "DEGRADED");
+  assert(res.receipt.degradedStages.includes("SEARCH_UNAVAILABLE"));
+  for (const mode of ["ECOMAP_PLACE", "ECOMAP_PATHWAY", "ECOMAP_RELATIONSHIP"]) {
+    const record = res.reasoningModesUsed.find((m) => m.mode === mode);
+    assert(record, `${mode} must still be listed as planned`);
+    assertEquals(record!.executed, false, `${mode} must honestly abstain (no grounded evidence), never fabricate a map`);
+  }
+});
+
+Deno.test("ECOMAP: mock evidence is never classified LIVE_SEARCH_GROUNDED", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: ECOMAP_ACCEPTANCE_QUERY,
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: ecoMapFakeFetch(),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  // The response's own evidenceState enum has no "LIVE_SEARCH_GROUNDED" value at all -- this test
+  // documents that a MOCK_SEARCH_FIXTURE result is SEARCH_GROUNDED (CONTRACT_GROUNDED in this
+  // test), never anything claiming production liveness.
+  assertEquals(res.evidenceState, "SEARCH_GROUNDED");
+  assert(!JSON.stringify(res).includes("LIVE_SEARCH_GROUNDED"));
 });

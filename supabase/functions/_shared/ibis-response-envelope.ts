@@ -54,8 +54,10 @@ export type ReasoningModeRecord = {
 // relationships are being assessed, a correlation check). CapabilityKind names the additive,
 // server-side-only capabilities the canonical brain can plan for a given request -- this is
 // SEPARATE from and additive to the single legacy `queryClass`, which callers that only understand
-// one class may keep reading. EcoMap modes and Multi-Agent are intentionally NOT listed here yet
-// (not implemented -- see ibis-reasoning-engines.ts's contract-map header).
+// one class may keep reading. Multi-Agent is intentionally NOT listed here yet (not implemented --
+// see ibis-reasoning-engines.ts's contract-map header). EcoMap Place/Pathway/Relationship ARE
+// listed (implemented this checkpoint; see GOVERNANCE/ECOMAP_SOURCE_AND_BOUNDARY.md) and are each
+// independently selectable -- one request may plan all three at once.
 export type CapabilityKind =
   | "RESEARCH"
   | "EBR"
@@ -64,7 +66,10 @@ export type CapabilityKind =
   | "BUTTERFLY"
   | "PREDICTION"
   | "CONTEXT_GRAPH"
-  | "CONNECTION_FABRIC";
+  | "CONNECTION_FABRIC"
+  | "ECOMAP_PLACE"
+  | "ECOMAP_PATHWAY"
+  | "ECOMAP_RELATIONSHIP";
 
 export type PlannedCapability = {
   capability: CapabilityKind;
