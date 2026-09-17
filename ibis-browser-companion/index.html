@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FTN ibis Browser Companion — Use your browser search with ibis</title>
+  <meta name="description" content="Search normally in Google, Bing or DuckDuckGo, then explicitly pass visible result titles, links and snippets to FTN ibis for Caribbean-first reasoning.">
+  <link rel="canonical" href="https://ftnplatform.org/ibis-browser-companion/">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components/buttons.css">
+  <link rel="stylesheet" href="/css/components/content-sections.css">
+  <style>
+    body{background:#f7f7f5;color:#111}.companion{max-width:900px;margin:0 auto;padding:48px 20px 72px}.companion__eyebrow{font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#087f8c}.companion h1{font-size:clamp(2rem,5vw,4rem);line-height:1.02;max-width:13ch;margin:.25em 0}.companion__lede{font-size:1.15rem;line-height:1.65;max-width:760px}.companion__actions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0}.companion__actions a{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:800}.companion__primary{background:#0b0b0b;color:#fff}.companion__secondary{border:1px solid #aaa;color:#111;background:#fff}.companion__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-top:34px}.companion__card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:22px}.companion__card h2{font-size:1.1rem;margin-top:0}.companion ol{padding-left:1.3rem;line-height:1.7}.companion__note{background:#eaf7f6;border-left:4px solid #087f8c;padding:16px 18px;margin:28px 0}.companion code{overflow-wrap:anywhere}.companion footer{margin-top:46px;padding-top:24px;border-top:1px solid #ddd;display:flex;gap:18px;flex-wrap:wrap}.companion footer a{color:#111}
+  </style>
+</head>
+<body>
+  <main class="companion">
+    <p class="companion__eyebrow">FTN ibis · Browser research</p>
+    <h1>Your browser searches. ibis reasons.</h1>
+    <p class="companion__lede">ibis is not trying to replace Google. Search normally in Google, Bing or DuckDuckGo — including from your signed-in browser profile — then deliberately give ibis the visible result titles, links and snippets so its Caribbean-first reasoning can compare, challenge and synthesize the evidence.</p>
+
+    <div class="companion__actions">
+      <a class="companion__primary" href="https://github.com/thecaribbeanpressnetwork-lang/ftn-platform-website/releases/download/ibis-browser-companion-v0.2.0/ftn-ibis-chrome-store-0.2.0.zip">Download Browser Companion 0.2.0</a>
+      <a class="companion__secondary" href="/ibis-ai/">Open FTN ibis</a>
+    </div>
+
+    <div class="companion__note"><strong>Privacy boundary:</strong> ibis receives only the search engine, query, capture time, and up to 10 visible organic-result titles, sanitized HTTPS links and snippets after you press <strong>Include browser search</strong>. It does not receive your Google cookies, passwords, account tokens or browser history.</div>
+
+    <section class="companion__grid" aria-label="How to use the browser companion">
+      <article class="companion__card">
+        <h2>1. Install once</h2>
+        <ol>
+          <li>Download and extract the ZIP.</li>
+          <li>Open <code>chrome://extensions</code> in Chrome, or <code>opera://extensions</code> in Opera.</li>
+          <li>Turn on Developer mode.</li>
+          <li>Choose <strong>Load unpacked</strong> and select the extracted extension folder.</li>
+          <li>Pin FTN ibis to the browser toolbar.</li>
+        </ol>
+      </article>
+      <article class="companion__card">
+        <h2>2. Search normally</h2>
+        <ol>
+          <li>Use Google, Bing or DuckDuckGo as you normally would.</li>
+          <li>Stay signed in if you want the search engine to use your normal profile.</li>
+          <li>Open the FTN ibis toolbar button on the results page.</li>
+          <li>Press <strong>Include browser search</strong>.</li>
+        </ol>
+      </article>
+      <article class="companion__card">
+        <h2>3. Make ibis work</h2>
+        <ol>
+          <li>Ask what matters: compare the evidence, find the opportunity, identify risk, explain Caribbean implications, or recommend next research.</li>
+          <li>ibis reasons over the captured snippets.</li>
+          <li>The original result links stay attached as sources.</li>
+          <li>Snippet evidence is labelled honestly; it is not treated as full-page verification.</li>
+        </ol>
+      </article>
+    </section>
+
+    <section class="companion__card" style="margin-top:18px">
+      <h2>No extension?</h2>
+      <p>You can still paste a Google/Bing/DuckDuckGo search URL or the search terms into ordinary ibis. ibis can use the query through its own grounded research routes, but it cannot see personalized result cards from your signed-in browser unless you explicitly capture them with the Browser Companion.</p>
+    </section>
+
+    <footer>
+      <a href="/legal/privacy-policy/">Privacy</a>
+      <a href="/legal/terms-of-service/">Terms</a>
+      <a href="/contact/">Support</a>
+      <a href="https://github.com/thecaribbeanpressnetwork-lang/ftn-platform-website/tree/main/apps/ftn-ibis-browser-extension">Source code</a>
+    </footer>
+  </main>
+</body>
+</html>
