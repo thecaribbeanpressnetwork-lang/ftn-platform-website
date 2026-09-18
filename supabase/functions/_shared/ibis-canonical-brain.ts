@@ -50,6 +50,9 @@ import { buildRequestFrame, type TemporalRequirement } from "./ibis-request-fram
 import { buildEvidenceContract } from "./ibis-evidence-contract.ts";
 import { processEvidence, type EvidencePacket, type ClaimsLedger } from "./ibis-evidence-processor.ts";
 import { selectRetrievalTargets, fetchSource, applyRetrievalResults, type RetrievalReceipt } from "./ibis-retrieval-adapter.ts";
+import { validateRelease, applyDeterministicRevision, buildWithholdAnswer, computeCanonicalPublicEvidenceState, type ReleaseDecision, type ValidationFailure } from "./ibis-release-validator.ts";
+import { assessReasoningBudget, type ReasoningBudgetAssessment } from "./ibis-reasoning-budget.ts";
+import { isFounderConsequential } from "./ibis-intent-router.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -374,6 +377,16 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // capabilities at once, unlike the single `queryClass` it is built alongside.
   const capabilityPlan = planCapabilities(intent.signals, requestFrame.temporalRequirement);
 
+  // FTN / IBIS Canonical Architecture, Phase 6 (Item 16: receipt observability). Computed here, with
+  // the REAL capabilityPlan.length, for accuracy -- ibis-assistant/index.ts's own pre-computation
+  // (used only to pick a provider order/system prompt before this function has even run) necessarily
+  // approximates capabilityCount as 0; this one does not need to.
+  const reasoningBudget: ReasoningBudgetAssessment = assessReasoningBudget({
+    queryClass: intent.queryClass, isDeterministicAnswer, requiresExternalAction: requestFrame.requiresExternalAction,
+    founderConsequential: isFounderConsequential(intent), freshnessRequired: requestFrame.requiresFreshEvidence,
+    capabilityCount: capabilityPlan.length,
+  });
+
   // Slice 1 correction: the execution-authorization decision lives here, server-side, and ONLY
   // here. Slice 3 correction: it ALSO now depends on whether a durable lifecycle store is
   // actually available -- authorizing browser-local execution without durable backing means a
@@ -644,6 +657,9 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       freshnessRequired, textSha256, ttlMs: PLAN_TTL_MS,
     });
     const { evidencePacket, claimsLedger } = runEvidenceProcessor("NO_ANSWER_GENERATED");
+    // Phase 6: no draft answer exists on this path (by design -- see the comment above), so there is
+    // nothing for the Release Validator to evaluate. The canonical/legacy comparison is still
+    // computed for observability consistency with the main path below.
     return buildEnvelope({
       requestId, startedAt, answer: "", objective: intent.objective, queryClass: intent.queryClass,
       capabilityPlan, capabilityExecution,
@@ -654,6 +670,9 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       uncertainties: [...intent.reasons, ...extraUncertainties],
       contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract, evidencePacket, claimsLedger,
       retrievalReceipts: retrievalReceipts.length ? retrievalReceipts : null,
+      releaseDecision: null, validationFailures: [],
+      legacyEvidenceState: "NO_ANSWER_GENERATED", canonicalEvidenceState: evidencePacket.evidenceState, stateAgreement: evidencePacket.stateAgreement,
+      reasoningBudget,
     });
   }
 
@@ -712,16 +731,58 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     await input.lifecycleStore.transitionPlan(requestId, "SUCCEEDED").catch(() => {});
   }
 
-  const { evidencePacket, claimsLedger } = runEvidenceProcessor(evidenceState);
+  const legacyEvidenceStateComputation = evidenceState;
+  const { evidencePacket, claimsLedger } = runEvidenceProcessor(legacyEvidenceStateComputation);
+
+  // FTN / IBIS Canonical Architecture, Phase 6 -- the Release Validator (Items 2-9). The ONE
+  // deterministic final stage before a draft may leave ibis. Evaluates the ALREADY-PRODUCED draft
+  // against canonical truth; never retrieves, selects a provider, or reasons itself (see
+  // ibis-release-validator.ts's own header). `actionExecuted` is derived from the packet's OWN
+  // already-computed ACTION_NOT_EXECUTED_GAP rather than re-deriving the same check a second time.
+  const actionExecuted = requestFrame.requiresExternalAction && !evidencePacket.gaps.some((g) => g.type === "ACTION_NOT_EXECUTED_GAP");
+  const releaseInputBase = { requestFrame, evidenceContract, evidencePacket, claimsLedger, engineResults: orchestration.engineResults, actionExecuted };
+  let validation = validateRelease({ draftAnswer: answer, ...releaseInputBase });
+  if (validation.decision === "REVISE") {
+    // Item 3: "a bounded revision... maximum one synthesis revision." Deterministic, not a second
+    // model call (see ibis-release-validator.ts's header for why) -- trivially bounded: applied once,
+    // re-validated once, and a still-failing result is withheld rather than revised again.
+    const revisedAnswer = applyDeterministicRevision(answer, validation.failures, requestFrame);
+    const revalidation = validateRelease({ draftAnswer: revisedAnswer, ...releaseInputBase });
+    if (revalidation.decision === "RELEASE") {
+      answer = revisedAnswer;
+      validation = revalidation;
+      degradedStages.push("RELEASE_REVISED");
+    } else {
+      answer = buildWithholdAnswer({ requestFrame, evidencePacket, failures: revalidation.failures, originalText: text });
+      validation = { decision: "WITHHOLD", failures: revalidation.failures, canonicalEvidenceState: evidencePacket.evidenceState, limitations: revalidation.limitations };
+      status = "DEGRADED";
+      degradedStages.push("RELEASE_WITHHELD");
+    }
+  } else if (validation.decision === "WITHHOLD") {
+    answer = buildWithholdAnswer({ requestFrame, evidencePacket, failures: validation.failures, originalText: text });
+    status = "DEGRADED";
+    degradedStages.push("RELEASE_WITHHELD");
+  }
+
+  // Item 6/7/8: canonical authority. The PUBLIC evidenceState is now derived from the canonical
+  // EvidencePacket (computeCanonicalPublicEvidenceState), never the legacy "did search return
+  // something" heuristic -- that heuristic is preserved verbatim as `legacyEvidenceState`, alongside
+  // `canonicalEvidenceState`/`stateAgreement`, purely for observability during and after this
+  // migration (see CanonicalReceipt's own doc comment).
+  const canonicalPublicEvidenceState = computeCanonicalPublicEvidenceState(evidencePacket, answer.length > 0);
+
   return buildEnvelope({
     requestId, startedAt, answer, objective: intent.objective, queryClass: intent.queryClass,
     capabilityPlan, capabilityExecution,
     executionInstruction,
-    reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, searchCacheState, sources,
+    reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState: canonicalPublicEvidenceState, searchCacheState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: [...intent.reasons, ...extraUncertainties],
     contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract, evidencePacket, claimsLedger,
     retrievalReceipts: retrievalReceipts.length ? retrievalReceipts : null,
+    releaseDecision: validation.decision, validationFailures: validation.failures,
+    legacyEvidenceState: legacyEvidenceStateComputation, canonicalEvidenceState: evidencePacket.evidenceState, stateAgreement: evidencePacket.stateAgreement,
+    reasoningBudget,
   });
 }
 

@@ -224,6 +224,26 @@ export type CanonicalReceipt = {
   // circular-import reason. SHADOW: nothing reads or branches on this field; it exists purely so
   // Phase 5's retrieval behavior can be inspected against real production traffic.
   retrievalReceipts: import("./ibis-retrieval-adapter.ts").RetrievalReceipt[] | null;
+  // FTN / IBIS Canonical Architecture, Phase 6 (see GOVERNANCE/
+  // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md's Phase 6 scope). Canonical
+  // authority migration: the Release Validator's own decision for this request, plus the two
+  // evidence-state readings side by side for observability during and after the migration (Item 6:
+  // "preserve legacy state for observability... but user-visible truth must come from the canonical
+  // state"). `legacyEvidenceState`/`canonicalEvidenceState`/`stateAgreement` mirror
+  // evidencePacket's own fields of the same purpose (kept there too, unchanged, for Phase 4 API
+  // stability) -- surfaced again here, at the top level, purely so a reader does not have to reach
+  // into evidencePacket to see the ONE fact this migration is about. null only on the empty-request
+  // error path, which never reaches the Release Validator at all.
+  releaseDecision: import("./ibis-release-validator.ts").ReleaseDecision | null;
+  validationFailures: import("./ibis-release-validator.ts").ValidationFailure[];
+  legacyEvidenceState: CanonicalResponse["evidenceState"] | null;
+  canonicalEvidenceState: import("./ibis-evidence-processor.ts").EvidenceState | null;
+  stateAgreement: boolean | null;
+  // Phase 6 observability (Item 16): the request's provider-neutral Reasoning Budget/task class,
+  // computed here (with the REAL capabilityPlan.length) for accuracy -- distinct from ibis-
+  // assistant/index.ts's own necessarily-approximate pre-computation (used only to decide provider
+  // ORDER before this function has even run; see that file's own doc comment on the approximation).
+  reasoningBudget: import("./ibis-reasoning-budget.ts").ReasoningBudgetAssessment | null;
 };
 
 export type CanonicalResponse = {
@@ -244,7 +264,17 @@ export type CanonicalResponse = {
   reasoningModesUsed: ReasoningModeRecord[];
   capabilitiesAttempted: string[];
   providerPath: string[];
-  evidenceState: "DETERMINISTIC" | "MODEL_GENERATED" | "SEARCH_GROUNDED" | "NO_ANSWER_GENERATED";
+  // Phase 6 (Items 6/7/8): "VERIFIED" and "INSUFFICIENT" added -- additive only, every existing
+  // "DETERMINISTIC"/"MODEL_GENERATED"/"SEARCH_GROUNDED"/"NO_ANSWER_GENERATED" comparison anywhere in
+  // the codebase or a client keeps working unchanged. VERIFIED: canonical EvidencePacket reached
+  // VERIFIED via genuinely inspected primary/official evidence or a real structured dataset (NOT
+  // deterministic -- that stays DETERMINISTIC, unchanged). INSUFFICIENT: the canonical packet
+  // determined required evidence was genuinely missing/inadequate for an answer that was still
+  // produced (distinct from NO_ANSWER_GENERATED, which remains specifically "no server provider was
+  // called -- execution deferred to authorized browser-local generation"). See
+  // ibis-release-validator.ts's computeCanonicalPublicEvidenceState() -- the ONE place this value is
+  // now derived from, replacing the prior queryClass/search-success heuristic.
+  evidenceState: "DETERMINISTIC" | "VERIFIED" | "MODEL_GENERATED" | "SEARCH_GROUNDED" | "INSUFFICIENT" | "NO_ANSWER_GENERATED";
   // Live-search UX correction: lets a caller honestly show "live" vs "cached" rather than implying
   // every grounded answer just made a fresh network call. null when no search ran this request (no
   // RESEARCH capability was planned) -- distinct from "unavailable", which is `handoff.external`.
@@ -313,6 +343,14 @@ export function buildEnvelope(input: {
   claimsLedger?: import("./ibis-evidence-processor.ts").ClaimsLedger | null;
   // Phase 5, shadow mode -- same optional/default-null pattern.
   retrievalReceipts?: import("./ibis-retrieval-adapter.ts").RetrievalReceipt[] | null;
+  // Phase 6 -- same optional/default-null pattern; omitted only by the empty-request error path,
+  // which never runs the Release Validator at all.
+  releaseDecision?: import("./ibis-release-validator.ts").ReleaseDecision | null;
+  validationFailures?: import("./ibis-release-validator.ts").ValidationFailure[];
+  legacyEvidenceState?: CanonicalResponse["evidenceState"] | null;
+  canonicalEvidenceState?: import("./ibis-evidence-processor.ts").EvidenceState | null;
+  stateAgreement?: boolean | null;
+  reasoningBudget?: import("./ibis-reasoning-budget.ts").ReasoningBudgetAssessment | null;
 }): CanonicalResponse {
   const respondedAt = new Date().toISOString();
   return {
@@ -358,6 +396,12 @@ export function buildEnvelope(input: {
       evidencePacket: input.evidencePacket ?? null,
       claimsLedger: input.claimsLedger ?? null,
       retrievalReceipts: input.retrievalReceipts ?? null,
+      releaseDecision: input.releaseDecision ?? null,
+      validationFailures: input.validationFailures ?? [],
+      legacyEvidenceState: input.legacyEvidenceState ?? null,
+      canonicalEvidenceState: input.canonicalEvidenceState ?? null,
+      stateAgreement: input.stateAgreement ?? null,
+      reasoningBudget: input.reasoningBudget ?? null,
     },
     generatedAt: respondedAt,
   };

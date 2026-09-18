@@ -61,7 +61,12 @@ Deno.test("search success normalizes source title/publisher/url/dates", async ()
   });
   Deno.env.delete("SEARXNG_BASE_URL");
   assertEquals(res.queryClass, "CURRENT_WEB_RESEARCH");
-  assertEquals(res.evidenceState, "SEARCH_GROUNDED");
+  // Phase 6 (Item 7): SEARCH_GROUNDED now means canonical evidence requirements were actually met --
+  // this source is 9 days stale against a literal "today" request (HIGH temporal strictness), so the
+  // canonical authority correctly reports INSUFFICIENT rather than the legacy "search succeeded"
+  // heuristic's SEARCH_GROUNDED. The legacy signal itself is preserved for observability.
+  assertEquals(res.evidenceState, "INSUFFICIENT");
+  assertEquals(res.receipt.legacyEvidenceState, "SEARCH_GROUNDED");
   assertEquals(res.sources.length, 1);
   assertEquals(res.sources[0].title, "T&T Central Bank raises rates");
   assertEquals(res.sources[0].url, "https://www.central-bank.org.tt/story");
@@ -1611,7 +1616,11 @@ Deno.test("EVIDENCE GROUNDING: providerFactory is called with a real evidence bl
   assert(evidenceBlockText.includes("https://www.central-bank.org.tt/forex-update"), "the evidence block must contain the real retrieved source URL");
   assert(evidenceBlockText.includes("2026-08-20"), "the evidence block must carry the real publication date when known");
   assert(evidenceBlockText.includes("Snippet: snippet"), "the evidence block must include the source's own snippet text, not just title/date/URL");
-  assertEquals(res.answer, "ECHO", "the provider actually constructed from providerFactory (with evidence available to it) must be the one that answers");
+  // Phase 6: the Release Validator may deterministically append a qualifying sentence when the
+  // canonical packet's claim strength doesn't support an unqualified assertion (this fixture's single
+  // source is 29 days stale against a literal "today" request) -- `startsWith` preserves this test's
+  // real intent (the evidence-aware provider actually answered) without depending on validator internals.
+  assert(res.answer.startsWith("ECHO"), "the provider actually constructed from providerFactory (with evidence available to it) must be the one that answers");
   const modelTextMode = res.reasoningModesUsed.find((m) => m.mode === "MODEL_TEXT" && m.executed);
   assert(modelTextMode?.contribution?.includes("grounded in 1 retrieved source"), "the disclosed contribution must state the answer was grounded in retrieved evidence, not just that search happened");
 });
@@ -1721,7 +1730,11 @@ Deno.test("EVIDENCE GROUNDING: omitting providerFactory keeps the exact prior (e
     lifecycleStore: createInMemoryLifecycleStore(),
   });
   Deno.env.delete("SEARXNG_BASE_URL");
-  assertEquals(res.answer, "Plain provider answer, no providerFactory supplied.", "backward compatibility: a caller that never supplies providerFactory must be entirely unaffected by this correction");
+  // Phase 6: this fixture's single source is 29+ days stale against a literal "today" request, so
+  // the Release Validator's deterministic revision appends a qualifier -- `startsWith` preserves the
+  // real intent (the PLAIN, non-evidence-aware provider path answered, unaffected by providerFactory
+  // plumbing) without depending on validator internals.
+  assert(res.answer.startsWith("Plain provider answer, no providerFactory supplied."), "backward compatibility: a caller that never supplies providerFactory must be entirely unaffected by this correction");
 });
 
 // --- Independent live audit finding: the authorized-fallback provider call silently answered with
@@ -1838,7 +1851,11 @@ Deno.test("AUTHORIZED FALLBACK FIX (item 2, defensive branch): if a capability-r
   assert(outcome.status === "ACCEPTED" && outcome.envelope, "the fallback must still succeed even when the resent text needs real capabilities");
   assert(searchCalled, "the fallback must genuinely run search for a query that needs it, not silently skip straight to a bare model call");
   assert(outcome.envelope.capabilityPlan.some((p) => p.capability === "RESEARCH"), "the fallback's own canonical run must plan RESEARCH for this resent text, same as an ordinary request would");
-  assertEquals(outcome.envelope.evidenceState, "SEARCH_GROUNDED");
+  // Phase 6: the legacy "search succeeded" signal is SEARCH_GROUNDED (preserved for observability);
+  // the canonical public evidenceState is MODEL_GENERATED because example.com is not on the
+  // recognized official/news domain list CURRENT_WEB_RESEARCH's contract requires -- this is the
+  // intended Item 7 distinction ("search API returned something" != "canonical requirements met").
+  assertEquals(outcome.envelope.receipt.legacyEvidenceState, "SEARCH_GROUNDED");
   assert(outcome.envelope.sources.length > 0, "the fallback answer must actually carry the real retrieved source, never a fabricated grounding claim");
 });
 
@@ -2294,7 +2311,10 @@ Deno.test("PHASE 4 (Evidence Processor): CURRENT-WEEK FAILURE CASE -- relevant b
   // shipped) may or may not have accepted these sources as SEARCH_GROUNDED -- whatever it actually
   // did, the shadow packet's own independent judgment is what matters here, and it must be a hard
   // failure regardless.
-  assertEquals(packet!.legacyEvidenceState, res.evidenceState, "the packet must record whatever the real legacy evidenceState actually was, never a guessed value");
+  // Phase 6: `res.evidenceState` is now the CANONICAL public value, not the legacy one -- the
+  // correct comparison is against the top-level `legacyEvidenceState` receipt field this phase adds
+  // (mirroring the packet's own, unchanged, internal copy of the same fact).
+  assertEquals(packet!.legacyEvidenceState, res.receipt.legacyEvidenceState, "the packet must record whatever the real legacy evidenceState actually was, never a guessed value");
 });
 
 // Section 27, test 16: end-to-end receipt integration -- both shadow structures present together,
@@ -2321,7 +2341,12 @@ Deno.test("PHASE 4 (Evidence Processor): end-to-end receipt integration -- evide
   // judges the evidence sufficient or not.
   assert(res.answer.length > 0, "shadow evidence evaluation must never suppress the real answer");
   assert(res.sources.length > 0, "shadow evidence evaluation must never suppress real sources");
-  assertEquals(res.evidenceState, "SEARCH_GROUNDED", "legacy evidenceState computation must be completely untouched by Phase 4");
+  // Phase 6: the legacy computation itself remains untouched (still SEARCH_GROUNDED, preserved at
+  // receipt.legacyEvidenceState) -- but `res.evidenceState` is now the canonical public value, and
+  // this fixture's source is undated (temporally unresolved for a HIGH-strictness THIS_WEEK request),
+  // so canonical authority correctly reports MODEL_GENERATED rather than SEARCH_GROUNDED.
+  assertEquals(res.receipt.legacyEvidenceState, "SEARCH_GROUNDED", "legacy evidenceState computation must be completely untouched by Phase 4");
+  assertEquals(res.evidenceState, "MODEL_GENERATED", "canonical authority (Phase 6) must not grant SEARCH_GROUNDED for undated evidence against a HIGH-strictness temporal request");
 });
 
 // FTN / IBIS Canonical Architecture -- Phase 5 (see GOVERNANCE/
@@ -2473,6 +2498,59 @@ Deno.test("PHASE 5 (historical-research-gap fix): a HISTORICAL question with sea
   assert(res.receipt.capabilityPlan.some((c) => c.capability === "RESEARCH"));
   assertEquals(res.status, "DEGRADED");
   assert(res.receipt.degradedStages.includes("SEARCH_UNAVAILABLE"));
+});
+
+// FTN / IBIS Canonical Architecture -- Phase 6 (Final): Release Validator + canonical evidence-state
+// authority migration. See GOVERNANCE/FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md.
+
+// Item 11: the deterministic path end-to-end, through the Release Validator, unaffected.
+Deno.test("PHASE 6 (Release Validator): the deterministic path reaches RELEASE with canonicalEvidenceState DETERMINISTIC, and receipt observability is fully populated", async () => {
+  const res = await handleCanonicalRequest({
+    text: "2 + 2",
+    providers: [fakeProvider("test", "SHOULD_NEVER_BE_USED")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.evidenceState, "DETERMINISTIC");
+  assertEquals(res.receipt.releaseDecision, "RELEASE");
+  assertEquals(res.receipt.validationFailures.length, 0);
+  assertEquals(res.receipt.canonicalEvidenceState, "VERIFIED");
+  assert(res.receipt.reasoningBudget, "reasoningBudget must be present on every response");
+  assertEquals(res.receipt.reasoningBudget!.level, 0);
+});
+
+// Item 12: the Release Validator as a genuine SAFETY NET for framework leakage -- proven end-to-end
+// with a provider that deliberately leaks internal vocabulary, not just at the unit level.
+Deno.test("PHASE 6 (Release Validator): framework-leak vocabulary from a real provider answer is caught and stripped before the response leaves ibis", async () => {
+  // Deliberately a RETRODICTION query with no freshness/causeEvidence marker -- plans EBR only, no
+  // RESEARCH, so the leaky provider is genuinely reached via runGateway() rather than being
+  // preempted by the "search needed but unavailable" honest-degradation branch.
+  const leakyProvider = fakeProvider("test", "Based on the EvidenceContract and the ClaimsLedger, the platform's architecture involves several factors.");
+  const res = await handleCanonicalRequest({
+    text: "Why did the FTN platform choose this architecture?",
+    providers: [leakyProvider],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertFalse(/EvidenceContract|ClaimsLedger/i.test(res.answer), "leaked internal vocabulary must never reach the user-visible answer");
+  // A successful revision reports the FINAL (post-fix) validation, which is correctly failure-free --
+  // the fact a revision genuinely happened is recorded in degradedStages instead (RELEASE_WITHHELD
+  // would appear here if the bounded revision could not fully resolve it, which is also an
+  // acceptable, honest outcome per Item 3 -- either way the leak must never reach the user).
+  assert(res.receipt.degradedStages.includes("RELEASE_REVISED") || res.receipt.degradedStages.includes("RELEASE_WITHHELD"), "the Release Validator must have genuinely intervened on this leaky draft");
+});
+
+// Item 21: search-degraded acceptance -- when every search provider is unavailable, ibis must never
+// mark SEARCH_GROUNDED or fabricate current evidence, and must preserve the truthful degraded state.
+Deno.test("PHASE 6 (search-degraded acceptance): with every search provider unavailable, evidenceState is never SEARCH_GROUNDED/VERIFIED/DETERMINISTIC, and the degraded state is preserved honestly", async () => {
+  const res = await handleCanonicalRequest({
+    text: "What is the latest news in Trinidad and Tobago today?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: async () => { throw new Error("network unreachable"); },
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(!["SEARCH_GROUNDED", "VERIFIED", "DETERMINISTIC"].includes(res.evidenceState), `a fully degraded search must never report ${res.evidenceState} as if evidence existed`);
+  assertEquals(res.status, "DEGRADED");
+  assert(res.receipt.degradedStages.includes("SEARCH_UNAVAILABLE"));
+  assertFalse(/no real-time access/i.test(res.answer), "Item 18: no generic 'I have no real-time access' refusal language");
 });
 
 Deno.test("PHASE 5 (historical-research-gap fix): a CURRENT (non-historical) question is completely unaffected -- no regression to the existing freshness-driven RESEARCH branch", async () => {
