@@ -35,6 +35,7 @@
     options = options || {};
     return data().filter(function (p) {
       if (p.publicVisibility === false || ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(p.status) !== -1) return false;
+      if (p.absorbedInto && !options.includeAbsorbed) return false;
       if (!options.includeSupporting && p.principal === false) return false;
       return true;
     });
@@ -46,7 +47,7 @@
     var groups = (global.FTN && global.FTN.ProductRegistryGroups) || [];
     return groups.map(function (group) {
       return { id: group.id, title: group.title, description: group.description, products: group.productIds.map(get).filter(function (product) {
-        return product && product.publicVisibility !== false && ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(product.status) === -1;
+        return product && !product.absorbedInto && product.publicVisibility !== false && ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(product.status) === -1;
       }) };
     });
   }
