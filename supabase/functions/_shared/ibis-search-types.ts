@@ -21,8 +21,13 @@ export type SourceRecord = {
   // or relabeled as, having inspected the full source page. null when the provider returned none.
   snippet: string | null;
   // SNIPPET: only a search-result snippet was inspected, never treated as verified full-source
-  // content. INSPECTED: the retrieval adapter actually fetched and read the page body.
-  evidenceDepth: "SNIPPET" | "INSPECTED";
+  // content. INSPECTED: reserved, never produced (kept for backward compatibility with any external
+  // reader of this union). Phase 5 (see ibis-retrieval-adapter.ts): RETRIEVED_PAGE -- the Retrieval
+  // Adapter actually fetched and read an HTML/text page body. PRIMARY_DOCUMENT -- a PDF/document was
+  // fetched from a known official-government domain (see AUTHORITATIVE_GOVERNMENT_DOMAINS in
+  // ibis-search-quality-gate.ts), the one case the adapter is willing to call a primary record
+  // without a human review step.
+  evidenceDepth: "SNIPPET" | "INSPECTED" | "RETRIEVED_PAGE" | "PRIMARY_DOCUMENT";
 };
 
 export type SearchResult =

@@ -3,7 +3,7 @@
 // No live network calls: every provider/search call in these tests is a local fake. The lifecycle
 // store used throughout is createInMemoryLifecycleStore() -- explicitly the TEST-ONLY
 // implementation (see ibis-lifecycle-store.ts's own header for why it is never production-safe).
-import { assert, assertEquals, assertMatch, assertNotEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertMatch, assertNotEquals, assertFalse } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "./ibis-canonical-brain.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
 import { searxngSearch, braveSearch, search } from "./ibis-search-adapter.ts";
@@ -44,8 +44,15 @@ Deno.test("current-information question classifies CURRENT_WEB_RESEARCH", () => 
 // --- Gate 3: search success returns normalized real source metadata. ---
 Deno.test("search success normalizes source title/publisher/url/dates", async () => {
   Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
-  const fakeFetch: typeof fetch = async () =>
-    new Response(JSON.stringify({ results: [{ title: "T&T Central Bank raises rates", url: "https://www.central-bank.org.tt/story", content: "snippet", engine: "official", publishedDate: "2026-09-10" }] }), { status: 200 });
+  // Phase 5: URL-discriminating (see ecoMapFakeFetch()'s own comment above) -- the Retrieval Adapter
+  // reuses this same searchFetchImpl for its own page-fetch attempt against the source's own URL;
+  // this fixture has no real backend behind that URL, so it honestly 404s and retrieval SKIPs,
+  // leaving the SNIPPET-depth assertion below intact.
+  const fakeFetch: typeof fetch = async (input) => {
+    const url = typeof input === "string" ? input : (input as Request).url ?? String(input);
+    if (!url.includes("fake-searxng.test")) return new Response("", { status: 404 });
+    return new Response(JSON.stringify({ results: [{ title: "T&T Central Bank raises rates", url: "https://www.central-bank.org.tt/story", content: "snippet", engine: "official", publishedDate: "2026-09-10" }] }), { status: 200 });
+  };
   const res = await handleCanonicalRequest({
     text: "What is the latest USD selling rate today?",
     providers: [fakeProvider("test", "unused")],
@@ -1047,15 +1054,26 @@ Deno.test("EBR: no consciousness claim appears anywhere in a canonical response 
 
 const ECOMAP_ACCEPTANCE_QUERY = "I want to start a community food business in Tobago. Map the services and organizations that could help, the steps and requirements I need to follow, and the relationships or referrals that could move it forward.";
 
+// Phase 5 correction: `searchFetchImpl` is now ALSO the Retrieval Adapter's own injected fetch (see
+// ibis-canonical-brain.ts's Retrieval Adapter wiring, which reuses the SAME test-injectable override
+// RESEARCH's own search call already accepted -- never a second, separate injection point). A single
+// fixed-shape mock that answers every URL identically would make the Retrieval Adapter's page-fetch
+// attempts (against https://example.tt/tbdo etc.) ALSO receive this SearXNG JSON body back, which
+// would then be misread as page content. Branches by URL, exactly like a real environment where only
+// the SearXNG endpoint is a real backend and an unmocked page URL genuinely has nothing behind it --
+// so retrieval honestly SKIPPED_HTTP_ERRORs for these fixture URLs, never touching `sources[]`.
 function ecoMapFakeFetch(): typeof fetch {
-  return async () =>
-    new Response(JSON.stringify({
+  return async (input) => {
+    const url = typeof input === "string" ? input : (input as Request).url ?? String(input);
+    if (!url.includes("fake-searxng.test")) return new Response("", { status: 404 });
+    return new Response(JSON.stringify({
       results: [
         { title: "Tobago Business Development Office", url: "https://example.tt/tbdo", content: "snippet", engine: "gov.tt", publishedDate: "2026-01-10" },
         { title: "Youth Entrepreneurship Grant Programme - Tobago", url: "https://example.tt/grant", content: "snippet", engine: "gov.tt", publishedDate: "2026-02-01" },
         { title: "Free Food Safety Certification Workshop (No Cost)", url: "https://example.tt/foodsafety", content: "snippet", engine: "health.gov.tt", publishedDate: "2026-03-05" },
       ],
     }), { status: 200 });
+  };
 }
 
 Deno.test("ECOMAP ACCEPTANCE QUERY: plan includes RESEARCH+ECOMAP_PLACE+ECOMAP_PATHWAY+ECOMAP_RELATIONSHIP+FOUNDER_THINKING, one retrieval feeds all three", async () => {
@@ -1233,10 +1251,15 @@ const FULL_COMPOSABLE_QUERY =
   "I want to start a community food business in Tobago. Research the current support available, map the organizations and relationships, show the steps and alternatives, compare the likely effects of the strongest options, and explain the uncertainties.";
 
 Deno.test("MULTI-AGENT ACCEPTANCE (group 1): full composable query -- one evidence retrieval, EcoMap modes execute, Context Graph consumes EcoMap output, Butterfly/Foresight execute only via disclosed bridges with no fake probabilities, sensitive relationships stay protected, one final answer, one complete receipt, never LIVE_SEARCH_GROUNDED", async () => {
-  let fetchCalls = 0;
+  let searchCalls = 0;
   const baseFetch = ecoMapFakeFetch();
+  // Phase 5: counts only calls that reach the SearXNG endpoint -- the Retrieval Adapter's own
+  // separate page-fetch attempts (against the 3 result URLs, each honestly 404ing via
+  // ecoMapFakeFetch()'s own URL-discrimination) are a different, separately-bounded fetch pattern
+  // this specific assertion is not about.
   const countingFetch: typeof fetch = async (...args) => {
-    fetchCalls++;
+    const url = typeof args[0] === "string" ? args[0] : (args[0] as Request).url ?? String(args[0]);
+    if (url.includes("fake-searxng.test")) searchCalls++;
     return await baseFetch(...args);
   };
   Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
@@ -1248,8 +1271,8 @@ Deno.test("MULTI-AGENT ACCEPTANCE (group 1): full composable query -- one eviden
   });
   Deno.env.delete("SEARXNG_BASE_URL");
 
-  // Exactly one evidence retrieval feeds every capability that needs it.
-  assertEquals(fetchCalls, 1, "exactly one retrieval call must be made regardless of how many capabilities need evidence");
+  // Exactly one SEARCH call feeds every capability that needs it.
+  assertEquals(searchCalls, 1, "exactly one search call must be made regardless of how many capabilities need evidence");
   assertEquals(res.sources.length, 3);
 
   // The full 9-capability plan (RESEARCH+FOUNDER_THINKING+BUTTERFLY+PREDICTION+CONTEXT_GRAPH+
@@ -1302,9 +1325,13 @@ Deno.test("MULTI-AGENT ACCEPTANCE (group 1): full composable query -- one eviden
 
 // Group 2: the exact required forex causal query.
 Deno.test("MULTI-AGENT ACCEPTANCE (group 2): forex causal query -- Research+EBR planned, Correlation executes only with a real valid time series, no duplicate retrieval/provider calls", async () => {
-  let fetchCalls = 0;
-  const fakeFetch: typeof fetch = async () => {
-    fetchCalls++;
+  let searchCalls = 0;
+  const fakeFetch: typeof fetch = async (input) => {
+    const url = typeof input === "string" ? input : (input as Request).url ?? String(input);
+    // Phase 5: only the SearXNG endpoint has a real fixture behind it -- the Retrieval Adapter's own
+    // separate page-fetch attempt against the result URL below honestly 404s and SKIPs.
+    if (!url.includes("fake-searxng.test")) return new Response("", { status: 404 });
+    searchCalls++;
     return new Response(JSON.stringify({
       results: [{ title: "Central Bank of T&T: forex allocation update", url: "https://www.central-bank.org.tt/forex-update", content: "snippet", engine: "central-bank", publishedDate: "2026-08-20" }],
     }), { status: 200 });
@@ -1338,7 +1365,7 @@ Deno.test("MULTI-AGENT ACCEPTANCE (group 2): forex causal query -- Research+EBR 
   assertEquals(ebr.executed, true);
   assert(!res.uncertainties.some((u) => /causal/i.test(u) && /confirmed/i.test(u)), "an unsupported causal claim must never be asserted as confirmed");
 
-  assertEquals(fetchCalls, 1, "no duplicate retrieval call may occur across the whole capability plan");
+  assertEquals(searchCalls, 1, "no duplicate search call may occur across the whole capability plan");
   assertEquals(providerCalls, 1, "no duplicate provider/synthesis call may occur across the whole capability plan");
 });
 
@@ -1380,6 +1407,10 @@ function capturedSearchQuery(text: string): Promise<string | null> {
   let captured: string | null = null;
   const fakeFetch: typeof fetch = async (input) => {
     const url = new URL(String(input));
+    // Phase 5: only the SearXNG call itself carries a `q` param to capture -- the Retrieval
+    // Adapter's own separate fetch of the result URL (https://ftnplatform.org/update, no `q` param)
+    // must never overwrite the already-captured value with null.
+    if (!url.hostname.includes("fake-searxng.test")) return new Response("", { status: 404 });
     captured = url.searchParams.get("q");
     return new Response(JSON.stringify({ results: [{ title: "FTN Platform update", url: "https://ftnplatform.org/update", content: "snippet", engine: "searxng" }] }), { status: 200 });
   };
@@ -1553,10 +1584,16 @@ function evidenceEchoProvider(): GatewayProvider {
 
 Deno.test("EVIDENCE GROUNDING: providerFactory is called with a real evidence block (source titles + URLs) when search produced sources", async () => {
   Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
-  const fakeFetch: typeof fetch = async () =>
-    new Response(JSON.stringify({
+  // Phase 5: URL-discriminating -- the Retrieval Adapter's own separate fetch of the result URL
+  // below must not receive this SearXNG JSON body back (which would overwrite the source's real
+  // `snippet` with raw JSON text and break the assertion on it further down).
+  const fakeFetch: typeof fetch = async (input) => {
+    const url = typeof input === "string" ? input : (input as Request).url ?? String(input);
+    if (!url.includes("fake-searxng.test")) return new Response("", { status: 404 });
+    return new Response(JSON.stringify({
       results: [{ title: "Central Bank of T&T: forex allocation update", url: "https://www.central-bank.org.tt/forex-update", content: "snippet", engine: "central-bank", publishedDate: "2026-08-20" }],
     }), { status: 200 });
+  };
   let capturedEvidenceBlock: string | null | undefined = undefined;
   const res = await handleCanonicalRequest({
     text: "What is the latest USD exchange rate today?",
@@ -2285,4 +2322,169 @@ Deno.test("PHASE 4 (Evidence Processor): end-to-end receipt integration -- evide
   assert(res.answer.length > 0, "shadow evidence evaluation must never suppress the real answer");
   assert(res.sources.length > 0, "shadow evidence evaluation must never suppress real sources");
   assertEquals(res.evidenceState, "SEARCH_GROUNDED", "legacy evidenceState computation must be completely untouched by Phase 4");
+});
+
+// FTN / IBIS Canonical Architecture -- Phase 5 (see GOVERNANCE/
+// FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md's Phase 5 scope). Three
+// integration tests below cover, in order: the Retrieval Adapter's real end-to-end effect on a
+// genuine request (Items B/E/U); the deterministic-answer discard-gap fix (Item S); and the
+// historical-research-gap fix (Item T).
+
+// Item B/E: a single fake `searchFetchImpl` branches by URL -- the SearXNG API call gets a JSON
+// search-result shape, and the actual source page's own URL (the one the Retrieval Adapter fetches)
+// gets a real HTML page shape. This proves the SAME test-injectable fetch override
+// (input.searchFetchImpl) already used for RESEARCH's own search call is reused by the Retrieval
+// Adapter, with no second, separate injection point.
+Deno.test("PHASE 5 (Retrieval Adapter): an undated source is genuinely fetched, upgraded to RETRIEVED_PAGE with a real extracted date, and the FINAL EvidencePacket reflects it -- while the user-visible answer/status are never blocked either way", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const nowIso = new Date().toISOString();
+  const fakeFetch: typeof fetch = async (input) => {
+    const url = typeof input === "string" ? input : (input as Request).url ?? String(input);
+    if (url.includes("fake-searxng.test")) {
+      return new Response(JSON.stringify({
+        results: [{ title: "Trinidad and Tobago update", url: "https://newsday.co.tt/this-week-update", content: "Trinidad and Tobago recent development coverage.", engine: "test", publishedDate: null }],
+      }), { status: 200 });
+    }
+    // The Retrieval Adapter's own fetch of the actual source page -- a real HTML article with a
+    // structured publication-date meta tag dated NOW (genuinely inside THIS_WEEK's window).
+    return new Response(
+      `<html><head><title>Trinidad and Tobago update</title><meta property="article:published_time" content="${nowIso}"></head><body><p>Confirmed real update this week.</p></body></html>`,
+      { status: 200, headers: { "content-type": "text/html" } },
+    );
+  };
+  const res = await handleCanonicalRequest({
+    text: "What changed in Trinidad and Tobago this week?",
+    providers: [fakeProvider("test", "a real synthesized answer")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  // The Retrieval Adapter genuinely ran and upgraded the real, user-visible source -- this is a
+  // real evidence-quality improvement flowing into production, not a shadow-only effect.
+  assertEquals(res.sources.length, 1);
+  assertEquals(res.sources[0].evidenceDepth, "RETRIEVED_PAGE", "a genuinely fetched page must be upgraded from SNIPPET");
+  assertEquals(res.sources[0].publishedAt, new Date(nowIso).toISOString(), "the real extracted structured date must be applied");
+
+  const receipts = res.receipt.retrievalReceipts;
+  assert(receipts && receipts.length === 1, "exactly one retrieval receipt must be recorded for the one addressable gap");
+  assertEquals(receipts![0].outcome, "RETRIEVED_PAGE");
+
+  const packet = res.receipt.evidencePacket;
+  assert(packet, "evidencePacket must be present");
+  assertEquals(packet!.temporal.satisfied, true, "the now-dated source must satisfy THIS_WEEK's window in the FINAL (post-retrieval) packet");
+  assertFalse(packet!.gaps.some((g) => g.type === "PAGE_INSPECTION_UNAVAILABLE_GAP"), "the page-inspection gap must be closed once a real page was fetched");
+
+  // Item U: shadow authority remains -- the answer is never blocked/rewritten by the packet's own
+  // verdict, whatever it ends up being.
+  assertEquals(res.status, "OK");
+  assert(res.answer.length > 0, "retrieval evaluation must never suppress the real answer");
+});
+
+Deno.test("PHASE 5 (Retrieval Adapter): an unsafe/unreachable source URL degrades that one retrieval honestly, never crashes the request or fabricates evidence", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const fakeFetch: typeof fetch = async (input) => {
+    const url = typeof input === "string" ? input : (input as Request).url ?? String(input);
+    if (url.includes("fake-searxng.test")) {
+      return new Response(JSON.stringify({
+        results: [{ title: "Trinidad and Tobago update", url: "https://newsday.co.tt/unreachable", content: "Trinidad and Tobago recent development coverage.", engine: "test", publishedDate: null }],
+      }), { status: 200 });
+    }
+    return new Response("", { status: 503 });
+  };
+  const res = await handleCanonicalRequest({
+    text: "What changed in Trinidad and Tobago this week?",
+    providers: [fakeProvider("test", "a real synthesized answer")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  assertEquals(res.sources[0].evidenceDepth, "SNIPPET", "a failed retrieval must never claim a promotion that did not really happen");
+  const receipts = res.receipt.retrievalReceipts;
+  assert(receipts && receipts.length === 1);
+  assertEquals(receipts![0].outcome, "SKIPPED_HTTP_ERROR");
+  assertEquals(res.status, "OK", "a retrieval failure must never fail the whole request -- the answer still generates normally");
+  assert(res.answer.length > 0);
+});
+
+// Item S: the deterministic-answer discard gap. Before this phase, "2 + 2" (SIMPLE_TEXT, zero
+// capabilities, a durable store present) was authorized for browser-local execution and returned
+// `answer: ""` even though the correct answer was already computed in memory.
+Deno.test("PHASE 5 (deterministic-discard fix): '2 + 2' answers directly with the real computed result, never deferring to local execution", async () => {
+  const res = await handleCanonicalRequest({
+    text: "2 + 2",
+    providers: [fakeProvider("test", "SHOULD_NEVER_BE_USED_A_DETERMINISTIC_ANSWER_EXISTS")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.executionInstruction.executionAuthorized, false, "a deterministic answer must never be deferred to browser-local execution");
+  assertEquals(res.executionInstruction.constraints, ["deterministic_answer_computed_server_side_local_execution_unnecessary"]);
+  assert(res.answer.length > 0, "the real, already-computed deterministic answer must be returned, never an empty string");
+  assertMatch(res.answer, /4/);
+  assertEquals(res.evidenceState, "DETERMINISTIC");
+});
+
+Deno.test("PHASE 5 (deterministic-discard fix): a non-deterministic ordinary SIMPLE_TEXT question is unaffected -- still authorized for local execution (no regression)", async () => {
+  const res = await handleCanonicalRequest({
+    text: "What is photosynthesis?",
+    providers: [fakeProvider("test", "SHOULD_NEVER_APPEAR")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.executionInstruction.executionAuthorized, true);
+  assertEquals(res.answer, "");
+});
+
+// Item T: the historical-research gap. Before this phase, a HISTORICAL factual question never had
+// RESEARCH scheduled under any branch of planCapabilities() (its only signal, `signals.freshness`,
+// is explicitly false for a genuinely past period), so it answered from model memory alone, silently.
+Deno.test("PHASE 5 (historical-research-gap fix): a HISTORICAL factual question now schedules RESEARCH, while requiresFreshEvidence stays false", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: "What happened in Trinidad in 1990?",
+    providers: [fakeProvider("test", "a real synthesized answer")],
+    searchFetchImpl: async () =>
+      new Response(JSON.stringify({
+        results: [{ title: "1990 coup attempt account", url: "https://newsday.co.tt/1990-retrospective", content: "A retrospective account of the 1990 attempted coup in Trinidad.", engine: "test", publishedDate: null }],
+      }), { status: 200 }),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  assert(res.receipt.capabilityPlan.some((c) => c.capability === "RESEARCH"), "a HISTORICAL request must now plan RESEARCH");
+  assert(res.receipt.requestFrame, "requestFrame must be present");
+  assertEquals(res.receipt.requestFrame!.temporalRequirement.type, "HISTORICAL");
+  assertEquals(res.receipt.requestFrame!.requiresFreshEvidence, false, "HISTORICAL must never be conflated with a freshness requirement -- research and freshness are two different questions");
+  assertEquals(res.evidenceState, "SEARCH_GROUNDED", "the request now genuinely retrieves evidence instead of answering from model memory alone");
+
+  // The Phase 3/4-discovered EXECUTION_PLAN_GAP for this exact query shape must no longer fire, since
+  // RESEARCH is now genuinely scheduled and genuinely retrieves a real source.
+  const packet = res.receipt.evidencePacket;
+  assert(packet);
+  assertFalse(packet!.gaps.some((g) => g.type === "EXECUTION_PLAN_GAP"), "the historical execution-plan gap must be closed now that RESEARCH is actually scheduled");
+});
+
+Deno.test("PHASE 5 (historical-research-gap fix): a HISTORICAL question with search unavailable still degrades honestly, never silently answering from memory", async () => {
+  const res = await handleCanonicalRequest({
+    text: "What happened in Trinidad in 1990?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: async () => new Response("", { status: 500 }),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(res.receipt.capabilityPlan.some((c) => c.capability === "RESEARCH"));
+  assertEquals(res.status, "DEGRADED");
+  assert(res.receipt.degradedStages.includes("SEARCH_UNAVAILABLE"));
+});
+
+Deno.test("PHASE 5 (historical-research-gap fix): a CURRENT (non-historical) question is completely unaffected -- no regression to the existing freshness-driven RESEARCH branch", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: "What is the latest USD selling rate today?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: async () =>
+      new Response(JSON.stringify({ results: [{ title: "T&T rate", url: "https://www.central-bank.org.tt/story", content: "snippet", engine: "official", publishedDate: new Date().toISOString().slice(0, 10) }] }), { status: 200 }),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  assert(res.receipt.capabilityPlan.some((c) => c.capability === "RESEARCH"));
+  assertEquals(res.receipt.requestFrame!.requiresFreshEvidence, true);
 });

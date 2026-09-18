@@ -129,6 +129,20 @@ const SECOND_ORDER_EFFECT_MARKERS = /\b(second-order effects?|downstream effects
 // durable, and which are fragile dependencies?" alone.
 const DURABILITY_MARKERS = /\b(proven and durable|durable (?:vs\.?|versus) fragile|fragile dependenc(?:y|ies)|battle-tested|time-tested|lindy effect|which parts? (?:of this|are) .{0,40}(?:proven|durable|fragile))\b/i;
 
+// FTN / IBIS Canonical Architecture, Phase 5 (Item G: "make the Founder Cognitive Layer conditional
+// instead of universal"). This signal names the specific business-judgment territory the directive
+// lists as warranting FCL -- FTN architecture, investment/acquisition, ownership/IP, monetization,
+// prioritization, vendor dependency, opportunity economic analysis, consequential business decisions
+// -- distinct from FOUNDER_STRATEGY's own broader "I want to build/start/launch..." outcome markers
+// (queryClass FOUNDER_STRATEGY already independently qualifies for FCL -- see isFounderConsequential
+// below; this signal exists for a consequential-business-judgment question that does NOT happen to
+// phrase itself as an outcome/build request, e.g. "Should FTN acquire this vendor or build it
+// in-house?"). Deliberately narrow and additive-only: broadening what activates FCL only ever risks
+// applying founder-style reasoning to a question that could have used it anyway, never the reverse
+// (an ordinary factual/current-event/calculation question matching none of these terms is unaffected
+// -- see the FRESHNESS/CORRELATION/etc. markers above, checked independently).
+const FOUNDER_CONSEQUENTIAL_MARKERS = /\b(FTN architecture|acqui(?:re|sition|ring)|intellectual property|\bIP\b (?:ownership|rights|strategy)|owns? (?:the )?(?:equity|ip|ownership)|monetiz|revenue model|business model|pricing strategy|cap table|equity split|fundrais|valuation|exit strategy|vendor (?:dependency|lock-?in|risk)|which vendor|build (?:vs\.?|versus) buy|prioriti[sz]e .{0,40}(?:roadmap|resources|budget)|board (?:decision|approval)|opportunity cost of|economic case for)\b/i;
+
 export type IntentSignals = {
   freshness: boolean;
   causeEvidence: boolean;
@@ -144,6 +158,7 @@ export type IntentSignals = {
   ecomapRelationship: boolean;
   secondOrderEffects: boolean;
   durability: boolean;
+  founderConsequential: boolean;
 };
 
 export type IntentClassification = {
@@ -171,6 +186,7 @@ export function classifyIntent(text: string): IntentClassification {
     ecomapRelationship: ECOMAP_RELATIONSHIP_SIGNAL_MARKERS.test(q),
     secondOrderEffects: SECOND_ORDER_EFFECT_MARKERS.test(q),
     durability: DURABILITY_MARKERS.test(q),
+    founderConsequential: FOUNDER_CONSEQUENTIAL_MARKERS.test(q),
   };
   const reasons: string[] = [];
 
@@ -214,4 +230,15 @@ export function classifyIntent(text: string): IntentClassification {
 
 function extractObjective(text: string): string {
   return text.trim().replace(/\s+/g, " ").slice(0, 300);
+}
+
+// FTN / IBIS Canonical Architecture, Phase 5 (Item G). The ONE place "should the Founder Cognitive
+// Layer's reasoning instruction be injected for this request" is decided -- reused identically by
+// ibis-assistant/index.ts's system-prompt construction, so there is exactly one definition of
+// "founder-consequential," not a second copy that could silently diverge. FOUNDER_STRATEGY already
+// represents the directive's own "founder strategy" category (an outcome/build/plan request) --
+// combined with the narrower founderConsequential signal above for consequential-business-judgment
+// questions that do not happen to phrase themselves as an outcome/build request.
+export function isFounderConsequential(intent: IntentClassification): boolean {
+  return intent.queryClass === "FOUNDER_STRATEGY" || intent.signals.founderConsequential;
 }

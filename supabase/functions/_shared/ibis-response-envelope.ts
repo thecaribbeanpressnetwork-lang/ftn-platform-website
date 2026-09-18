@@ -138,8 +138,11 @@ export type SourceRecord = {
   // having inspected the full source page. null when the provider returned none.
   snippet: string | null;
   // SNIPPET: only a search-result snippet was inspected, never treated as verified full-source
-  // content. INSPECTED: the retrieval adapter actually fetched and read the page body.
-  evidenceDepth: "SNIPPET" | "INSPECTED";
+  // content. INSPECTED: reserved, never produced (kept for backward compatibility). Phase 5 (see
+  // ibis-retrieval-adapter.ts): RETRIEVED_PAGE -- the Retrieval Adapter fetched and read an
+  // HTML/text page body. PRIMARY_DOCUMENT -- a PDF/document fetched from a known official-government
+  // domain.
+  evidenceDepth: "SNIPPET" | "INSPECTED" | "RETRIEVED_PAGE" | "PRIMARY_DOCUMENT";
   supportsClaimIds?: string[];
 };
 
@@ -212,6 +215,15 @@ export type CanonicalReceipt = {
   // evidenceState disagreement this exists to surface (EvidencePacket.stateAgreement).
   evidencePacket: import("./ibis-evidence-processor.ts").EvidencePacket | null;
   claimsLedger: import("./ibis-evidence-processor.ts").ClaimsLedger | null;
+  // FTN / IBIS Canonical Architecture, Phase 5 (see GOVERNANCE/
+  // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). The Retrieval Adapter's own
+  // receipts for this request -- one entry per URL it attempted to fetch, whatever the outcome
+  // (RETRIEVED_PAGE/PRIMARY_DOCUMENT or any SKIPPED_* reason). null when retrieval was never
+  // attempted (no gap selected any target -- the common case for an ordinary, already-well-evidenced
+  // request). Same inline type-only import pattern as evidencePacket/claimsLedger, for the same
+  // circular-import reason. SHADOW: nothing reads or branches on this field; it exists purely so
+  // Phase 5's retrieval behavior can be inspected against real production traffic.
+  retrievalReceipts: import("./ibis-retrieval-adapter.ts").RetrievalReceipt[] | null;
 };
 
 export type CanonicalResponse = {
@@ -299,6 +311,8 @@ export function buildEnvelope(input: {
   // Phase 4, shadow mode -- same optional/default-null pattern.
   evidencePacket?: import("./ibis-evidence-processor.ts").EvidencePacket | null;
   claimsLedger?: import("./ibis-evidence-processor.ts").ClaimsLedger | null;
+  // Phase 5, shadow mode -- same optional/default-null pattern.
+  retrievalReceipts?: import("./ibis-retrieval-adapter.ts").RetrievalReceipt[] | null;
 }): CanonicalResponse {
   const respondedAt = new Date().toISOString();
   return {
@@ -343,6 +357,7 @@ export function buildEnvelope(input: {
       evidenceContract: input.evidenceContract ?? null,
       evidencePacket: input.evidencePacket ?? null,
       claimsLedger: input.claimsLedger ?? null,
+      retrievalReceipts: input.retrievalReceipts ?? null,
     },
     generatedAt: respondedAt,
   };

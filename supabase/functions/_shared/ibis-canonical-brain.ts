@@ -46,9 +46,10 @@ import { extractStatedJurisdiction } from "./ibis-ecomap-engine.ts";
 import { buildReasoningSynthesisPacket, buildReasoningSynthesisBlock, type ReasoningSynthesisPacket } from "./ibis-reasoning-synthesis.ts";
 import { detectFxCorrelationInput } from "./ibis-correlation-datasource.ts";
 import { buildDisambiguatedSearchQuery } from "./ibis-ftn-disambiguation.ts";
-import { buildRequestFrame } from "./ibis-request-frame.ts";
+import { buildRequestFrame, type TemporalRequirement } from "./ibis-request-frame.ts";
 import { buildEvidenceContract } from "./ibis-evidence-contract.ts";
 import { processEvidence, type EvidencePacket, type ClaimsLedger } from "./ibis-evidence-processor.ts";
+import { selectRetrievalTargets, fetchSource, applyRetrievalResults, type RetrievalReceipt } from "./ibis-retrieval-adapter.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -171,7 +172,12 @@ function hasCapability(plan: PlannedCapability[], capability: CapabilityKind): b
 // prior checkpoint's exclusive `queryClass ===` branch used for that engine, so a query matching
 // only ONE signal is invoked identically to before; only a MULTI-signal query now gets more than
 // one capability (previously impossible, since only the single highest-priority class ever ran).
-function planCapabilities(signals: IntentSignals): PlannedCapability[] {
+// FTN / IBIS Canonical Architecture, Phase 5 (Item T: the historical-research gap). `temporalRequirement`
+// is now threaded in (RequestFrame is built before capability planning as of this phase -- see the
+// reordering in handleCanonicalRequest below) SOLELY to add a HISTORICAL branch; every other branch
+// below is unchanged from every prior checkpoint's signals-only logic, so a query that does not touch
+// the new branch plans identically to before.
+function planCapabilities(signals: IntentSignals, temporalRequirement: TemporalRequirement): PlannedCapability[] {
   const plan: PlannedCapability[] = [];
   const ecomapRequested = signals.ecomapPlace || signals.ecomapPathway || signals.ecomapRelationship;
   if (signals.freshness) {
@@ -180,6 +186,17 @@ function planCapabilities(signals: IntentSignals): PlannedCapability[] {
     addCapability(plan, "RESEARCH", "The request explicitly asks for evidence behind a cause -- grounded sources are needed even without a live-freshness marker.");
   } else if (ecomapRequested) {
     addCapability(plan, "RESEARCH", "Mapping real services/organizations/steps/relationships requires grounded evidence, not internal FTN product data alone.");
+  } else if (temporalRequirement.type === "HISTORICAL") {
+    // Item T's exact gap: a HISTORICAL factual question (e.g. "What happened in Trinidad in 1990?")
+    // previously planned RESEARCH under none of the branches above, so it answered from model memory
+    // alone, silently. `temporalRequirement.type === "HISTORICAL"` is a deliberately DIFFERENT signal
+    // from `signals.freshness` (freshness markers are about CURRENT/live data) -- this branch never
+    // sets or implies freshness is required (RequestFrame.requiresFreshEvidence stays governed solely
+    // by requiresFreshEvidenceFor()'s strictness check, which independently returns false for
+        // HISTORICAL's NONE strictness -- see ibis-temporal-resolver.ts). Research and freshness are two
+    // different questions: this branch answers "should evidence be sought at all," never "must that
+    // evidence be current."
+    addCapability(plan, "RESEARCH", `The request concerns a historical period (${temporalRequirement.originalExpression || temporalRequirement.type}) -- factual claims about it should be grounded in retrieved evidence rather than answered from model memory alone, even though this is not a freshness-sensitive request.`);
   }
   if (signals.retrodiction) {
     addCapability(plan, "EBR", "The request asks why something happened / what caused it -- a bounded, evidence-based causal-history reconstruction (Evidence-Bounded Retrodiction) is relevant.");
@@ -320,13 +337,6 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // 3. INTENT/OUTCOME CLASSIFICATION.
   const intent = classifyIntent(text);
 
-  // 4. CAPABILITY PLANNING -- moved ahead of the execution-authorization decision below (founder-
-  // completion pass; see the note there for why). The ONE place capability selection happens,
-  // entirely server-side, entirely from intent.signals (see planCapabilities() above). Additive: a
-  // single request can plan several capabilities at once, unlike the single `queryClass` it is
-  // built alongside.
-  const capabilityPlan = planCapabilities(intent.signals);
-
   // FTN / IBIS Canonical Architecture, Phase 1+2 (see GOVERNANCE/
   // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). Computed once, here, from
   // state already in hand (classifyIntent()'s output; deterministicAnswer() is the SAME check this
@@ -340,6 +350,11 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // (`isDeterministicAnswer`, used by RequestFrame/EvidenceContract) and the real computed answer
   // text (used by the Evidence Processor's ClaimsLedger below) come from exactly one call -- never
   // a third, separately-computed invocation of this pure but non-trivial function.
+  // Phase 5 (Item T, 2026-09-18): moved AHEAD of capability planning (previously came after it) --
+  // planCapabilities() now needs requestFrame.temporalRequirement to recognize a HISTORICAL request
+  // (see planCapabilities()'s own new branch above), and RequestFrame construction does not depend on
+  // capabilityPlan at all, so this reordering changes nothing about what RequestFrame/EvidenceContract
+  // themselves contain -- only WHEN, in this function's execution order, they become available.
   const deterministicResult = deterministicAnswer(text, products);
   const isDeterministicAnswer = !!deterministicResult;
   const requestFrame = buildRequestFrame({
@@ -351,6 +366,13 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // function of `requestFrame` alone -- no capabilityPlan, no search, no I/O. Attached to the
   // receipt below for observability only; nothing past this line reads or branches on it.
   const evidenceContract = buildEvidenceContract(requestFrame);
+
+  // 4. CAPABILITY PLANNING -- moved ahead of the execution-authorization decision below (founder-
+  // completion pass; see the note there for why). The ONE place capability selection happens,
+  // entirely server-side, entirely from intent.signals plus (Phase 5, Item T) the resolved
+  // temporalRequirement (see planCapabilities() above). Additive: a single request can plan several
+  // capabilities at once, unlike the single `queryClass` it is built alongside.
+  const capabilityPlan = planCapabilities(intent.signals, requestFrame.temporalRequirement);
 
   // Slice 1 correction: the execution-authorization decision lives here, server-side, and ONLY
   // here. Slice 3 correction: it ALSO now depends on whether a durable lifecycle store is
@@ -381,7 +403,22 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // deliberately MORE precise for some real phrasings the old coarse check missed entirely (e.g.
   // "this morning" -- see ibis-temporal-resolver.ts's own comment on that live-confirmed gap).
   const freshnessRequired = requestFrame.requiresFreshEvidence;
-  const executionAuthorized = intent.queryClass === "SIMPLE_TEXT" && durableStoreAvailable && capabilityPlan.length === 0;
+  // Phase 5 (Item S: the deterministic-answer discard gap). `!isDeterministicAnswer` added this
+  // phase. Before this, a query like "2 + 2" or "hello" -- SIMPLE_TEXT, zero capabilities, a durable
+  // store present -- was authorized for browser-local execution and this endpoint returned `answer:
+  // ""` even though `deterministicResult` (above) already held the correct, real, zero-cost answer
+  // in memory. The "do not also generate a provider answer when local execution is authorized"
+  // principle this gate protects (see the early-return branch below) exists to prevent DUPLICATE
+  // GENERATION -- two independent attempts at producing the same answer. A deterministic lookup is
+  // not generation: it is a pure function call, already computed, with no model involved and no
+  // second attempt possible (arithmetic has exactly one correct answer). Excluding it from
+  // authorization here means such a query now always answers directly and immediately below (via the
+  // main answer-generation path, where runGateway()'s own deterministicAnswer() check short-circuits
+  // for free) instead of deferring to a browser that would otherwise have to reconstruct or discard
+  // the same, already-known-correct answer. This can only ever make MORE queries answer directly
+  // (never authorizes a query that wasn't already eligible before) -- zero regression risk for any
+  // query that isn't itself a deterministic one.
+  const executionAuthorized = intent.queryClass === "SIMPLE_TEXT" && durableStoreAvailable && capabilityPlan.length === 0 && !isDeterministicAnswer;
   const executionInstruction: ExecutionInstruction = {
     planId: requestId,
     executionTarget: executionAuthorized ? "browser_local" : "server_provider",
@@ -390,13 +427,15 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     freshnessRequired,
     constraints: executionAuthorized
       ? ["do_not_invent_current_facts", "max_output_tokens_600"]
-      : freshnessRequired
-        ? ["freshness_required_local_execution_prohibited"]
-        : !durableStoreAvailable && intent.queryClass === "SIMPLE_TEXT" && capabilityPlan.length === 0
-          ? ["lifecycle_store_unavailable_local_execution_disabled"]
-          : intent.queryClass === "SIMPLE_TEXT" && capabilityPlan.length > 0
-            ? ["capabilities_planned_local_execution_would_discard_them"]
-            : ["specialist_reasoning_required_local_execution_prohibited"],
+      : isDeterministicAnswer && intent.queryClass === "SIMPLE_TEXT" && capabilityPlan.length === 0
+        ? ["deterministic_answer_computed_server_side_local_execution_unnecessary"]
+        : freshnessRequired
+          ? ["freshness_required_local_execution_prohibited"]
+          : !durableStoreAvailable && intent.queryClass === "SIMPLE_TEXT" && capabilityPlan.length === 0
+            ? ["lifecycle_store_unavailable_local_execution_disabled"]
+            : intent.queryClass === "SIMPLE_TEXT" && capabilityPlan.length > 0
+              ? ["capabilities_planned_local_execution_would_discard_them"]
+              : ["specialist_reasoning_required_local_execution_prohibited"],
   };
   const reasoningModesUsed: ReasoningModeRecord[] = [];
   const capabilitiesAttempted: string[] = [];
@@ -506,6 +545,48 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   const capabilityExecution: CapabilityReceiptEntry[] = orchestration.capabilityExecution;
   reasoningModesUsed.push(...relevantUnavailableModes(intent.queryClass));
 
+  // FTN / IBIS Canonical Architecture, Phase 5 -- the Retrieval Adapter (see GOVERNANCE/
+  // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md's Phase 5 scope and
+  // ibis-retrieval-adapter.ts's own header). Runs a PRE-retrieval processEvidence() pass -- using
+  // `orchestration.engineResults` (already real by this point) but a placeholder legacyEvidenceState
+  // (this packet is discarded immediately after selection; `stateAgreement` against a placeholder is
+  // never inspected or attached to anything) -- purely to read its `.gaps`/`.items`, then selects a
+  // small, bounded, prioritized subset of still-SNIPPET sources whose inspection could plausibly
+  // close one of those gaps (official/primary source, unresolved temporal validation, PATHWAY
+  // eligibility detail, an unresolved contradiction, then the strongest remaining source, then a
+  // second independent source for corroboration -- see selectRetrievalTargets()'s own doc comment).
+  // Fetches run CONCURRENTLY (not sequentially) so the worst-case added latency is one timeout
+  // budget (RETRIEVAL_TIMEOUT_MS), not the sum of up to MAX_RETRIEVALS_PER_REQUEST of them. `sources`
+  // is then reassigned to the updated array (a new array -- applyRetrievalResults() never mutates
+  // its input) so every downstream consumer (the evidence block baked into the answer-generation
+  // prompt, reasoningSynthesis, the response envelope's own `sources` field, and the FINAL
+  // processEvidence() rerun below) sees genuinely improved evidence where retrieval succeeded --
+  // never a fabricated improvement, and never gated by whether the shadow EvidencePacket "approves"
+  // (Item U: shadow authority remains -- this pipeline's control flow never branches on
+  // evidenceState/contractSatisfied either before or after this phase).
+  // Deliberately scoped OUT of this pass: specialist reasoning engines (orchestration, above) still
+  // run on the pre-retrieval `sources` -- re-running the whole synchronous scheduler a second time
+  // against upgraded evidence would double EcoMap/Correlation/etc.'s already-bounded execution cost
+  // for a benefit no query in this phase's live verification showed a real need for. A future phase
+  // may revisit this boundary if a specific engine is found to need retrieval-upgraded evidence.
+  let retrievalReceipts: RetrievalReceipt[] = [];
+  if (sources.length > 0) {
+    const preRetrievalPass = processEvidence({
+      requestFrame, evidenceContract, sources, capabilityExecution,
+      engineResults: orchestration.engineResults,
+      deterministicResult: deterministicResult ? { answer: deterministicResult.answer, answerClass: deterministicResult.answerClass } : null,
+      legacyEvidenceState: evidenceState, orchestrationContradictions: contradictions,
+    });
+    const targets = selectRetrievalTargets(sources, preRetrievalPass.evidencePacket, evidenceContract);
+    if (targets.length) {
+      // Reuses the SAME test-injectable fetch override RESEARCH's own search call already accepts
+      // (input.searchFetchImpl) -- never a second, separate injection point, and never the real
+      // global fetch during a test that didn't explicitly opt into live network access.
+      retrievalReceipts = await Promise.all(targets.map((t) => fetchSource(t, input.searchFetchImpl || fetch)));
+      sources = applyRetrievalResults(sources, retrievalReceipts);
+    }
+  }
+
   // FTN / IBIS Canonical Architecture, Phase 4 (SHADOW MODE ONLY -- see GOVERNANCE/
   // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). Compares what was actually
   // obtained (real sources, the real deterministic result, real engine results) against Phase 3's
@@ -572,6 +653,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       status: "OK", degradedStages, handoff, alternatives,
       uncertainties: [...intent.reasons, ...extraUncertainties],
       contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract, evidencePacket, claimsLedger,
+      retrievalReceipts: retrievalReceipts.length ? retrievalReceipts : null,
     });
   }
 
@@ -639,6 +721,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: [...intent.reasons, ...extraUncertainties],
     contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract, evidencePacket, claimsLedger,
+    retrievalReceipts: retrievalReceipts.length ? retrievalReceipts : null,
   });
 }
 

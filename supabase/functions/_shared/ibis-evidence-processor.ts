@@ -52,11 +52,16 @@ import { evaluateSearchResultQuality, AUTHORITATIVE_NEWS_DOMAINS, AUTHORITATIVE_
 
 // --- EvidencePacket ------------------------------------------------------------------------------
 
-// RULE 6 (critical): a SourceRecord's evidenceDepth ("SNIPPET" | "INSPECTED") is reused verbatim,
-// never promoted. "DETERMINISTIC" and "STRUCTURED" are NOT a promotion of SNIPPET -- they are a
-// wholly different evidence ORIGIN (a local calculation, a structured dataset) that never came from
-// a search snippet in the first place, so they get their own, separate, honestly-labeled tier.
-export type ProcessedEvidenceDepth = "SNIPPET" | "INSPECTED" | "DETERMINISTIC" | "STRUCTURED";
+// RULE 6 (critical): a SourceRecord's evidenceDepth is reused verbatim, never promoted BY THIS
+// MODULE. "DETERMINISTIC" and "STRUCTURED" are NOT a promotion of SNIPPET -- they are a wholly
+// different evidence ORIGIN (a local calculation, a structured dataset) that never came from a
+// search snippet in the first place, so they get their own, separate, honestly-labeled tier.
+// Phase 5 (see ibis-retrieval-adapter.ts): RETRIEVED_PAGE/PRIMARY_DOCUMENT are a REAL promotion, but
+// it happens upstream, on the SourceRecord itself, only after a genuine fetch -- this module still
+// only ever copies whatever depth the source already carries by the time processEvidence() runs
+// (which may be a pre-retrieval SNIPPET pass, or a post-retrieval rerun with upgraded sources -- see
+// ibis-canonical-brain.ts's two-pass wiring).
+export type ProcessedEvidenceDepth = "SNIPPET" | "INSPECTED" | "DETERMINISTIC" | "STRUCTURED" | "RETRIEVED_PAGE" | "PRIMARY_DOCUMENT";
 export type SourceOrigin = "SEARCH_RESULT" | "DETERMINISTIC_ENGINE" | "STRUCTURED_DATA";
 export type OfficialClassification = "OFFICIAL_GOVERNMENT" | "NEWS_MEDIA" | "UNKNOWN";
 export type TemporalRelevance = "SATISFIED" | "UNSATISFIED" | "UNKNOWN" | "NOT_REQUIRED";
@@ -389,7 +394,7 @@ export function processEvidence(input: ProcessEvidenceInput): { evidencePacket: 
   const searchItems = items.filter((it) => it.origin === "SEARCH_RESULT");
   const allSnippet = searchItems.length > 0 && searchItems.every((it) => it.evidenceDepth === "SNIPPET");
   if (allSnippet && evidenceContract.requiredEvidence) {
-    gaps.push({ type: "PAGE_INSPECTION_UNAVAILABLE_GAP", requirement: "inspected primary source", reason: "Every retrieved item is SNIPPET depth (no Phase 5 retrieval adapter exists) -- claims requiring verified page-level detail (e.g. specific eligibility criteria) cannot reach VERIFIED status from this evidence alone." });
+    gaps.push({ type: "PAGE_INSPECTION_UNAVAILABLE_GAP", requirement: "inspected primary source", reason: "Every retrieved item is still SNIPPET depth after this request's Retrieval Adapter pass (see ibis-retrieval-adapter.ts) -- either retrieval was not attempted for these items (no addressable gap selected them) or every attempted fetch was skipped/failed -- claims requiring verified page-level detail (e.g. specific eligibility criteria) cannot reach VERIFIED status from this evidence alone." });
   }
 
   // --- Action contract ------------------------------------------------------------------------------
