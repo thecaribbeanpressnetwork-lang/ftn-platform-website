@@ -32,7 +32,10 @@ const mission=products.find(p=>p.id==='mission-control');assert.equal(mission.st
 assert.equal(products.find(p=>p.id==='scenario-workspace').status,'ILLUSTRATIVE');
 assert.equal(products.find(p=>p.id==='govern').status,'AVAILABLE');
 const fire=products.find(p=>p.id==='ftn-fire');
-assert(fire,'FTN Fire supporting product missing');assert.equal(fire.parentProduct,'riddim');assert.equal(fire.principal,false);assert(fire.capabilities.includes('flow-music-handoff'));assert.match(fire.description,/without generated lyrics or vocalist/i);
+// FTN Consolidation (2026-09-18): Fire's parent changed from 'riddim' to 'ibis-ai' -- its
+// Caribbean rhythm engine is now a real ibis capability (js/ibis-caribbean-music-engine.js), not a
+// Riddim-hub-only feature. Route/capabilities/description are unchanged (no functionality lost).
+assert(fire,'FTN Fire supporting product missing');assert.equal(fire.parentProduct,'ibis-ai');assert.equal(fire.absorbedInto,'ibis-ai');assert.equal(fire.principal,false);assert(fire.capabilities.includes('flow-music-handoff'));assert.match(fire.description,/without generated lyrics or vocalist/i);
 const ibis=products.find(p=>p.id==='ibis-ai');assert(ibis.capabilities.includes('creative-project-planning'),'ibis Creative Studio capability missing');assert(ibis.featureFlags.includes('provider-cost-lock'),'ibis provider cost lock missing');
 
 const sitemap=fs.readFileSync('sitemap.xml','utf8'),manifest=fs.readFileSync('manifest.webmanifest','utf8'),robots=fs.readFileSync('robots.txt','utf8');
@@ -50,10 +53,17 @@ assert(context.window.FTN.ProductRegistry.ecosystemGroups().some(group=>group.pr
 assert(!/\bBETA\b/.test(publicHtml),'Public release source must not advertise a stale BETA state');
 
 const directorySource=fs.readFileSync('js/ftn-directory.js','utf8');
-const firstClassDirectoryIds=['community-connect','govern','parliament','facethenation','ftn-live','display','learn','kaiso','ibis-ai','scenario-workspace','radio','screen','tv','riddim','ftn-fire','dj-tube','daw','epk','opportunities','invest','top-picks','events','display-network'];
+// FTN Consolidation (2026-09-18): parliament, display, learn, kaiso, scenario-workspace, riddim,
+// ftn-fire, tv, daw, epk and top-picks are deliberately removed from this list -- each now has
+// absorbedInto set and ecosystemGroups() itself filters absorbed products out (see
+// js/product-registry.js), so they correctly no longer appear as independent entries in any
+// ecosystem group. Asserted separately below (absorbed products must NOT reappear here).
+const firstClassDirectoryIds=['community-connect','govern','facethenation','ftn-live','ibis-ai','radio','screen','dj-tube','opportunities','invest','events','display-network'];
 const ecosystemGroups=context.window.FTN.ProductRegistry.ecosystemGroups();
 const groupedIds=ecosystemGroups.flatMap(group=>group.products.map(product=>product.id));
 for(const id of firstClassDirectoryIds)assert(groupedIds.includes(id),`Active product missing from Product Registry ecosystem groups: ${id}`);
+const absorbedIds=products.filter(p=>p.absorbedInto).map(p=>p.id);
+for(const id of absorbedIds)assert(!groupedIds.includes(id),`Absorbed product must not reappear as an independent entry in Product Registry ecosystem groups: ${id}`);
 assert(directorySource.includes('Registry.ecosystemGroups()'),'FTN Directory must consume registry-defined ecosystem groups');
 assert(!directorySource.includes("'mission-control'"),'Mission Control must not be exposed in the FTN Directory');
 for(const name of ['FTN Community Connect','FTN Face The Nation','FTN ibis','FTN Invest-in','FTN Radio','FTN Screen','FTN Opportunities','FTN DJ Tube','FTN Picks','FTN Live','FTN Learn'])assert(products.some(p=>p.name===name),`Canonical product name missing: ${name}`);

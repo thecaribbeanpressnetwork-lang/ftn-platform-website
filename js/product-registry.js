@@ -28,25 +28,38 @@
   function byRoute(route) { return data().filter(function (p) { return p.route === route; })[0] || null; }
 
   function homepagePanels() {
-    return data().filter(function (p) { return p.panelAsset && p.panelRow; }).sort(function (a, b) { return a.panelRow - b.panelRow; });
+    // FTN Consolidation: an absorbed product's own homepage panel would present it as a peer
+    // product again, exactly what absorbing it was meant to stop -- excluded here unconditionally
+    // (never a caller option), independent of the includeAbsorbed opt-in below.
+    return data().filter(function (p) { return p.panelAsset && p.panelRow && !p.absorbedInto; }).sort(function (a, b) { return a.panelRow - b.panelRow; });
   }
 
   function publicProducts(options) {
     options = options || {};
     return data().filter(function (p) {
       if (p.publicVisibility === false || ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(p.status) !== -1) return false;
+      // FTN Consolidation (see GOVERNANCE/FTN_Consolidation_2026-09-18.md): an absorbed product's
+      // route stays live (never deleted), but it stops being offered as an independent public
+      // product -- nav, footer, Directory cards, ecosystem menus, homepage panels and ibis's own
+      // suggested-destination search (below) all go through this same gate. `includeAbsorbed` is
+      // an explicit opt-in for the few callers that still need the full historical list (the
+      // sitemap, so the still-live URL keeps its SEO/crawl value; an audit script; a "where did X
+      // go" lookup) -- default is exclude, so a new caller never has to remember to ask.
+      if (p.absorbedInto && !options.includeAbsorbed) return false;
       if (!options.includeSupporting && p.principal === false) return false;
       return true;
     });
   }
 
-  function sitemapProducts() { return publicProducts({ includeSupporting: true }).filter(function (p) { return p.id !== 'account'; }); }
+  function sitemapProducts() {
+    return publicProducts({ includeSupporting: true, includeAbsorbed: true }).filter(function (p) { return p.id !== 'account'; });
+  }
 
   function ecosystemGroups() {
     var groups = (global.FTN && global.FTN.ProductRegistryGroups) || [];
     return groups.map(function (group) {
       return { id: group.id, title: group.title, description: group.description, products: group.productIds.map(get).filter(function (product) {
-        return product && product.publicVisibility !== false && ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(product.status) === -1;
+        return product && !product.absorbedInto && product.publicVisibility !== false && ['PRIVATE','MAINTENANCE','VAULTED'].indexOf(product.status) === -1;
       }) };
     });
   }
@@ -99,6 +112,19 @@
       .sort(function (a, b) { return b.rankScore - a.rankScore || b.score - a.score; });
   }
 
+  // "Where did X go?" lookup (FTN Consolidation): resolves a retired product id/name/legacyId to
+  // its honest current state -- used by ibis so it never pretends an absorbed product vanished,
+  // and never suggests it as a live destination either (see js/ibis-absorbed-capabilities.js).
+  function absorbedInfo(idOrName) {
+    var s = String(idOrName || '').toLowerCase();
+    var product = data().filter(function (p) {
+      return p.absorbedInto && (p.id.toLowerCase() === s || (p.name && p.name.toLowerCase() === s) || (p.shortName && p.shortName.toLowerCase() === s) || (Array.isArray(p.legacyIds) && p.legacyIds.some(function (id) { return String(id).toLowerCase() === s; })));
+    })[0];
+    if (!product) return null;
+    var parent = get(product.absorbedInto);
+    return { product: product, absorbedIntoId: product.absorbedInto, absorbedIntoProduct: parent, route: product.route };
+  }
+
   global.FTN = global.FTN || {};
-  global.FTN.ProductRegistry = { all: all, get: get, byRoute: byRoute, homepagePanels: homepagePanels, publicProducts: publicProducts, sitemapProducts: sitemapProducts, ecosystemGroups: ecosystemGroups, accountShortcuts: accountShortcuts, search: search };
+  global.FTN.ProductRegistry = { all: all, get: get, byRoute: byRoute, homepagePanels: homepagePanels, publicProducts: publicProducts, sitemapProducts: sitemapProducts, ecosystemGroups: ecosystemGroups, accountShortcuts: accountShortcuts, search: search, absorbedInfo: absorbedInfo };
 })(window);

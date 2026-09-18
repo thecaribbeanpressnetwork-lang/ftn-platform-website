@@ -37,9 +37,15 @@ const { PRIMARY_NAV } = await import(pathToFileURL('data/nav-config.mjs'));
 // The founder-approved public structure (this exact prompt's own wording), asserted literally so
 // a future edit to data/nav-config.mjs that silently drops or reorders an item fails loudly here,
 // not just "sync-nav.mjs --check still passes because it's internally consistent with itself".
+//
+// FTN Consolidation (2026-09-18): updated for the new primary structure. Parliament, TV, Kaiso and
+// Riddim are no longer separate primary-nav entries -- each is a real, still-live capability of
+// its parent CORE_NODE now (see js/product-registry-data.js's absorbedInto field and
+// GOVERNANCE/FTN_Consolidation_2026-09-18.md), not deleted, just no longer presented as a peer
+// top-level product. FTN ibis, FTN Govern and FTN Screen replace them in the row.
 const APPROVED_LABELS = [
-  'FTN Platform', 'FTN Community Connect', 'FTN Live', 'FTN Parliament', 'FTN TV',
-  'FTN Kaiso', 'FTN Riddim', 'FTN Invest-in', 'FTN Directory', 'About FTN', 'Contact',
+  'FTN Platform', 'FTN Community Connect', 'FTN ibis', 'FTN Live', 'FTN Govern',
+  'FTN Screen', 'FTN Opportunities', 'FTN Invest-in', 'FTN Directory', 'About FTN', 'Contact',
 ];
 const resolvedLabels = PRIMARY_NAV.map((entry) => entry.registry
   ? products.find((p) => p.id === entry.registry)?.name

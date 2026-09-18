@@ -27,6 +27,10 @@
   // underlying operation (e.g. a background model download) keeps running.
   function withTimeout(promise,ms,fallbackValue){return new Promise(function(resolve){var settled=false;var timer=setTimeout(function(){if(!settled){settled=true;resolve(fallbackValue);}},ms);promise.then(function(v){if(!settled){settled=true;clearTimeout(timer);resolve(v);}},function(){if(!settled){settled=true;clearTimeout(timer);resolve(fallbackValue);}});});}
   async function ensureData(){await loadScript('/js/ftn-media-discovery.js');if(!global.FTN.Auth)await loadScript('/js/ftn-auth.js');if(!global.FTN.Sources)await loadScript('/js/source-registry.js');if(!global.FTN.DataSource)await loadScript('/js/data-source.js');if(!global.FTN.indicators)await loadScript('/js/indicators-data.js');if(!global.FTN.Relationships)await loadScript('/js/relationships-data.js');}
+  // FTN Consolidation: loaded on demand (not on every ibis page load) since most messages never
+  // need it -- the Caribbean music/audio-DSP/EPK engines it can call are each ALSO loaded lazily,
+  // only once detectAndHandle() actually recognizes a matching request.
+  async function ensureCapabilityScript(){if(!global.FTN.IbisAbsorbedCapabilities)await loadScript('/js/ibis-absorbed-capabilities.js');return !!global.FTN.IbisAbsorbedCapabilities;}
   function ensureVisualState(){if(global.FTN&&global.FTN.IbisVisualState)return Promise.resolve();return loadScript('/js/ibis-visual-state.js');}
   // Correction (canonical-brain completion pass): a client-side keyword gate used to live here
   // (QUICK_LIVE_PHRASES/quickLooksLikeLiveRequest) and decide, in the browser, that a message
@@ -543,6 +547,17 @@
         if(mode==='visual'||/create|generate|make/.test(q.toLowerCase())&&/image|visual|poster|graphic/.test(q.toLowerCase())){
           setStatus('generating');
           await createVisual(q,out);
+          setStatus('idle');
+          revealAnswer(out);
+          return;
+        }
+        // FTN Consolidation (2026-09-18): recognizes the OUTCOME the user actually asked for
+        // (generate Caribbean music / process audio / build a press kit) and executes it directly
+        // via the shared engines absorbed from FTN Fire/DAW/EPK. This MUST run before the
+        // media-discovery trigger below -- "make me a reggae instrumental" contains "reggae" and
+        // would otherwise be silently treated as a YouTube search for reggae videos instead of an
+        // actual generation request (the exact gap this consolidation exists to close).
+        if(await ensureCapabilityScript()&&await global.FTN.IbisAbsorbedCapabilities.detectAndHandle(q,out,{esc:esc,loadScript:loadScript})){
           setStatus('idle');
           revealAnswer(out);
           return;

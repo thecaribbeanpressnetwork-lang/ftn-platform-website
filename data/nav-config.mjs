@@ -25,16 +25,22 @@
 //     not a bounded product with its own primaryJourney/dataSources/etc).
 //
 // Order here IS the render order -- there is no separate priority number to keep in sync.
+// FTN Consolidation (2026-09-18, see GOVERNANCE/FTN_Consolidation_2026-09-18.md): Parliament, TV,
+// Kaiso and Riddim were removed from this row -- each is now a real, still-live capability inside
+// its parent CORE_NODE (Parliament -> Govern, TV -> Screen, Kaiso -> FTN Live, Riddim -> ibis),
+// not deleted, just no longer presented as a peer top-level product. FTN ibis, FTN Govern and FTN
+// Screen were added -- they are the coherent civic/media/intelligence systems those capabilities
+// now live inside, and belong in the primary row on their own merits, independent of absorption.
 export const PRIMARY_NAV = [
   { registry: 'platform-home' },
   { registry: 'community-connect' },
+  { registry: 'ibis-ai' },
   { registry: 'ftn-live' },
-  { registry: 'parliament' },
-  { registry: 'tv' },
-  { registry: 'kaiso' },
-  { registry: 'riddim' },
+  { registry: 'govern' },
+  { registry: 'screen' },
+  { registry: 'opportunities' },
   { registry: 'invest' },
-  { label: 'FTN Directory', href: '/applications/', description: 'Browse every public FTN product and go directly to its workspace' },
+  { label: 'FTN Directory', href: '/applications/', description: 'Browse FTN products, capabilities and data services' },
   { label: 'About FTN', href: '/about/', description: 'Who FTN is and how the platform works' },
   { label: 'Contact', href: '/contact/', description: 'Reach the FTN team' },
 ];

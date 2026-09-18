@@ -63,10 +63,34 @@
     return types;
   }
 
+  // FTN Consolidation IBISRole taxonomy (Phase 6): BRAIN, CORE_NODE, DATA_SERVICE,
+  // SPECIALIZED_INTERFACE, ABSORBED_CAPABILITY, PRIVATE, VAULTED, EXCLUDED_SEPARATE_APPLICATION,
+  // CONSUMER (a plain standalone secondary product that is none of the above -- e.g. FTN Face The
+  // Nation, FTN Events -- still a real, independent product, just not in the primary row).
+  // Precedence matters: an explicit scope exclusion or absorption always wins over what
+  // visibility/navPlacement would otherwise imply, since those are deliberate, named decisions,
+  // not incidental status.
+  function ibisRole(product, isExcluded) {
+    if (isExcluded) return 'EXCLUDED_SEPARATE_APPLICATION';
+    if (product.id === 'ibis-ai') return 'BRAIN';
+    if (product.absorbedInto) return 'ABSORBED_CAPABILITY';
+    if (product.visibility === 'VAULTED') return 'VAULTED';
+    if (product.visibility === 'PRIVATE' || product.publicVisibility === false) return 'PRIVATE';
+    if (product.productType === 'data-service') return 'DATA_SERVICE';
+    // A product with a parent that was NOT itself absorbed is a specialized interface kept
+    // deliberately distinct (e.g. FTN DJ Tube under ibis-ai) -- direct manipulation genuinely
+    // beats conversation for it, so it stays real and routable rather than folded away.
+    if (product.parentProduct) return 'SPECIALIZED_INTERFACE';
+    if (product.navPlacement && product.navPlacement.primary) return 'CORE_NODE';
+    return 'CONSUMER';
+  }
+
   function deriveNode(product) {
     var isExcluded = IBIS_EXCLUDED_NODES.indexOf(product.id) !== -1;
+    var isAbsorbed = !!product.absorbedInto;
     var isPrivate = product.visibility === 'PRIVATE' || product.visibility === 'VAULTED' || product.publicVisibility === false;
     var isBrain = product.id === 'ibis-ai';
+    var role = ibisRole(product, isExcluded);
     return {
       id: product.id,
       name: product.name,
@@ -75,11 +99,17 @@
       visibility: product.visibility || 'PUBLIC',
       productType: product.productType || 'product',
       parentProduct: product.parentProduct || null,
-      IBISRole: isExcluded ? 'EXCLUDED_SEPARATE_APPLICATION' : isBrain ? 'BRAIN' : isPrivate ? 'PRIVATE_NOT_ROUTABLE' : 'CONSUMER',
+      absorbedInto: product.absorbedInto || null,
+      IBISRole: role,
       // Explicit scope exclusion (Community Connect) always wins over what visibility/status
       // would otherwise allow -- it's a real, public, AVAILABLE product on THIS site, but its
       // actual application is a separate codebase IBIS must never route into or call.
-      canIbisRouteInto: !isExcluded && !isPrivate && product.status !== 'VAULTED' && !!product.route,
+      // An ABSORBED_CAPABILITY is never a suggested DESTINATION either (canIbisRouteInto false) --
+      // ibis executes the capability directly or hands off to the new parent/mode instead of
+      // sending a user to a retired standalone identity, even though the route itself still works
+      // for anyone who already has the link (canCallIbisCapabilities stays true: the underlying
+      // capability is still real and callable, it is just no longer a routing destination).
+      canIbisRouteInto: !isExcluded && !isAbsorbed && !isPrivate && product.status !== 'VAULTED' && !!product.route,
       canCallIbisCapabilities: !isExcluded && !isPrivate,
       primaryCapabilities: isExcluded ? [] : (product.capabilities || []).slice(),
       dataDependencies: (product.dataSources || []).slice(),
@@ -87,7 +117,11 @@
       inputTypes: isExcluded ? [] : inferInputTypes(product),
       outputTypes: isExcluded ? [] : inferOutputTypes(product),
       projectDependencies: (product.relatedProducts || []).slice(),
-      excludedReason: isExcluded ? 'Separate application (own repository, own APK build) -- explicit IBIS scope boundary, not an IBIS-orchestrated FTN web node. This site only links out to it.' : null,
+      excludedReason: isExcluded
+        ? 'Separate application (own repository, own APK build) -- explicit IBIS scope boundary, not an IBIS-orchestrated FTN web node. This site only links out to it.'
+        : isAbsorbed
+          ? 'Standalone product identity retired; capability preserved and now executed under ' + product.absorbedInto + '. Route stays live (never deleted) for anyone who already has the link.'
+          : null,
     };
   }
 
@@ -120,7 +154,13 @@
     var n = get(id);
     return !!n && n.IBISRole === 'EXCLUDED_SEPARATE_APPLICATION';
   }
+  function absorbed() {
+    return all().filter(function (n) { return n.IBISRole === 'ABSORBED_CAPABILITY'; });
+  }
+  function byRole(role) {
+    return all().filter(function (n) { return n.IBISRole === role; });
+  }
 
   global.FTN = global.FTN || {};
-  global.FTN.NodeRegistry = { all: all, get: get, routable: routable, byCapabilityKeyword: byCapabilityKeyword, excluded: excluded, isExcluded: isExcluded };
+  global.FTN.NodeRegistry = { all: all, get: get, routable: routable, byCapabilityKeyword: byCapabilityKeyword, excluded: excluded, isExcluded: isExcluded, absorbed: absorbed, byRole: byRole };
 })(typeof window !== 'undefined' ? window : globalThis);

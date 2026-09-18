@@ -1,58 +1,22 @@
 // FTN Fire: a real, bounded on-device instrumental draft engine. It does not claim that
 // procedural synthesis is a foundation model or that an external producer API ran.
+//
+// FTN Consolidation (2026-09-18): the pure generation engine (rhythm/bass/harmony/melody
+// scheduling, WAV/ZIP encoding) has moved to js/ibis-caribbean-music-engine.js, a headless module
+// with no DOM dependency, so ibis (and any future consumer) can call the exact same engine
+// directly. This file now delegates to it -- same math, same output, zero behavior change on this
+// page; everything below this point is page-UI wiring only (playback transport, form handling,
+// on-page waveform drawing, Flow Music hand-off, ibis producer-notes hand-off).
 (function(global){
 'use strict';
 var recipe=null,liveContext=null,liveMaster=null,STORE='ftn-fire-recipes-v1';
 var managedJobId=null;
-var ROOTS={'C':130.81,'C#':138.59,'D':146.83,'D#':155.56,'E':164.81,'F':174.61,'F#':185,'G':196,'G#':207.65,'A':220,'A#':233.08,'B':246.94};
-var defaults={soca:105,'power-soca':158,reggae:86,dancehall:96,calypso:112,chutney:138,kompa:118,zouk:110,'island-fusion':102};
+var Engine=global.FTN&&global.FTN.CaribbeanMusicEngine;
+var defaults=Engine.STYLE_DEFAULT_BPM;
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
-function note(root,semitones){return root*Math.pow(2,semitones/12);}
-function noiseBuffer(ctx,seed){var state=(seed>>>0)||1,b=ctx.createBuffer(1,Math.floor(ctx.sampleRate*.16),ctx.sampleRate),d=b.getChannelData(0);for(var i=0;i<d.length;i++){state=(Math.imul(state,1664525)+1013904223)>>>0;d[i]=state/2147483648-1;}return b;}
-function drum(ctx,dest,time,type,level,seed){var g=ctx.createGain();g.connect(dest);if(type==='kick'){var o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(145,time);o.frequency.exponentialRampToValueAtTime(46,time+.14);g.gain.setValueAtTime(level,time);g.gain.exponentialRampToValueAtTime(.001,time+.24);o.connect(g);o.start(time);o.stop(time+.25);return;}var n=ctx.createBufferSource();n.buffer=noiseBuffer(ctx,seed);var f=ctx.createBiquadFilter();f.type=type==='hat'?'highpass':'bandpass';f.frequency.value=type==='hat'?6500:1700;f.Q.value=type==='hat'?.6:1.2;g.gain.setValueAtTime(level,time);g.gain.exponentialRampToValueAtTime(.001,time+(type==='hat'?.045:.13));n.connect(f);f.connect(g);n.start(time);n.stop(time+.16);}
-function tone(ctx,dest,time,duration,frequency,type,level,cutoff){var o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();o.type=type||'sine';o.frequency.setValueAtTime(frequency,time);f.type='lowpass';f.frequency.value=cutoff||1800;g.gain.setValueAtTime(.001,time);g.gain.exponentialRampToValueAtTime(level,time+.012);g.gain.exponentialRampToValueAtTime(.001,time+duration);o.connect(f);f.connect(g);g.connect(dest);o.start(time);o.stop(time+duration+.03);}
-// skipSeconds (Pass 16, seek support): notes whose absolute time falls before start+skipSeconds
-// are simply never scheduled -- the arrangement is fully pre-scheduled up front (see the module
-// header comment), so seeking means re-scheduling from a later point, not pausing a single node.
-function schedule(ctx,dest,spec,start,stem,skipSeconds){
-  var beat=60/spec.bpm,step=beat/4,root=ROOTS[spec.key.split(' ')[0]]||220,style=spec.style,instruments=spec.instruments,duration=spec.bars*4*beat,seed=+spec.seed||2608;
-  var include=function(name){return !stem||stem===name;};
-  var skipBefore=start+(skipSeconds||0);
-  for(var bar=0;bar<spec.bars;bar++){
-    var intro=spec.arrangement==='intro-drop'&&bar===0,breakdown=spec.arrangement==='verse-chorus-break'&&bar>=Math.floor(spec.bars*.75);
-    if(include('drums'))for(var s=0;s<16;s++){
-      var swing=s%2?step*(spec.swing||0)/100:0,t=start+(bar*16+s)*step+swing,accent=s%4===0,kick=false,snare=false;
-      if(t<skipBefore)continue;
-      if(style==='reggae'){kick=s===8;snare=s===8;}
-      else if(style==='dancehall'){kick=[0,6,10,14].indexOf(s)>=0;snare=[4,7,12,15].indexOf(s)>=0;}
-      else if(style==='kompa'||style==='zouk'){kick=[0,4,8,12].indexOf(s)>=0;snare=[4,12].indexOf(s)>=0;}
-      // Pass 16: calypso and chutney previously had no dedicated branch and silently fell into
-      // the generic soca-shaped pattern below, despite both appearing as named, selectable
-      // styles in the UI. Calypso's laid-back, syncopated feel (kick on 1 and 3, snare/rimshot
-      // answering on the offbeats) and chutney's faster, denser dholak-influenced kick pattern
-      // are real, distinct rhythmic characters -- not arbitrary variations.
-      else if(style==='calypso'){kick=[0,8].indexOf(s)>=0;snare=[3,7,11,15].indexOf(s)>=0;}
-      else if(style==='chutney'){kick=[0,3,6,8,11,14].indexOf(s)>=0;snare=[4,12].indexOf(s)>=0;}
-      else{kick=[0,4,8,12].indexOf(s)>=0||(style==='power-soca'&&s%2===0);snare=[4,12].indexOf(s)>=0;}
-      if(intro&&s<8)kick=false;if(breakdown&&s%4!==0)kick=false;
-      if(kick)drum(ctx,dest,t,'kick',.38+.025*spec.energy,seed+bar*37+s);
-      if(snare)drum(ctx,dest,t,'snare',.19+.018*spec.energy,seed+bar*41+s);
-      if(instruments.indexOf('percussion')>=0&&(s%2===0||((seed+s+bar)%5===0)))drum(ctx,dest,t+(s%3===0?step*.12:0),'hat',accent?.10:.065,seed+bar*43+s);
-    }
-    if(include('bass')&&instruments.indexOf('bass')>=0&&!intro){
-      // Pass 16: calypso (walking, more melodic) and chutney (driving, syncopated) get their
-      // own bass sequences instead of inheriting the generic soca-shaped one.
-      var bassSeq=style==='reggae'?[0,0,7,5]:style==='soca'||style==='power-soca'?[0,7,5,7]:style==='calypso'?[0,4,7,9]:style==='chutney'?[0,7,3,10]:[0,5,7,3];
-      for(var q=0;q<4;q++){var bt0=start+(bar*4+q)*beat;if(bt0<skipBefore)continue;tone(ctx,dest,bt0,beat*.72,note(root/2,bassSeq[(bar+q)%bassSeq.length]),style==='dancehall'?'sine':'sawtooth',.14,style==='dancehall'?260:420);}
-    }
-    if(include('harmony')&&(instruments.indexOf('chords')>=0||instruments.indexOf('guitar-keys')>=0)){var chord=[0,3,7],offbeat=style==='reggae'||style==='kompa'||style==='zouk'||instruments.indexOf('guitar-keys')>=0;for(var c=0;c<4;c++){var ct=start+(bar*4+c)*beat+(offbeat?beat*.5:0);if(ct<skipBefore)continue;chord.forEach(function(n){tone(ctx,dest,ct,beat*.19,note(root,n+(bar%2?5:0)),'triangle',.038,2200);});if(instruments.indexOf('dub-fx')>=0&&c===3)chord.forEach(function(n){tone(ctx,dest,ct+beat*.36,beat*.18,note(root,n+(bar%2?5:0)),'triangle',.018,1500);});}}
-    if(include('melody')&&instruments.indexOf('steelpan')>=0&&!breakdown){var scale=[0,3,5,7,10,12,10,7],base=start+bar*4*beat;for(var m=0;m<8;m++){var mt=base+m*beat*.5;if(mt<skipBefore)continue;if((seed+bar+m)%4!==0)tone(ctx,dest,mt,beat*.28,note(root*2,scale[(m+bar)%scale.length]),'sine',.075,4800);}}
-    if(include('melody')&&instruments.indexOf('brass')>=0&&!intro){for(var br=0;br<2;br++){var bt=start+(bar*4+br*2+1)*beat;if(bt<skipBefore)continue;tone(ctx,dest,bt,beat*.38,note(root*2,br?7:12),'sawtooth',.055,3100);}}
-  }
-  return duration;
-}
-function outputGain(ctx){var compressor=ctx.createDynamicsCompressor(),master=ctx.createGain();master.gain.value=.72;master.connect(compressor);compressor.connect(ctx.destination);return master;}
+function hash(s){return Engine.hash(s);}
+function schedule(ctx,dest,spec,start,stem,skipSeconds){return Engine.schedule(ctx,dest,spec,start,stem,skipSeconds);}
+function outputGain(ctx){return Engine.outputGain(ctx);}
 // Pass 16: real playhead/pause/seek. The whole arrangement is pre-scheduled up front (every
 // oscillator/buffer node gets an absolute start time when schedule() runs) -- Web Audio has no
 // way to pause an individual already-scheduled node, but AudioContext.suspend()/resume() freezes
@@ -108,13 +72,8 @@ function seekTo(fraction){
   updatePlayhead();if(wasPlaying)startTicker();
 }
 function stop(){stopTicker();if(liveMaster)try{liveMaster.gain.cancelScheduledValues(0);liveMaster.gain.setValueAtTime(0,liveContext.currentTime);}catch(e){}if(liveContext)try{liveContext.close();}catch(e){}liveContext=null;liveMaster=null;playOffsetSeconds=0;document.getElementById('fire-play').textContent='PLAY DRAFT';updatePlayhead();if(recipe)setStatus('STOPPED');}
-function wav(buffer){var channels=buffer.numberOfChannels,length=buffer.length*channels*2+44,out=new ArrayBuffer(length),v=new DataView(out),pos=0;function str(s){for(var i=0;i<s.length;i++)v.setUint8(pos++,s.charCodeAt(i));}function u16(x){v.setUint16(pos,x,true);pos+=2;}function u32(x){v.setUint32(pos,x,true);pos+=4;}str('RIFF');u32(length-8);str('WAVEfmt ');u32(16);u16(1);u16(channels);u32(buffer.sampleRate);u32(buffer.sampleRate*channels*2);u16(channels*2);u16(16);str('data');u32(length-44);for(var i=0;i<buffer.length;i++)for(var c=0;c<channels;c++){var x=Math.max(-1,Math.min(1,buffer.getChannelData(c)[i]));v.setInt16(pos,x<0?x*32768:x*32767,true);pos+=2;}return out;}
-async function exportWav(){if(!recipe)return;var rate=44100,length=Math.ceil(recipe.durationMs/1000*rate),ctx=new OfflineAudioContext(2,length,rate),master=outputGain(ctx);schedule(ctx,master,recipe,0);setStatus('RENDERING WAV');try{var rendered=await ctx.startRendering(),blob=new Blob([wav(rendered)],{type:'audio/wav'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ftn-fire-'+recipe.style+'-'+recipe.bpm+'bpm.wav';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);setStatus('WAV EXPORTED');}catch(e){setStatus('EXPORT FAILED');}}
-async function renderStem(name){var rate=44100,length=Math.ceil(recipe.durationMs/1000*rate),ctx=new OfflineAudioContext(2,length,rate),master=outputGain(ctx);schedule(ctx,master,recipe,0,name);return new Uint8Array(wav(await ctx.startRendering()));}
-var CRC_TABLE=(function(){var table=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;table[n]=c>>>0;}return table;})();
-function crc32(bytes){var c=0xffffffff;for(var i=0;i<bytes.length;i++)c=CRC_TABLE[(c^bytes[i])&255]^(c>>>8);return(c^0xffffffff)>>>0;}
-function zipStore(files){var encoder=new TextEncoder(),locals=[],centrals=[],offset=0;files.forEach(function(file){var name=encoder.encode(file.name),data=file.data,crc=crc32(data),local=new Uint8Array(30+name.length+data.length),v=new DataView(local.buffer);v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint32(14,crc,true);v.setUint32(18,data.length,true);v.setUint32(22,data.length,true);v.setUint16(26,name.length,true);local.set(name,30);local.set(data,30+name.length);locals.push(local);var central=new Uint8Array(46+name.length),cv=new DataView(central.buffer);cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);cv.setUint16(28,name.length,true);cv.setUint32(42,offset,true);central.set(name,46);centrals.push(central);offset+=local.length;});var centralSize=centrals.reduce(function(n,x){return n+x.length;},0),end=new Uint8Array(22),ev=new DataView(end.buffer);ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,centralSize,true);ev.setUint32(16,offset,true);var total=offset+centralSize+end.length,out=new Uint8Array(total),p=0;locals.concat(centrals).concat([end]).forEach(function(x){out.set(x,p);p+=x.length;});return out;}
-async function exportStems(){if(!recipe)return;setStatus('RENDERING 4 STEMS');try{var names=['drums','bass','harmony','melody'],files=[];for(var i=0;i<names.length;i++){setStatus('RENDERING '+names[i].toUpperCase());files.push({name:'ftn-fire-'+names[i]+'.wav',data:await renderStem(names[i])});}files.push({name:'ftn-fire-recipe.json',data:new TextEncoder().encode(JSON.stringify(recipe,null,2))});var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zipStore(files)],{type:'application/zip'}));a.download='ftn-fire-stems-'+recipe.style+'-'+recipe.bpm+'bpm.zip';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);setStatus('STEMS ZIP EXPORTED');}catch(e){setStatus('STEM EXPORT FAILED');}}
+async function exportWav(){if(!recipe)return;setStatus('RENDERING WAV');try{var blob=new Blob([await Engine.renderWav(recipe)],{type:'audio/wav'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ftn-fire-'+recipe.style+'-'+recipe.bpm+'bpm.wav';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);setStatus('WAV EXPORTED');}catch(e){setStatus('EXPORT FAILED');}}
+async function exportStems(){if(!recipe)return;setStatus('RENDERING 4 STEMS');try{var zip=await Engine.renderStemsZip(recipe,function(name){setStatus('RENDERING '+name.toUpperCase());});var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zip],{type:'application/zip'}));a.download='ftn-fire-stems-'+recipe.style+'-'+recipe.bpm+'bpm.zip';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);setStatus('STEMS ZIP EXPORTED');}catch(e){setStatus('STEM EXPORT FAILED');}}
 function setStatus(s){document.getElementById('fire-status').textContent=s;}
 function draw(spec){var canvas=document.getElementById('fire-wave'),ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);var g=ctx.createLinearGradient(0,0,w,0);g.addColorStop(0,'#ff4d00');g.addColorStop(1,'#ffbd2e');ctx.strokeStyle='#38262a';for(var i=0;i<=16;i++){ctx.beginPath();ctx.moveTo(i*w/16,0);ctx.lineTo(i*w/16,h);ctx.stroke();}ctx.fillStyle=g;var seed=hash(JSON.stringify(spec));for(var x=0;x<128;x++){var amp=10+((seed^(x*2654435761))>>>0)%65;if(x%8===0)amp=78;ctx.fillRect(x*w/128,h/2-amp/2,Math.max(2,w/128-2),amp);}ctx.fillStyle='#fff';ctx.font='800 14px Inter';ctx.fillText(spec.style.toUpperCase()+' · '+spec.bpm+' BPM · '+spec.key,18,25);}
 function parsePrompt(prompt){var lower=prompt.toLowerCase(),style=document.getElementById('fire-style');Object.keys(defaults).forEach(function(k){if(lower.indexOf(k)>=0||(k==='soca'&&/soca/.test(lower)))style.value=k;});var bpm=lower.match(/\b(6\d|[7-9]\d|1[0-7]\d|180)\s*bpm\b/);if(bpm)document.getElementById('fire-bpm').value=bpm[1];else if(prompt.trim())document.getElementById('fire-bpm').value=defaults[style.value];['Dark','Joyful','Road-ready','Sensual','Reflective','Triumphant'].forEach(function(m){if(lower.indexOf(m.toLowerCase())>=0)document.getElementById('fire-mood').value=m;});}

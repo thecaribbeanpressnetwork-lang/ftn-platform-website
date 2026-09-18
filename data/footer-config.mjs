@@ -14,15 +14,19 @@ export const BOTTOM_LINKS = [
   { label: 'Trust Centre', href: '/trust/' },
 ];
 
+// FTN Consolidation (2026-09-18): Scenario Workspace, Riddim, Kaiso and Parliament are removed
+// from this column -- each is a real, still-live capability of ibis/FTN Live/Govern now, not a
+// second, independent product to keep listing as a peer. FTN Govern is added: it was never listed
+// here even before consolidation, an existing omission this pass also corrects.
 export const FULL_COLUMNS = [
   {
     heading: 'Platform',
     links: [
       { label: 'About FTN', href: '/about/' },
-      { registry: 'community-connect' }, { registry: 'ftn-live' }, { registry: 'scenario-workspace' },
-      { registry: 'statistics' }, { registry: 'events' }, { registry: 'facethenation' },
-      { registry: 'ibis-ai' }, { registry: 'riddim' }, { registry: 'kaiso' }, { registry: 'radio' },
-      { registry: 'screen' }, { registry: 'opportunities' }, { registry: 'display-network' },
+      { registry: 'community-connect' }, { registry: 'ibis-ai' }, { registry: 'ftn-live' },
+      { registry: 'govern' }, { registry: 'facethenation' }, { registry: 'events' },
+      { registry: 'screen' }, { registry: 'radio' }, { registry: 'opportunities' },
+      { registry: 'display-network' }, { registry: 'statistics' },
     ],
   },
   { heading: 'Company', links: [{ label: 'FTN Invest-in', href: '/invest/' }, { label: 'Insights', href: '/insights/' }] },
