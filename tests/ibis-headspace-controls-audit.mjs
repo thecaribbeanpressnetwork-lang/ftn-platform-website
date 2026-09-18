@@ -5,6 +5,12 @@ const html = fs.readFileSync('ibis-headspace-preview/index.html','utf8');
 const bootstrap = fs.readFileSync('js/ibis-headspace-bootstrap.js','utf8');
 const themes = fs.readFileSync('js/ibis-country-themes.js','utf8');
 const speech = fs.readFileSync('js/ibis-headspace-speech.js','utf8');
+// FTN Quality & UX Closure pass (2026-09-18): the real chunked-speech engine (chunking,
+// play/pause/rewind/next/speed) moved into the shared, DOM-agnostic js/ibis-speech-shared.js so
+// regular ibis chat (js/ibis-ai-workspace.js) can reuse the exact same engine instead of a second
+// independent implementation -- js/ibis-headspace-speech.js is now a thin DOM-wiring wrapper around
+// it, per the mission's explicit "do not duplicate two independent speech implementations".
+const speechShared = fs.readFileSync('js/ibis-speech-shared.js','utf8');
 const manager = fs.readFileSync('js/ibis-headspace-window-manager.js','utf8');
 const fabric = fs.readFileSync('js/ibis-headspace-fabric.js','utf8');
 const toolHealth = fs.readFileSync('js/ibis-headspace-tool-health.js','utf8');
@@ -42,7 +48,8 @@ assert.doesNotMatch(html,/Sample signal/i,'Headspace must not show sample demand
 assert.doesNotMatch(html,/Caribbean context is first-class infrastructure\./i,'The old canned conclusion must not return.');
 
 for (const id of ['speakAnswer','speechPause','speechRewind','speechSpeed','speechNext']) assert.match(html, new RegExp(`id="${id}"`), `Missing speech control ${id}`);
-for (const operation of ['speechSynthesis','.pause(','.resume(','move(-1)','move(1)','utterance.rate']) assert.ok(speech.includes(operation), `Missing speech operation ${operation}`);
+for (const operation of ['speechSynthesis','chunkText','rewind','next','utterance.rate']) assert.ok(speechShared.includes(operation), `Missing speech operation ${operation} in the shared speech engine`);
+assert.match(speech, /createSpeechOutput/, 'Headspace speech wrapper must wire up through the shared engine, not a second independent implementation');
 for (const action of ['place','snapNode','minimize','restore','tile','stack']) assert.match(manager, new RegExp(`function ${action}\\b`));
 assert.match(manager,/function freeform\b/,'Headspace must expose a genuine unsnapped freeform layout.');
 assert.match(manager,/if\s*\(mode!==['"]freeform['"]\)\s*\{?\s*freeform\(\)/,'Dragging a snapped card must implicitly unsnap Headspace rather than snapping it back.');

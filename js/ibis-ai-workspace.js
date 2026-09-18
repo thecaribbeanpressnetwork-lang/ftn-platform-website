@@ -448,7 +448,7 @@
     ['Create a visual','Create a visual for a Caribbean digital infrastructure campaign'],
   ];
 
-  function injectStyle(){if(document.querySelector('link[data-ibis-style]'))return;var l=document.createElement('link');l.rel='stylesheet';l.href='/css/components/ibis-ai.css?v=20260911.1';l.setAttribute('data-ibis-style','true');document.head.appendChild(l);}
+  function injectStyle(){if(document.querySelector('link[data-ibis-style]'))return;var l=document.createElement('link');l.rel='stylesheet';l.href='/css/components/ibis-ai.css?v=20260918.2';l.setAttribute('data-ibis-style','true');document.head.appendChild(l);}
 
   async function init(){injectStyle();await ensureData();global.FTN.WorkspaceShell.init({productId:'ibis-ai',mountId:'workspace-root',accentSmallVar:'--color-ibis-on-dark',build:function(content){
       content.innerHTML='<div class="ibis-chat">'
@@ -460,13 +460,21 @@
         +'</aside>'
         +'<button type="button" class="ibis-chat__sidebar-toggle" id="ibis-sidebar-toggle" aria-expanded="false" aria-controls="ibis-chat-sidebar">Menu</button>'
         +'<div class="ibis-chat__main">'
-          +'<header class="ibis-chat__header"><div><span class="workspace-kicker">Ask · Find · Analyze · Create</span><h2>ibis</h2></div><span id="ibis-ai-status"></span></header>'
+          +'<header class="ibis-chat__header"><div><span class="workspace-kicker">Ask · Find · Analyze · Create</span><h2>ibis</h2></div>'
+            +'<div class="ibis-chat__voice-controls" id="ibis-voice-controls" hidden aria-label="Read ibis answer aloud">'
+              +'<button type="button" id="ibis-speak" aria-label="Read the last answer aloud" title="Read aloud">&#128266;</button>'
+              +'<button type="button" id="ibis-speak-pause" aria-label="Pause reading" title="Pause" aria-pressed="false" hidden>&#10074;&#10074;</button>'
+              +'<button type="button" id="ibis-speak-speed" aria-label="Change reading speed" title="Reading speed">1&times;</button>'
+              +'<button type="button" id="ibis-speak-stop" aria-label="Stop reading" title="Stop" hidden>&#9632;</button>'
+            +'</div>'
+            +'<span id="ibis-ai-status"></span></header>'
           +'<div class="ibis-chat__conversation" id="ibis-conversation" role="log" aria-live="polite">'
             +'<div class="ibis-chat__welcome" id="ibis-chat-welcome"><h2>What do you want to make happen?</h2><p>Ask ibis in plain language — find Caribbean films, analyze what changed, help with a grant, create a visual, route me to the right FTN tool…</p></div>'
           +'</div>'
+          +'<p class="u-sr-only" id="ibis-voice-status" role="status" aria-live="polite"></p>'
           +'<form class="ibis-chat__composer" id="ibis-form" data-ftn-no-draft="true">'
             +'<div class="ibis-mode-row"><button type="button" data-mode="ask" aria-pressed="true">ASK</button><button type="button" data-mode="find">FIND</button><button type="button" data-mode="analyze">ANALYZE FTN</button><button type="button" data-mode="visual">CREATE VISUAL</button></div>'
-            +'<div class="ibis-chat__input-row"><textarea id="ibis-goal" rows="1" placeholder="Message ibis…" required></textarea><button type="submit" class="btn btn-primary ibis-chat__send" aria-label="Send">&rarr;</button></div>'
+            +'<div class="ibis-chat__input-row"><button type="button" id="ibis-mic" class="ibis-chat__mic" aria-label="Speak to ibis" title="Speak to ibis">&#127908;</button><textarea id="ibis-goal" rows="1" placeholder="Message ibis…" required></textarea><button type="submit" class="btn btn-primary ibis-chat__send" aria-label="Send">&rarr;</button></div>'
           +'</form>'
         +'</div>'
       +'</div>'
@@ -514,7 +522,41 @@
         el.appendChild(content);
         conversation.appendChild(el);
         scrollToEnd();
+        if(voiceControls)voiceControls.hidden=false;
         return content;
+      }
+
+      // FTN Quality & UX Closure pass (2026-09-18), Priority 2: voice input/output for REGULAR
+      // ibis chat -- previously Headspace-only. Reuses the same shared engine
+      // (js/ibis-speech-shared.js) Headspace's own controls use, per the mission's explicit "do not
+      // duplicate two independent speech implementations" instruction.
+      var voiceControls=document.getElementById('ibis-voice-controls');
+      var voiceStatusEl=document.getElementById('ibis-voice-status');
+      function voiceStatus(message){if(voiceStatusEl)voiceStatusEl.textContent=message;}
+      var Shared=global.FTN&&global.FTN.SpeechShared;
+      if(Shared){
+        var speakBtn=document.getElementById('ibis-speak'),pauseBtn=document.getElementById('ibis-speak-pause'),speedBtn=document.getElementById('ibis-speak-speed'),stopBtn=document.getElementById('ibis-speak-stop');
+        var speechEngine=Shared.createSpeechOutput({
+          getText:function(){var bubbles=conversation.querySelectorAll('.ibis-msg__bubble--ibis');var last=bubbles[bubbles.length-1];return last?last.textContent.trim():'';},
+          onStatus:voiceStatus,
+          onRateChange:function(rate){if(speedBtn)speedBtn.textContent=rate+'×';},
+        });
+        if(!speechEngine.supported&&voiceControls){voiceControls.hidden=true;}
+        else{
+          function syncPauseUi(){if(!pauseBtn)return;var isPaused=speechEngine.isPaused();pauseBtn.setAttribute('aria-pressed',String(isPaused));pauseBtn.innerHTML=isPaused?'&#9654;':'&#10074;&#10074;';pauseBtn.title=isPaused?'Resume':'Pause';}
+          speakBtn&&speakBtn.addEventListener('click',function(){speechEngine.play();if(pauseBtn)pauseBtn.hidden=false;if(stopBtn)stopBtn.hidden=false;syncPauseUi();});
+          pauseBtn&&pauseBtn.addEventListener('click',function(){speechEngine.pause();syncPauseUi();});
+          stopBtn&&stopBtn.addEventListener('click',function(){speechEngine.stop();if(pauseBtn)pauseBtn.hidden=true;stopBtn.hidden=true;voiceStatus('Stopped.');});
+          speedBtn&&speedBtn.addEventListener('click',function(){speechEngine.speed();});
+        }
+        var micBtn=document.getElementById('ibis-mic');
+        var voiceInput=Shared.createVoiceInput({
+          onTranscript:function(text){input.value=text;input.focus();},
+          onStatus:voiceStatus,
+          onListening:function(isListening){if(micBtn){micBtn.classList.toggle('is-listening',isListening);micBtn.setAttribute('aria-label',isListening?'Listening…':'Speak to ibis');}},
+        });
+        if(!voiceInput.supported&&micBtn){micBtn.disabled=true;micBtn.title='Voice input is not supported in this browser';}
+        else if(micBtn){micBtn.addEventListener('click',function(){voiceInput.start();});}
       }
 
       content.querySelectorAll('[data-mode]').forEach(function(b){b.addEventListener('click',function(){mode=b.getAttribute('data-mode');content.querySelectorAll('[data-mode]').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));});input.focus();});});

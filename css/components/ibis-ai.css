@@ -54,6 +54,23 @@
 .ibis-chat__input-row textarea{flex:1;min-height:46px;max-height:160px;background:#090a0d;color:#fff;border:1px solid #3e3650;border-radius:14px;padding:12px 14px;font:500 15px/1.4 Inter,sans-serif;resize:none}
 .ibis-chat__input-row textarea:focus{outline:none;border-color:#9b6cf3;box-shadow:0 0 0 3px rgba(124,58,237,.15)}
 .ibis-chat__send{flex:none;width:46px;height:46px;padding:0;border-radius:50%;font-size:18px;line-height:1}
+/* FTN Quality & UX Closure pass (2026-09-18): voice input/output for regular ibis chat. */
+.ibis-chat__mic{flex:none;width:46px;height:46px;padding:0;border-radius:50%;font-size:17px;line-height:1;background:rgba(124,58,237,.1);border:1px solid rgba(150,97,241,.3);color:#fff;cursor:pointer}
+.ibis-chat__mic:hover{border-color:#9b6cf3}
+.ibis-chat__mic.is-listening{background:#ef233c;border-color:#ef233c;animation:ibisMicPulse 1.2s ease-in-out infinite}
+.ibis-chat__mic:disabled{opacity:.35;cursor:not-allowed}
+@keyframes ibisMicPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,35,60,.45)}50%{box-shadow:0 0 0 8px rgba(239,35,60,0)}}
+.ibis-chat__voice-controls[hidden]{display:none}
+.ibis-chat__voice-controls{display:flex;align-items:center;gap:2px;flex:none}
+/* 44px is the minimum accessible tap target (WCAG 2.5.5 / same convention as .ibis-mode-row
+   button and .ibis-hero__actions a elsewhere in this codebase) -- kept at that floor on every
+   viewport, including mobile, rather than shrunk to fit -- a smaller circle is never an
+   acceptable trade against an unreachable tap target on the exact devices where it matters most. */
+.ibis-chat__voice-controls button{min-width:44px;min-height:44px;padding:0;border-radius:50%;border:1px solid rgba(150,97,241,.25);background:rgba(124,58,237,.06);color:#cbb8f7;font-size:14px;line-height:1;cursor:pointer}
+.ibis-chat__voice-controls button:hover{border-color:#9b6cf3;color:#fff}
+.ibis-chat__voice-controls button[aria-pressed="true"]{background:#7c3aed;color:#fff}
+#ibis-speak-speed{width:auto;min-width:44px;padding:0 10px;border-radius:999px;font-size:11px;font-weight:800}
+@media (max-width:820px){.ibis-chat__header{flex-wrap:wrap;row-gap:8px}.ibis-chat__voice-controls{order:3;flex-basis:100%;justify-content:flex-start}}
 
 .ibis-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:6px}
 .ibis-action{display:block;color:#fff;text-decoration:none;border:1px solid rgba(150,97,241,.2);border-radius:13px;padding:14px;background:rgba(124,58,237,.06)}
