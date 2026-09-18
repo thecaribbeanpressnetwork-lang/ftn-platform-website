@@ -182,3 +182,33 @@
   font-size: var(--text-body-size);
   text-decoration: underline;
 }
+
+/* FTN Quality & UX Closure pass (2026-09-18): a small, reusable breadcrumb trail for the new
+   category/discoverability pages (BreadcrumbList structured data + a visible trail) -- genuinely
+   useful navigation, not decoration, and avoids each page inventing its own one-off markup. */
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: var(--text-small-size);
+  color: var(--color-graphite);
+}
+
+.breadcrumb li:not(:last-child)::after {
+  content: "/";
+  margin-left: var(--space-4);
+  color: var(--color-border);
+}
+
+.breadcrumb a {
+  color: var(--color-graphite);
+  text-decoration: underline;
+}
+
+.breadcrumb [aria-current="page"] {
+  color: var(--color-black);
+  font-weight: 600;
+}

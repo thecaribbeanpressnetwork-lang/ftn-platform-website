@@ -19,6 +19,7 @@ const UTILITY_PAGES = [
   '/accessibility/',
   '/trust/',
   '/glossary/',
+  '/caribbean-ecosystem-intelligence/',
   '/legal/privacy-policy/',
   '/legal/terms-of-service/',
   '/legal/cookie-policy/',

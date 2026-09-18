@@ -42,7 +42,7 @@ const PAGES = [
   'love/index.html', 'observatory/index.html', 'opportunities/index.html', 'parliament/index.html',
   'radio/index.html', 'resources/index.html', 'riddim/index.html', 'scenario-workspace/index.html',
   'screen/index.html', 'sitemap/index.html', 'statistics/index.html', 'top-picks/index.html',
-  'trust/index.html', 'tv/index.html',
+  'trust/index.html', 'tv/index.html', 'caribbean-ecosystem-intelligence/index.html',
 ];
 
 function esc(v) {

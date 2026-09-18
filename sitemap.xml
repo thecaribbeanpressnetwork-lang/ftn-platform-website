@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://ftnplatform.org/</loc></url>
-  <url><loc>https://ftnplatform.org/ricardogill</loc></url>
   <url><loc>https://ftnplatform.org/community-connect/</loc></url>
   <url><loc>https://ftnplatform.org/scenario-workspace/</loc></url>
   <url><loc>https://ftnplatform.org/govern/</loc></url>
@@ -38,10 +37,12 @@
   <url><loc>https://ftnplatform.org/resources/</loc></url>
   <url><loc>https://ftnplatform.org/contact/</loc></url>
   <url><loc>https://ftnplatform.org/insights/</loc></url>
+  <url><loc>https://ftnplatform.org/ricardogill</loc></url>
   <url><loc>https://ftnplatform.org/sitemap/</loc></url>
   <url><loc>https://ftnplatform.org/accessibility/</loc></url>
   <url><loc>https://ftnplatform.org/trust/</loc></url>
   <url><loc>https://ftnplatform.org/glossary/</loc></url>
+  <url><loc>https://ftnplatform.org/caribbean-ecosystem-intelligence/</loc></url>
   <url><loc>https://ftnplatform.org/legal/privacy-policy/</loc></url>
   <url><loc>https://ftnplatform.org/legal/terms-of-service/</loc></url>
   <url><loc>https://ftnplatform.org/legal/cookie-policy/</loc></url>
