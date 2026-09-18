@@ -87,6 +87,23 @@ Deno.test("RELEASE: a deterministic-engine answer skips evidence/temporal checks
   assertEquals(r.decision, "RELEASE");
 });
 
+// Live-caught (Phase 6 acceptance testing, 2026-09-18): "Is there a correlation between social
+// media use and teenage anxiety?" produced "Research suggests a link between excessive social media
+// use and increased anxiety... studies have found that excessive social media use can lead to
+// increased symptoms of anxiety..." -- confident relationship language with no real executed
+// CORRELATION engine behind it, but the ORIGINAL narrow pattern (requiring the literal word
+// "correlation" or an "r=" statistic) missed this common paraphrase entirely.
+Deno.test("WITHHOLD: a paraphrased correlation overclaim ('research suggests a link', 'studies have found') is caught, not just the literal word 'correlation'", () => {
+  const r = validateRelease({
+    ...BASE_INPUT, draftAnswer: "Research suggests a link between excessive social media use and increased anxiety in teenagers. Studies have found that excessive use can lead to increased symptoms of anxiety.",
+    requestFrame: frame({ queryClass: "CORRELATION" }), evidenceContract: contract({ queryClass: "CORRELATION" }),
+    evidencePacket: packet({ temporal: { required: false, satisfied: null, unresolved: false } }),
+    claimsLedger: [],
+  });
+  assertEquals(r.decision, "WITHHOLD");
+  assert(r.failures.some((f) => f.type === "CAPABILITY_OVERCLAIM_CORRELATION"));
+});
+
 Deno.test("WITHHOLD: a claimed correlation with no executed CORRELATION engine cannot be revised, only withheld", () => {
   const r = validateRelease({
     ...BASE_INPUT, draftAnswer: "There is a strong correlation between the two variables.",

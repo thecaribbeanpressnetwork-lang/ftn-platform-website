@@ -110,7 +110,13 @@ const TEMPORAL_QUALIFIER_PATTERNS =
 
 const HEDGE_PATTERNS = /\b(may|might|possibly|reportedly|unclear|unverified|appears?|seems?|likely|potentially)\b/i;
 
-const CORRELATION_OVERCLAIM_PATTERNS = /there(?:'s| is) a (?:strong |clear |significant |real )?correlation|the correlation (?:is|shows|between)|r\s*=\s*-?0?\.\d/i;
+// Broadened after a live acceptance-testing finding (Phase 6): a model asked about correlation
+// without a real executed series does not always use the literal word "correlation" -- common
+// paraphrases ("research suggests a link," "studies have found," "is associated with," "can lead
+// to") make the same confident relationship claim just as much in need of catching. Still bounded
+// and disclosed (Item 4): this remains a fixed pattern list, not semantic understanding, and can
+// still miss a paraphrase this list does not anticipate -- see this module's own `limitations` field.
+const CORRELATION_OVERCLAIM_PATTERNS = /there(?:'s| is) a (?:strong |clear |significant |real )?(?:correlation|link|relationship)|the correlation (?:is|shows|between)|r\s*=\s*-?0?\.\d|suggests? a (?:strong |clear |significant |real )?link|studies (?:have |has )?(?:found|shown)|is (?:linked|associated) (?:to|with)|can lead to increased|research (?:suggests|shows|indicates)/i;
 
 const ACTION_COMPLETION_OVERCLAIM_PATTERNS = /i'?ve connected|i have connected|successfully connected|the action (?:is|was) complete|has been completed|connected your (?:account|slack|app)/i;
 
