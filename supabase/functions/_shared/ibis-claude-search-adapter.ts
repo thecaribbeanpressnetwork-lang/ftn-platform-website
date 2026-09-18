@@ -17,14 +17,12 @@
 // budget than Brave's, and is capped at one search per call (`max_uses: 1`) by default; a deeper,
 // multi-search research pass is never triggered automatically.
 //
-// Live-verification status when this module was written: a real HTTP call to the deployed
-// ibis-provider-health-preview Edge Function confirmed ANTHROPIC_API_KEY IS configured server-side
-// on the live project, but Anthropic's own API currently rejects it with HTTP 401 -- this adapter
-// is therefore implemented and unit-tested against Anthropic's documented web-search-tool response
-// contract, but has NOT been proven against a real, authenticating request. See
-// GOVERNANCE or docs/ibis/acceptance-baseline.md's "Live Search Infrastructure" section for the
-// exact account action required (a fresh key from console.anthropic.com, not a claude.ai chat
-// subscription) before this can be live-verified.
+// Live-verification status, updated 2026-09-18 (Search Quality Gate pass): the founder replaced
+// the credential with a funded, workspace-scoped Anthropic key. A live ibis-provider-health-preview
+// call now confirms state=HEALTHY, configuredModel=claude-sonnet-4-6, configuredModelVisible=true,
+// modelCount=11 -- ANTHROPIC_API_KEY authenticates. The earlier note here (HTTP 401 on every call)
+// described a real but now-resolved state; do not treat it as the current status. See
+// docs/deferred-content.md for the corrected record and this pass's direct-adapter/cascade proof.
 
 import { unavailable, type SearchResult, type SourceRecord } from "./ibis-search-types.ts";
 
@@ -88,10 +86,13 @@ export type ClaudeWebSearchOptions = {
 export async function claudeWebSearch(query: string, options: ClaudeWebSearchOptions = {}): Promise<SearchResult> {
   const apiKey = options.apiKey ?? Deno.env.get("ANTHROPIC_API_KEY") ?? "";
   if (!apiKey) return unavailable(query, "No ANTHROPIC_API_KEY is configured -- Claude Web Search has no credential to use.");
-  // FTN Quality Pass (2026-09-18): "claude-sonnet-4-6" is not a real Anthropic model ID (Anthropic
-  // has shipped 4, 4.1, 4.5 and 5 -- never a "4-6") -- live-caught via the Wave 1 quality benchmark
-  // as the exact cause of "Claude Web Search responded HTTP 400" on every single call, which meant
-  // the whole search cascade's strongest fallback rung never actually worked, ever, in production.
+  // Correction (2026-09-18, Search Quality Gate pass): an earlier note here claimed
+  // "claude-sonnet-4-6" was not a real Anthropic model ID and blamed it for every Claude Web Search
+  // call failing HTTP 400. That claim was wrong and must not be treated as canonical. After the
+  // founder replaced the credential with a funded, workspace-scoped key, a live
+  // ibis-provider-health-preview call confirmed state=HEALTHY, configuredModel=claude-sonnet-4-6,
+  // configuredModelVisible=true, modelCount=11 -- the ID is real and visible on the account's own
+  // /v1/models list. The earlier HTTP 400s traced to the credential, not the model name.
   const model = options.model ?? Deno.env.get("ANTHROPIC_MODEL") ?? "claude-sonnet-5";
   const maxUses = Number.isInteger(options.maxUses) && (options.maxUses as number) > 0 ? (options.maxUses as number) : 1;
   const doFetch = options.fetchImpl ?? fetch;

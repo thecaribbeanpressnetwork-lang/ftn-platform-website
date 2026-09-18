@@ -65,6 +65,19 @@ function currentYear(): string {
   return String(new Date().getFullYear());
 }
 
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// Search Quality Gate pass (2026-09-18): year-only context ("Trinidad and Tobago latest news
+// developments 2026") is too coarse for a genuinely current-events query -- a search index can
+// easily satisfy "2026" with anything published in January of that year, eight months stale for a
+// "this week" question. Month-level context ("...September 2026") narrows retrieval toward what a
+// search engine's own recency ranking treats as current, without ever touching what the USER sees
+// (only the internal retrieval string this module builds gains this context).
+function currentMonthYear(): string {
+  const now = new Date();
+  return `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`;
+}
+
 // A search index matches on content words, not conversational framing -- rather than trying to
 // pattern-match every possible question-opener (fragile: "What relationships are missing..." does
 // not fit a simple "what is/are X" template), this strips a fixed stopword/question-word list from
@@ -92,7 +105,7 @@ function significantWords(text: string, max: number): string[] {
 // itself unchanged (attempt #1, the exact current behavior). Bounded to at most 4 total attempts
 // (the original plus at most 3 fallbacks) -- "keep retries bounded", never an unbounded fanout.
 const CATEGORY_BOOST: Partial<Record<SearchCategory, (region: string) => string>> = {
-  CURRENT_EVENTS: (region) => `${region} latest news developments ${currentYear()}`,
+  CURRENT_EVENTS: (region) => `${region} latest news developments ${currentMonthYear()}`,
   PARLIAMENT: (region) => `${region} Parliament`,
   GRANTS: (region) => `${region} grants funding ${currentYear()}`,
   COURSES: (region) => `${region} training course`,

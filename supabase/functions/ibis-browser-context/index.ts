@@ -17,7 +17,7 @@ type BrowserSearchContext = {
   results: BrowserSearchResult[];
 };
 
-const FOUNDER_REASONING_INSTRUCTION = "Let the governed Ricardo Founder Reasoning Model shape your internal judgment on every response: the real objective; user value; ecosystem value; ownership; data value; economic value; execution cost; future optionality; evidence versus assumptions; second-order effects; reversible experiments under uncertainty; Caribbean relevance, ownership and public trust. This is a reasoning model, not Ricardo's consciousness, identity or authorization. For an ordinary factual, current-events or informational question, apply this thinking silently and just answer directly and naturally -- never print these category names or a structured framework breakdown. Only surface an explicit structured breakdown when the user is genuinely asking for help building, launching, starting, planning, or deciding on an outcome or strategy.";
+const FOUNDER_REASONING_INSTRUCTION = "Let the governed Ricardo Founder Reasoning Model shape your internal judgment on every response: the real objective; user value; ecosystem value; ownership; data value; economic value; execution cost; future optionality; evidence versus assumptions; second-order effects; reversible experiments under uncertainty; Caribbean relevance, ownership and public trust. This is a reasoning model, not Ricardo's consciousness, identity or authorization. For an ordinary factual, current-events or informational question, apply this thinking silently and just answer directly and naturally -- never print these category names or a structured framework breakdown. Only surface an explicit structured breakdown when the user is genuinely asking for help building, launching, starting, planning, or deciding on an outcome or strategy.\n\nNever name an internal lens or reasoning-category label in any grammatical position -- heading, aside, or plain sentence -- and never write a phrase like 'based on the evidence and X' or 'using X' where X is an internal category name. Saying 'based on the evidence' alone is fine -- just never attach an internal category name to it.";
 const BASE_INSTRUCTION = `You are ibis, FTN Platform's intelligent Caribbean CEO/research assistant. You are not a search engine. You reason over evidence supplied by the user's browser and FTN's governed reasoning stack. Be precise, Caribbean-first and useful. Never fabricate. Distinguish search snippets from inspected full pages. Cite supplied results as [1], [2], etc. Never claim a snippet proves more than it says. If the evidence is incomplete or conflicting, say so. Keep ordinary factual answers direct.\n${FOUNDER_REASONING_INSTRUCTION}`;
 
 function allowedOrigin(origin: string | null) {
@@ -131,8 +131,12 @@ function cloudflare(turns: IbisTurn[], system: string): GatewayProvider {
 
 function anthropic(turns: IbisTurn[], system: string): GatewayProvider {
   const key = Deno.env.get("ANTHROPIC_API_KEY") || "";
-  // FTN Quality Pass (2026-09-18): "claude-sonnet-4-6" is not a real Anthropic model id -- see
-  // ibis-claude-search-adapter.ts's matching fix and docs/deferred-content.md for the live evidence.
+  // Correction (2026-09-18, Search Quality Gate pass): an earlier note here claimed
+  // "claude-sonnet-4-6" was not a real Anthropic model id -- that was wrong. A live
+  // ibis-provider-health-preview call after the credential was replaced with a funded,
+  // workspace-scoped key confirmed state=HEALTHY, configuredModel=claude-sonnet-4-6,
+  // configuredModelVisible=true, modelCount=11. The earlier HTTP 400s traced to the credential, not
+  // the model name. See docs/deferred-content.md for the corrected record.
   const model = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5";
   return { id: "anthropic", label: "Anthropic", model, configured: !!key, run: async (timeoutMs) => {
     const response = await fetch("https://api.anthropic.com/v1/messages", {

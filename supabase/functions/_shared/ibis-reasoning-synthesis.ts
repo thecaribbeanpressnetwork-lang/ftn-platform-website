@@ -216,7 +216,7 @@ export function buildReasoningSynthesisBlock(packet: ReasoningSynthesisPacket): 
 
   if (!sections.length) return null;
   return [
-    "Reasoning synthesis for this request (structured decision support from FTN's own reasoning engines -- use it to shape the answer's substance, never print these labels or category names as headings in an ordinary answer; evidence above always outranks a heuristic/lens judgment; never resolve a listed contradiction beyond what the evidence itself resolves):",
+    "Reasoning synthesis for this request (structured decision support from FTN's own reasoning engines -- use it to shape the answer's substance; never print any label below as a heading, and never name one conversationally either -- not as an aside, not inside an ordinary sentence, not as a description of how you reasoned. The label names below exist for you to read, not to repeat in any form. Evidence above always outranks a heuristic/lens judgment; never resolve a listed contradiction beyond what the evidence itself resolves):",
     ...sections.map((s, i) => `[R${i + 1}] ${s}`),
   ].join("\n");
 }

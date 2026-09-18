@@ -26,8 +26,13 @@ async function checkAnthropic() {
     if (!res.ok) return { provider: "Anthropic", state: "UNHEALTHY", httpStatus: res.status };
     const data = await res.json().catch(() => null);
     const ids = Array.isArray(data?.data) ? data.data.map((m: { id?: string }) => m.id).filter(Boolean) : [];
-    // FTN Quality Pass (2026-09-18): "claude-sonnet-4-6" is not a real Anthropic model id -- see
-    // ibis-claude-search-adapter.ts's matching fix and docs/deferred-content.md for the live evidence.
+    // Correction (2026-09-18, Search Quality Gate pass): an earlier note here claimed
+    // "claude-sonnet-4-6" was not a real Anthropic model id. That claim was wrong and must not be
+    // treated as canonical -- a live call to this exact endpoint, made after the founder replaced
+    // the credential with a funded, workspace-scoped key, returned state=HEALTHY,
+    // configuredModel=claude-sonnet-4-6, configuredModelVisible=true, modelCount=11. The ID is real
+    // and visible on the account's own /v1/models list; the earlier HTTP 400s traced to the
+    // credential, not the model name. See docs/deferred-content.md for the corrected record.
     const configuredModel = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5";
     return {
       provider: "Anthropic",

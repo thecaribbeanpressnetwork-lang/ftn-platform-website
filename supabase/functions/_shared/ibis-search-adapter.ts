@@ -47,6 +47,36 @@ export type { SourceRecord, SearchResult, ExternalHandoff } from "./ibis-search-
 import { unavailable, type SearchResult, type SourceRecord } from "./ibis-search-types.ts";
 import { claudeWebSearch } from "./ibis-claude-search-adapter.ts";
 import { buildQueryAttempts } from "./ibis-search-query-normalizer.ts";
+import { evaluateSearchResultQuality } from "./ibis-search-quality-gate.ts";
+
+// Search Quality Gate pass (2026-09-18): live-caught -- "What changed in Trinidad and Tobago this
+// week?" was answered in production from an irrelevant 2018/2019 UWI Faculty Report. The prior
+// reliability fix above only ever checked `status === "OK"`/`sources.length > 0`; it never checked
+// whether those sources were actually current/relevant. `freshnessRequired`/`queryClass`/`userQuery`
+// below let a caller (ibis-canonical-brain.ts) tell this cascade what it already knows from
+// classification, so the gate never re-decides freshness itself -- it only judges the EVIDENCE a
+// provider returned against a freshness requirement someone else already established. Optional and
+// additive: every existing call site (and every existing test, none of which pass these fields)
+// keeps behaving exactly as before -- `freshnessRequired` defaults to false, which makes
+// evaluateSearchResultQuality() an unconditional pass-through (see that module's own scoping note).
+export type SearchQualityOptions = { freshnessRequired?: boolean; queryClass?: string; userQuery?: string };
+
+// Applies the quality gate to an already-OK provider result; a LOW_QUALITY verdict is reported as a
+// SEARCH_UNAVAILABLE (never silently dropped) so the cascade's normal "not OK -> try next provider"
+// control flow handles it with zero special-casing, and so a caller inspecting `reason` can tell a
+// LOW_QUALITY rejection apart from a genuine provider failure.
+function applyQualityGate(result: SearchResult, originalQuery: string, options: SearchQualityOptions): SearchResult {
+  if (result.status !== "OK" || !options.freshnessRequired) return result;
+  const verdict = evaluateSearchResultQuality({
+    userQuery: options.userQuery ?? originalQuery,
+    normalizedQuery: result.query,
+    queryClass: options.queryClass,
+    freshnessRequired: true,
+    sources: result.sources,
+  });
+  if (verdict.acceptable) return result;
+  return unavailable(originalQuery, `${result.provider} returned ${result.sources.length} source(s) for "${result.query}" but they failed the freshness/relevance quality gate -- treated as LOW_QUALITY, not success. ${verdict.reasons.join(" ")}`);
+}
 
 type SearXNGResponseItem = { title?: string; url?: string; content?: string; engine?: string; publishedDate?: string };
 type SearXNGResponse = { results?: SearXNGResponseItem[] };
@@ -133,13 +163,17 @@ export async function searxngSearch(
 // real result. Never changes what the user sees -- only what string is sent to the search engine.
 async function searxngSearchWithFanout(
   query: string,
-  options: { baseUrl?: string; timeoutMs?: number; retryTimeoutMs?: number; fetchImpl?: typeof fetch } = {},
+  options: { baseUrl?: string; timeoutMs?: number; retryTimeoutMs?: number; fetchImpl?: typeof fetch } & SearchQualityOptions = {},
 ): Promise<SearchResult> {
   const attempts = buildQueryAttempts(query);
-  if (!attempts.length) return searxngSearch(query, options);
+  if (!attempts.length) return applyQualityGate(await searxngSearch(query, options), query, options);
   const tried: { queryTried: string; result: Extract<SearchResult, { status: "SEARCH_UNAVAILABLE" }> }[] = [];
   for (const attemptQuery of attempts) {
-    const result = await searxngSearch(attemptQuery, options);
+    // Quality-gate BEFORE accepting this attempt as the fanout's answer: a variant that returns
+    // technically-valid but LOW_QUALITY sources must not short-circuit the fanout -- the next
+    // retrieval-language variant, or ultimately the next PROVIDER (Claude/Brave), gets a real
+    // chance instead of the cascade settling for stale/irrelevant evidence.
+    const result = applyQualityGate(await searxngSearch(attemptQuery, options), query, options);
     if (result.status === "OK") return result;
     tried.push({ queryTried: attemptQuery, result });
   }
@@ -229,8 +263,12 @@ type NegativeCacheEntry = { result: SearchResult; expiresAt: number };
 const DEFAULT_NEGATIVE_CACHE_TTL_MS = 45_000; // 45 seconds -- short enough that a genuine transient failure is retried well within any "current" freshness expectation.
 const negativeCache = new Map<string, NegativeCacheEntry>();
 
-function cacheKey(query: string): string {
-  return query.trim().toLowerCase().replace(/\s+/g, " ");
+// `freshnessRequired` is folded into the key so a query string is never served a cached result that
+// was accepted (or rejected) under a DIFFERENT freshness requirement than the current call's -- in
+// practice the classifier is deterministic for a given literal query, but this removes the
+// assumption entirely rather than relying on it.
+function cacheKey(query: string, freshnessRequired?: boolean): string {
+  return `${query.trim().toLowerCase().replace(/\s+/g, " ")}::${freshnessRequired ? "fresh" : "std"}`;
 }
 
 function cacheTtlMs(): number {
@@ -317,15 +355,18 @@ async function searchProviderWithBudget(
 }
 
 // FTN Quality & UX Closure pass (2026-09-18): live-caught -- Claude Web Search was failing HTTP 400
-// on every single call (a credential problem, confirmed via ibis-provider-health-preview's bare
-// GET /v1/models check, which references no model name at all), yet the cascade still made a real
-// network round-trip to Anthropic on every request that reached this rung before honestly failing.
-// This mirrors ibis-intelligence-gateway.ts's own circuit-breaker pattern (same shape, its own
-// independent state -- search and model-completion calls are different failure domains and must
-// not share one breaker): after 2 consecutive failures, the circuit opens and every call within the
-// cooldown window is skipped with ZERO network calls -- "do not waste latency" -- and automatically
-// re-enters the cascade the moment the cooldown expires, so a freshly-corrected API key recovers on
-// its own within minutes, never requiring a deploy or a manual reset.
+// on every single call because ANTHROPIC_API_KEY was, at the time, an invalid/unfunded credential
+// (since replaced by the founder with a funded, workspace-scoped key -- ibis-provider-health-preview
+// now reports state=HEALTHY, see ibis-claude-search-adapter.ts's header for the live evidence), yet
+// the cascade still made a real network round-trip to Anthropic on every request that reached this
+// rung before honestly failing. This mirrors ibis-intelligence-gateway.ts's own circuit-breaker
+// pattern (same shape, its own independent state -- search and model-completion calls are different
+// failure domains and must not share one breaker): after 2 consecutive failures, the circuit opens
+// and every call within the cooldown window is skipped with ZERO network calls -- "do not waste
+// latency" -- and automatically re-enters the cascade the moment the cooldown expires, so a
+// freshly-corrected API key (as has now genuinely happened) recovers on its own within minutes,
+// never requiring a deploy or a manual reset. The circuit is per-process in-memory state, so it also
+// self-clears on the next cold start regardless of the cooldown timer.
 type SearchCircuit = { failures: number; openUntil: number };
 const searchCircuits = new Map<string, SearchCircuit>();
 const SEARCH_CIRCUIT_FAILURE_THRESHOLD = 2;
@@ -384,7 +425,7 @@ function combinedUnavailableReason(query: string, attempts: { label: string; res
   return unavailable(query, chain || "Search is unavailable.");
 }
 
-export async function search(query: string, options: { fetchImpl?: typeof fetch } = {}): Promise<SearchResult> {
+export async function search(query: string, options: { fetchImpl?: typeof fetch } & SearchQualityOptions = {}): Promise<SearchResult> {
   if (options.fetchImpl) {
     // An explicit fetch override means the caller (a deterministic unit test, or an advanced
     // caller that wants full control of the network layer) is already fully in charge of what
@@ -394,12 +435,15 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
     // unaffected). Real production requests never supply this, so the controls below cover 100%
     // of genuine network traffic; the controls themselves are proven separately (see
     // ibis-search-adapter.test.ts's CACHE/DEDUP/BUDGET tests, which monkey-patch globalThis.fetch
-    // instead, precisely so they exercise this real path).
-    const searxngResult = await searxngSearch(query, options);
+    // instead, precisely so they exercise this real path). The quality gate below still runs on
+    // this path (it is a no-op unless the caller explicitly passes freshnessRequired:true, which no
+    // existing test does), so an advanced caller wanting the gate exercised against a fetch double
+    // can do so.
+    const searxngResult = applyQualityGate(await searxngSearch(query, options), query, options);
     if (searxngResult.status === "OK") return searxngResult;
-    const claudeResult = await claudeWebSearch(query, options);
+    const claudeResult = applyQualityGate(await claudeWebSearch(query, options), query, options);
     if (claudeResult.status === "OK") return claudeResult;
-    const braveResult = await braveSearch(query, options);
+    const braveResult = applyQualityGate(await braveSearch(query, options), query, options);
     if (braveResult.status === "OK") return braveResult;
     return combinedUnavailableReason(query, [
       { label: "SearXNG", result: searxngResult },
@@ -407,7 +451,7 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
       { label: "Brave Search", result: braveResult },
     ]);
   }
-  const key = cacheKey(query);
+  const key = cacheKey(query, options.freshnessRequired);
   const cached = searchCache.get(key);
   if (cached && cached.expiresAt > Date.now()) {
     return { ...(cached.result as Extract<SearchResult, { status: "OK" }>), cacheState: "CACHED" };
@@ -425,12 +469,18 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
       searchCache.set(key, { result: searxngResult, expiresAt: Date.now() + cacheTtlMs() });
       return searxngResult;
     }
-    const claudeResult = await searchProviderWithCircuitAndBudget("claude-web-search", "Claude Web Search", query, () => claudeWebSearch(query, options));
+    const claudeResult = applyQualityGate(
+      await searchProviderWithCircuitAndBudget("claude-web-search", "Claude Web Search", query, () => claudeWebSearch(query, options)),
+      query, options,
+    );
     if (claudeResult.status === "OK") {
       searchCache.set(key, { result: claudeResult, expiresAt: Date.now() + cacheTtlMs() });
       return claudeResult;
     }
-    const braveResult = await searchProviderWithBudget("brave-search", "Brave Search", query, () => braveSearch(query, options));
+    const braveResult = applyQualityGate(
+      await searchProviderWithBudget("brave-search", "Brave Search", query, () => braveSearch(query, options)),
+      query, options,
+    );
     if (braveResult.status === "OK") {
       searchCache.set(key, { result: braveResult, expiresAt: Date.now() + cacheTtlMs() });
       return braveResult;

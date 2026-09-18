@@ -382,7 +382,14 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     capabilitiesAttempted.push("SEARCH");
     // FTN entity disambiguation (item 4): only the string sent to the search PROVIDER is expanded
     // -- text/intent/answer generation all still use the user's own original `text` untouched.
-    const result = await runSearch(buildDisambiguatedSearchQuery(text), { fetchImpl: input.searchFetchImpl });
+    // Search Quality Gate pass (2026-09-18): freshnessRequired/queryClass/userQuery are passed
+    // through so the cascade can reject technically-OK-but-stale/irrelevant evidence for exactly
+    // the freshness-required queries where that already caused a real production bug -- see
+    // ibis-search-quality-gate.ts. `text` (the user's own original question), not the disambiguated
+    // provider string, is passed as userQuery so entity/topic scoring reads the real question.
+    const result = await runSearch(buildDisambiguatedSearchQuery(text), {
+      fetchImpl: input.searchFetchImpl, freshnessRequired, queryClass: intent.queryClass, userQuery: text,
+    });
     if (result.status === "OK") {
       providerPath.push(`search:${result.provider}`);
       sources = sourcesFromSearch(result);

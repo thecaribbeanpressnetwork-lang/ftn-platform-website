@@ -7,14 +7,21 @@
   its normal graceful-error bubble — this is the same fail-closed pattern every other paid/AI
   function in this repo already uses (see `FTN_CREATIVE_GENERATION_ENABLED`,
   `FTN_FIRE_GENERATION_ENABLED`), not a bug.
-- **Model id resolved (2026-09-18, Quality Pass).** `claude-sonnet-4-6` was never a real Anthropic
-  model id -- Anthropic has shipped 4, 4.1, 4.5 and 5, never a "4-6" -- and live-testing during the
-  Wave 1 quality benchmark caught it in production: every Claude Web Search call was failing with
-  a silent HTTP 400, and the plain-text `anthropic()` fallback provider was equally broken (masked
-  by Cloudflare answering first in the chain). Corrected the hardcoded default to `claude-sonnet-5`
-  in `ibis-claude-search-adapter.ts`, `ibis-assistant/index.ts`, `ibis-browser-context/index.ts`
-  and `ibis-provider-health-preview/index.ts`. Still env-overridable via `ANTHROPIC_MODEL` if a
-  different model is ever wanted.
+- **Credential issue resolved, model-id claim corrected (2026-09-18, Quality Pass then Search
+  Quality Gate pass).** The Wave 1 quality benchmark caught every Claude Web Search call failing
+  with HTTP 400 in production, and the plain-text `anthropic()` fallback provider was equally
+  broken (masked by Cloudflare answering first in the chain). At the time, this was mis-diagnosed
+  as `claude-sonnet-4-6` "not being a real Anthropic model id" and the hardcoded default in
+  `ibis-claude-search-adapter.ts`, `ibis-assistant/index.ts`, `ibis-browser-context/index.ts` and
+  `ibis-provider-health-preview/index.ts` was changed to `claude-sonnet-5` (still env-overridable
+  via `ANTHROPIC_MODEL`). That diagnosis was wrong: the real cause was an invalid/unfunded
+  `ANTHROPIC_API_KEY`. The founder replaced it with a funded, workspace-scoped key, and a live
+  `ibis-provider-health-preview` call now returns `state=HEALTHY`,
+  `configuredModel=claude-sonnet-4-6`, `configuredModelVisible=true`, `modelCount=11` -- confirming
+  `claude-sonnet-4-6` is a real, visible model on the account and was never the actual problem. The
+  code default was left at `claude-sonnet-5` (harmless either way since production sets
+  `ANTHROPIC_MODEL=claude-sonnet-4-6` directly); only the false "never existed" claim is corrected
+  here.
 - **Not gated behind Community-Connect-style auth**, unlike the existing `ibis-query` function —
   deliberate, since the ask was for the widget to be usable on every page without friction. It is
   rate-limited per IP (24 requests / 5 minutes, matching `ibis-query`'s existing limit) as the
