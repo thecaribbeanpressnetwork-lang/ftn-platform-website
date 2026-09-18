@@ -49,10 +49,34 @@ const OTHER_FTN_ENTITY_MARKERS =
 // brand keywords.
 export const FTN_DISAMBIGUATION_SUFFIX = "FTN Platform Caribbean civic technology ftnplatform.org, Face The Nation Caribbean platform";
 
+// Live-caught (2026-09-18, FTN consolidation live test matrix, item 20's own query #11): "Show me
+// Parliament records about the latest bill" returned UK Parliament (bills.parliament.uk) results
+// -- the exact same class of bug as the FTN/fantasy-football collision above, just for a generic
+// civic noun instead of a brand acronym. FTN's own Parliament/Govern products are specifically
+// about Trinidad and Tobago; a bare "Parliament"/"the House"/"sitting" query with no country named
+// is exactly the case FTN should default toward its own region for, per the same "prefer this
+// platform's own context unless the user clearly means another entity" principle -- generalized
+// from "FTN" the brand to "Parliament" the civic institution, since both are the identical failure
+// shape (a generic search index defaulting to whichever jurisdiction it indexes most).
+const CIVIC_TERM_MENTION = /\b(parliament|the house of representatives|hansard|order paper)\b/i;
+// Any of these means the user has ALREADY named a jurisdiction -- civic disambiguation must never
+// override an explicit choice, even one that isn't Trinidad and Tobago.
+const OTHER_JURISDICTION_MARKERS =
+  /\b(uk|united kingdom|britain|british|westminster|england|scotland|wales|us|usa|united states|congress|canada|canadian|jamaica|barbados|guyana|bahamas|belize|grenada|dominica|antigua|st\.? lucia|st\.? vincent|europe|european union|india|australia|new zealand)\b/i;
+const TT_ALREADY_NAMED = /\b(trinidad|tobago|t&t|tt\b)/i;
+const CIVIC_DISAMBIGUATION_SUFFIX = "Trinidad and Tobago Parliament";
+
 // Returns the query string to actually send to the search provider. Returns the input unchanged
 // whenever disambiguation is not needed OR would risk corrupting an unrelated legitimate use.
+// Applies both the FTN-brand and the civic-institution corrections -- independent checks, either
+// or both may fire on the same query.
 export function buildDisambiguatedSearchQuery(text: string): string {
-  if (!FTN_MENTION.test(text)) return text;
-  if (OTHER_FTN_ENTITY_MARKERS.test(text)) return text;
-  return `${text} (${FTN_DISAMBIGUATION_SUFFIX})`;
+  let query = text;
+  if (FTN_MENTION.test(text) && !OTHER_FTN_ENTITY_MARKERS.test(text)) {
+    query = `${query} (${FTN_DISAMBIGUATION_SUFFIX})`;
+  }
+  if (CIVIC_TERM_MENTION.test(text) && !OTHER_JURISDICTION_MARKERS.test(text) && !TT_ALREADY_NAMED.test(text)) {
+    query = `${query} (${CIVIC_DISAMBIGUATION_SUFFIX})`;
+  }
+  return query;
 }
