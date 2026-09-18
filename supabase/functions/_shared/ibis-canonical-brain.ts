@@ -47,6 +47,7 @@ import { buildReasoningSynthesisPacket, buildReasoningSynthesisBlock, type Reaso
 import { detectFxCorrelationInput } from "./ibis-correlation-datasource.ts";
 import { buildDisambiguatedSearchQuery } from "./ibis-ftn-disambiguation.ts";
 import { buildRequestFrame } from "./ibis-request-frame.ts";
+import { buildEvidenceContract } from "./ibis-evidence-contract.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -339,6 +340,11 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     requestId, text, intent, isDeterministicAnswer,
     now: input.now, timezone: input.timezone, timezoneSource: input.timezone ? "CLIENT_PROVIDED" : undefined,
   });
+  // FTN / IBIS Canonical Architecture, Phase 3 (SHADOW MODE ONLY -- see GOVERNANCE/
+  // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). A pure, deterministic
+  // function of `requestFrame` alone -- no capabilityPlan, no search, no I/O. Attached to the
+  // receipt below for observability only; nothing past this line reads or branches on it.
+  const evidenceContract = buildEvidenceContract(requestFrame);
 
   // Slice 1 correction: the execution-authorization decision lives here, server-side, and ONLY
   // here. Slice 3 correction: it ALSO now depends on whether a durable lifecycle store is
@@ -539,7 +545,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       confidence: "UNVERIFIED", confidenceBasis: "Execution deferred to authorized browser-local generation; no server provider was called.",
       status: "OK", degradedStages, handoff, alternatives,
       uncertainties: [...intent.reasons, ...extraUncertainties],
-      contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame,
+      contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract,
     });
   }
 
@@ -605,7 +611,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, searchCacheState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: [...intent.reasons, ...extraUncertainties],
-    contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame,
+    contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract,
   });
 }
 

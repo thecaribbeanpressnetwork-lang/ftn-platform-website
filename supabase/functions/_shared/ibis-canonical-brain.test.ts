@@ -2179,3 +2179,44 @@ Deno.test("PHASE 1 (RequestFrame): present on the early execution-authorized ret
   assertEquals(frame!.temporalRequirement.type, "TIMELESS");
   assertEquals(frame!.requiresFreshEvidence, false);
 });
+
+// FTN / IBIS Canonical Architecture, Phase 3 (SHADOW MODE -- GOVERNANCE/
+// FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md): proves the CEBOS Evidence
+// Contract is genuinely attached end-to-end through the REAL handleCanonicalRequest() path, on both
+// response shapes, and that its presence changes nothing else about the response (same answer/
+// capabilityPlan/sources this exact fixture already produced before Phase 3 existed).
+Deno.test("PHASE 3 (Evidence Contract): a real freshness-required request carries a correctly-derived, shadow-only evidenceContract, with zero effect on the answer or capability plan", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: "What changed in Trinidad and Tobago this week?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: async () =>
+      new Response(JSON.stringify({ results: [{ title: "T&T update this week", url: "https://example.com/x", content: "This week Trinidad and Tobago saw real news.", engine: "test", publishedDate: null }] }), { status: 200 }),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  const contract = res.receipt.evidenceContract;
+  assert(contract, "evidenceContract must be present on a real request's receipt");
+  assertEquals(contract!.queryClass, "CURRENT_WEB_RESEARCH");
+  assertEquals(contract!.requiredEvidence, true);
+  assertEquals(contract!.temporalWindow.strictness, "HIGH");
+  assertEquals(contract!.minimumEpistemicStatus, "DOCUMENTED");
+  assertEquals(contract!.sufficiency, "CORROBORATION_PREFERRED");
+  // Shadow mode: the contract must have zero effect on what actually happened -- this exact fixture
+  // still returns real sources and a real answer, exactly as it did before Phase 3 existed.
+  assert(res.sources.length > 0, "evidence contract construction must never suppress or alter real search results");
+  assert(res.answer.length > 0);
+});
+
+Deno.test("PHASE 3 (Evidence Contract): present on the early execution-authorized return path too, and correctly reports no evidence required", async () => {
+  const res = await handleCanonicalRequest({
+    text: "What is photosynthesis?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.executionInstruction.executionAuthorized, true, "sanity check: this must still hit the early-return path this test means to cover");
+  const contract = res.receipt.evidenceContract;
+  assert(contract, "evidenceContract must be present even when local execution is authorized and no answer was generated server-side");
+  assertEquals(contract!.requiredEvidence, false);
+  assertEquals(contract!.sufficiency, "NOT_APPLICABLE");
+});

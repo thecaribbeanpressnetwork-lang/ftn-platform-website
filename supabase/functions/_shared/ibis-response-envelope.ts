@@ -198,6 +198,13 @@ export type CanonicalReceipt = {
   // `reasoningSynthesis` below uses one: ibis-request-frame.ts would otherwise need to import
   // QueryClass back from this file, which is circular.
   requestFrame: import("./ibis-request-frame.ts").RequestFrame | null;
+  // FTN / IBIS Canonical Architecture, Phase 3 (SHADOW MODE ONLY -- see GOVERNANCE/
+  // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md's Phase 3 scope): the CEBOS
+  // Evidence & Reasoning Contract deterministically derived from this same request's RequestFrame,
+  // exposed here purely for observability. Nothing in production reads or branches on this field --
+  // it does not gate search, does not judge retrieved evidence, and does not touch the answer path.
+  // Same inline type-only import pattern as `requestFrame` above, for the same circular-import reason.
+  evidenceContract: import("./ibis-evidence-contract.ts").EvidenceContract | null;
 };
 
 export type CanonicalResponse = {
@@ -279,6 +286,9 @@ export function buildEnvelope(input: {
   // callers (and any future one that has no RequestFrame to supply) are unaffected; defaults to null
   // in the receipt below, same pattern as searchCacheState.
   requestFrame?: import("./ibis-request-frame.ts").RequestFrame | null;
+  // Phase 3, shadow mode (see CanonicalReceipt.evidenceContract above) -- same optional/default-null
+  // pattern.
+  evidenceContract?: import("./ibis-evidence-contract.ts").EvidenceContract | null;
 }): CanonicalResponse {
   const respondedAt = new Date().toISOString();
   return {
@@ -320,6 +330,7 @@ export function buildEnvelope(input: {
       startedAt: input.startedAt,
       respondedAt,
       requestFrame: input.requestFrame ?? null,
+      evidenceContract: input.evidenceContract ?? null,
     },
     generatedAt: respondedAt,
   };
