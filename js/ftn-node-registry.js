@@ -65,6 +65,7 @@
 
   function deriveNode(product) {
     var isExcluded = IBIS_EXCLUDED_NODES.indexOf(product.id) !== -1;
+    var isAbsorbed = !!product.absorbedInto;
     var isPrivate = product.visibility === 'PRIVATE' || product.visibility === 'VAULTED' || product.publicVisibility === false;
     var isBrain = product.id === 'ibis-ai';
     return {
@@ -75,19 +76,20 @@
       visibility: product.visibility || 'PUBLIC',
       productType: product.productType || 'product',
       parentProduct: product.parentProduct || null,
-      IBISRole: isExcluded ? 'EXCLUDED_SEPARATE_APPLICATION' : isBrain ? 'BRAIN' : isPrivate ? 'PRIVATE_NOT_ROUTABLE' : 'CONSUMER',
+      IBISRole: isExcluded ? 'EXCLUDED_SEPARATE_APPLICATION' : isBrain ? 'BRAIN' : isAbsorbed ? 'ABSORBED_CAPABILITY' : isPrivate ? 'PRIVATE_NOT_ROUTABLE' : 'CONSUMER',
       // Explicit scope exclusion (Community Connect) always wins over what visibility/status
       // would otherwise allow -- it's a real, public, AVAILABLE product on THIS site, but its
       // actual application is a separate codebase IBIS must never route into or call.
-      canIbisRouteInto: !isExcluded && !isPrivate && product.status !== 'VAULTED' && !!product.route,
-      canCallIbisCapabilities: !isExcluded && !isPrivate,
+      canIbisRouteInto: !isExcluded && !isAbsorbed && !isPrivate && product.status !== 'VAULTED' && !!product.route,
+      canCallIbisCapabilities: !isExcluded && !isAbsorbed && !isPrivate,
       primaryCapabilities: isExcluded ? [] : (product.capabilities || []).slice(),
       dataDependencies: (product.dataSources || []).slice(),
       permissions: (product.accessRules || []).slice(),
       inputTypes: isExcluded ? [] : inferInputTypes(product),
       outputTypes: isExcluded ? [] : inferOutputTypes(product),
       projectDependencies: (product.relatedProducts || []).slice(),
-      excludedReason: isExcluded ? 'Separate application (own repository, own APK build) -- explicit IBIS scope boundary, not an IBIS-orchestrated FTN web node. This site only links out to it.' : null,
+      absorbedInto: product.absorbedInto || null,
+      excludedReason: isExcluded ? 'Separate application (own repository, own APK build) -- explicit IBIS scope boundary, not an IBIS-orchestrated FTN web node. This site only links out to it.' : isAbsorbed ? 'Standalone product identity retired; capability preserved under ' + product.absorbedInto + '.' : null,
     };
   }
 
