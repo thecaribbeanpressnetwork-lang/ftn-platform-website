@@ -264,26 +264,26 @@
       return vals;
     }
 
+    // FTN Consolidation closure wave (2026-09-18): the weighted-scoring math moved to
+    // js/ibis-scenario-engine.js (headless), so ibis's SCENARIO_ANALYSIS/SCENARIO_COMPARE
+    // capability runs the exact same formula this page does. Zero behavior change here.
+    var ScenarioEngine = global.FTN.ScenarioEngine;
     function recompute() {
       var vals = currentValues();
       MC.scenarioVariables.forEach(function (v) {
         $('#sv-' + v.id + '-value').textContent = vals[v.id] + v.unit;
       });
 
-      outputMount.innerHTML = MC.scenarioOutcomes.map(function (outcome) {
-        var score = 0;
-        Object.keys(outcome.weights).forEach(function (varId) {
-          score += (vals[varId] || 0) * outcome.weights[varId];
-        });
-        score = Math.round(score * 10) / 10;
-        var direction = score > 0.5 ? 'up' : score < -0.5 ? 'down' : 'flat';
-        var glyph = Charts.trendGlyph(direction);
-        var goodOrBad = /Risk|Cost|Pressure/.test(outcome.title) ? (direction === 'down' ? 'positive' : direction === 'up' ? 'negative' : 'neutral')
-          : (direction === 'up' ? 'positive' : direction === 'down' ? 'negative' : 'neutral');
+      var scored = ScenarioEngine.scoreOutcomes(vals, MC.scenarioOutcomes);
+      outputMount.innerHTML = scored.map(function (result) {
+        var outcome = MC.scenarioOutcomes.filter(function (o) { return o.id === result.id; })[0];
+        var glyph = Charts.trendGlyph(result.direction);
+        var goodOrBad = /Risk|Cost|Pressure/.test(outcome.title) ? (result.direction === 'down' ? 'positive' : result.direction === 'up' ? 'negative' : 'neutral')
+          : (result.direction === 'up' ? 'positive' : result.direction === 'down' ? 'negative' : 'neutral');
         return (
           '<div class="scenario-output scenario-output--' + goodOrBad + '">' +
             '<p class="scenario-output__title">' + outcome.title + '</p>' +
-            '<p class="scenario-output__value">' + glyph + ' ' + (score > 0 ? '+' : '') + score + '%</p>' +
+            '<p class="scenario-output__value">' + glyph + ' ' + (result.score > 0 ? '+' : '') + result.score + '%</p>' +
           '</div>'
         );
       }).join('');

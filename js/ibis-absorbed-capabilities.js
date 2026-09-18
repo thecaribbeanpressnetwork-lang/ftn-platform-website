@@ -22,6 +22,12 @@
   var MUSIC_GENERATION_RE = /\b(make|create|generate|produce|build|write)\b(?:(?!\b(?:epk|press kit)\b).)*\b(instrumental|riddim|beat|beats|backing track)\b/i;
   var AUDIO_PROCESSING_RE = /\b(clean up|clean|improve|process|remix|fix|master|enhance|clearer|export)\b(?:(?!\b(?:epk|press kit|instrumental)\b).)*\b(audio|mix|song|track|vocal|vocals|wav|recording)\b/i;
   var EPK_RE = /\b(epk|press kit|electronic press kit)\b/i;
+  var SCENARIO_RE = /\b(compare|weigh up)\b.*\b(strateg(?:y|ies)|options?|approaches?|scenarios?)\b|\bscenario\s+comparison\b|\bhow\s+(?:do|does|would)\s+these\s+assumptions?\s+change\b|\bhow\s+these\s+assumptions?\s+change\b/i;
+  // FTN Learn absorption: AI tutoring ("teach me...") stays fully conversational and reaches the
+  // existing canonical/serverAI path unchanged -- ONLY a genuine discovery request ("find a
+  // course/training/workshop/programme") is intercepted here, since that is the one piece with
+  // real, honestly-labelled data (js/learn-data.js) behind it. "Teach me X" never matches this.
+  var COURSE_DISCOVERY_RE = /\b(find|looking for|is there)\b.*\b(course|training|workshop|class(?:es)?|programme|program|apprenticeship|certification)\b/i;
   // "Where is FTN DAW?" / "What happened to FTN Fire?" / "Where did Kaiso go?" -- must be checked
   // BEFORE any discovery trigger (a bare product-name query like "Where is Kaiso?" would otherwise
   // be swallowed by ibis-ai-workspace.js's media-discovery keyword match on "kaiso"). Answers
@@ -167,9 +173,107 @@
     return true;
   }
 
+  // --- SCENARIO_ANALYSIS / SCENARIO_COMPARE ---------------------------------------------------
+  // Extracted from Scenario Workspace's own Scenario Studio weighted-scoring formula (see
+  // js/ibis-scenario-engine.js's header). Deliberately NOT a reimplementation of ibis's
+  // server-side EBR/Butterfly/Prediction causal reasoning -- this is a simpler, complementary,
+  // explicitly-illustrative multi-criteria comparison tool: no live evidence retrieval, no causal
+  // claim, just a transparent weighted sum a user can see and adjust.
+  var SCENARIO_CRITERIA = [
+    { id: 'impact', label: 'Potential impact', hint: 'How much this could move the outcome you care about' },
+    { id: 'speed', label: 'Speed to launch', hint: 'How quickly this could realistically start' },
+    { id: 'cost', label: 'Cost / resource burden', hint: 'Higher = more expensive or resource-heavy' },
+    { id: 'risk', label: 'Risk / uncertainty', hint: 'Higher = more likely to fail or backfire' },
+  ];
+  function scenarioRowHTML(n) {
+    return '<fieldset class="ibis-scenario-option"><legend>Option ' + n + '</legend>' +
+      '<div class="workspace-field"><label>Name</label><input name="opt' + n + '-name" placeholder="Option ' + n + '"></div>' +
+      SCENARIO_CRITERIA.map(function (c) { return '<label class="ibis-scenario-slider">' + c.label + ' <input type="range" name="opt' + n + '-' + c.id + '" min="-5" max="5" step="1" value="0"><output></output></label>'; }).join('') +
+      '</fieldset>';
+  }
+  function renderComparison(Engine, form, resultBox, esc, weightsBox) {
+    var options = [1, 2, 3].map(function (n) {
+      var name = form['opt' + n + '-name'].value.trim() || 'Option ' + n;
+      var criteria = {};
+      SCENARIO_CRITERIA.forEach(function (c) { criteria[c.id] = +form['opt' + n + '-' + c.id].value; });
+      return { name: name, criteria: criteria };
+    }).filter(function (o) { return SCENARIO_CRITERIA.some(function (c) { return o.criteria[c.id] !== 0; }); });
+    if (options.length < 2) { resultBox.innerHTML = '<p>Set at least two options\' sliders away from zero to compare them.</p>'; return null; }
+    // Bug fix (live-caught, 2026-09-18): weight sliders live in the sibling `.ibis-scenario-weights`
+    // box, NOT inside `form` -- form['weight-'+c.id] was always undefined, so every weight
+    // silently defaulted to 1 regardless of what the user actually set. Looked up from
+    // `weightsBox` explicitly now; live-verified the ranking genuinely changes when a weight moves.
+    var weights = {};
+    SCENARIO_CRITERIA.forEach(function (c) { var el = weightsBox.querySelector('[name="weight-' + c.id + '"]'); weights[c.id] = el ? +el.value : 1; });
+    var result = Engine.compareOptions(options, weights);
+    resultBox.innerHTML = '<p class="workspace-muted">Illustrative weighted-sum scoring -- not a calibrated business or economic model. Each option\'s total is the sum of its criteria x your weights below; adjust a weight to see how the ranking changes.</p>' +
+      result.ranked.map(function (r, i) {
+        return '<div class="ibis-scenario-result' + (i === 0 ? ' ibis-scenario-result--top' : '') + '"><strong>' + (i + 1) + '. ' + esc(r.name) + '</strong> — total ' + (r.total > 0 ? '+' : '') + r.total +
+          '<div class="workspace-muted">' + result.criteria.map(function (c) { var meta = SCENARIO_CRITERIA.filter(function (x) { return x.id === c; })[0]; return esc(meta ? meta.label : c) + ': ' + (r.contributions[c] > 0 ? '+' : '') + r.contributions[c]; }).join(' · ') + '</div></div>';
+      }).join('');
+    return { options: options, weights: weights, result: result };
+  }
+  async function handleScenarioAnalysis(text, out, helpers) {
+    var esc = helpers.esc;
+    var Engine = await ensureEngine('ScenarioEngine', '/js/ibis-scenario-engine.js', helpers);
+    out.innerHTML = '<span class="workspace-kicker">SCENARIO_ANALYSIS · illustrative weighted comparison</span>' +
+      '<p>Set at least two options below (name + how they compare on each criterion, -5 to +5) and compare them. This is a transparent scoring tool, not a live AI judgement.</p>' +
+      '<form class="ibis-scenario-form">' + [1, 2, 3].map(scenarioRowHTML).join('') +
+      '<button type="submit" class="btn btn-primary">Compare options</button></form>' +
+      '<div class="ibis-scenario-weights"><span class="workspace-kicker">Adjust weights (optional)</span>' +
+      SCENARIO_CRITERIA.map(function (c) { return '<label class="ibis-scenario-slider">' + c.label + ' <input type="range" name="weight-' + c.id + '" min="0" max="3" step="0.5" value="1"><output></output></label>'; }).join('') +
+      '</div><div class="ibis-scenario-output"></div>';
+    var form = out.querySelector('.ibis-scenario-form'), resultBox = out.querySelector('.ibis-scenario-output'), weightsBox = out.querySelector('.ibis-scenario-weights');
+    var lastComparison = null;
+    out.querySelectorAll('input[type=range]').forEach(function (input) {
+      var updateOutput = function () { input.nextElementSibling.textContent = input.value; };
+      updateOutput(); input.addEventListener('input', updateOutput);
+    });
+    form.addEventListener('submit', function (e) { e.preventDefault(); lastComparison = renderComparison(Engine, form, resultBox, esc, weightsBox); if (lastComparison) attachExport(); });
+    weightsBox.querySelectorAll('input[type=range]').forEach(function (input) {
+      input.addEventListener('change', function () { if (lastComparison) { lastComparison = renderComparison(Engine, form, resultBox, esc, weightsBox); attachExport(); } });
+    });
+    function attachExport() {
+      if (resultBox.querySelector('.ibis-scenario-export')) return;
+      var link = document.createElement('a'); link.className = 'btn btn-outline ibis-scenario-export'; link.textContent = 'Export comparison (JSON)';
+      link.href = URL.createObjectURL(new Blob([Engine.toPortableJSON(lastComparison)], { type: 'application/json' }));
+      link.download = 'ibis-scenario-comparison.json';
+      resultBox.appendChild(link);
+    }
+  }
+
+  // --- COURSE_DISCOVERY / TRAINING_DISCOVERY --------------------------------------------------
+  async function handleCourseDiscovery(text, out, helpers) {
+    var esc = helpers.esc;
+    if (!global.FTN || !global.FTN.LearnData) await helpers.loadScript('/js/learn-data.js');
+    var Discovery = await ensureEngine('LearnDiscovery', '/js/ftn-learn-discovery.js', helpers);
+    var results = Discovery.search(text);
+    var total = results.listings.length + results.providers.length;
+    if (!total) {
+      out.innerHTML = '<span class="workspace-kicker">COURSE_DISCOVERY</span><p>Nothing in FTN\'s own (small, honestly-labelled) training dataset matched that. <a href="/learn/">Browse FTN Learn directly</a> -- it may have provider categories this search missed.</p>';
+      return;
+    }
+    var html = '<span class="workspace-kicker">COURSE_DISCOVERY · real FTN Learn data</span>';
+    if (results.listings.length) {
+      html += '<p><strong>Specific listings:</strong></p>' + results.listings.map(function (l) {
+        return '<div class="ibis-learn-result"><strong>' + esc(l.title) + '</strong> — ' + esc(l.provider) + (l.community ? ' · ' + esc(l.community) : '') +
+          '<div class="workspace-muted">' + esc(l.summary || '') + ' <em>Status: ' + esc(l.status) + '</em>' + (l.sourceUrl ? ' — <a href="' + esc(l.sourceUrl) + '" target="_blank" rel="noopener">source</a>' : '') + '</div></div>';
+      }).join('');
+    }
+    if (results.providers.length) {
+      html += '<p><strong>Real institutions worth checking directly:</strong></p>' + results.providers.map(function (p) {
+        return '<div class="ibis-learn-result"><a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.name) + '</a><div class="workspace-muted">' + esc(p.description) + '</div></div>';
+      }).join('');
+    }
+    html += '<p class="workspace-muted">FTN indexes providers, not their live course catalogues -- verify current offerings and pricing directly with the institution. <a href="/learn/">Open the full FTN Learn workspace</a> for more categories.</p>';
+    out.innerHTML = html;
+  }
+
   async function detectAndHandle(text, out, helpers) {
     if (handleWhereDid(text, out, helpers)) return true;
     if (EPK_RE.test(text)) { await handleEpkGeneration(text, out, helpers); return true; }
+    if (SCENARIO_RE.test(text)) { await handleScenarioAnalysis(text, out, helpers); return true; }
+    if (COURSE_DISCOVERY_RE.test(text)) { await handleCourseDiscovery(text, out, helpers); return true; }
     if (MUSIC_GENERATION_RE.test(text)) { await handleMusicGeneration(text, out, helpers); return true; }
     if (AUDIO_PROCESSING_RE.test(text)) { await handleAudioProcessing(text, out, helpers); return true; }
     return false;

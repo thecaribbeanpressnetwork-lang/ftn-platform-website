@@ -100,8 +100,9 @@ product({
   primaryUser:'Public-interest teams, researchers and institutional evaluators',primaryJourney:'Explore supplied evidence, run a calculation and export a clearly labelled scenario brief.',
   callsToAction:[{label:'Open Scenario Workspace',route:'/scenario-workspace/'}],visualMnemonic:'Evidence radar',panelAsset:'/assets/panels/02-mission-control.png',panelRow:1,accent:'var(--color-mission-control)',atmosphere:{accent:'var(--color-mission-control)',background:'dark-grid',motionProfile:'radar-sweep',heroStyle:'operations-center'},
   dataSources:['labelled illustrative dataset'],accessRules:['guest scenario workspace'],featureFlags:['scenario-workspace'],relatedProducts:['ibis-ai','parliament','events','opportunities','facethenation'],
-  purposeStatement:'Its calculators/comparison/evidence-view logic overlaps ibis\'s own EBR, Butterfly, Correlation and Prediction reasoning engines -- a capability of ibis, not a second, parallel evidence/scenario product.',
-  legalNotices:['Illustrative data notice','No institutional endorsement'],keywords:['scenario','analytics','decisions','evidence','correlation'],capabilities:['calculated-change-analysis','calculated-correlation','scenario-exploration','evidence-explorer','relationship-graph']
+  purposeStatement:'Its weighted-scoring comparison formula is now a shared, headless engine (js/ibis-scenario-engine.js) ibis calls directly for SCENARIO_ANALYSIS/SCENARIO_COMPARE -- an explicitly-illustrative, transparent multi-criteria tool, deliberately distinct from ibis\'s own evidence-bounded EBR/Butterfly/Prediction reasoning, not a duplicate of it.',
+  legalNotices:['Illustrative data notice','No institutional endorsement'],keywords:['scenario','analytics','decisions','evidence','correlation','compare','strategy','strategies','options','assumptions'],capabilities:['calculated-change-analysis','calculated-correlation','scenario-exploration','evidence-explorer','relationship-graph'],
+  ownerModules:['scenario-workspace/index.html','js/mission-control-demo.js','js/ibis-scenario-engine.js']
 }),
 product({
   id:'govern',name:'FTN Govern',shortName:'Govern',tagline:'Find the official path. Follow the public record.',
@@ -130,7 +131,7 @@ product({
   // remains its own specialized direct-manipulation interface (real-time dual-deck performance is
   // not a chat capability); ibis hands off to it rather than reimplementing it.
   integrations:[{productId:'ftn-fire',kind:'absorbed'},{productId:'daw',kind:'absorbed'},{productId:'epk',kind:'absorbed'},{productId:'scenario-workspace',kind:'absorbed'},{productId:'learn',kind:'absorbed'},{productId:'riddim',kind:'absorbed'},{productId:'dj-tube',kind:'hands-off-to'}],
-  ownerModules:['ibis-ai/index.html','js/ibis-ai-workspace.js','js/ibis-caribbean-music-engine.js','js/ftn-audio-dsp-engine.js','js/ftn-epk-schema.js','js/ibis-absorbed-capabilities.js'],
+  ownerModules:['ibis-ai/index.html','js/ibis-ai-workspace.js','js/ibis-caribbean-music-engine.js','js/ftn-audio-dsp-engine.js','js/ftn-epk-schema.js','js/ibis-scenario-engine.js','js/ftn-learn-discovery.js','js/ibis-absorbed-capabilities.js'],
   navPlacement:{primary:true,ecosystemGroup:'information-intelligence',footer:true},
   // Phase 3 service-worker route-policy consolidation: 'mixed' -- guest-usable deterministic tools
   // plus authenticated server AI with private conversation content (see legalNotices above) that
@@ -242,8 +243,9 @@ product({
   primaryUser:'Anyone looking for a course, workshop, apprenticeship or exam help',primaryJourney:'Choose FTN Skills or FTN School, search or filter, then contact or visit the real provider.',
   callsToAction:[{label:'Open FTN Learn',route:'/learn/'}],visualMnemonic:'Open learning path',accent:'var(--color-opportunities)',atmosphere:{accent:'var(--color-opportunities)',background:'dark-growth',motionProfile:'none',heroStyle:'momentum'},
   dataSources:['FTN Learn source function','provider-supplied and publicly discovered listings'],accessRules:['guest discovery'],featureFlags:['learn-fork','learn-search'],relatedProducts:['ibis-ai','opportunities'],legalNotices:['No accreditation by FTN','Verify current availability with the provider'],
-  purposeStatement:'AI tutoring/explanation/study guidance belongs in ibis; the real FTN Skills/FTN School provider-discovery listing function is preserved and stays queryable through ibis, not deleted.',
-  keywords:['learn','course','training','workshop','apprenticeship','certification','scholarship','tutor','SEA','CSEC','CAPE','electrician','plumbing','welding','coding','school'],capabilities:['skills-school-fork','learn-search','provider-directory','opportunities-crosslink']
+  purposeStatement:'AI tutoring/explanation/study guidance is a conversational ibis capability. The real provider/listing dataset (js/learn-data.js -- one dated listing plus four real Trinidad and Tobago training institutions, honestly labelled UNVERIFIED where FTN has not itself confirmed a detail) is preserved unduplicated and queried directly by ibis\'s COURSE_DISCOVERY capability (js/ftn-learn-discovery.js) -- never deleted, never re-typed.',
+  keywords:['learn','course','training','workshop','apprenticeship','certification','scholarship','tutor','SEA','CSEC','CAPE','electrician','plumbing','welding','coding','school'],capabilities:['skills-school-fork','learn-search','provider-directory','opportunities-crosslink'],
+  ownerModules:['learn/index.html','js/learn-data.js','js/learn-workspace.js','js/ftn-learn-discovery.js']
 }),
 product({
   id:'radio',name:'FTN Radio',shortName:'Radio',tagline:'The Soundtrack of the Caribbean.',
