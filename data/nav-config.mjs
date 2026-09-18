@@ -28,13 +28,13 @@
 export const PRIMARY_NAV = [
   { registry: 'platform-home' },
   { registry: 'community-connect' },
+  { registry: 'ibis-ai' },
   { registry: 'ftn-live' },
-  { registry: 'parliament' },
-  { registry: 'tv' },
-  { registry: 'kaiso' },
-  { registry: 'riddim' },
+  { registry: 'govern' },
+  { registry: 'screen' },
+  { registry: 'opportunities' },
   { registry: 'invest' },
-  { label: 'FTN Directory', href: '/applications/', description: 'Browse every public FTN product and go directly to its workspace' },
+  { label: 'FTN Directory', href: '/applications/', description: 'Browse FTN products and capabilities' },
   { label: 'About FTN', href: '/about/', description: 'Who FTN is and how the platform works' },
   { label: 'Contact', href: '/contact/', description: 'Reach the FTN team' },
-];
+]
