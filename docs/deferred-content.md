@@ -7,10 +7,14 @@
   its normal graceful-error bubble — this is the same fail-closed pattern every other paid/AI
   function in this repo already uses (see `FTN_CREATIVE_GENERATION_ENABLED`,
   `FTN_FIRE_GENERATION_ENABLED`), not a bug.
-- **Model id needs confirming.** The founder brief specified `claude-sonnet-4-6` as the model.
-  I don't have a way to verify that id is currently valid on the Anthropic API from here — it's
-  wired as an env-overridable default (`ANTHROPIC_MODEL`) specifically so it can be corrected
-  without a code change if it turns out to be wrong.
+- **Model id resolved (2026-09-18, Quality Pass).** `claude-sonnet-4-6` was never a real Anthropic
+  model id -- Anthropic has shipped 4, 4.1, 4.5 and 5, never a "4-6" -- and live-testing during the
+  Wave 1 quality benchmark caught it in production: every Claude Web Search call was failing with
+  a silent HTTP 400, and the plain-text `anthropic()` fallback provider was equally broken (masked
+  by Cloudflare answering first in the chain). Corrected the hardcoded default to `claude-sonnet-5`
+  in `ibis-claude-search-adapter.ts`, `ibis-assistant/index.ts`, `ibis-browser-context/index.ts`
+  and `ibis-provider-health-preview/index.ts`. Still env-overridable via `ANTHROPIC_MODEL` if a
+  different model is ever wanted.
 - **Not gated behind Community-Connect-style auth**, unlike the existing `ibis-query` function —
   deliberate, since the ask was for the widget to be usable on every page without friction. It is
   rate-limited per IP (24 requests / 5 minutes, matching `ibis-query`'s existing limit) as the

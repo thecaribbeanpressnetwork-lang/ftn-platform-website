@@ -131,7 +131,9 @@ function cloudflare(turns: IbisTurn[], system: string): GatewayProvider {
 
 function anthropic(turns: IbisTurn[], system: string): GatewayProvider {
   const key = Deno.env.get("ANTHROPIC_API_KEY") || "";
-  const model = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-4-6";
+  // FTN Quality Pass (2026-09-18): "claude-sonnet-4-6" is not a real Anthropic model id -- see
+  // ibis-claude-search-adapter.ts's matching fix and docs/deferred-content.md for the live evidence.
+  const model = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5";
   return { id: "anthropic", label: "Anthropic", model, configured: !!key, run: async (timeoutMs) => {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

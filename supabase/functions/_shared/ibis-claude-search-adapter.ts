@@ -88,7 +88,11 @@ export type ClaudeWebSearchOptions = {
 export async function claudeWebSearch(query: string, options: ClaudeWebSearchOptions = {}): Promise<SearchResult> {
   const apiKey = options.apiKey ?? Deno.env.get("ANTHROPIC_API_KEY") ?? "";
   if (!apiKey) return unavailable(query, "No ANTHROPIC_API_KEY is configured -- Claude Web Search has no credential to use.");
-  const model = options.model ?? Deno.env.get("ANTHROPIC_MODEL") ?? "claude-sonnet-4-6";
+  // FTN Quality Pass (2026-09-18): "claude-sonnet-4-6" is not a real Anthropic model ID (Anthropic
+  // has shipped 4, 4.1, 4.5 and 5 -- never a "4-6") -- live-caught via the Wave 1 quality benchmark
+  // as the exact cause of "Claude Web Search responded HTTP 400" on every single call, which meant
+  // the whole search cascade's strongest fallback rung never actually worked, ever, in production.
+  const model = options.model ?? Deno.env.get("ANTHROPIC_MODEL") ?? "claude-sonnet-5";
   const maxUses = Number.isInteger(options.maxUses) && (options.maxUses as number) > 0 ? (options.maxUses as number) : 1;
   const doFetch = options.fetchImpl ?? fetch;
   const retrievedAt = new Date().toISOString();

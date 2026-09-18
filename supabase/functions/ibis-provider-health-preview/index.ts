@@ -26,7 +26,9 @@ async function checkAnthropic() {
     if (!res.ok) return { provider: "Anthropic", state: "UNHEALTHY", httpStatus: res.status };
     const data = await res.json().catch(() => null);
     const ids = Array.isArray(data?.data) ? data.data.map((m: { id?: string }) => m.id).filter(Boolean) : [];
-    const configuredModel = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-4-6";
+    // FTN Quality Pass (2026-09-18): "claude-sonnet-4-6" is not a real Anthropic model id -- see
+    // ibis-claude-search-adapter.ts's matching fix and docs/deferred-content.md for the live evidence.
+    const configuredModel = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5";
     return {
       provider: "Anthropic",
       state: "HEALTHY",

@@ -75,7 +75,12 @@ function cloudflare(turns: IbisTurn[], system: string): GatewayProvider {
 }
 
 function anthropic(turns: IbisTurn[], system: string): GatewayProvider {
-  const key = Deno.env.get("ANTHROPIC_API_KEY") || "", model = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-4-6";
+  // FTN Quality Pass (2026-09-18): "claude-sonnet-4-6" was never a real Anthropic model ID -- see
+  // ibis-claude-search-adapter.ts's matching fix for the live evidence (every Claude Web Search
+  // call failing with HTTP 400). This provider likely masked the same bad default behind
+  // Cloudflare succeeding first in the fallback chain, but a real, working Anthropic rung matters
+  // for resilience when Cloudflare itself is degraded.
+  const key = Deno.env.get("ANTHROPIC_API_KEY") || "", model = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5";
   return { id: "anthropic", label: "Anthropic", model, configured: !!key, run: async (timeoutMs) => {
     const response = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" }, body: JSON.stringify({ model, max_tokens: 600, system, messages: turns }), signal: timeoutSignal(timeoutMs) });
     const data = await response.json().catch(() => ({}));
