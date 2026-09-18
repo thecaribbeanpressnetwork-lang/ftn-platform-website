@@ -18,11 +18,11 @@ Deno.test("DISAMBIGUATION: a query naming a different well-known FTN entity is n
   assertEquals(buildDisambiguatedSearchQuery(q), q, "a fantasy-football FTN query must pass through completely unmodified");
 });
 
-Deno.test("DISAMBIGUATION: a query that already names the platform unambiguously is left alone", () => {
-  const q = "What is Face The Nation's next release?";
-  assertEquals(buildDisambiguatedSearchQuery(q), q, "already-unambiguous phrasing needs no expansion");
-  const q2 = "FTN Platform roadmap for Q4";
-  assertEquals(buildDisambiguatedSearchQuery(q2), q2);
+Deno.test("DISAMBIGUATION: even phrasing that already says 'FTN Platform' still gets the suffix (live-verified: a bare 'FTN Platform' query still surfaced FTN Fantasy results)", () => {
+  const q = "FTN Platform roadmap for Q4";
+  const out = buildDisambiguatedSearchQuery(q);
+  assertMatch(out, /FTN Platform roadmap for Q4/);
+  assertMatch(out, /Face The Nation/i);
 });
 
 Deno.test("DISAMBIGUATION: a query with no 'FTN' mention at all is never touched", () => {

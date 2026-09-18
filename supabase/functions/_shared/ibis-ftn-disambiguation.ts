@@ -27,10 +27,18 @@ const FTN_MENTION = /\bftn\b/i;
 const OTHER_FTN_ENTITY_MARKERS =
   /\b(fantasy football|fantasy sports|dfs|daily fantasy|sportsbook|nfl picks|nfl draft|start[- ]sit|waiver wire|betting picks|prop bets|fiber[- ]to[- ]the[- ]node)\b/i;
 
-// If the query already names the platform unambiguously, a search engine needs no more help --
-// appending anyway would just be redundant noise on every already-clear query.
-const ALREADY_UNAMBIGUOUS = /\b(face the nation|ftn platform|ftnplatform)\b/i;
-
+// Live-verified correction: an earlier version of this function also skipped expansion whenever
+// the query already said "FTN Platform" or "Face The Nation", on the assumption a search engine
+// would already understand the phrase. Live production testing (item 8's adversarial matrix,
+// query A: "the top three highest-leverage actions FTN Platform should take this month") proved
+// that assumption wrong -- SearXNG/DuckDuckGo still surfaced ftnfantasy.com results alongside the
+// real ftnplatform.org one, and the model's own answer described "FTN Platform" as a fantasy-
+// sports product. "FTN Platform" as a bare phrase is not enough real-world disambiguation for a
+// generic index that has never heard of this specific brand -- so this now always expands
+// whenever "FTN" is mentioned and no OTHER-entity marker fired, with no shortcut for phrasing that
+// merely sounds unambiguous to a human reader. Appending the suffix to an already-explicit query
+// is harmless (it only adds more of the same disambiguating context), so there is no cost to
+// always including it.
 export const FTN_DISAMBIGUATION_SUFFIX = "FTN Platform Caribbean civic technology, Face The Nation Caribbean platform";
 
 // Returns the query string to actually send to the search provider. Returns the input unchanged
@@ -38,6 +46,5 @@ export const FTN_DISAMBIGUATION_SUFFIX = "FTN Platform Caribbean civic technolog
 export function buildDisambiguatedSearchQuery(text: string): string {
   if (!FTN_MENTION.test(text)) return text;
   if (OTHER_FTN_ENTITY_MARKERS.test(text)) return text;
-  if (ALREADY_UNAMBIGUOUS.test(text)) return text;
   return `${text} (${FTN_DISAMBIGUATION_SUFFIX})`;
 }
