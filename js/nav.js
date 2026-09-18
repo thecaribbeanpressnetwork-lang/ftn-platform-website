@@ -53,13 +53,13 @@
   var PRIMARY_NAV=[
     ['FTN Platform','/','The Caribbean Operating System.'],
     ['FTN Community Connect','/community-connect/','Connect. Report. Improve.'],
+    ['FTN ibis','/ibis-ai/','Caribbean intelligence, intent and execution.'],
     ['FTN Live','/observatory/','What is happening in Trinidad and Tobago, right now and in depth.'],
-    ['FTN Parliament','/parliament/','Public records. Clear sources. Civic context.'],
-    ['FTN TV','/tv/','Caribbean Television, Programmed with Purpose.'],
-    ['FTN Kaiso','/kaiso/','Caribbean reporting with the source in view.'],
-    ['FTN Riddim','/riddim/','Powering Caribbean Music.'],
+    ['FTN Govern','/govern/','Find the official path. Follow the public record.'],
+    ['FTN Screen','/screen/','Where Caribbean Stories Come Alive.'],
+    ['FTN Opportunities','/opportunities/','Search. Identify. Predict. Execute.'],
     ['FTN Invest-in','/invest/','Partner with Caribbean-owned digital infrastructure.'],
-    ['FTN Directory','/applications/','Browse every public FTN product and go directly to its workspace'],
+    ['FTN Directory','/applications/','Browse FTN products and capabilities'],
     ['About FTN','/about/','Who FTN is and how the platform works'],
     ['Contact','/contact/','Reach the FTN team']
   ];
