@@ -39,7 +39,15 @@ const OTHER_FTN_ENTITY_MARKERS =
 // merely sounds unambiguous to a human reader. Appending the suffix to an already-explicit query
 // is harmless (it only adds more of the same disambiguating context), so there is no cost to
 // always including it.
-export const FTN_DISAMBIGUATION_SUFFIX = "FTN Platform Caribbean civic technology, Face The Nation Caribbean platform";
+// Live-verified correction #2: even with the suffix above always applied, production still
+// returned results from OTHER real "FTN"-branded businesses (ftnfantasy.com, and an unrelated
+// "The FTN Platform" author-promotions site) alongside the correct ftnplatform.org pages, and the
+// model's synthesis merged all of them into one hallucinated conglomerate. Adding the literal known
+// domain (ftnplatform.org) is a much stronger disambiguation signal than a prose description alone
+// -- keyword-matching search engines rank an exact domain-string match highly, which a generic
+// phrase like "Caribbean civic technology" cannot compete with against another site's own on-page
+// brand keywords.
+export const FTN_DISAMBIGUATION_SUFFIX = "FTN Platform Caribbean civic technology ftnplatform.org, Face The Nation Caribbean platform";
 
 // Returns the query string to actually send to the search provider. Returns the input unchanged
 // whenever disambiguation is not needed OR would risk corrupting an unrelated legitimate use.
