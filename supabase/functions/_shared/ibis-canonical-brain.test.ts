@@ -143,6 +143,36 @@ Deno.test("outcome question classifies FOUNDER_STRATEGY, genuinely executes Foun
   assertEquals(predictionMode!.executed, false);
 });
 
+// FTN Quality Pass (2026-09-18), Wave 3 calibration: the Wave 1 benchmark found three genuinely
+// strategic-judgment questions that matched no OUTCOME_MARKERS pattern at all and reached
+// FOUNDER_STRATEGY's reasoning engines zero times -- classified as plain SIMPLE_TEXT instead, the
+// exact "failing to fire where useful" gap Wave 3 asks to find, for phrasing indistinguishable in
+// kind from the "what could go wrong" paraphrase already recognized above.
+Deno.test("FTN Quality Pass: \"who influences this ecosystem\" plans ECOMAP_RELATIONSHIP", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Who influences the Caribbean civic-tech funding ecosystem?",
+    providers: [fakeProvider("test", "answer")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(res.capabilityPlan.some((p) => p.capability === "ECOMAP_RELATIONSHIP"), '"who influences..." must plan ECOMAP_RELATIONSHIP');
+});
+
+Deno.test("FTN Quality Pass: highest-leverage/what-should-do-next/compare-strategies phrasings classify FOUNDER_STRATEGY", async () => {
+  const queries = [
+    "I have TT$10,000. What is the highest-leverage way to test a small Trinidad food delivery business?",
+    "What should a Trinidad-based solo founder do next after their first ten paying customers?",
+    "Compare three possible strategies for launching a Caribbean civic-tech service.",
+  ];
+  for (const text of queries) {
+    const res = await handleCanonicalRequest({
+      text,
+      providers: [fakeProvider("test", "Decision: EXPERIMENT")],
+      lifecycleStore: createInMemoryLifecycleStore(),
+    });
+    assertEquals(res.queryClass, "FOUNDER_STRATEGY", `"${text}" must classify FOUNDER_STRATEGY`);
+  }
+});
+
 // --- Gate: Context Graph genuinely executes for an outcome-building question (grounded to the
 // request's own product list -- see ibis-reasoning-engines.ts's runContextGraph()). ---
 Deno.test("outcome question genuinely executes Context Graph, grounded to the request's product list", async () => {

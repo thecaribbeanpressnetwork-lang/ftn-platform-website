@@ -29,7 +29,14 @@ const FRESHNESS_MARKERS = /\b(today|latest|recent(?:ly)?|current(?:ly)?|right no
 // providers?" matched nothing and never planned Founder Thinking/Butterfly/Red Team at all). A risk
 // question is the same kind of strategic-judgment question FOUNDER_STRATEGY already exists for --
 // this is a genuine paraphrase, not a new capability.
-const OUTCOME_MARKERS = /\b(i want to (build|start|launch|create|design|grow)|help me (build|start|launch|create|design)|how do i (build|start|launch|create)|i(?:'m| am) trying to (build|start|launch|create|earn)|i need to (build|achieve|design|change|accomplish)|what could go wrong (?:if|with)|what might go wrong|what are the risks (?:of|with))\b/i;
+// "highest-leverage way to", "what should ... do next" and "compare ... strategies" added (FTN
+// Quality Pass, 2026-09-18 Wave 3 calibration): three genuinely strategic-judgment questions from
+// the Wave 1 benchmark ("I have TT$10,000, what is the highest-leverage way to test a business?",
+// "what should a solo founder do next?", "compare three strategies for launching X") each matched
+// nothing here and reached FOUNDER_STRATEGY's reasoning engines zero times -- the exact "failing
+// to fire where useful" gap Wave 3 asks to find, for a query shape indistinguishable in kind from
+// the "what could go wrong" paraphrase already recognized just above.
+const OUTCOME_MARKERS = /\b(i want to (build|start|launch|create|design|grow)|help me (build|start|launch|create|design)|how do i (build|start|launch|create)|i(?:'m| am) trying to (build|start|launch|create|earn)|i need to (build|achieve|design|change|accomplish)|what could go wrong (?:if|with)|what might go wrong|what are the risks (?:of|with)|(?:highest|most)[- ]leverage way to|what should .{0,40} do next|compare .{0,40} strateg(?:y|ies)|compare .{0,40} (?:options|approaches))\b/i;
 
 const PATHWAY_MARKERS = /\b(steps? to|how do i apply|apply for|eligibility|documents? (?:needed|required)|deadline)\b/i;
 
@@ -101,7 +108,11 @@ const ECOMAP_PATHWAY_SIGNAL_MARKERS = /\b(steps? (?:and|to|needed|required|invol
 // MORE scrutiny here just plans a capability that honestly reports SKIPPED_MISSING_INPUT when it
 // turns out not to be relevant, never a false claim of execution. "who can help" added (semantic-
 // robustness pass, independent audit) as a plain-language paraphrase of "who connects/refers".
-const ECOMAP_RELATIONSHIP_SIGNAL_MARKERS = /\b(relationships?|referrals?|which organi[sz]ations (?:fund|refer|support|help)|who (?:connects|refers|funds|can help)|fund or refer)\b/i;
+// "who influences" added (FTN Quality Pass, 2026-09-18 Wave 1 benchmark): "Who influences the
+// Caribbean civic-tech funding ecosystem?" -- the mission's own example ECOMAP phrasing -- planned
+// zero ECOMAP modes at all before this, the exact "failing to fire where useful" gap Wave 3 asks
+// to find. Same additive-only safety as every other broadening here.
+const ECOMAP_RELATIONSHIP_SIGNAL_MARKERS = /\b(relationships?|referrals?|which organi[sz]ations (?:fund|refer|support|help)|who (?:connects|refers|funds|can help|influences)|fund or refer)\b/i;
 
 // Semantic-robustness pass (independent audit): a direct ask for second-order/downstream/ripple
 // effects should plan BUTTERFLY even without an accompanying "I want to build/start/launch..."
