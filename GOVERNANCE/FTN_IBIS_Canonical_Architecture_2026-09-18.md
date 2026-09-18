@@ -215,13 +215,13 @@ The provider architecture needs **task routing**, not one global provider order.
 | Route                           | Provider/model                                                        | Canonical role                                                                               |
 | -------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
 | **MODEL_TEXT_STANDARD**         | Cloudflare Workers AI — `@cf/meta/llama-3.1-8b-instruct`              | simple synthesis, formatting, explanations, low-complexity grounded answers                  |
-| **MODEL_TEXT_REASONING**        | Anthropic — `claude-sonnet-4-6`                                       | complex synthesis, difficult strategy, cross-evidence reasoning, high-value analytical tasks |
+| **MODEL_TEXT_REASONING**        | Anthropic — configured production model `claude-sonnet-4-6` (via `ANTHROPIC_MODEL`); source-code fallback/default `claude-sonnet-5` if that env var is ever unset | complex synthesis, difficult strategy, cross-evidence reasoning, high-value analytical tasks |
 | **MODEL_TEXT_FALLBACK_1**       | Gemini — currently `gemini-2.5-flash` default in the assistant wiring | text fallback; not search-grounded merely because it is Gemini                               |
 | **MODEL_TEXT_FALLBACK_2**       | configured OpenAI-compatible providers                                | only when configured/healthy and capability truth says appropriate                           |
 | **MODEL_TEXT_LOCAL/FALLBACK**   | Ollama/local model where configured                                   | privacy/local/offline or economical fallback                                                 |
 | **Browser-local simple answer** | existing authorized browser-local execution path                      | SIMPLE_TEXT only under lifecycle authorization; not current research                         |
 
-The current assistant wiring actually creates Cloudflare, Anthropic, Gemini, two OpenAI-compatible providers and Ollama separately. Cloudflare currently uses Llama 3.1 8B, Anthropic reads `ANTHROPIC_MODEL` with `claude-sonnet-4-6` as default, and Gemini is a plain `generateContent` request.
+The current assistant wiring actually creates Cloudflare, Anthropic, Gemini, two OpenAI-compatible providers and Ollama separately. Cloudflare currently uses Llama 3.1 8B. Anthropic's provider code reads `const model = Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5"` — two distinct values that must not be conflated: the **configured production model**, which is `claude-sonnet-4-6` (set via the `ANTHROPIC_MODEL` secret, confirmed live via `ibis-provider-health-preview` returning `configuredModel=claude-sonnet-4-6, configuredModelVisible=true, modelCount=11`), and the **source-code fallback/default**, `claude-sonnet-5`, which only takes effect if that secret is ever unset. Production today runs on the former; this document does not change either value. Gemini is a plain `generateContent` request.
 
 ### Important routing correction
 
@@ -1158,7 +1158,8 @@ SYNTHESIS ROUTER
        Cloudflare/local economical route
     OR
     MODEL_TEXT_REASONING
-       Anthropic claude-sonnet-4-6
+       Anthropic (configured production model claude-sonnet-4-6;
+       source-code default claude-sonnet-5 -- see section 3's model-value note)
     with Gemini/approved provider fallback
     │
     ▼

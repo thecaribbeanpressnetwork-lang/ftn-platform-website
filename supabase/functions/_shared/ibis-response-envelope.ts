@@ -189,6 +189,15 @@ export type CanonicalReceipt = {
   degradedStages: string[];
   startedAt: string;
   respondedAt: string;
+  // FTN / IBIS Canonical Architecture, Phase 1 (additive, non-behavioral -- see
+  // GOVERNANCE/FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md): the RequestFrame
+  // this request was classified into, exposed here purely for observability/debugging so Phase 1's
+  // adapter can be proven correct against real traffic. Nothing in production reads or branches on
+  // this field yet -- execution still runs entirely on intent/capabilityPlan/freshnessRequired as
+  // before. Inline type-only import (not a top-level import) for the same reason
+  // `reasoningSynthesis` below uses one: ibis-request-frame.ts would otherwise need to import
+  // QueryClass back from this file, which is circular.
+  requestFrame: import("./ibis-request-frame.ts").RequestFrame | null;
 };
 
 export type CanonicalResponse = {
@@ -266,6 +275,10 @@ export function buildEnvelope(input: {
   permissions?: CanonicalResponse["permissions"];
   handoff?: CanonicalResponse["handoff"];
   reasoningSynthesis?: CanonicalResponse["reasoningSynthesis"];
+  // Phase 1 (see CanonicalReceipt.requestFrame above) -- optional so this function's existing
+  // callers (and any future one that has no RequestFrame to supply) are unaffected; defaults to null
+  // in the receipt below, same pattern as searchCacheState.
+  requestFrame?: import("./ibis-request-frame.ts").RequestFrame | null;
 }): CanonicalResponse {
   const respondedAt = new Date().toISOString();
   return {
@@ -306,6 +319,7 @@ export function buildEnvelope(input: {
       degradedStages: input.degradedStages || [],
       startedAt: input.startedAt,
       respondedAt,
+      requestFrame: input.requestFrame ?? null,
     },
     generatedAt: respondedAt,
   };

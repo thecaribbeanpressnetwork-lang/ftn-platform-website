@@ -2142,3 +2142,40 @@ Deno.test("SEMANTIC ROBUSTNESS: 'what could go wrong if...' plans Founder Thinki
   assertEquals(result.signals.outcome, true);
   assertEquals(result.queryClass, "FOUNDER_STRATEGY");
 });
+
+// FTN / IBIS Canonical Architecture, Phase 1 (GOVERNANCE/
+// FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md): proves RequestFrame is
+// genuinely constructed and attached end-to-end through the REAL handleCanonicalRequest() path (not
+// just the isolated unit tests in ibis-request-frame.test.ts), on both response shapes it can be
+// attached to, and that its presence changes nothing else about the response.
+Deno.test("PHASE 1 (RequestFrame): a real canonical request carries a correctly-populated RequestFrame in receipt.requestFrame, with zero effect on the answer or capability plan", async () => {
+  const res = await handleCanonicalRequest({
+    text: "What changed in Trinidad and Tobago this week?",
+    providers: [fakeProvider("test", "unused")],
+    searchFetchImpl: async () =>
+      new Response(JSON.stringify({ results: [{ title: "T&T update", url: "https://example.com/x", content: "snippet", engine: "test", publishedDate: null }] }), { status: 200 }),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  const frame = res.receipt.requestFrame;
+  assert(frame, "requestFrame must be present on a real request's receipt");
+  assertEquals(frame!.rawQuery, "What changed in Trinidad and Tobago this week?");
+  assertEquals(frame!.queryClass, "CURRENT_WEB_RESEARCH");
+  assertEquals(frame!.temporalRequirement.type, "THIS_WEEK");
+  assertEquals(frame!.requiresFreshEvidence, true);
+  assertEquals(frame!.geography, null, "Phase 1 has no geography resolver -- must stay null even for a region-named query");
+  assertEquals(frame!.entities, []);
+  assertEquals(frame!.consequenceLevel, "UNRESOLVED");
+});
+
+Deno.test("PHASE 1 (RequestFrame): present on the early execution-authorized return path too, not just the main path", async () => {
+  const res = await handleCanonicalRequest({
+    text: "What is photosynthesis?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assertEquals(res.executionInstruction.executionAuthorized, true, "sanity check: this must still hit the early-return path this test means to cover");
+  const frame = res.receipt.requestFrame;
+  assert(frame, "requestFrame must be present even when local execution is authorized and no answer was generated server-side");
+  assertEquals(frame!.temporalRequirement.type, "TIMELESS");
+  assertEquals(frame!.requiresFreshEvidence, false);
+});

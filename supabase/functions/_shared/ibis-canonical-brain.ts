@@ -46,6 +46,7 @@ import { extractStatedJurisdiction } from "./ibis-ecomap-engine.ts";
 import { buildReasoningSynthesisPacket, buildReasoningSynthesisBlock, type ReasoningSynthesisPacket } from "./ibis-reasoning-synthesis.ts";
 import { detectFxCorrelationInput } from "./ibis-correlation-datasource.ts";
 import { buildDisambiguatedSearchQuery } from "./ibis-ftn-disambiguation.ts";
+import { buildRequestFrame } from "./ibis-request-frame.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -315,6 +316,17 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // built alongside.
   const capabilityPlan = planCapabilities(intent.signals);
 
+  // FTN / IBIS Canonical Architecture, Phase 1 (additive, non-behavioral -- see GOVERNANCE/
+  // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). Computed once, here, from
+  // state already in hand (classifyIntent()'s output; deterministicAnswer() is the SAME check this
+  // function already ran further down for reasoningSynthesis -- moved up and reused rather than
+  // invoked twice) so building the frame adds no second classification pass, no search, no provider
+  // call, and no latency. Nothing below this line reads or branches on `requestFrame` -- it is
+  // attached to the response envelope's `receipt` purely for observability (see the buildEnvelope()
+  // call sites below), so this phase cannot change what production ibis actually does.
+  const isDeterministicAnswer = !!deterministicAnswer(text, products);
+  const requestFrame = buildRequestFrame({ requestId, text, intent, isDeterministicAnswer });
+
   // Slice 1 correction: the execution-authorization decision lives here, server-side, and ONLY
   // here. Slice 3 correction: it ALSO now depends on whether a durable lifecycle store is
   // actually available -- authorizing browser-local execution without durable backing means a
@@ -476,7 +488,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     // and still includes intent.reasons, unchanged, at the call site below.
     contradictions, uncertainties: extraUncertainties, ecosystemConnections, actions,
     sourceCount: sources.length, sources, searchCacheState, evidenceState,
-    isDeterministicAnswer: !!deterministicAnswer(text, products),
+    isDeterministicAnswer,
     durabilityQuestionAsked: intent.signals.durability,
   });
   const reasoningSynthesisBlock = buildReasoningSynthesisBlock(reasoningSynthesis);
@@ -500,7 +512,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       confidence: "UNVERIFIED", confidenceBasis: "Execution deferred to authorized browser-local generation; no server provider was called.",
       status: "OK", degradedStages, handoff, alternatives,
       uncertainties: [...intent.reasons, ...extraUncertainties],
-      contradictions, actions, ecosystemConnections, reasoningSynthesis,
+      contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame,
     });
   }
 
@@ -566,7 +578,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, searchCacheState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: [...intent.reasons, ...extraUncertainties],
-    contradictions, actions, ecosystemConnections, reasoningSynthesis,
+    contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame,
   });
 }
 
