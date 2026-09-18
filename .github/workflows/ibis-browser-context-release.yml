@@ -49,9 +49,14 @@ jobs:
       SUPABASE_PUBLISHABLE_KEY: sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z
     steps:
       - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      # FTN Quality Pass (2026-09-18): supabase/setup-cli@v1 broken by GH Actions dropping the
+      # Node 20 runtime on 2026-09-16 -- see the matching fix and comment in
+      # ibis-assistant-release.yml. Direct binary install instead.
+      - name: Install Supabase CLI (direct binary)
+        run: |
+          curl -fsSL "https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz" | tar -xz
+          sudo mv supabase /usr/local/bin/supabase
+          supabase --version
       - name: Require scoped Supabase deployment credential
         run: test -n "$SUPABASE_ACCESS_TOKEN"
       - name: Deploy browser-context reasoning lane
