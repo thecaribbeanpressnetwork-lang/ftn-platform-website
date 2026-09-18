@@ -568,7 +568,15 @@
         // other question, not be silently claimed by YouTube discovery first. A genuine
         // media-domain term is still required for the free-text auto-trigger; the explicit Find
         // mode button (mode==='find') is a deliberate user action and is unaffected.
-        if(mode==='find'||/movie|film|song|music|youtube|soca|reggae|dancehall|calypso|kaiso|chutney|kompa|zouk|steelpan/.test(q.toLowerCase())){
+        // Live-caught (2026-09-18, consolidation matrix): "Find a Caribbean film festival and help
+        // me prepare a submission" matched the bare "film" keyword and was silently claimed by
+        // YouTube video discovery instead of reaching canonical planning/EcoMap reasoning about
+        // festival submission -- the same "discovery capability swallows a different intent"
+        // shape already fixed for music generation/EPK/scenario/course-discovery in
+        // js/ibis-absorbed-capabilities.js. A submission/planning/preparation phrase alongside
+        // "festival" is a planning request, not "show me videos", so it is excluded here.
+        var wantsFestivalPlanning=/festival/.test(q.toLowerCase())&&/submit|submission|prepare|apply|application|entry|entering/.test(q.toLowerCase());
+        if(!wantsFestivalPlanning&&(mode==='find'||/movie|film|song|music|youtube|soca|reggae|dancehall|calypso|kaiso|chutney|kompa|zouk|steelpan/.test(q.toLowerCase()))){
           setStatus('working');
           await renderMedia(q,out);
           setStatus('idle');
