@@ -36,7 +36,7 @@ assert.match(bootstrap,/failures\.push/,'Optional capability-load failures must 
 
 // Investor first paint must be neutral and evidence-bound. It must not present a fabricated
 // conclusion or placeholder demand curve before a task has generated evidence.
-assert.match(html,/<h2>What do you need\?<\/h2>/,'Headspace must open on an objective-first neutral answer.');
+assert.match(html,/<h2>What do you want to make happen\?<\/h2>/,'Headspace must open on an objective-first neutral answer.');
 assert.match(html,/thought-graph dematerialized/,'The graph surface must remain hidden until real evidence requests it.');
 assert.doesNotMatch(html,/Sample signal/i,'Headspace must not show sample demand data on the investor surface.');
 assert.doesNotMatch(html,/Caribbean context is first-class infrastructure\./i,'The old canned conclusion must not return.');

@@ -462,7 +462,7 @@
         +'<div class="ibis-chat__main">'
           +'<header class="ibis-chat__header"><div><span class="workspace-kicker">Ask · Find · Analyze · Create</span><h2>ibis</h2></div><span id="ibis-ai-status"></span></header>'
           +'<div class="ibis-chat__conversation" id="ibis-conversation" role="log" aria-live="polite">'
-            +'<div class="ibis-chat__welcome" id="ibis-chat-welcome"><h2>What do you need done?</h2><p>Ask ibis in plain language — find Caribbean films, analyze what changed, help with a grant, create a visual, route me to the right FTN tool…</p></div>'
+            +'<div class="ibis-chat__welcome" id="ibis-chat-welcome"><h2>What do you want to make happen?</h2><p>Ask ibis in plain language — find Caribbean films, analyze what changed, help with a grant, create a visual, route me to the right FTN tool…</p></div>'
           +'</div>'
           +'<form class="ibis-chat__composer" id="ibis-form" data-ftn-no-draft="true">'
             +'<div class="ibis-mode-row"><button type="button" data-mode="ask" aria-pressed="true">ASK</button><button type="button" data-mode="find">FIND</button><button type="button" data-mode="analyze">ANALYZE FTN</button><button type="button" data-mode="visual">CREATE VISUAL</button></div>'
@@ -525,7 +525,7 @@
       sidebarToggle.addEventListener('click',function(){if(sidebar.classList.contains('is-open'))closeSidebar();else openSidebar();});
 
       document.getElementById('ibis-new-chat').addEventListener('click',function(){
-        conversation.innerHTML='<div class="ibis-chat__welcome" id="ibis-chat-welcome"><h2>What do you need done?</h2><p>Ask ibis in plain language — find Caribbean films, analyze what changed, help with a grant, create a visual, route me to the right FTN tool…</p></div>';
+        conversation.innerHTML='<div class="ibis-chat__welcome" id="ibis-chat-welcome"><h2>What do you want to make happen?</h2><p>Ask ibis in plain language — find Caribbean films, analyze what changed, help with a grant, create a visual, route me to the right FTN tool…</p></div>';
         welcome=document.getElementById('ibis-chat-welcome');
         input.value='';
         input.focus();

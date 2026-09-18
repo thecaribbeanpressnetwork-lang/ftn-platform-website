@@ -31,7 +31,7 @@ await page.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,c
 const consoleErrors=[];page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});page.on('pageerror',e=>consoleErrors.push(e.message));
 await open(page,'/ibis-headspace-preview/','#headspaceQuery');
 await page.waitForFunction(()=>document.documentElement.classList.contains('headspace-hydrated'),null,{timeout:15000});
-assert.equal(await page.locator('.thought').count()>=10,true);assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/What do you need/i);assert.equal(await page.locator('[data-thought="graph"]').evaluate(el=>el.classList.contains('dematerialized')),true);
+assert.equal(await page.locator('.thought').count()>=10,true);assert.match(await page.locator('[data-thought="answer"] h2').innerText(),/What do you want to make happen/i);assert.equal(await page.locator('[data-thought="graph"]').evaluate(el=>el.classList.contains('dematerialized')),true);
 await page.waitForFunction(()=>/Scout 2\.0: 9 official discovery sources configured/.test(document.querySelector('#scoutStatus')?.textContent||''),null,{timeout:10000});assert.match(await page.locator('#scoutStatus').innerText(),/latest observed run #18 success/i);assert.match(await page.locator('#scoutStatus').innerText(),/automatic applications off.*automatic spend off.*founder approval required/i);assert.equal(await page.locator('#scoutStatus').getAttribute('data-health'),'healthy');
 await page.waitForFunction(()=>{const n=document.querySelector('#toolStatus');return n&&!/Checking governed/.test(n.textContent||'');},null,{timeout:8000}).catch(()=>{});assert.doesNotMatch(await page.locator('#toolStatus').innerText(),/runtime catalog is unavailable/i);
 
