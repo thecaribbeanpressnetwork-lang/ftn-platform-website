@@ -34,19 +34,19 @@ jobs:
       # FTN Quality Pass (2026-09-18): supabase/setup-cli@v1 started failing every run today --
       # GitHub Actions removed the Node.js 20 runtime from its runners on 2026-09-16, and that
       # action's metadata still declares Node 20, so it can no longer resolve/execute at all (a
-      # real, dated, upstream break, not something wrong with this repo). Installs the official
-      # published binary directly instead, which has no dependency on the marketplace action's own
-      # JS runtime -- see https://github.com/supabase/cli's own documented direct-install command.
-      - name: Install Supabase CLI (direct binary -- supabase/setup-cli@v1 broken by GH Actions dropping Node 20 on 2026-09-16)
-        run: |
-          curl -fsSL "https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz" | tar -xz
-          sudo mv supabase /usr/local/bin/supabase
-          supabase --version
+      # real, dated, upstream break, not something wrong with this repo). A first fix (direct
+      # binary download+tar+sudo mv) also failed in this same CI environment for a reason this
+      # session could not get direct log access to diagnose -- switched instead to `npx
+      # supabase@latest`, the CLI's own documented npm-based invocation: Node is already set up by
+      # the step above, npx handles fetching/caching the package itself, and every `supabase`
+      # command below is called through it, eliminating the binary/PATH problem entirely.
       - name: Require scoped Supabase deployment credential
         run: test -n "$SUPABASE_ACCESS_TOKEN"
+      - name: Verify Supabase CLI is reachable via npx
+        run: npx --yes supabase@latest --version
       - name: Re-run the source reliability contract
         run: node --experimental-strip-types tests/ibis-intelligence-gateway-audit.mjs
       - name: Deploy the exact checked-out gateway source
-        run: supabase functions deploy ibis-assistant --project-ref "$SUPABASE_PROJECT_REF"
+        run: npx --yes supabase@latest functions deploy ibis-assistant --project-ref "$SUPABASE_PROJECT_REF"
       - name: Verify deployed version, deterministic answer, and live legacy freshness grounding
         run: node scripts/verify-ibis-assistant-live.mjs

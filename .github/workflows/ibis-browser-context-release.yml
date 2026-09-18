@@ -49,18 +49,19 @@ jobs:
       SUPABASE_PUBLISHABLE_KEY: sb_publishable_-1v6ZXAU3sXc7Z0L2VnFgw_638Qxu3z
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       # FTN Quality Pass (2026-09-18): supabase/setup-cli@v1 broken by GH Actions dropping the
       # Node 20 runtime on 2026-09-16 -- see the matching fix and comment in
-      # ibis-assistant-release.yml. Direct binary install instead.
-      - name: Install Supabase CLI (direct binary)
-        run: |
-          curl -fsSL "https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz" | tar -xz
-          sudo mv supabase /usr/local/bin/supabase
-          supabase --version
+      # ibis-assistant-release.yml. Uses `npx supabase@latest` (the CLI's own documented npm-based
+      # invocation) instead of a direct binary download, which also failed in this CI environment.
       - name: Require scoped Supabase deployment credential
         run: test -n "$SUPABASE_ACCESS_TOKEN"
+      - name: Verify Supabase CLI is reachable via npx
+        run: npx --yes supabase@latest --version
       - name: Deploy browser-context reasoning lane
-        run: supabase functions deploy ibis-browser-context --project-ref "$SUPABASE_PROJECT_REF"
+        run: npx --yes supabase@latest functions deploy ibis-browser-context --project-ref "$SUPABASE_PROJECT_REF"
       - name: Verify authenticated function rejects empty evidence safely
         run: |
           code=$(curl -sS -o /tmp/ibis-browser-context-empty.json -w '%{http_code}' \
