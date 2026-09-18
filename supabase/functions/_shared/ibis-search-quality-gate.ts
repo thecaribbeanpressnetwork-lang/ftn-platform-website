@@ -91,11 +91,14 @@ const ARCHIVAL_MARKERS = /\b(annual report|faculty report|thesis|dissertation|co
 const RELATIVE_RECENCY = /\b(\d{1,2})\s*(hour|hr|day|week)s?\s*ago\b/i;
 const VAGUE_RECENCY = /\b(today|this morning|this afternoon|tonight|yesterday|this week|this month|breaking|just (?:announced|released|published))\b/i;
 
-const AUTHORITATIVE_DOMAINS = [
-  "guardian.co.tt", "newsday.co.tt", "trinidadexpress.com", "looptt.com", "loopnews.com",
-  "cnc3.co.tt", "gov.tt", "ttconnect.gov.tt", "news.gov.tt", "ttparliament.org",
-  "centralbanktt.com", "central-bank.org.tt", "i95.5fm.com",
-];
+// Split into two named, exported lists (2026-09-18, Phase 4 pass) so ibis-evidence-processor.ts can
+// reuse this SAME, already-shipped, real domain registry for its own official-vs-news
+// classification, rather than inventing a new authority registry (explicitly forbidden that
+// phase). Zero behavior change here: AUTHORITATIVE_DOMAINS below is still their exact union, used
+// exactly as before for this module's own domain-bonus scoring.
+export const AUTHORITATIVE_NEWS_DOMAINS = ["guardian.co.tt", "newsday.co.tt", "trinidadexpress.com", "looptt.com", "loopnews.com", "cnc3.co.tt", "i95.5fm.com"];
+export const AUTHORITATIVE_GOVERNMENT_DOMAINS = ["gov.tt", "ttconnect.gov.tt", "news.gov.tt", "ttparliament.org", "centralbanktt.com", "central-bank.org.tt"];
+const AUTHORITATIVE_DOMAINS = [...AUTHORITATIVE_NEWS_DOMAINS, ...AUTHORITATIVE_GOVERNMENT_DOMAINS];
 
 const STOPWORDS = new Set([
   "the", "and", "for", "are", "with", "that", "this", "you", "your", "have", "has", "was", "were",

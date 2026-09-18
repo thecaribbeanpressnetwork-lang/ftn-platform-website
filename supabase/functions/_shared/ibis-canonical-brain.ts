@@ -48,6 +48,7 @@ import { detectFxCorrelationInput } from "./ibis-correlation-datasource.ts";
 import { buildDisambiguatedSearchQuery } from "./ibis-ftn-disambiguation.ts";
 import { buildRequestFrame } from "./ibis-request-frame.ts";
 import { buildEvidenceContract } from "./ibis-evidence-contract.ts";
+import { processEvidence, type EvidencePacket, type ClaimsLedger } from "./ibis-evidence-processor.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -335,7 +336,12 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // ibis-temporal-resolver.ts's clock-injection mandate); production omits them, defaulting to the
   // real current time and UTC/DEFAULT_FALLBACK -- no client or session anywhere in this codebase
   // currently sends a timezone (audited in ibis-temporal-resolver.ts's header).
-  const isDeterministicAnswer = !!deterministicAnswer(text, products);
+  // Phase 4 (2026-09-18): captures the FULL result object once, here, so both the boolean
+  // (`isDeterministicAnswer`, used by RequestFrame/EvidenceContract) and the real computed answer
+  // text (used by the Evidence Processor's ClaimsLedger below) come from exactly one call -- never
+  // a third, separately-computed invocation of this pure but non-trivial function.
+  const deterministicResult = deterministicAnswer(text, products);
+  const isDeterministicAnswer = !!deterministicResult;
   const requestFrame = buildRequestFrame({
     requestId, text, intent, isDeterministicAnswer,
     now: input.now, timezone: input.timezone, timezoneSource: input.timezone ? "CLIENT_PROVIDED" : undefined,
@@ -500,6 +506,25 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   const capabilityExecution: CapabilityReceiptEntry[] = orchestration.capabilityExecution;
   reasoningModesUsed.push(...relevantUnavailableModes(intent.queryClass));
 
+  // FTN / IBIS Canonical Architecture, Phase 4 (SHADOW MODE ONLY -- see GOVERNANCE/
+  // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). Compares what was actually
+  // obtained (real sources, the real deterministic result, real engine results) against Phase 3's
+  // evidenceContract. Called once per return path below with that path's OWN real, final
+  // evidenceState (the early execution-authorized return always answers "NO_ANSWER_GENERATED"; the
+  // main path resolves its true evidenceState only after the gateway call) so
+  // `legacyEvidenceState`/`stateAgreement` always reflect exactly what that response actually
+  // returns -- never a value computed before the real one was known. Nothing below this reads or
+  // branches on the result; it is attached to the receipt purely for observability.
+  function runEvidenceProcessor(legacyEvidenceStateForThisResponse: CanonicalResponse["evidenceState"]): { evidencePacket: EvidencePacket; claimsLedger: ClaimsLedger } {
+    return processEvidence({
+      requestFrame, evidenceContract, sources, capabilityExecution,
+      engineResults: orchestration.engineResults,
+      deterministicResult: deterministicResult ? { answer: deterministicResult.answer, answerClass: deterministicResult.answerClass } : null,
+      legacyEvidenceState: legacyEvidenceStateForThisResponse,
+      orchestrationContradictions: contradictions,
+    });
+  }
+
   // FOUNDER-COMPLETION PASS: build the ONE bounded, typed reasoning synthesis packet from whatever
   // the scheduler above actually executed (see ibis-reasoning-synthesis.ts's module header for why
   // this exists -- an engine executing and populating reasoningModesUsed/contradictions/actions is
@@ -537,6 +562,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       planId: requestId, authorizedTarget: "browser_local", intent: intent.queryClass,
       freshnessRequired, textSha256, ttlMs: PLAN_TTL_MS,
     });
+    const { evidencePacket, claimsLedger } = runEvidenceProcessor("NO_ANSWER_GENERATED");
     return buildEnvelope({
       requestId, startedAt, answer: "", objective: intent.objective, queryClass: intent.queryClass,
       capabilityPlan, capabilityExecution,
@@ -545,7 +571,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
       confidence: "UNVERIFIED", confidenceBasis: "Execution deferred to authorized browser-local generation; no server provider was called.",
       status: "OK", degradedStages, handoff, alternatives,
       uncertainties: [...intent.reasons, ...extraUncertainties],
-      contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract,
+      contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract, evidencePacket, claimsLedger,
     });
   }
 
@@ -604,6 +630,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     await input.lifecycleStore.transitionPlan(requestId, "SUCCEEDED").catch(() => {});
   }
 
+  const { evidencePacket, claimsLedger } = runEvidenceProcessor(evidenceState);
   return buildEnvelope({
     requestId, startedAt, answer, objective: intent.objective, queryClass: intent.queryClass,
     capabilityPlan, capabilityExecution,
@@ -611,7 +638,7 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     reasoningModesUsed, capabilitiesAttempted, providerPath, evidenceState, searchCacheState, sources,
     confidence, confidenceBasis, status, degradedStages, handoff, alternatives,
     uncertainties: [...intent.reasons, ...extraUncertainties],
-    contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract,
+    contradictions, actions, ecosystemConnections, reasoningSynthesis, requestFrame, evidenceContract, evidencePacket, claimsLedger,
   });
 }
 

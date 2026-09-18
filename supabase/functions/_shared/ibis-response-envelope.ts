@@ -205,6 +205,13 @@ export type CanonicalReceipt = {
   // it does not gate search, does not judge retrieved evidence, and does not touch the answer path.
   // Same inline type-only import pattern as `requestFrame` above, for the same circular-import reason.
   evidenceContract: import("./ibis-evidence-contract.ts").EvidenceContract | null;
+  // FTN / IBIS Canonical Architecture, Phase 4 (SHADOW MODE ONLY -- see GOVERNANCE/
+  // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). Compares actual obtained
+  // evidence/results against evidenceContract above. Nothing in production reads or branches on
+  // either field -- attached purely for observability, including the shadow-vs-legacy
+  // evidenceState disagreement this exists to surface (EvidencePacket.stateAgreement).
+  evidencePacket: import("./ibis-evidence-processor.ts").EvidencePacket | null;
+  claimsLedger: import("./ibis-evidence-processor.ts").ClaimsLedger | null;
 };
 
 export type CanonicalResponse = {
@@ -289,6 +296,9 @@ export function buildEnvelope(input: {
   // Phase 3, shadow mode (see CanonicalReceipt.evidenceContract above) -- same optional/default-null
   // pattern.
   evidenceContract?: import("./ibis-evidence-contract.ts").EvidenceContract | null;
+  // Phase 4, shadow mode -- same optional/default-null pattern.
+  evidencePacket?: import("./ibis-evidence-processor.ts").EvidencePacket | null;
+  claimsLedger?: import("./ibis-evidence-processor.ts").ClaimsLedger | null;
 }): CanonicalResponse {
   const respondedAt = new Date().toISOString();
   return {
@@ -331,6 +341,8 @@ export function buildEnvelope(input: {
       respondedAt,
       requestFrame: input.requestFrame ?? null,
       evidenceContract: input.evidenceContract ?? null,
+      evidencePacket: input.evidencePacket ?? null,
+      claimsLedger: input.claimsLedger ?? null,
     },
     generatedAt: respondedAt,
   };

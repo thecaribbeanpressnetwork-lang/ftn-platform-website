@@ -2220,3 +2220,69 @@ Deno.test("PHASE 3 (Evidence Contract): present on the early execution-authorize
   assertEquals(contract!.requiredEvidence, false);
   assertEquals(contract!.sufficiency, "NOT_APPLICABLE");
 });
+
+// FTN / IBIS Canonical Architecture, Phase 4 (SHADOW MODE -- GOVERNANCE/
+// FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). The exact regression case
+// section 18 of the Phase 4 directive requires: a real search succeeds, sources are topically
+// relevant to Trinidad and Tobago, but their dates fall outside the resolved THIS_WEEK window --
+// the precise shape of the live-caught 2018/2019-report bug. The shadow EvidencePacket must call
+// this INSUFFICIENT/contractSatisfied:false and disagree with whatever legacy evidenceState the
+// existing pipeline assigns -- it must never reach VERIFIED merely because search returned OK.
+Deno.test("PHASE 4 (Evidence Processor): CURRENT-WEEK FAILURE CASE -- relevant but stale-dated sources are INSUFFICIENT in the shadow packet, disagreeing with legacy SEARCH_GROUNDED", async () => {
+  // Deliberately ~25 days stale, not years: old enough to fall well outside THIS_WEEK's Monday-to-
+  // now window, but recent enough that the ALREADY-SHIPPED Search Quality Gate's own structured-date
+  // penalty (which only fires beyond ~730 days) does not reject the batch before it ever reaches
+  // this Phase 4 processor -- this test is specifically about the PROCESSOR's temporal judgment,
+  // not a repeat of the quality gate's own already-tested retrieval-hygiene behavior.
+  const staleDate = new Date(Date.now() - 25 * 86_400_000).toISOString().slice(0, 10);
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: "What changed in Trinidad and Tobago this week?",
+    providers: [fakeProvider("test", "a real synthesized answer")],
+    searchFetchImpl: async () =>
+      new Response(JSON.stringify({
+        results: [{ title: "Trinidad and Tobago development update", url: "https://newsday.co.tt/old", content: "Trinidad and Tobago recent development coverage.", engine: "test", publishedDate: staleDate }],
+      }), { status: 200 }),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  const packet = res.receipt.evidencePacket;
+  assert(packet, "evidencePacket must be present");
+  assertEquals(packet!.temporal.satisfied, false, "a structured date definitively outside the resolved window must never be treated as satisfying THIS_WEEK");
+  assertEquals(packet!.evidenceState, "INSUFFICIENT");
+  assertEquals(packet!.contractSatisfied, false);
+  assert(packet!.evidenceState !== "VERIFIED" && packet!.evidenceState !== "CORROBORATED", "stale evidence must never reach a strong evidenceState merely because the search call itself succeeded");
+  // The real point of shadow mode: the LEGACY pipeline (via the quality gate this session already
+  // shipped) may or may not have accepted these sources as SEARCH_GROUNDED -- whatever it actually
+  // did, the shadow packet's own independent judgment is what matters here, and it must be a hard
+  // failure regardless.
+  assertEquals(packet!.legacyEvidenceState, res.evidenceState, "the packet must record whatever the real legacy evidenceState actually was, never a guessed value");
+});
+
+// Section 27, test 16: end-to-end receipt integration -- both shadow structures present together,
+// on the SAME real request, with the answer/sources completely unaffected by their presence.
+Deno.test("PHASE 4 (Evidence Processor): end-to-end receipt integration -- evidencePacket and claimsLedger both present alongside requestFrame/evidenceContract, zero effect on the answer", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: "What changed in Trinidad and Tobago this week?",
+    providers: [fakeProvider("test", "a real synthesized answer")],
+    searchFetchImpl: async () =>
+      new Response(JSON.stringify({
+        results: [{ title: "Trinidad and Tobago update this week", url: "https://newsday.co.tt/new", content: "Real current Trinidad and Tobago news this week.", engine: "test", publishedDate: null }],
+      }), { status: 200 }),
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  assert(res.receipt.requestFrame, "Phase 1 structure must still be present");
+  assert(res.receipt.evidenceContract, "Phase 3 structure must still be present");
+  assert(res.receipt.evidencePacket, "Phase 4 structure must be present");
+  assert(res.receipt.claimsLedger, "Phase 4 structure must be present");
+  // Section 27, test 17: no user-visible behavior change -- this exact fixture must still produce a
+  // real answer and real sources, completely independent of whether Phase 4's shadow evaluation
+  // judges the evidence sufficient or not.
+  assert(res.answer.length > 0, "shadow evidence evaluation must never suppress the real answer");
+  assert(res.sources.length > 0, "shadow evidence evaluation must never suppress real sources");
+  assertEquals(res.evidenceState, "SEARCH_GROUNDED", "legacy evidenceState computation must be completely untouched by Phase 4");
+});
