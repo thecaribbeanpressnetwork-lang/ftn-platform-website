@@ -1,0 +1,392 @@
+[
+  {
+    "query": "What changed in Trinidad and Tobago this week?",
+    "httpOk": true,
+    "httpStatus": 200,
+    "latencyMs": 3280,
+    "queryClass": "CURRENT_WEB_RESEARCH",
+    "providerPath": [
+      "search:searxng",
+      "Cloudflare Workers AI"
+    ],
+    "acceptedProvider": "searxng",
+    "claudeFallbackInvoked": false,
+    "searxngResultCount": 8,
+    "evidenceState": "SEARCH_GROUNDED",
+    "sourceCount": 8,
+    "sources": [
+      {
+        "title": "Trinidad and Tobago ends long state of emergency as anger mounts ...",
+        "url": "https://apnews.com/article/trinidad-state-of-emergency-ends-kamla-tobago-3a2fd0eddb4588582a69f776ba2ae7dd",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad Ends State of Emergency After 199 Days - The Rio Times",
+        "url": "https://www.riotimesonline.com/trinidad-tobago-state-of-emergency-ends-detentions-2026/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago ends state of emergency amid pushback over ...",
+        "url": "https://ca.news.yahoo.com/trinidad-tobago-ends-state-emergency-221222224.html",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago - BBC News",
+        "url": "https://www.bbc.com/news/topics/c302m85q583t",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago | Today's latest from Al Jazeera",
+        "url": "https://www.aljazeera.com/where/trinidad-and-tobago/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago | The Guardian",
+        "url": "https://www.theguardian.com/world/trinidad-and-tobago",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago - The New York Times",
+        "url": "https://www.nytimes.com/topic/destination/trinidad-and-tobago",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago Travel Advisory | Travel.State.gov",
+        "url": "https://travel.state.gov/en/international-travel/travel-advisories/trinidad-and-tobago.html",
+        "publishedAt": null
+      }
+    ],
+    "answer": "Trinidad and Tobago ended a lengthy state of emergency on Thursday. The government had declared the state of emergency to combat crime, but it has now expired after 199 days.",
+    "flags": {
+      "hasStaleYearInAnswer": false,
+      "hasNoCurrentInfoClaim": false,
+      "hasFrameworkLeak": false
+    },
+    "pass": true
+  },
+  {
+    "query": "What is happening in Trinidad and Tobago today?",
+    "httpOk": true,
+    "httpStatus": 200,
+    "latencyMs": 2537,
+    "queryClass": "CURRENT_WEB_RESEARCH",
+    "providerPath": [
+      "search:searxng",
+      "Cloudflare Workers AI"
+    ],
+    "acceptedProvider": "searxng",
+    "claudeFallbackInvoked": false,
+    "searxngResultCount": 8,
+    "evidenceState": "SEARCH_GROUNDED",
+    "sourceCount": 8,
+    "sources": [
+      {
+        "title": "Trinidad and Tobago ends long state of emergency as anger mounts ...",
+        "url": "https://apnews.com/article/trinidad-state-of-emergency-ends-kamla-tobago-3a2fd0eddb4588582a69f776ba2ae7dd",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago | Today's latest from Al Jazeera",
+        "url": "https://www.aljazeera.com/where/trinidad-and-tobago/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago - BBC News",
+        "url": "https://www.bbc.com/news/topics/c302m85q583t",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad And Tobago - latest news, breaking stories and comment",
+        "url": "https://www.the-independent.com/topic/trinidad-and-tobago",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago Today | Port of Spain - Facebook",
+        "url": "https://www.facebook.com/tnttodayshow/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad Guardian: Home",
+        "url": "https://www.guardian.co.tt/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago Events, Calendar & Tickets | Eventbrite",
+        "url": "https://www.eventbrite.com/d/trinidad-and-tobago/events/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago | AP News",
+        "url": "https://apnews.com/hub/trinidad-and-tobago",
+        "publishedAt": null
+      }
+    ],
+    "answer": "Trinidad and Tobago has ended a lengthy state of emergency, according to recent reports ([1]). This decision comes as concerns about potential violence continue to rise. \n\nIt's worth noting that the evidence does not provide a comprehensive overview of the current situation in Trinidad and Tobago. The snippets suggest that the state of emergency has been lifted, but do not offer further details on the reasons behind this decision or the potential implications.\n\nFor more accurate and up-to-date information, I recommend checking reputable news sources such as the Trinidad Guardian ([6]) or AP News ([8]) for the latest developments.",
+    "flags": {
+      "hasStaleYearInAnswer": false,
+      "hasNoCurrentInfoClaim": false,
+      "hasFrameworkLeak": false
+    },
+    "pass": true
+  },
+  {
+    "query": "What changed in Tobago tourism this week?",
+    "httpOk": true,
+    "httpStatus": 200,
+    "latencyMs": 2554,
+    "queryClass": "CURRENT_WEB_RESEARCH",
+    "providerPath": [
+      "search:searxng",
+      "Cloudflare Workers AI"
+    ],
+    "acceptedProvider": "searxng",
+    "claudeFallbackInvoked": false,
+    "searxngResultCount": 8,
+    "evidenceState": "SEARCH_GROUNDED",
+    "sourceCount": 8,
+    "sources": [
+      {
+        "title": "What's new in Tobago? - Destinations - Travel Weekly",
+        "url": "https://travelweekly.co.uk/destinations/tobago-caribbean-new-2026",
+        "publishedAt": null
+      },
+      {
+        "title": "Debate over sea bridge capacity ahead of Tobago Carnival is ...",
+        "url": "https://www.facebook.com/tobagoupdatestv/videos/debate-over-sea-bridge-capacity-ahead-of-tobago-carnival-is-intensifying-with-op/28275208722088725/",
+        "publishedAt": null
+      },
+      {
+        "title": "Tobago Tourism Agency Limited (TTAL) (@tobagotourism) - Instagram",
+        "url": "https://www.instagram.com/tobagotourism/",
+        "publishedAt": null
+      },
+      {
+        "title": "Tobago Tourism Agency News",
+        "url": "https://visittobago.gov.tt/corporate/news",
+        "publishedAt": null
+      },
+      {
+        "title": "Tobago is bracing for a massive influx of visitors, especially ...",
+        "url": "https://www.facebook.com/tobagoupdatestv/posts/tobago-is-bracing-for-a-massive-influx-of-visitors-especially-domestic-visitors-/1729863911939733/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago Tourism Performance Statistics 2026",
+        "url": "https://tourismanalytics.com/trinidad-statistics.html",
+        "publishedAt": null
+      },
+      {
+        "title": "Tobago Experiences Massive Tourism Surge for Easter 2026 ...",
+        "url": "https://www.facebook.com/tobagoupdatestv/posts/tobago-experiences-massive-tourism-surge-for-easter-2026-%EF%B8%8Ftobagos-tourism-sector/1638827927709999/",
+        "publishedAt": null
+      },
+      {
+        "title": "The Tobago Heritage Festival continued on Friday with a ... - Instagram",
+        "url": "https://www.instagram.com/reel/Da6dNHTCpj0/",
+        "publishedAt": null
+      }
+    ],
+    "answer": "Based on the available evidence, there doesn't seem to be a specific recent development in Tobago tourism that was reported this week. However, one snippet mentions that Tobago is bracing for a massive influx of visitors, especially domestic visitors, following a two-week period since the island recorded a case of the virus (likely COVID-19, but the snippet doesn't specify) [5]. \n\nAdditionally, a debate over the sea bridge capacity ahead of Tobago Carnival is intensifying [2]. \n\nIt's worth noting that these are not necessarily recent developments, but rather ongoing trends and concerns in the tourism sector. For more up-to-date information, it may be helpful to check the official Tobago Tourism Agency website or social media channels.",
+    "flags": {
+      "hasStaleYearInAnswer": false,
+      "hasNoCurrentInfoClaim": false,
+      "hasFrameworkLeak": false
+    },
+    "pass": true
+  },
+  {
+    "query": "What happened in Trinidad politics this week?",
+    "httpOk": true,
+    "httpStatus": 200,
+    "latencyMs": 6562,
+    "queryClass": "CURRENT_WEB_RESEARCH",
+    "providerPath": [
+      "search:searxng",
+      "Cloudflare Workers AI"
+    ],
+    "acceptedProvider": "searxng",
+    "claudeFallbackInvoked": false,
+    "searxngResultCount": 8,
+    "evidenceState": "SEARCH_GROUNDED",
+    "sourceCount": 8,
+    "sources": [
+      {
+        "title": "Trinidad and Tobago ends long state of emergency as anger mounts ...",
+        "url": "https://www.thetelegraph.com/news/world/article/trinidad-and-tobago-ends-long-state-of-emergency-22436957.php",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago | AP News",
+        "url": "https://apnews.com/hub/trinidad-and-tobago",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad And Tobago - latest news, breaking stories and comment",
+        "url": "https://www.the-independent.com/topic/trinidad-and-tobago",
+        "publishedAt": null
+      },
+      {
+        "title": "Prime Minister Kamla Persad-Bissessar is expected to lead a ...",
+        "url": "https://www.facebook.com/tttliveonline/videos/prime-minister-kamla-persad-bissessar-is-expected-to-lead-a-trinidad-and-tobago-/1355761549658489/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago - BBC News",
+        "url": "https://www.bbc.com/news/topics/c302m85q583t",
+        "publishedAt": null
+      },
+      {
+        "title": "Parliament – Parliament of the Republic of Trinidad and Tobago",
+        "url": "https://www.ttparliament.org/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago - The New York Times",
+        "url": "https://www.nytimes.com/topic/destination/trinidad-and-tobago",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago | The Guardian",
+        "url": "https://www.theguardian.com/world/trinidad-and-tobago",
+        "publishedAt": null
+      }
+    ],
+    "answer": "Trinidad and Tobago recently ended a long state of emergency, with over 5,800 people arrested, according to Prime Minister Kamla Persad-Bissessar. A significant number of suspects, around 2,250, are still to be charged. This development follows an extension of the state of emergency.",
+    "flags": {
+      "hasStaleYearInAnswer": false,
+      "hasNoCurrentInfoClaim": false,
+      "hasFrameworkLeak": false
+    },
+    "pass": true
+  },
+  {
+    "query": "What major business news happened in Trinidad and Tobago this week?",
+    "httpOk": true,
+    "httpStatus": 200,
+    "latencyMs": 2866,
+    "queryClass": "CURRENT_WEB_RESEARCH",
+    "providerPath": [
+      "search:searxng",
+      "Cloudflare Workers AI"
+    ],
+    "acceptedProvider": "searxng",
+    "claudeFallbackInvoked": false,
+    "searxngResultCount": 8,
+    "evidenceState": "SEARCH_GROUNDED",
+    "sourceCount": 8,
+    "sources": [
+      {
+        "title": "Business | trinidadexpress.com",
+        "url": "https://trinidadexpress.com/business/",
+        "publishedAt": null
+      },
+      {
+        "title": "Local Business | trinidadexpress.com",
+        "url": "https://trinidadexpress.com/business/local/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago Newsday: Home",
+        "url": "https://newsday.co.tt/",
+        "publishedAt": null
+      },
+      {
+        "title": "Central Bank of Trinidad and Tobago",
+        "url": "https://www.central-bank.org.tt/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago Country Report 2026 - Bti-project.org",
+        "url": "https://bti-project.org/en/reports/country-report/TTO",
+        "publishedAt": null
+      },
+      {
+        "title": "trinidadexpress.com | The National Newspaper of Trinidad and ...",
+        "url": "https://trinidadexpress.com/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago Business News - Facebook",
+        "url": "https://www.facebook.com/fb-answers/trinidad-and-tobago-business-news/?locale=ta_IN",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad Guardian: Home",
+        "url": "https://www.guardian.co.tt/",
+        "publishedAt": null
+      }
+    ],
+    "answer": "Based on the available evidence, Trinidad and Tobago has been preparing to move its crypto sector beyond a sandbox environment. Additionally, the country has received a US$5 billion investment package from U.S. firms, announced under Prime Minister Kamla Persad-Bissessar. This investment package covers a 300-megawatt solar energy project.\n\nSource: [7] \"Trinidad and Tobago Business News - Facebook\" \n\nThere is also mention of a country bouncing back after a hurricane, but no specific information about the current week's business news.",
+    "flags": {
+      "hasStaleYearInAnswer": false,
+      "hasNoCurrentInfoClaim": false,
+      "hasFrameworkLeak": false
+    },
+    "pass": true
+  },
+  {
+    "query": "What changed at Trinidad and Tobago Parliament this week?",
+    "httpOk": true,
+    "httpStatus": 200,
+    "latencyMs": 2328,
+    "queryClass": "CURRENT_WEB_RESEARCH",
+    "providerPath": [
+      "search:searxng",
+      "Cloudflare Workers AI"
+    ],
+    "acceptedProvider": "searxng",
+    "claudeFallbackInvoked": false,
+    "searxngResultCount": 8,
+    "evidenceState": "SEARCH_GROUNDED",
+    "sourceCount": 8,
+    "sources": [
+      {
+        "title": "Parliament – Parliament of the Republic of Trinidad and Tobago",
+        "url": "https://www.ttparliament.org/",
+        "publishedAt": null
+      },
+      {
+        "title": "Parliament of Trinidad and Tobago | Port of Spain - Facebook",
+        "url": "https://www.facebook.com/ttparliament/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago has reopened its Parliament—and ... - YouTube",
+        "url": "https://www.youtube.com/shorts/mcPZ4i8ssFk",
+        "publishedAt": null
+      },
+      {
+        "title": "Latest News from the Parliament",
+        "url": "https://www.ttparliament.org/the-office-of-the-parliament/latest-news-from-the-parliament/",
+        "publishedAt": null
+      },
+      {
+        "title": "Trinidad and Tobago Parliament (@ttparliament1) - Instagram",
+        "url": "https://www.instagram.com/ttparliament1/?hl=en",
+        "publishedAt": null
+      },
+      {
+        "title": "ParlView - YouTube",
+        "url": "https://www.youtube.com/parlview",
+        "publishedAt": null
+      },
+      {
+        "title": "Latest News from the Parliament – Page 4",
+        "url": "https://www.ttparliament.org/the-office-of-the-parliament/latest-news-from-the-parliament/4/",
+        "publishedAt": null
+      },
+      {
+        "title": "20 years! It seems like yesterday that the Parliament Channel aired ...",
+        "url": "https://www.facebook.com/ttparliament/videos/20-years-it-seems-like-yesterday-that-the-parliament-channel-aired-its-first-liv/1786410985849233/",
+        "publishedAt": null
+      }
+    ],
+    "answer": "There's a current debate in the House of Representatives, as seen in a recent YouTube short [3]. The Parliament in Trinidad and Tobago has also reopened, with the 6th Sitting of the House of Representatives being broadcast live on the Parliament Channel today at 1:30 p.m. [2]. This is according to the Parliament's official Facebook page [2].",
+    "flags": {
+      "hasStaleYearInAnswer": false,
+      "hasNoCurrentInfoClaim": false,
+      "hasFrameworkLeak": false
+    },
+    "pass": true
+  }
+]
