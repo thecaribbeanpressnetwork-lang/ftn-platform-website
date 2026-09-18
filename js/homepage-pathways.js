@@ -8,14 +8,20 @@
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+  // FTN Consolidation (2026-09-18): 'tv', 'kaiso' and 'riddim' carry absorbedInto now (their
+  // standalone identity retired into 'screen', 'ftn-live' and 'ibis-ai' respectively -- see
+  // GOVERNANCE/FTN_Consolidation_2026-09-18.md). These primary homepage outcome CTAs must not send
+  // a first-time visitor straight to a retired peer-app identity, so each id below points at the
+  // capability's current home instead; the underlying task (watch video, discover news, create
+  // music) is unchanged and fully served from there.
   var PATHWAYS = [
     { verb: 'REPORT', prompt: 'Something in my community', id: 'community-connect' },
     { verb: 'KNOW', prompt: 'What’s happening right now', id: 'ftn-live' },
-    { verb: 'SEE', prompt: 'The Caribbean, on a screen near you', id: 'display' },
-    { verb: 'WATCH', prompt: 'Caribbean video and live sources', id: 'tv' },
-    { verb: 'DISCOVER', prompt: 'Caribbean news and culture', id: 'kaiso' },
+    { verb: 'SEE', prompt: 'The Caribbean, on a screen near you', id: 'screen' },
+    { verb: 'WATCH', prompt: 'Caribbean video and live sources', id: 'screen' },
+    { verb: 'DISCOVER', prompt: 'Caribbean news and culture', id: 'ftn-live' },
     { verb: 'FIND', prompt: 'Opportunity, work and business', id: 'opportunities' },
-    { verb: 'CREATE', prompt: 'Caribbean music and creator tools', id: 'riddim' }
+    { verb: 'CREATE', prompt: 'Caribbean music and creator tools', id: 'ibis-ai' }
   ];
 
   function card(entry, product) {

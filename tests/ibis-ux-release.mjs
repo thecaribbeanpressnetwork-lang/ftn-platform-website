@@ -24,8 +24,11 @@ assert.match(workspaceJs, /replace\(\/\\\*\\\*\(\[\^\*\]\+\)\\\*\\\*\/g,'<strong
 // and its own revealAnswer(out) call site) -> 5 (Slice 1 correction added a render path for the
 // canonical server's own answer) -> 6 (Slice 3 correction added a distinct render path for the
 // authorized-fallback answer returned by a failure receipt, separate from the initial
-// non-authorized canonical answer path -- a genuinely new call site each time, not a reversion).
-assert.equal((workspaceJs.match(/revealAnswer\(out\);/g) || []).length, 6);
+// non-authorized canonical answer path -- a genuinely new call site each time, not a reversion)
+// -> 7 (FTN Consolidation 2026-09-18: the IbisAbsorbedCapabilities.detectAndHandle() router --
+// music generation, audio processing, EPK, scenario comparison, course discovery, "where did X
+// go" -- got its own render path, ahead of the media-discovery trigger).
+assert.equal((workspaceJs.match(/revealAnswer\(out\);/g) || []).length, 7);
 assert.doesNotMatch(workspaceJs, /function quickLooksLikeLiveRequest/, 'the freshness pre-filter function must not exist -- the browser must never decide a question is too current for canonical orchestration');
 assert.doesNotMatch(workspaceJs, /if\(quickLooksLikeLiveRequest/, 'nothing may call the freshness pre-filter as a bypass gate');
 assert.ok(widgetJs.includes("if (/^\\/ibis-ai\\/?$/.test(global.location.pathname)) return;"));

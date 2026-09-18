@@ -112,6 +112,20 @@
       .sort(function (a, b) { return b.rankScore - a.rankScore || b.score - a.score; });
   }
 
+  // FTN Consolidation, closure wave (2026-09-18): the Directory must "clearly distinguish
+  // Products/Capabilities/Data Services" (GOVERNANCE/FTN_Consolidation_2026-09-18.md), not just
+  // silently drop the 11 absorbed products from the Products list with no trace. These two
+  // accessors give the Directory (js/ftn-directory.js) the other two categories.
+  function absorbedCapabilities() {
+    return data().filter(function (p) { return !!p.absorbedInto; }).map(function (p) {
+      return { product: p, absorbedIntoProduct: get(p.absorbedInto) };
+    });
+  }
+
+  function dataServiceProducts() {
+    return data().filter(function (p) { return p.productType === 'data-service' && p.publicVisibility !== false; });
+  }
+
   // "Where did X go?" lookup (FTN Consolidation): resolves a retired product id/name/legacyId to
   // its honest current state -- used by ibis so it never pretends an absorbed product vanished,
   // and never suggests it as a live destination either (see js/ibis-absorbed-capabilities.js).
@@ -126,5 +140,5 @@
   }
 
   global.FTN = global.FTN || {};
-  global.FTN.ProductRegistry = { all: all, get: get, byRoute: byRoute, homepagePanels: homepagePanels, publicProducts: publicProducts, sitemapProducts: sitemapProducts, ecosystemGroups: ecosystemGroups, accountShortcuts: accountShortcuts, search: search, absorbedInfo: absorbedInfo };
+  global.FTN.ProductRegistry = { all: all, get: get, byRoute: byRoute, homepagePanels: homepagePanels, publicProducts: publicProducts, sitemapProducts: sitemapProducts, ecosystemGroups: ecosystemGroups, accountShortcuts: accountShortcuts, search: search, absorbedInfo: absorbedInfo, absorbedCapabilities: absorbedCapabilities, dataServiceProducts: dataServiceProducts };
 })(window);

@@ -69,3 +69,69 @@ with zero regression. **PARTIAL parity count: 0.** Every absorbed capability wit
 engine (Fire, DAW, EPK, Scenario Workspace, Learn) is now VERIFIED. Parliament/TV/Display/Kaiso/
 Riddim-hub/Picks remain N/A (never had a portable engine to extract — absorbed as verticals/brand
 identity, not as reusable code, per the register above).
+
+## Final acceptance pass (2026-09-18, closure wave)
+
+**Live 20-query production matrix** — every query run against the deployed `https://ftnplatform.org/ibis-ai/`, in order, 20/20 PASS. Four real production bugs were found, fixed, deployed and re-verified live during this pass (not merely written and assumed correct):
+
+1. **Scenario weight-slider wiring bug** — `renderComparison()` read weight inputs from the wrong DOM scope (a sibling div outside `<form>`), silently defaulting every weight to 1. Fixed by passing the weights container explicitly (`js/ibis-absorbed-capabilities.js`). Confirmed live: changing a weight now changes the ranked total.
+2. **FTN identity hallucination** — "What can FTN do?" answered "FTN (Financial Technology Network)..." with no grounding. Fixed with an explicit `FTN_IDENTITY_CORRECTION` in `supabase/functions/ibis-assistant/index.ts`'s system prompt. Re-verified live.
+3. **UK Parliament instead of Trinidad and Tobago Parliament** — "Show me Parliament records..." returned `bills.parliament.uk`. Fixed with civic-term disambiguation in `supabase/functions/_shared/ibis-ftn-disambiguation.ts` (5 new unit tests, 11/11 pass). Re-verified live against `ttparliament.org`.
+4. **Festival-submission request swallowed by video discovery** — "Find a Caribbean film festival and help me prepare a submission" matched bare "film" and returned a YouTube grid instead of planning help. Fixed with a `wantsFestivalPlanning` exclusion in `js/ibis-ai-workspace.js`. Re-verified live.
+
+A fifth, systemic issue was found and fixed while verifying bug 4: **every static JS asset the site serves carries a 4-hour browser cache** (`Cache-Control: public, max-age=14400, must-revalidate`), and several lazy-loaded script paths inside `js/ibis-ai-workspace.js`/`js/ibis-absorbed-capabilities.js` had no cache-busting version string at all, meaning any future edit to those files would silently fail to reach already-visited browsers for up to 4 hours. Fixed by adding `?v=` version strings to every previously-unversioned lazy-load path, and bumping every changed asset's version tonight (and again for the Directory/homepage-pathways fixes below).
+
+**Capability-routing proof (not just answer quality):** MUSIC_GENERATION, AUDIO_PROCESSING, EPK_GENERATION, SCENARIO_ANALYSIS/COMPARE and COURSE_DISCOVERY were each confirmed to genuinely invoke their shared engine (`ibis-caribbean-music-engine.js`, `ftn-audio-dsp-engine.js`, `ftn-epk-schema.js`, `ibis-scenario-engine.js`, `ftn-learn-discovery.js`) rather than produce a plausible-looking text answer with no execution behind it.
+
+**Release gates run this closure wave** (all against the real registry/live server, not mocked):
+
+| Gate | Result |
+|---|---|
+| Product Registry audit | PASS (28/28 required products, metadata complete) |
+| Node Registry audit | PASS (29 nodes, 14 routable) |
+| Nav registry audit | PASS (44/44 targets match config) |
+| Footer drift check | **Found real drift on 5 pages** (ibis-ai, scenario-workspace, radio, riddim/fire, riddim/daw — stale footers left over from tonight's edits), fixed via `sync-footer.mjs`, now 46/46 match |
+| Sitemap check | PASS (50 URLs, all registry-derivable) |
+| CSP source audit | PASS (80 documents, no inline scripts) |
+| Service-worker lifecycle + route policy | PASS (9/9 scenarios; policy registry-driven) |
+| Broken-link audit | PASS (80 pages, ~5,000 anchors, zero breaks) |
+| Performance budgets | PASS (12/12 representative routes) |
+| Visual regression | PASS (19/19 flagship surfaces; baselines updated to reflect the sanctioned banner-insertion layout change) |
+| Mobile viewport matrix | PASS (13/13 critical surfaces) |
+| UX Guardian (rendered-output audit) | 0 real BLOCKER/MAJOR findings — 27 initial MAJOR flags were verified by hand to be heuristic false positives on pre-existing, confirmed-working JS controls (Creative Studio toggle, FTN TV day-selector), not consolidation regressions |
+| Functional release (`tests/functional-release.mjs`) | PASS, 61/61 scenarios (3 stale hardcoded assertions updated to reflect intentional consolidation changes: ecosystem-link count 24→14, `/govern/` link count scoped past the new Capabilities section, ibis-ai's intentional dual group placement) |
+| `ibis-ux-release` | PASS (stale `revealAnswer` call-site count 6→7, reflecting the new capability router's own render path) |
+| Investor readiness (`ibis-investor-readiness.mjs`, 9-gate acceptance runner) | **LOCALLY_VERIFIED**, 0 real FAIL (remaining BLOCKED_EXTERNAL/NOT_RUN items require live infra this environment does not have — a real database, a live search provider — and are honestly classified as such, not claimed as passing) |
+| Deno backend suite | PASS, 237/237 |
+
+**Two further real, previously-undiscovered gaps found and fixed during this closure wave's own audit of itself:**
+
+- The FTN Directory (`/applications/`) listed standalone Products but had **no visible Capabilities or Data Services distinction at all** — the 11 absorbed products had silently vanished from Directory with no trace, and FTN Statistics (a Data Service) was visually indistinguishable from an ordinary product. Fixed: `js/product-registry.js` gained `absorbedCapabilities()`/`dataServiceProducts()`; `js/ftn-directory.js` now renders a "Data Services" section and a "Capabilities (absorbed into FTN products)" section on the full Directory page, each capability card honestly labelled `ABSORBED` with a link to its real current home.
+- The homepage's primary "What can FTN help you do?" outcome shortcuts (`js/homepage-pathways.js`) hardcoded `id: 'tv'`, `id: 'kaiso'`, `id: 'riddim'` and `id: 'display'` — sending first-time visitors straight to four now-retired standalone identities from the site's own top CTA grid. Fixed: retargeted to `screen`, `ftn-live`, `ibis-ai` (the real current homes); the task each button promises is unchanged.
+- Two of the 11 absorbed pages (`/riddim/fire/`, `/riddim/daw/`) had been deliberately excluded from the compatibility-banner pass earlier tonight ("a mid-workflow banner would be more disruptive than useful"). That reasoning did not survive comparison with `/scenario-workspace/`'s own successful banner (an equally tool-like page) — both now carry the same banner.
+
+## Final architecture count
+
+**Registry size is unchanged: 29 entries before, 29 after** — consolidation never deletes a route; it changes discoverability.
+
+| Category | Count | Members |
+|---|---|---|
+| BRAIN | 1 | ibis-ai |
+| CORE_NODE (primary-nav flagships) | 6 | platform-home, govern, screen, ftn-live, opportunities, invest |
+| CONSUMER (standalone secondary products) | 5 | facethenation, events, radio, display-network, account |
+| SPECIALIZED_INTERFACE | 1 | dj-tube |
+| DATA_SERVICE | 1 | statistics |
+| PRIVATE | 1 | mission-control |
+| VAULTED | 2 | love, health |
+| EXCLUDED_SEPARATE_APPLICATION | 1 | community-connect |
+| **ABSORBED_CAPABILITY** | **11** | scenario-workspace→ibis-ai, learn→ibis-ai, riddim→ibis-ai, ftn-fire→ibis-ai, daw→ibis-ai, epk→ibis-ai, parliament→govern, tv→screen, display→screen, kaiso→ftn-live, top-picks→invest |
+
+**Live, independently discoverable products after consolidation: 14** (BRAIN + CORE_NODE + CONSUMER + SPECIALIZED_INTERFACE + DATA_SERVICE), down from 25 standalone identities before (29 minus the 4 already-private/vaulted/excluded).
+
+**Shared reusable headless engines built this mission: 5** — `js/ibis-caribbean-music-engine.js`, `js/ftn-audio-dsp-engine.js`, `js/ftn-epk-schema.js`, `js/ibis-scenario-engine.js`, `js/ftn-learn-discovery.js`.
+
+**Absorbed-capability parity: 5 VERIFIED (Fire, DAW, EPK, Scenario Workspace, Learn — each has a real, tested, ibis-callable engine), 6 N/A (Parliament, TV, Display, Kaiso, Riddim-hub, Top Picks — absorbed as discoverability/vertical consolidation into an existing sibling CORE_NODE product, never had a portable computational engine to extract), 0 PARTIAL.**
+
+## Classification
+
+**FTN CONSOLIDATION COMPLETE.**

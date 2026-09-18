@@ -135,7 +135,12 @@ assert(navSource.includes('/js/analytics.js?v=20260818.3'),'Global navigation mu
 
 const htmlFiles=[];function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules'].includes(entry.name))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(entry.name.endsWith('.html'))htmlFiles.push(full);}}walk('.');
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');if(html.includes('/js/nav.js'))assert(html.includes('/js/nav.js?v=20260824.5'),`${file} uses a stale global navigation asset URL`);}
-for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of ['product-registry-data','product-registry'])if(html.includes(`/js/${asset}.js`))assert(html.includes(`/js/${asset}.js?v=20260822.1`),`${file} uses a stale ${asset} asset URL`);}
+// FTN Consolidation, closure wave (2026-09-18): product-registry.js gained absorbedCapabilities()/
+// dataServiceProducts() (Directory Products/Capabilities/Data Services split) while
+// product-registry-data.js's own content did not change, so their cache-busting versions
+// legitimately diverged for the first time -- each asset is checked against its own version now.
+const EXPECTED_ASSET_VERSION={'product-registry-data':'20260822.1','product-registry':'20260918.2'};
+for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8');for(const asset of Object.keys(EXPECTED_ASSET_VERSION))if(html.includes(`/js/${asset}.js`))assert(html.includes(`/js/${asset}.js?v=${EXPECTED_ASSET_VERSION[asset]}`),`${file} uses a stale ${asset} asset URL`);}
 for(const file of htmlFiles){const html=fs.readFileSync(file,'utf8'),match=html.match(/<link rel=["']canonical["'] href=["']([^"']+)/i);if(match)assert(/^https:\/\/ftnplatform\.org\//.test(match[1]),`${file} has non-apex canonical ${match[1]}`);}
 for(const file of htmlFiles.filter(file=>!['love/index.html','health/index.html'].includes(file))){
   const html=fs.readFileSync(file,'utf8');

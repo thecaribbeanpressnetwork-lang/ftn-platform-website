@@ -1,0 +1,1251 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-18T03:16:37.488Z",
+  "base": "http://127.0.0.1:3000",
+  "routes": [
+    "/",
+    "/ibis-ai/",
+    "/applications/",
+    "/scenario-workspace/",
+    "/learn/",
+    "/parliament/",
+    "/riddim/",
+    "/tv/",
+    "/top-picks/",
+    "/kaiso/"
+  ],
+  "findings": [
+    {
+      "route": "/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "1 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ibis-studio__toggle \"CREATE WITH IBISOpen Creative Studio+\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "1 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ibis-studio__toggle \"CREATE WITH IBISOpen Creative Studio+\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "1 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ibis-studio__toggle \"CREATE WITH IBISOpen Creative Studio+\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "1 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ibis-studio__toggle \"CREATE WITH IBISOpen Creative Studio+\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-430x932",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "1 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ibis-studio__toggle \"CREATE WITH IBISOpen Creative Studio+\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "1 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ibis-studio__toggle \"CREATE WITH IBISOpen Creative Studio+\""
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/ibis-ai/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "1 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button.ibis-studio__toggle \"CREATE WITH IBISOpen Creative Studio+\""
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/applications/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 91.4% of the laptop-1366x768 viewport (budget 75%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 702,
+        "viewportHeight": 768
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "first-viewport-chrome",
+      "message": "Header + hero together consume 98.8% of the laptop-1366x768 viewport (budget 62%) -- the first screen is mostly chrome/title, not product content",
+      "detail": {
+        "headerHeight": 57,
+        "heroHeight": 702,
+        "viewportHeight": 768
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 97.5% of the small-desktop-1280x720 viewport (budget 75%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 702,
+        "viewportHeight": 720
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "first-viewport-chrome",
+      "message": "Header + hero together consume 105.4% of the small-desktop-1280x720 viewport (budget 62%) -- the first screen is mostly chrome/title, not product content",
+      "detail": {
+        "headerHeight": 57,
+        "heroHeight": 702,
+        "viewportHeight": 720
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 91.4% of the small-laptop-1024x768 viewport (budget 75%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 702,
+        "viewportHeight": 768
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "first-viewport-chrome",
+      "message": "Header + hero together consume 99.3% of the small-laptop-1024x768 viewport (budget 62%) -- the first screen is mostly chrome/title, not product content",
+      "detail": {
+        "headerHeight": 61,
+        "heroHeight": 702,
+        "viewportHeight": 768
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "first-viewport-chrome",
+      "message": "Header + hero together consume 80.0% of the tablet-portrait-768x1024 viewport (budget 75%) -- the first screen is mostly chrome/title, not product content",
+      "detail": {
+        "headerHeight": 61,
+        "heroHeight": 758,
+        "viewportHeight": 1024
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-430x932",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 120.8% of the phone-430x932 viewport (budget 92%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 1126,
+        "viewportHeight": 932
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-430x932",
+      "severity": "MAJOR",
+      "rule": "first-viewport-chrome",
+      "message": "Header + hero together consume 127.4% of the phone-430x932 viewport (budget 85%) -- the first screen is mostly chrome/title, not product content",
+      "detail": {
+        "headerHeight": 61,
+        "heroHeight": 1126,
+        "viewportHeight": 932
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 140.6% of the phone-393x852 viewport (budget 92%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 1198,
+        "viewportHeight": 852
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "first-viewport-chrome",
+      "message": "Header + hero together consume 147.8% of the phone-393x852 viewport (budget 85%) -- the first screen is mostly chrome/title, not product content",
+      "detail": {
+        "headerHeight": 61,
+        "heroHeight": 1198,
+        "viewportHeight": 852
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "hero-occupancy",
+      "message": "Hero/banner consumes 158.8% of the phone-small-360x800 viewport (budget 92%) -- product content pushed below the fold",
+      "detail": {
+        "heroHeight": 1270,
+        "viewportHeight": 800
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "first-viewport-chrome",
+      "message": "Header + hero together consume 166.4% of the phone-small-360x800 viewport (budget 85%) -- the first screen is mostly chrome/title, not product content",
+      "detail": {
+        "headerHeight": 61,
+        "heroHeight": 1270,
+        "viewportHeight": 800
+      }
+    },
+    {
+      "route": "/scenario-workspace/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/learn/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/learn/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/learn/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/learn/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/learn/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/learn/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/learn/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/parliament/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/parliament/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/parliament/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/parliament/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/parliament/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/parliament/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/parliament/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/riddim/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/riddim/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/riddim/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/riddim/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/riddim/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/riddim/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/riddim/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "7 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button \"Today\"",
+        "button \"Fri 09/18\"",
+        "button \"Sat 09/19\"",
+        "button \"Sun 09/20\"",
+        "button \"Mon 09/21\"",
+        "button \"Tue 09/22\"",
+        "button \"Wed 09/23\""
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "7 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button \"Today\"",
+        "button \"Fri 09/18\"",
+        "button \"Sat 09/19\"",
+        "button \"Sun 09/20\"",
+        "button \"Mon 09/21\"",
+        "button \"Tue 09/22\"",
+        "button \"Wed 09/23\""
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "7 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button \"Today\"",
+        "button \"Fri 09/18\"",
+        "button \"Sat 09/19\"",
+        "button \"Sun 09/20\"",
+        "button \"Mon 09/21\"",
+        "button \"Tue 09/22\"",
+        "button \"Wed 09/23\""
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "7 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button \"Today\"",
+        "button \"Fri 09/18\"",
+        "button \"Sat 09/19\"",
+        "button \"Sun 09/20\"",
+        "button \"Mon 09/21\"",
+        "button \"Tue 09/22\"",
+        "button \"Wed 09/23\""
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "phone-430x932",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "7 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button \"Today\"",
+        "button \"Fri 09/18\"",
+        "button \"Sat 09/19\"",
+        "button \"Sun 09/20\"",
+        "button \"Mon 09/21\"",
+        "button \"Tue 09/22\"",
+        "button \"Wed 09/23\""
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "phone-393x852",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "7 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button \"Today\"",
+        "button \"Fri 09/18\"",
+        "button \"Sat 09/19\"",
+        "button \"Sun 09/20\"",
+        "button \"Mon 09/21\"",
+        "button \"Tue 09/22\"",
+        "button \"Wed 09/23\""
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/tv/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MAJOR",
+      "rule": "suspect-dead-control",
+      "message": "7 prominent control(s) with no href/type=submit/onclick/data-action attribute -- verify manually, this is a heuristic not a proof",
+      "detail": [
+        "button \"Today\"",
+        "button \"Fri 09/18\"",
+        "button \"Sat 09/19\"",
+        "button \"Sun 09/20\"",
+        "button \"Mon 09/21\"",
+        "button \"Tue 09/22\"",
+        "button \"Wed 09/23\""
+      ]
+    },
+    {
+      "route": "/kaiso/",
+      "breakpoint": "laptop-1366x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/kaiso/",
+      "breakpoint": "small-desktop-1280x720",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/kaiso/",
+      "breakpoint": "small-laptop-1024x768",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "6 interactive element(s) smaller than 44px",
+      "detail": [
+        "button.country-switcher-trigger (36x36)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/kaiso/",
+      "breakpoint": "tablet-portrait-768x1024",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/kaiso/",
+      "breakpoint": "phone-430x932",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/kaiso/",
+      "breakpoint": "phone-393x852",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    },
+    {
+      "route": "/kaiso/",
+      "breakpoint": "phone-small-360x800",
+      "severity": "MINOR",
+      "rule": "small-tap-target",
+      "message": "5 interactive element(s) smaller than 44px",
+      "detail": [
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)",
+        "a.ftn-external-link (40x40)"
+      ]
+    }
+  ]
+}
