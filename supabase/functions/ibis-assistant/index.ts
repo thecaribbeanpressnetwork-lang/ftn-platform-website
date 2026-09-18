@@ -1,6 +1,7 @@
 import { gatewayHealth, runGateway, type GatewayProvider, type IbisProduct, type IbisTurn } from "../_shared/ibis-intelligence-gateway.ts";
 import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "../_shared/ibis-canonical-brain.ts";
 import { classifyIntent } from "../_shared/ibis-intent-router.ts";
+import { buildRequestFrame } from "../_shared/ibis-request-frame.ts";
 import { resolveLifecycleStore } from "../_shared/ibis-lifecycle-store.ts";
 
 const allowedOrigins = new Set(["https://ftnplatform.org", "https://www.ftnplatform.org"]);
@@ -229,7 +230,19 @@ Deno.serve(async (request) => {
   // model gateway through that compatibility route, because doing so can produce confident but
   // ungrounded current-world claims. Reuse the SAME canonical classifier and canonical brain used
   // by the explicit action above. Non-freshness legacy callers retain their exact prior behavior.
-  if (classifyIntent(text).queryClass === "CURRENT_WEB_RESEARCH") {
+  //
+  // FTN / IBIS Canonical Architecture, Phase 2 (2026-09-18): this gate now reads
+  // RequestFrame.requiresFreshEvidence (the one temporal authority -- see
+  // ibis-temporal-resolver.ts) instead of independently re-checking `queryClass ===
+  // "CURRENT_WEB_RESEARCH"`. Real, live-confirmed gap this closes: the old check never recognized
+  // phrasings like "this morning" (absent from ibis-intent-router.ts's FRESHNESS_MARKERS regex),
+  // so a legacy-shaped request asking "What happened in Trinidad this morning?" would have skipped
+  // this safety net entirely and reached the bare, ungrounded model gateway below -- exactly the
+  // failure mode this safety net exists to prevent. `isDeterministicAnswer:false` here is a
+  // placeholder: this call only reads `.requiresFreshEvidence`, so the (irrelevant to this decision)
+  // deterministic-answer check is not run a second time just to populate a field nothing here uses.
+  const legacyFrame = buildRequestFrame({ requestId: "legacy-gate-check", text, intent: classifyIntent(text), isDeterministicAnswer: false });
+  if (legacyFrame.requiresFreshEvidence) {
     const providerFactory = (evidenceBlock: string | null, reasoningSynthesisBlock?: string | null) => {
       const groundedSystem = [system, evidenceBlock, reasoningSynthesisBlock].filter((part): part is string => !!part).join("\n\n");
       return [cloudflare(turns, groundedSystem), anthropic(turns, groundedSystem), gemini(turns, groundedSystem), openAICompatible("PRIMARY", turns, groundedSystem), openAICompatible("SECONDARY", turns, groundedSystem), ollama(turns, groundedSystem)];

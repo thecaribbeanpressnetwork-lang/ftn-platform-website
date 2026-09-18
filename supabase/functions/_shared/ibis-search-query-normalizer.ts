@@ -12,6 +12,15 @@
 //
 // Pure, dependency-free, no Deno-only API -- runs under plain Node so it has its own plain-Node
 // unit test (ibis-search-query-normalizer.test.ts) independent of the Deno test runner.
+//
+// FTN / IBIS Canonical Architecture, Phase 2 (2026-09-18): `buildQueryAttempts()` now optionally
+// accepts the caller's resolved TemporalRequirement (ibis-temporal-resolver.ts) so the CURRENT_EVENTS
+// boost phrase can be shaped by what was actually asked, per the implementation plan's explicit
+// instruction -- TODAY gets an exact resolved date, HISTORICAL gets NO current-date injection at all
+// (injecting "September 2026" into a query about 1990 would actively hurt retrieval), LATEST_AVAILABLE
+// prefers "latest official release" language over forcing today's date. The second parameter is
+// optional and every existing call site/test that omits it keeps the exact prior year-month behavior.
+import type { TemporalRequirement } from "./ibis-temporal-resolver.ts";
 
 export type SearchCategory =
   | "CURRENT_EVENTS" | "PARLIAMENT" | "GOVERNMENT" | "GRANTS" | "OPPORTUNITIES"
@@ -78,6 +87,16 @@ function currentMonthYear(): string {
   return `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`;
 }
 
+// Renders a resolved ISO instant (e.g. TemporalRequirement.start for a TODAY resolution) as a plain
+// "Month D YYYY" retrieval phrase -- never re-derives the date from the real clock, only formats
+// whatever the caller's own resolver already computed, so this stays consistent with whatever `now`
+// that resolution used (including in tests with an injected clock).
+function formatIsoForQuery(iso: string): string | null {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return `${MONTH_NAMES[parsed.getUTCMonth()]} ${parsed.getUTCDate()} ${parsed.getUTCFullYear()}`;
+}
+
 // A search index matches on content words, not conversational framing -- rather than trying to
 // pattern-match every possible question-opener (fragile: "What relationships are missing..." does
 // not fit a simple "what is/are X" template), this strips a fixed stopword/question-word list from
@@ -104,8 +123,28 @@ function significantWords(text: string, max: number): string[] {
 // Returns an ordered list of query strings to try, deduplicated, ALWAYS starting with `userText`
 // itself unchanged (attempt #1, the exact current behavior). Bounded to at most 4 total attempts
 // (the original plus at most 3 fallbacks) -- "keep retries bounded", never an unbounded fanout.
-const CATEGORY_BOOST: Partial<Record<SearchCategory, (region: string) => string>> = {
-  CURRENT_EVENTS: (region) => `${region} latest news developments ${currentMonthYear()}`,
+const CATEGORY_BOOST: Partial<Record<SearchCategory, (region: string, temporal?: TemporalRequirement) => string>> = {
+  CURRENT_EVENTS: (region, temporal) => {
+    // HISTORICAL: never inject a current-date term -- "Trinidad and Tobago latest news developments
+    // September 2026" would actively mislead retrieval for a question about 1990. Use the resolved
+    // historical year itself when available (a real, non-invented anchor), plain region otherwise.
+    if (temporal?.type === "HISTORICAL") {
+      return temporal.originalExpression ? `${region} ${temporal.originalExpression}` : `${region} history`;
+    }
+    // LATEST_AVAILABLE: "do not force today's date if that would reduce retrieval quality" -- prefer
+    // release/official-source language over a manufactured current-date term.
+    if (temporal?.type === "LATEST_AVAILABLE") {
+      return `${region} latest official release`;
+    }
+    // TODAY: an exact resolved date is a stronger retrieval anchor than a bare month/year.
+    if (temporal?.type === "TODAY" && temporal.start) {
+      const exact = formatIsoForQuery(temporal.start);
+      if (exact) return `${region} news ${exact}`;
+    }
+    // THIS_WEEK/THIS_MONTH/CURRENT/no temporal info supplied: the existing month-year boost already
+    // narrows well past a bare year (see this module's own Search Quality Gate pass note above).
+    return `${region} latest news developments ${currentMonthYear()}`;
+  },
   PARLIAMENT: (region) => `${region} Parliament`,
   GRANTS: (region) => `${region} grants funding ${currentYear()}`,
   COURSES: (region) => `${region} training course`,
@@ -115,7 +154,7 @@ const CATEGORY_BOOST: Partial<Record<SearchCategory, (region: string) => string>
   BUSINESS: (region) => `${region} business`,
 };
 
-export function buildQueryAttempts(userText: string): string[] {
+export function buildQueryAttempts(userText: string, temporalRequirement?: TemporalRequirement): string[] {
   const text = String(userText || "").trim();
   if (!text) return [];
   const category = categorize(text);
@@ -129,7 +168,7 @@ export function buildQueryAttempts(userText: string): string[] {
   // -- keyword-dense retrieval language a search index actually matches on, never the conversational
   // framing ("what is", "can you tell me") a search engine ignores or mismatches on anyway.
   const boost = CATEGORY_BOOST[category];
-  const boostPhrase = boost ? boost(region) : region;
+  const boostPhrase = boost ? boost(region, temporalRequirement) : region;
   if (wordsWide.length) attempts.push(`${boostPhrase} ${wordsWide.join(" ")}`.trim());
 
   // Attempt 3: a short, high-precision query (region + up to 4 real content words) -- when a long

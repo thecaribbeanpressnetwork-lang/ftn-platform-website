@@ -48,6 +48,7 @@ import { unavailable, type SearchResult, type SourceRecord } from "./ibis-search
 import { claudeWebSearch } from "./ibis-claude-search-adapter.ts";
 import { buildQueryAttempts } from "./ibis-search-query-normalizer.ts";
 import { evaluateSearchResultQuality } from "./ibis-search-quality-gate.ts";
+import type { TemporalRequirement } from "./ibis-temporal-resolver.ts";
 
 // Search Quality Gate pass (2026-09-18): live-caught -- "What changed in Trinidad and Tobago this
 // week?" was answered in production from an irrelevant 2018/2019 UWI Faculty Report. The prior
@@ -59,7 +60,14 @@ import { evaluateSearchResultQuality } from "./ibis-search-quality-gate.ts";
 // additive: every existing call site (and every existing test, none of which pass these fields)
 // keeps behaving exactly as before -- `freshnessRequired` defaults to false, which makes
 // evaluateSearchResultQuality() an unconditional pass-through (see that module's own scoping note).
-export type SearchQualityOptions = { freshnessRequired?: boolean; queryClass?: string; userQuery?: string };
+//
+// Phase 2 addition: `temporalRequirement` is passed through to the query normalizer ONLY, for
+// retrieval-language shaping (an exact date for TODAY, no date injection for HISTORICAL, etc -- see
+// ibis-search-query-normalizer.ts). It is deliberately NOT read by applyQualityGate()/
+// evaluateSearchResultQuality() below -- the quality gate's thresholds and inputs are UNCHANGED this
+// phase; retrieval adaptation and evidence-sufficiency judgment stay separate responsibilities (see
+// the Phase 2 implementation plan's explicit SearchAdapter-role boundary).
+export type SearchQualityOptions = { freshnessRequired?: boolean; queryClass?: string; userQuery?: string; temporalRequirement?: TemporalRequirement };
 
 // Applies the quality gate to an already-OK provider result; a LOW_QUALITY verdict is reported as a
 // SEARCH_UNAVAILABLE (never silently dropped) so the cascade's normal "not OK -> try next provider"
@@ -165,7 +173,7 @@ async function searxngSearchWithFanout(
   query: string,
   options: { baseUrl?: string; timeoutMs?: number; retryTimeoutMs?: number; fetchImpl?: typeof fetch } & SearchQualityOptions = {},
 ): Promise<SearchResult> {
-  const attempts = buildQueryAttempts(query);
+  const attempts = buildQueryAttempts(query, options.temporalRequirement);
   if (!attempts.length) return applyQualityGate(await searxngSearch(query, options), query, options);
   const tried: { queryTried: string; result: Extract<SearchResult, { status: "SEARCH_UNAVAILABLE" }> }[] = [];
   for (const attemptQuery of attempts) {

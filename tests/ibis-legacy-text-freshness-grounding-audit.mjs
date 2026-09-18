@@ -4,6 +4,14 @@
 // compatibility route must remain available for ordinary non-freshness TEXT requests, but any
 // freshness-sensitive prompt must be classified by the canonical intent router and routed through
 // handleCanonicalRequest() before the legacy runGateway() path can execute.
+//
+// FTN / IBIS Canonical Architecture, Phase 2 (2026-09-18): the gate itself was migrated from an
+// independent `classifyIntent(text).queryClass === "CURRENT_WEB_RESEARCH"` recomputation to reading
+// RequestFrame.requiresFreshEvidence (ibis-request-frame.ts / ibis-temporal-resolver.ts) -- the one
+// temporal authority every consumer now reads, per the Phase 2 implementation plan's explicit "no
+// downstream code independently recomputes freshness from queryClass" mandate. This test's source-
+// text assertions were updated to match; its INTENT (freshness-sensitive legacy requests must route
+// through the canonical brain, never the bare gateway) is unchanged.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -17,9 +25,14 @@ assert.match(
   /import \{ classifyIntent \} from "\.\.\/_shared\/ibis-intent-router\.ts";/,
   'ibis-assistant must reuse the canonical classifyIntent implementation rather than a duplicate freshness regex',
 );
+assert.match(
+  source,
+  /import \{ buildRequestFrame \} from "\.\.\/_shared\/ibis-request-frame\.ts";/,
+  'ibis-assistant must reuse the canonical RequestFrame builder -- the one temporal authority -- rather than a second freshness computation',
+);
 
 const canonicalActionIndex = source.indexOf('if (payload.action === "canonical_query")');
-const legacyFreshnessIndex = source.indexOf('if (classifyIntent(text).queryClass === "CURRENT_WEB_RESEARCH")');
+const legacyFreshnessIndex = source.indexOf('if (legacyFrame.requiresFreshEvidence)');
 const legacyGatewayIndex = source.lastIndexOf('const result = await runGateway({ text, products, providers });');
 
 assert.ok(canonicalActionIndex >= 0, 'explicit canonical_query path must still exist');

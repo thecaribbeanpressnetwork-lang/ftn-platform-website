@@ -1,10 +1,12 @@
-// FTN / IBIS Canonical Architecture, Phase 1 -- unit tests for RequestFrame construction.
-// Deliberately plain Deno.test (no network, no fetch): classifyTemporalRequirement()/
-// buildRequestFrame() are pure functions over already-computed classification state, same pattern as
-// ibis-search-query-normalizer.test.ts and ibis-search-quality-gate.test.ts.
+// FTN / IBIS Canonical Architecture, Phase 1 + Phase 2 -- unit tests for RequestFrame construction.
+// Deliberately plain Deno.test (no network, no fetch): buildRequestFrame() is a pure function over
+// already-computed classification state, same pattern as ibis-search-query-normalizer.test.ts and
+// ibis-search-quality-gate.test.ts. Detailed temporal-resolution tests (period semantics, timezone
+// handling, ISO bound resolution) live in ibis-temporal-resolver.test.ts, the resolver's own test
+// file -- this file only proves buildRequestFrame() wires that resolver in correctly.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
-import { buildRequestFrame, classifyTemporalRequirement } from "./ibis-request-frame.ts";
+import { buildRequestFrame } from "./ibis-request-frame.ts";
 
 function frameFor(text: string, isDeterministicAnswer = false) {
   const intent = classifyIntent(text);
@@ -45,11 +47,12 @@ Deno.test("HISTORICAL: an explicit past year with no freshness marker needs no f
   assertEquals(frame.requiresFreshEvidence, false);
 });
 
-Deno.test("DATE_RANGE: an explicit bounded range is preserved, not discarded", () => {
+Deno.test("DATE_RANGE: an explicit bounded range is resolved to real ISO bounds, and the original wording is preserved separately", () => {
   const frame = frameFor("What happened in Trinidad and Tobago between January 2026 and March 2026?");
   assertEquals(frame.temporalRequirement.type, "DATE_RANGE");
-  assert(frame.temporalRequirement.start?.includes("January"), "start must preserve the real matched text");
-  assert(frame.temporalRequirement.end?.includes("March"), "end must preserve the real matched text");
+  assertEquals(frame.temporalRequirement.start, "2026-01-01T00:00:00.000Z");
+  assertEquals(frame.temporalRequirement.end, "2026-03-31T00:00:00.000Z");
+  assert(frame.temporalRequirement.originalExpression?.includes("January"), "originalExpression must preserve the real matched text verbatim");
 });
 
 Deno.test("DATE_RANGE pattern does not false-positive on an unrelated 'relationship between X and Y' question", () => {
@@ -57,10 +60,13 @@ Deno.test("DATE_RANGE pattern does not false-positive on an unrelated 'relations
   assert(frame.temporalRequirement.type !== "DATE_RANGE", "a relationship question with no date/month/year token must never be mistaken for a date range");
 });
 
-Deno.test("AS_OF: preserves the as-of expression", () => {
+Deno.test("AS_OF: resolved to a real ISO date, with the original wording preserved separately", () => {
   const frame = frameFor("What was the exchange rate as of September 2026?");
   assertEquals(frame.temporalRequirement.type, "AS_OF");
-  assert(frame.temporalRequirement.asOf?.includes("September"), "asOf must preserve the real matched text");
+  // A month-year-only "as of" resolves to the END of that month (day unspecified -> last day is the
+  // defensible reading for "as of a month", matching parseDateBound's boundary="end" for AS_OF).
+  assertEquals(frame.temporalRequirement.asOf, "2026-09-30T00:00:00.000Z");
+  assert(frame.temporalRequirement.originalExpression?.includes("September"), "originalExpression must preserve the real matched text verbatim");
 });
 
 Deno.test("No invented geography: a query with no place reference gets null geography, never an inferred Caribbean default", () => {
@@ -80,7 +86,15 @@ Deno.test("consequenceLevel is honestly UNRESOLVED, never a guessed default", ()
   assertEquals(frame.consequenceLevel, "UNRESOLVED");
 });
 
-Deno.test("requiresFreshEvidence exactly mirrors the existing production freshnessRequired computation", () => {
+// Phase 2 note: requiresFreshEvidence is no longer LITERALLY `queryClass === "CURRENT_WEB_RESEARCH"`
+// -- it is derived from the resolved TemporalRequirement's strictness (see ibis-temporal-resolver.ts),
+// which is deliberately MORE precise than the old coarse check for some real queries (e.g. "this
+// morning" now correctly requires fresh evidence even though it never matched the old FRESHNESS_
+// MARKERS regex -- see ibis-temporal-resolver.test.ts's dedicated coverage of that gap). This test
+// keeps checking agreement on these specific representative queries, where the two computations still
+// coincide, as a regression guard against an UNINTENDED divergence -- not as a claim that the two are
+// architecturally guaranteed to always match.
+Deno.test("requiresFreshEvidence agrees with the legacy queryClass-based check on these representative queries", () => {
   for (const text of [
     "What is the capital of Barbados?",
     "What changed in Trinidad and Tobago this week?",
@@ -119,10 +133,23 @@ Deno.test("RequestFrame construction never modifies the raw query text or invent
   assertEquals(frame.intent, null, "an ordinary SIMPLE_TEXT question has no classifier-extracted objective -- must stay null, never a fabricated one");
 });
 
-Deno.test("classifyTemporalRequirement: bare mention of the CURRENT year alone is not treated as HISTORICAL", () => {
-  const now = new Date();
-  const result = classifyTemporalRequirement(`What is planned for ${now.getFullYear()}?`, false);
-  assert(result.type !== "HISTORICAL", "the current year is not history");
+Deno.test("bare mention of the CURRENT year alone is not treated as HISTORICAL", () => {
+  const now = new Date("2026-09-18T12:00:00Z");
+  const intent = classifyIntent(`What is planned for ${now.getFullYear()}?`);
+  const frame = buildRequestFrame({ requestId: "test-request", text: `What is planned for ${now.getFullYear()}?`, intent, isDeterministicAnswer: false, now });
+  assert(frame.temporalRequirement.type !== "HISTORICAL", "the current year is not history");
 });
 
-console.log("ibis-request-frame.test.ts: RequestFrame construction is additive, non-fabricating, and requiresFreshEvidence exactly mirrors production's existing freshnessRequired computation.");
+Deno.test("Phase 2: temporalRequirement is populated with real resolved bounds through buildRequestFrame, not left as Phase 1's raw text", () => {
+  const now = new Date("2026-09-18T12:00:00Z");
+  const text = "What is happening in Trinidad and Tobago today?";
+  const intent = classifyIntent(text);
+  const frame = buildRequestFrame({ requestId: "test-request", text, intent, isDeterministicAnswer: false, now });
+  assertEquals(frame.temporalRequirement.type, "TODAY");
+  assertEquals(frame.temporalRequirement.start, "2026-09-18T00:00:00.000Z");
+  assertEquals(frame.temporalRequirement.timezone, "UTC");
+  assertEquals(frame.temporalRequirement.timezoneSource, "DEFAULT_FALLBACK");
+  assertEquals(frame.requiresFreshEvidence, true);
+});
+
+console.log("ibis-request-frame.test.ts: RequestFrame construction is additive, non-fabricating, and requiresFreshEvidence is now derived from the resolved TemporalRequirement (Phase 2), not an independent queryClass check.");

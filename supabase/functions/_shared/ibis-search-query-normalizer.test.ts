@@ -4,6 +4,7 @@
 // `node --experimental-strip-types --test` for a second, independent runtime check.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildQueryAttempts, categorize } from "./ibis-search-query-normalizer.ts";
+import { resolveTemporalRequirement } from "./ibis-temporal-resolver.ts";
 
 Deno.test("attempt #1 is always the original, unmodified text", () => {
   const text = "What changed in Trinidad this week?";
@@ -63,4 +64,36 @@ Deno.test("official-source-restricted attempt only appears for categories with a
 Deno.test("empty/whitespace input returns no attempts", () => {
   assertEquals(buildQueryAttempts(""), []);
   assertEquals(buildQueryAttempts("   "), []);
+});
+
+// FTN / IBIS Canonical Architecture, Phase 2 -- temporalRequirement-shaped retrieval expansion.
+const NOW = new Date("2026-09-18T12:00:00Z");
+
+Deno.test("Phase 2: omitting temporalRequirement keeps the exact prior month-year boost (backward compatible)", () => {
+  const attempts = buildQueryAttempts("What changed in Trinidad this week?");
+  assert(attempts.some((a) => /latest news developments/i.test(a)), "no temporalRequirement supplied -- must fall back to the original month-year boost unchanged");
+});
+
+Deno.test("Phase 2: HISTORICAL never injects a current-date term into the retrieval-language expansion", () => {
+  const temporal = resolveTemporalRequirement({ query: "What happened in Trinidad in 1990?", now: NOW, freshnessSignalMatched: false });
+  assertEquals(temporal.type, "HISTORICAL");
+  const attempts = buildQueryAttempts("What happened in Trinidad in 1990?", temporal);
+  assert(!attempts.some((a) => /september 2026|2026\b/i.test(a) && !a.includes("1990")), "a historical query must never have the CURRENT month/year injected into its retrieval expansion");
+});
+
+Deno.test("Phase 2: TODAY injects the exact resolved date, not just a month/year", () => {
+  const query = "What is happening in Trinidad and Tobago today?";
+  const temporal = resolveTemporalRequirement({ query, now: NOW, freshnessSignalMatched: true });
+  assertEquals(temporal.type, "TODAY");
+  const attempts = buildQueryAttempts(query, temporal);
+  assert(attempts.some((a) => /September 18 2026/.test(a)), "a TODAY query should get an exact-date retrieval attempt, a stronger anchor than a bare month/year");
+});
+
+Deno.test("Phase 2: LATEST_AVAILABLE prefers 'latest official release' language over forcing today's date", () => {
+  const query = "What are the latest available unemployment figures for Trinidad and Tobago?";
+  const temporal = resolveTemporalRequirement({ query, now: NOW, freshnessSignalMatched: true });
+  assertEquals(temporal.type, "LATEST_AVAILABLE");
+  const attempts = buildQueryAttempts(query, temporal);
+  assert(attempts.some((a) => /latest official release/i.test(a)), "LATEST_AVAILABLE should prefer release/official language, not a forced current date");
+  assert(!attempts.some((a) => /September 18 2026/.test(a)), "must never force today's exact date onto a LATEST_AVAILABLE query");
 });

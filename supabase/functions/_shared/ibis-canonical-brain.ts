@@ -105,6 +105,15 @@ export type CanonicalRequest = {
   // Test-only override for the internal scheduler's defensive execution-budget ceiling. Never pass
   // this in production request handling.
   executionBudgetMsOverride?: number;
+  // FTN / IBIS Canonical Architecture, Phase 2: clock/timezone injection for RequestFrame's temporal
+  // resolution (see ibis-temporal-resolver.ts). `now` is test-only (production always uses the real
+  // current time -- never pass this in production request handling). `timezone` is a real, forward-
+  // looking extension point: no caller anywhere in this codebase sends one today (audited in
+  // ibis-temporal-resolver.ts's header), so it currently always falls back to UTC/DEFAULT_FALLBACK,
+  // but a future client that DOES know the user's real timezone can pass it here without any other
+  // change to this contract.
+  now?: Date;
+  timezone?: string;
 };
 
 const PLAN_TTL_MS = 5 * 60_000;
@@ -316,16 +325,20 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // built alongside.
   const capabilityPlan = planCapabilities(intent.signals);
 
-  // FTN / IBIS Canonical Architecture, Phase 1 (additive, non-behavioral -- see GOVERNANCE/
+  // FTN / IBIS Canonical Architecture, Phase 1+2 (see GOVERNANCE/
   // FTN_IBIS_Canonical_Architecture_Implementation_Plan_2026-09-18.md). Computed once, here, from
   // state already in hand (classifyIntent()'s output; deterministicAnswer() is the SAME check this
   // function already ran further down for reasoningSynthesis -- moved up and reused rather than
   // invoked twice) so building the frame adds no second classification pass, no search, no provider
-  // call, and no latency. Nothing below this line reads or branches on `requestFrame` -- it is
-  // attached to the response envelope's `receipt` purely for observability (see the buildEnvelope()
-  // call sites below), so this phase cannot change what production ibis actually does.
+  // call, and no latency. `input.now`/`input.timezone` are test-only clock/timezone injection (see
+  // ibis-temporal-resolver.ts's clock-injection mandate); production omits them, defaulting to the
+  // real current time and UTC/DEFAULT_FALLBACK -- no client or session anywhere in this codebase
+  // currently sends a timezone (audited in ibis-temporal-resolver.ts's header).
   const isDeterministicAnswer = !!deterministicAnswer(text, products);
-  const requestFrame = buildRequestFrame({ requestId, text, intent, isDeterministicAnswer });
+  const requestFrame = buildRequestFrame({
+    requestId, text, intent, isDeterministicAnswer,
+    now: input.now, timezone: input.timezone, timezoneSource: input.timezone ? "CLIENT_PROVIDED" : undefined,
+  });
 
   // Slice 1 correction: the execution-authorization decision lives here, server-side, and ONLY
   // here. Slice 3 correction: it ALSO now depends on whether a durable lifecycle store is
@@ -347,7 +360,15 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // authorized before -- zero regression risk for the common case (an ordinary question with no
   // planned capabilities is unaffected).
   const durableStoreAvailable = !!input.lifecycleStore;
-  const freshnessRequired = intent.queryClass === "CURRENT_WEB_RESEARCH";
+  // Phase 2: the single temporal authority is now RequestFrame.temporalRequirement (via
+  // requestFrame.requiresFreshEvidence, derived in ibis-request-frame.ts from
+  // ibis-temporal-resolver.ts's resolved strictness) -- no longer an independent
+  // `queryClass === "CURRENT_WEB_RESEARCH"` recomputation. This is the one intended behavioral
+  // difference this phase introduces: for representative existing queries the two computations
+  // still agree (see ibis-request-frame.test.ts's regression guard), but the resolver is
+  // deliberately MORE precise for some real phrasings the old coarse check missed entirely (e.g.
+  // "this morning" -- see ibis-temporal-resolver.ts's own comment on that live-confirmed gap).
+  const freshnessRequired = requestFrame.requiresFreshEvidence;
   const executionAuthorized = intent.queryClass === "SIMPLE_TEXT" && durableStoreAvailable && capabilityPlan.length === 0;
   const executionInstruction: ExecutionInstruction = {
     planId: requestId,
@@ -399,8 +420,14 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     // the freshness-required queries where that already caused a real production bug -- see
     // ibis-search-quality-gate.ts. `text` (the user's own original question), not the disambiguated
     // provider string, is passed as userQuery so entity/topic scoring reads the real question.
+    // Phase 2: `temporalRequirement` also passed through -- the query normalizer uses it to shape
+    // retrieval-language expansion (exact date for TODAY, no date injection for HISTORICAL, etc; see
+    // ibis-search-query-normalizer.ts). The quality gate itself is deliberately UNCHANGED this
+    // phase -- it keeps reading only `freshnessRequired`, never becoming the evidence-sufficiency
+    // judge (that stays a future Evidence Processor's job; see this phase's own scope boundary).
     const result = await runSearch(buildDisambiguatedSearchQuery(text), {
       fetchImpl: input.searchFetchImpl, freshnessRequired, queryClass: intent.queryClass, userQuery: text,
+      temporalRequirement: requestFrame.temporalRequirement,
     });
     if (result.status === "OK") {
       providerPath.push(`search:${result.provider}`);
