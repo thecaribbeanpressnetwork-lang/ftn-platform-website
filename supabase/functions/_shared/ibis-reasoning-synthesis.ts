@@ -15,11 +15,11 @@
 // sliced to a small cap), deterministic, free of secrets, safe to inject into a model's system
 // prompt, and structured so a test can assert on exactly what changed when an engine's output
 // changes -- never a giant verbatim dump of the internal receipt.
-import type { QueryClass, ReasoningModeRecord, CapabilityReceiptEntry, CapabilityKind } from "./ibis-response-envelope.ts";
+import type { QueryClass, ReasoningModeRecord, CapabilityReceiptEntry, CapabilityKind, SourceRecord } from "./ibis-response-envelope.ts";
 import type { EngineResult, EngineName } from "./ibis-reasoning-engines.ts";
 import {
-  computeTruthmode, computeRedTeam, computePareto, computeFutureYou, computeValueLens, computeCaribbeanLens,
-  type TruthmodeResult, type RedTeamResult, type ParetoResult, type FutureYouResult, type ValueLensResult, type CaribbeanLensResult,
+  computeTruthmode, computeRedTeam, computePareto, computeFutureYou, computeValueLens, computeLindy, computeCaribbeanLens,
+  type TruthmodeResult, type RedTeamResult, type ParetoResult, type FutureYouResult, type ValueLensResult, type LindyResult, type CaribbeanLensResult,
 } from "./ibis-founder-lenses.ts";
 
 const MAX_FINDINGS_PER_ENGINE = 4;
@@ -53,6 +53,7 @@ export type ReasoningSynthesisPacket = {
   pareto: ParetoResult | null;
   futureYou: FutureYouResult | null;
   valueLens: ValueLensResult | null;
+  lindy: LindyResult | null;
   caribbean: CaribbeanLensResult;
   // Convenience derived fields (Phase 1's requested field list) -- each references a lens above
   // rather than recomputing anything, so there is exactly one place each judgment is made.
@@ -92,9 +93,11 @@ export function buildReasoningSynthesisPacket(input: {
   ecosystemConnections: string[];
   actions: string[];
   sourceCount: number;
+  sources: SourceRecord[];
   searchCacheState: "LIVE" | "CACHED" | null;
   evidenceState: string;
   isDeterministicAnswer: boolean;
+  durabilityQuestionAsked: boolean;
 }): ReasoningSynthesisPacket {
   const founder = findEngine(input.engineResults, "FOUNDER_THINKING");
   const ebr = findEngine(input.engineResults, "EBR");
@@ -123,6 +126,10 @@ export function buildReasoningSynthesisPacket(input: {
   const pareto = computePareto(input.actions);
   const futureYou = computeFutureYou({ founderResult: founder ?? null, hasZeroCostSignal, text: input.text });
   const valueLens = computeValueLens(founder ?? null);
+  const lindy = computeLindy({
+    text: input.text, durabilityQuestionAsked: input.durabilityQuestionAsked,
+    founderResult: founder ?? null, ecoMapPlaceResult: ecomapPlace ?? null, sources: input.sources,
+  });
   const caribbean = computeCaribbeanLens({ text: input.text, jurisdiction: input.jurisdiction, founderThinkingPlanned, hasZeroCostSignal, ecosystemConnections: input.ecosystemConnections });
 
   const executedCapabilities = input.capabilityExecution.filter((e) => e.finalState === "EXECUTED" || e.finalState === "DEGRADED").map((e) => e.capability);
@@ -156,6 +163,7 @@ export function buildReasoningSynthesisPacket(input: {
     pareto,
     futureYou,
     valueLens,
+    lindy,
     caribbean,
     ownershipControl: futureYou?.control ?? (caribbean.ownershipImplications[0] || null),
     publicTrust: founderThinkingPlanned && founder?.executed ? "Public trust depends on this decision being explained honestly, including what remains unverified above -- see uncertaintyReserve." : null,
@@ -197,6 +205,10 @@ export function buildReasoningSynthesisBlock(packet: ReasoningSynthesisPacket): 
   if (packet.pareto) sections.push(`80/20 -- highest-leverage action(s), do not list more than these: ${packet.pareto.highestLeverageActions.join(" | ")}`);
   if (packet.futureYou) sections.push(`FutureYou -- optionality: ${packet.futureYou.optionality} Control: ${packet.futureYou.control} Recurring value: ${packet.futureYou.recurringValue} Reversibility: ${packet.futureYou.reversibility}`);
   if (packet.valueLens) sections.push(`Value lens -- outcome: ${packet.valueLens.outcome} Likelihood: ${packet.valueLens.likelihood} Delay: ${packet.valueLens.delay} Effort: ${packet.valueLens.effort}`);
+  if (packet.lindy) {
+    const l = packet.lindy;
+    sections.push(`Lindy (durability vs fragility, ${l.relevance} relevance)${l.durableMechanisms.length ? ` -- durable mechanisms: ${l.durableMechanisms.join(" ")}` : ""}${l.fragileDependencies.length ? ` Fragile dependencies: ${l.fragileDependencies.join(" ")}` : ""}${l.provenAlternatives.length ? ` Proven alternatives: ${l.provenAlternatives.join(" ")}` : ""} Recommendation: ${l.recommendation}`);
+  }
   if (packet.caribbean.relevance !== "NONE") {
     const c = packet.caribbean;
     sections.push(`Caribbean lens (${c.relevance} relevance)${c.constraints.length ? ` -- constraints: ${c.constraints.join(" ")}` : ""}${c.regionalAdvantages.length ? ` Regional advantages: ${c.regionalAdvantages.join(" ")}` : ""}${c.ownershipImplications.length ? ` Ownership: ${c.ownershipImplications.join(" ")}` : ""}`);

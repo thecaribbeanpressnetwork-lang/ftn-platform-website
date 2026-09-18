@@ -167,7 +167,15 @@ Deno.serve(async (request) => {
     // generic greeting instead of the user's real (resent, hash-verified) question. This factory
     // rebuilds providers with the actual resent text as the one real user turn, used ONLY for the
     // one authorized fallback call this endpoint may make for this receipt.
-    const fallbackProviderFactory = (fallbackTurns: IbisTurn[]) => [cloudflare(fallbackTurns, system), anthropic(fallbackTurns, system), gemini(fallbackTurns, system), openAICompatible("PRIMARY", fallbackTurns, system), openAICompatible("SECONDARY", fallbackTurns, system), ollama(fallbackTurns, system)];
+    // Item 2 correction: now also receives the same (evidenceBlock, reasoningSynthesisBlock) the
+    // ordinary canonical_query path bakes into groundedSystem below -- recordReceiptAndMaybeFallback
+    // now runs the full canonical pipeline for the resent text, so a fallback answer gets the same
+    // search grounding and reasoning-synthesis lenses (Truthmode/Caribbean/Lindy/etc.) an ordinary
+    // request would, never a materially weaker answer just because local execution failed first.
+    const fallbackProviderFactory = (evidenceBlock: string | null, reasoningSynthesisBlock: string | null, fallbackTurns: IbisTurn[]) => {
+      const groundedSystem = [system, evidenceBlock, reasoningSynthesisBlock].filter((part): part is string => !!part).join("\n\n");
+      return [cloudflare(fallbackTurns, groundedSystem), anthropic(fallbackTurns, groundedSystem), gemini(fallbackTurns, groundedSystem), openAICompatible("PRIMARY", fallbackTurns, groundedSystem), openAICompatible("SECONDARY", fallbackTurns, groundedSystem), ollama(fallbackTurns, groundedSystem)];
+    };
     const outcome = await recordReceiptAndMaybeFallback({ receipt: (payload.receipt as any) || {}, providers, providerFactory: fallbackProviderFactory, lifecycleStore });
     if (outcome.status === "REJECTED") {
       console.log("ibis execution receipt REJECTED", outcome.reason, JSON.stringify(payload.receipt));

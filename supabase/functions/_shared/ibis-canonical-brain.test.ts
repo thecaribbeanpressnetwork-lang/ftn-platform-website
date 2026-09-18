@@ -7,7 +7,7 @@ import { assert, assertEquals, assertMatch, assertNotEquals } from "https://deno
 import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "./ibis-canonical-brain.ts";
 import { classifyIntent } from "./ibis-intent-router.ts";
 import { searxngSearch, braveSearch, search } from "./ibis-search-adapter.ts";
-import { createInMemoryLifecycleStore } from "./ibis-lifecycle-store.ts";
+import { createInMemoryLifecycleStore, sha256Hex } from "./ibis-lifecycle-store.ts";
 import type { GatewayProvider } from "./ibis-intelligence-gateway.ts";
 import type { EBRInput } from "./ibis-reasoning-engines.ts";
 
@@ -1312,6 +1312,72 @@ Deno.test("MULTI-AGENT ACCEPTANCE (group 2): forex causal query -- Research+EBR 
   assertEquals(providerCalls, 1, "no duplicate provider/synthesis call may occur across the whole capability plan");
 });
 
+// Item 5 (Correlation real-datasource re-investigation): the repo genuinely has one real
+// server-accessible bivariate numeric series (Central Bank TT$/US$ buying vs selling rate, see
+// ibis-correlation-datasource.ts) -- an exchange-rate correlation question with NO explicit
+// correlationInput must now auto-connect it and execute a real Pearson statistic, proving
+// Correlation is no longer permanently UNAVAILABLE/browser-only for every query.
+Deno.test("REAL DATASOURCE (item 5): an exchange-rate correlation question auto-connects the real Central Bank buying/selling series with no caller-supplied input", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Is there a correlation between the buying rate and selling rate for the US dollar in Trinidad and Tobago?",
+    providers: [fakeProvider("test", "Draft answer text.")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(res.capabilityPlan.some((p) => p.capability === "CORRELATION"));
+  const correlation = res.reasoningModesUsed.find((m) => m.mode === "CORRELATION")!;
+  assertEquals(correlation.executed, true, "a real, already-published Central Bank series pair must genuinely execute, not remain a disclosed limitation");
+  assert(correlation.contribution!.includes("r ="), "must report a real computed statistic, not a placeholder");
+  assert(correlation.contribution!.includes("TT$/US$"), "must be traceable to the real named Central Bank series, never a silently invented pairing");
+});
+
+Deno.test("REAL DATASOURCE (item 5): an unrelated correlation question is never given the FX series -- no fabricated pairing", async () => {
+  const res = await handleCanonicalRequest({
+    text: "Is there a correlation between social media use and teenage anxiety?",
+    providers: [fakeProvider("test", "Draft answer text.")],
+    lifecycleStore: createInMemoryLifecycleStore(),
+  });
+  assert(res.capabilityPlan.some((p) => p.capability === "CORRELATION"), "the generic correlation marker still plans the capability");
+  const correlation = res.reasoningModesUsed.find((m) => m.mode === "CORRELATION")!;
+  assertEquals(correlation.executed, false, "no real series exists for social media/anxiety -- must honestly skip, never substitute an unrelated real dataset");
+  assert(!correlation.contribution || !correlation.contribution.includes("TT$/US$"), "the FX series must never be silently substituted for an unrelated correlation request");
+});
+
+// Item 4 (FTN entity disambiguation) + item 7 (causal proof it actually shapes the real search
+// call, not just metadata): capture the exact query string sent to the search provider and prove
+// it differs for a platform-context "FTN" question vs. an unrelated one, and is never corrupted
+// for a query that clearly means a different FTN entity.
+function capturedSearchQuery(text: string): Promise<string | null> {
+  let captured: string | null = null;
+  const fakeFetch: typeof fetch = async (input) => {
+    const url = new URL(String(input));
+    captured = url.searchParams.get("q");
+    return new Response(JSON.stringify({ results: [{ title: "FTN Platform update", url: "https://ftnplatform.org/update", content: "snippet", engine: "searxng" }] }), { status: 200 });
+  };
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  return handleCanonicalRequest({
+    text, providers: [fakeProvider("test", "Draft answer text.")],
+    searchFetchImpl: fakeFetch, lifecycleStore: createInMemoryLifecycleStore(),
+  }).then(() => { Deno.env.delete("SEARXNG_BASE_URL"); return captured; });
+}
+
+Deno.test("CAUSAL PROOF J (FTN disambiguation): a platform-context FTN question's real search query is expanded with disambiguating context", async () => {
+  const q = await capturedSearchQuery("What is the latest news about FTN and what has it announced recently?");
+  assert(q, "a real search call must have been made");
+  assertMatch(q!, /Face The Nation/i);
+});
+
+Deno.test("CAUSAL PROOF J (FTN disambiguation): a query naming a different FTN entity sends the real search query completely untouched", async () => {
+  const q = await capturedSearchQuery("What are the latest FTN Fantasy start-sit rankings and recent NFL picks?");
+  assert(q, "a real search call must have been made");
+  assert(!/Face The Nation/i.test(q!), "the fantasy-football FTN query must never be corrupted with unrelated platform context");
+});
+
+Deno.test("CAUSAL PROOF J (FTN disambiguation): a query with no 'FTN' mention sends the search query unmodified", async () => {
+  const q = await capturedSearchQuery("What is the latest news about Trinidad and Tobago's economy?");
+  assert(q, "a real search call must have been made");
+  assert(!/Face The Nation/i.test(q!));
+});
+
 // Group 3: missing-input test.
 Deno.test("MULTI-AGENT ACCEPTANCE (group 3): a generic outcome question does not falsely execute Butterfly/Correlation/Foresight, and the receipt shows the correct skip reason", async () => {
   const res = await handleCanonicalRequest({
@@ -1627,7 +1693,7 @@ Deno.test("AUTHORIZED FALLBACK FIX: providerFactory rebuilds providers with the 
   const res = await handleCanonicalRequest({ text: "What is photosynthesis?", providers: [fakeProvider("test", "unused")], lifecycleStore: store });
   const planId = res.executionInstruction.planId;
   let capturedTurns: Array<{ role: string; content: string }> = [];
-  const providerFactory = (turns: Array<{ role: "user" | "assistant"; content: string }>): GatewayProvider[] => {
+  const providerFactory = (_evidenceBlock: string | null, _reasoningSynthesisBlock: string | null, turns: Array<{ role: "user" | "assistant"; content: string }>): GatewayProvider[] => {
     capturedTurns = turns;
     return [{
       id: "test", label: "test", model: "fake-model", configured: true,
@@ -1645,6 +1711,68 @@ Deno.test("AUTHORIZED FALLBACK FIX: providerFactory rebuilds providers with the 
   assertEquals(capturedTurns[0].role, "user");
   assertEquals(capturedTurns[0].content, "What is photosynthesis?", "the fallback provider must receive the ACTUAL resent, hash-verified question, not an empty turns array");
   assertMatch(outcome.envelope.answer, /Photosynthesis is the process/, "the answer must actually address the real question once the model receives it");
+});
+
+// Item 2 (authorized-fallback edge case): the fallback now runs the FULL canonical pipeline for
+// the resent text (same as an ordinary request), not a bare model call -- so it gets the same
+// reasoning-synthesis lenses (Truthmode/Caribbean/Lindy/etc.) and, when relevant, the same real
+// search/capability execution, instead of a materially weaker answer just because local execution
+// failed first.
+Deno.test("AUTHORIZED FALLBACK FIX (item 2): the fallback answer is grounded with the same reasoning-synthesis block an ordinary request would get", async () => {
+  const store = createInMemoryLifecycleStore();
+  // Deliberately SIMPLE_TEXT with zero planned capabilities (no freshness/outcome/ecomap marker),
+  // so this plan genuinely IS authorized for local execution -- proving the fix closes the real,
+  // reachable gap: even a zero-capability query's fallback was previously missing the Caribbean
+  // lens (which fires from `text` alone, independent of capabilityPlan -- see computeCaribbeanLens)
+  // that the ordinary canonical path always computes and injects.
+  const text = "What is the capital city of Trinidad and Tobago?";
+  const res = await handleCanonicalRequest({ text, providers: [fakeProvider("test", "unused")], lifecycleStore: store });
+  assertEquals(res.executionInstruction.executionAuthorized, true, "this query must genuinely be the zero-capability authorized case this test means to exercise");
+  const planId = res.executionInstruction.planId;
+  let capturedSynthesisBlock: string | null = null;
+  const providerFactory = (_evidenceBlock: string | null, reasoningSynthesisBlock: string | null, turns: Array<{ role: "user" | "assistant"; content: string }>): GatewayProvider[] => {
+    capturedSynthesisBlock = reasoningSynthesisBlock;
+    return [{ id: "test", label: "test", model: "fake-model", configured: true, run: async () => ({ answer: `Fallback answer for: ${turns[0]?.content}`, model: "fake-model" }) }];
+  };
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId, executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text },
+    providers: [], providerFactory, lifecycleStore: store,
+  });
+  assert(outcome.status === "ACCEPTED" && outcome.envelope);
+  assert(capturedSynthesisBlock, "the fallback must build and pass a real reasoning-synthesis block, not null, when the resent text genuinely triggers founder/Caribbean reasoning");
+  assertMatch(capturedSynthesisBlock!, /Caribbean|Trinidad/i, "the same Caribbean-lens content an ordinary request would get must reach the fallback's provider call too");
+});
+
+Deno.test("AUTHORIZED FALLBACK FIX (item 2, defensive branch): if a capability-requiring plan ever reaches the fallback, it still gets real search -- never a bare, weaker model call", async () => {
+  // Today's authorization gate (capabilityPlan.length === 0) means a plan like this can never be
+  // CREATED via the normal handleCanonicalRequest path -- this test simulates the scenario item 2
+  // asks to guard against directly: a plan record already marked authorizedTarget:"browser_local"
+  // (e.g. from a future/looser authorization rule, or a different caller) whose resent text, when
+  // the canonical pipeline actually runs it, genuinely needs RESEARCH. Before this fix, the
+  // fallback's bare runGateway() call had no way to ever run search at all; now it must.
+  const store = createInMemoryLifecycleStore();
+  const text = "What is the latest news about Trinidad and Tobago's economy?";
+  await store.createPlan({ planId: "simulated-plan-1", authorizedTarget: "browser_local", intent: "SIMPLE_TEXT", freshnessRequired: false, textSha256: await sha256Hex(text), ttlMs: 300_000 });
+
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  let searchCalled = false;
+  const fakeFetch: typeof fetch = async () => {
+    searchCalled = true;
+    return new Response(JSON.stringify({ results: [{ title: "T&T economy update", url: "https://example.com/tt-economy", content: "snippet", engine: "searxng" }] }), { status: 200 });
+  };
+  const outcome = await recordReceiptAndMaybeFallback({
+    receipt: { planId: "simulated-plan-1", executionTarget: "browser_local", provider: "browser_local_language_model", success: false, text },
+    providers: [fakeProvider("test", "generic fallback answer")],
+    searchFetchImpl: fakeFetch,
+    lifecycleStore: store,
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+
+  assert(outcome.status === "ACCEPTED" && outcome.envelope, "the fallback must still succeed even when the resent text needs real capabilities");
+  assert(searchCalled, "the fallback must genuinely run search for a query that needs it, not silently skip straight to a bare model call");
+  assert(outcome.envelope.capabilityPlan.some((p) => p.capability === "RESEARCH"), "the fallback's own canonical run must plan RESEARCH for this resent text, same as an ordinary request would");
+  assertEquals(outcome.envelope.evidenceState, "SEARCH_GROUNDED");
+  assert(outcome.envelope.sources.length > 0, "the fallback answer must actually carry the real retrieved source, never a fabricated grounding claim");
 });
 
 Deno.test("AUTHORIZED FALLBACK FIX: omitting providerFactory keeps exact prior behavior (backward compatible)", async () => {
@@ -1863,6 +1991,65 @@ Deno.test("CAUSAL PROOF H (Pareto/80-20): many candidate pathway steps are compr
   const paretoLine = block!.split("\n").find((l) => l.includes("80/20"))!;
   const actionCount = paretoLine.split("|").length;
   assert(actionCount <= 3, `80/20 must list at most 3 actions, found ${actionCount}: ${paretoLine}`);
+});
+
+Deno.test("CAUSAL PROOF I (Lindy): a fragile single-dependency question produces a materially different synthesis than a durable/open-standard question", async () => {
+  const fragileBlock = await captureSynthesisBlock({
+    text: "Which parts of this plan are proven and durable, and which are fragile dependencies? We depend entirely on one free AI provider with no fallback.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+  });
+  const durableBlock = await captureSynthesisBlock({
+    text: "Which parts of this plan are proven and durable, and which are fragile dependencies? We export all our data in an open standard and self-host our own infrastructure.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+  });
+  assert(fragileBlock && fragileBlock.includes("Lindy"), "a direct durability question must produce a Lindy section");
+  assert(durableBlock && durableBlock.includes("Lindy"), "a direct durability question must produce a Lindy section");
+  assertNotEquals(fragileBlock, durableBlock, "different real durability signals in the request text must change the Lindy section");
+  assert(fragileBlock!.includes("Fragile dependencies:"), "the single-dependency scenario must surface a fragile dependency");
+  assert(!fragileBlock!.includes("durable mechanisms:"), "the single-dependency scenario must not also claim a durable mechanism that was never stated");
+  assert(durableBlock!.includes("durable mechanisms:"), "the open-standard/self-hosted scenario must surface a durable mechanism");
+  assert(!durableBlock!.includes("Fragile dependencies:"), "the open-standard scenario must not fabricate a fragile dependency that was never stated");
+});
+
+Deno.test("CAUSAL PROOF I (Lindy): with no durability signal either way, Lindy honestly reports neither, never defaulting to caution", async () => {
+  const block = await captureSynthesisBlock({
+    text: "Which parts of this plan are proven and durable, and which are fragile dependencies?",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+  });
+  assert(block && block.includes("Lindy"));
+  assert(!block!.includes("Fragile dependencies:"));
+  assert(!block!.includes("durable mechanisms:"));
+  assert(/basis to assume novelty is risky/i.test(block!), "must explicitly avoid defaulting to blanket conservatism when no real signal exists");
+});
+
+Deno.test("SEMANTIC ROBUSTNESS: 'funding pathways' plans EcoMap Pathway and Context Graph, not just Place/Relationship", async () => {
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const res = await handleCanonicalRequest({
+    text: "Map the organizations, funding pathways and relationships that could help a Trinidad and Tobago community technology project.",
+    providers: [fakeProvider("test", "unused")],
+    lifecycleStore: null,
+    searchFetchImpl: MINIMAL_SEARCH_FETCH,
+  });
+  Deno.env.delete("SEARXNG_BASE_URL");
+  const planned = res.capabilityPlan.map((p) => p.capability);
+  for (const cap of ["RESEARCH", "ECOMAP_PLACE", "ECOMAP_PATHWAY", "ECOMAP_RELATIONSHIP", "CONTEXT_GRAPH", "MULTI_AGENT"]) {
+    assert(planned.includes(cap as any), `"funding pathways" query must plan ${cap}, planned: ${planned.join(",")}`);
+  }
+  assert(res.answer.length > 0, "must answer directly, not defer to an empty local-execution answer");
+});
+
+Deno.test("SEMANTIC ROBUSTNESS: funding/financing/grant pathway paraphrases all select EcoMap Pathway", () => {
+  for (const phrase of [
+    "What is the financing pathway for a small Caribbean business?",
+    "What is the grant pathway for a community project?",
+    "What is the route to funding for a civic-tech startup?",
+    "What are the steps to funding for a new venture?",
+  ]) {
+    assertEquals(classifyIntent(phrase).signals.ecomapPathway, true, `"${phrase}" must select ECOMAP_PATHWAY`);
+  }
 });
 
 // --- SEMANTIC ROBUSTNESS (Phase 10): a user should not need the exact keyword the classifier's

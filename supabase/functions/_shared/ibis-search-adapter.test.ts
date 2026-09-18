@@ -21,7 +21,7 @@ function braveResponse(title: string): Response {
 }
 
 function clearSearchEnv() {
-  for (const key of ["SEARXNG_BASE_URL", "BRAVE_SEARCH_API_KEY", "ANTHROPIC_API_KEY", "IBIS_SEARCH_CACHE_TTL_MS", "IBIS_SEARCH_DAILY_BUDGET_BRAVE_SEARCH", "IBIS_SEARCH_MONTHLY_BUDGET_BRAVE_SEARCH", "IBIS_SEARCH_DAILY_BUDGET_CLAUDE_WEB_SEARCH", "IBIS_SEARCH_MONTHLY_BUDGET_CLAUDE_WEB_SEARCH"]) {
+  for (const key of ["SEARXNG_BASE_URL", "BRAVE_SEARCH_API_KEY", "ANTHROPIC_API_KEY", "IBIS_SEARCH_CACHE_TTL_MS", "IBIS_SEARCH_NEGATIVE_CACHE_TTL_MS", "IBIS_SEARCH_DAILY_BUDGET_BRAVE_SEARCH", "IBIS_SEARCH_MONTHLY_BUDGET_BRAVE_SEARCH", "IBIS_SEARCH_DAILY_BUDGET_CLAUDE_WEB_SEARCH", "IBIS_SEARCH_MONTHLY_BUDGET_CLAUDE_WEB_SEARCH"]) {
     Deno.env.delete(key);
   }
 }
@@ -71,6 +71,55 @@ Deno.test("CACHE: an expired cache entry (TTL elapsed) triggers a fresh real net
     assert(second.status === "OK" && second.cacheState === "LIVE", "once the TTL has genuinely elapsed, the next call must be a real (LIVE) call again, never a stale cache hit");
   });
   assertEquals(fetchCalls, 2, "an expired cache entry must be refreshed by exactly one new real call");
+  clearSearchEnv();
+});
+
+// Item 6 (rate-limit resilience): live adversarial testing produced real SearXNG upstream-engine
+// CAPTCHA/throttling from repeated identical queries. A failed attempt was never cached before this
+// fix, so an immediate retry of an already-failing query re-hammered the same throttled upstream
+// every time. These tests prove the fix without needing a live SearXNG instance: any provider
+// failure (here, Brave returning HTTP 500) is cached for a short cooldown.
+Deno.test("NEGATIVE CACHE: two identical failing queries within the cooldown window make only one real network attempt", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("BRAVE_SEARCH_API_KEY", "test-key");
+  let fetchCalls = 0;
+  await withPatchedFetch(async () => { fetchCalls++; return new Response("upstream throttled", { status: 500 }); }, async () => {
+    const first = await search("throttled query");
+    assertEquals(first.status, "SEARCH_UNAVAILABLE");
+    const second = await search("throttled query");
+    assertEquals(second.status, "SEARCH_UNAVAILABLE");
+    assert(second.status === "SEARCH_UNAVAILABLE" && second.reason === (first as { reason: string }).reason, "the cached failure must be returned verbatim, not silently reattempted");
+  });
+  assertEquals(fetchCalls, 1, "a repeat of an already-failing query within the cooldown must never re-hit the throttled upstream");
+  clearSearchEnv();
+});
+
+Deno.test("NEGATIVE CACHE: once the cooldown elapses, the next identical query genuinely retries", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("BRAVE_SEARCH_API_KEY", "test-key");
+  Deno.env.set("IBIS_SEARCH_NEGATIVE_CACHE_TTL_MS", "10");
+  let fetchCalls = 0;
+  await withPatchedFetch(async () => { fetchCalls++; return new Response("upstream throttled", { status: 500 }); }, async () => {
+    await search("cooldown expiry query");
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    await search("cooldown expiry query");
+  });
+  assertEquals(fetchCalls, 2, "once the cooldown genuinely elapses, the next identical query must make a real new attempt (never stuck permanently unavailable)");
+  clearSearchEnv();
+});
+
+Deno.test("NEGATIVE CACHE: a successful result is never affected -- only failures are cooled down", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("BRAVE_SEARCH_API_KEY", "test-key");
+  let fetchCalls = 0;
+  await withPatchedFetch(async () => { fetchCalls++; return braveResponse("Positive result unaffected"); }, async () => {
+    const first = await search("positive path query");
+    assertEquals(first.status, "OK");
+  });
+  assertEquals(fetchCalls, 1, "a successful call must never be treated as a failure or double-attempted by the negative-cache logic");
   clearSearchEnv();
 });
 

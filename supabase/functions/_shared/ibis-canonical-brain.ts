@@ -44,6 +44,8 @@ import type { Series } from "./ibis-correlation-engine.ts";
 import { runOrchestration, type OrchestrationAdvancedInputs } from "./ibis-multi-agent-orchestrator.ts";
 import { extractStatedJurisdiction } from "./ibis-ecomap-engine.ts";
 import { buildReasoningSynthesisPacket, buildReasoningSynthesisBlock, type ReasoningSynthesisPacket } from "./ibis-reasoning-synthesis.ts";
+import { detectFxCorrelationInput } from "./ibis-correlation-datasource.ts";
+import { buildDisambiguatedSearchQuery } from "./ibis-ftn-disambiguation.ts";
 
 export type CanonicalRequest = {
   text: string;
@@ -206,6 +208,21 @@ function planCapabilities(signals: IntentSignals): PlannedCapability[] {
   if (signals.ecomapRelationship) {
     addCapability(plan, "ECOMAP_RELATIONSHIP", "The request asks about relationships/referrals between ecosystem entities.");
   }
+  // Live-confirmed gap (independent audit): "Map the organizations, funding pathways and
+  // relationships that could help a Trinidad and Tobago community technology project" planned
+  // ECOMAP_PLACE/PATHWAY/RELATIONSHIP but never CONTEXT_GRAPH -- yet Context Graph's whole purpose
+  // (see runContextGraph()) is to consume EcoMap Place's real entities as additional graph nodes.
+  // Any EcoMap capability being planned is itself sufficient reason to also plan Context Graph, not
+  // only the legacy `relationship`/`outcome` signals it was previously gated on.
+  if (ecomapRequested) {
+    addCapability(plan, "CONTEXT_GRAPH", "An EcoMap capability (Place/Pathway/Relationship) was planned -- Context Graph grounds the answer to FTN's own product ecosystem alongside whatever real entities EcoMap Place finds.");
+  }
+  // Lindy (this checkpoint -- see ibis-founder-lenses.ts's computeLindy()): a direct ask about
+  // durability/proven-vs-fragile mechanisms plans Founder Thinking so Lindy has real domain context
+  // to work from, even without an accompanying outcome/build marker.
+  if (signals.durability) {
+    addCapability(plan, "FOUNDER_THINKING", "The request directly asks about durability/proven-vs-fragile mechanisms (the Lindy lens).");
+  }
   // MULTI_AGENT (this checkpoint -- see GOVERNANCE/MULTI_AGENT_SOURCE_AND_BOUNDARY.md): the
   // internal dependency-aware scheduler is only worth selecting when there is genuinely more than
   // one OTHER capability to coordinate -- never for a single-capability or zero-capability request,
@@ -363,7 +380,9 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     const startedAtIso = new Date().toISOString();
     researchReceipt = { capability: "RESEARCH", history: [{ state: "SELECTED", at: startedAtIso }, { state: "INPUT_READY", at: startedAtIso }], finalState: "INPUT_READY" };
     capabilitiesAttempted.push("SEARCH");
-    const result = await runSearch(text, { fetchImpl: input.searchFetchImpl });
+    // FTN entity disambiguation (item 4): only the string sent to the search PROVIDER is expanded
+    // -- text/intent/answer generation all still use the user's own original `text` untouched.
+    const result = await runSearch(buildDisambiguatedSearchQuery(text), { fetchImpl: input.searchFetchImpl });
     if (result.status === "OK") {
       providerPath.push(`search:${result.provider}`);
       sources = sourcesFromSearch(result);
@@ -394,10 +413,23 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
   // SELECTED/INPUT_READY/EXECUTED/SKIPPED_*/DEGRADED/UNAVAILABLE/FAILED state history per
   // capability. Advanced/internal structured inputs are preserved and always take precedence over
   // the auto-built/derived version; an ordinary user never needs to construct any of them.
+  // Real-numeric-source bridge (item 5 fix): an explicitly supplied correlationInput always wins
+  // (advanced/internal inputs take precedence, per the note above); only when the caller supplied
+  // none AND Correlation was actually planned do we check whether the query is asking about the
+  // one real bivariate series this repo has server-side (Central Bank TT$/US$ buying vs selling
+  // rate -- see ibis-correlation-datasource.ts). This never fabricates a pairing for unrelated
+  // correlation questions: detectFxCorrelationInput returns null unless the text itself names the
+  // exchange rate.
+  const resolvedCorrelationInput = input.correlationInput !== undefined
+    ? input.correlationInput
+    : hasCapability(capabilityPlan, "CORRELATION")
+      ? detectFxCorrelationInput(text)
+      : null;
+
   const orchestration = runOrchestration(capabilityPlan, {
     text, objective: intent.objective, products, toolAction: intent.signals.toolAction, sources, researchReceipt,
     advanced: {
-      ebrInput: input.ebrInput, correlationInput: input.correlationInput, butterflyInput: input.butterflyInput,
+      ebrInput: input.ebrInput, correlationInput: resolvedCorrelationInput, butterflyInput: input.butterflyInput,
       predictionInput: input.predictionInput, ecomapPlaceContext: input.ecomapPlaceContext,
       ecomapPathwayContext: input.ecomapPathwayContext, ecomapRelationshipContext: input.ecomapRelationshipContext,
     },
@@ -436,8 +468,9 @@ export async function handleCanonicalRequest(input: CanonicalRequest): Promise<C
     // response envelope's own top-level `uncertainties` field (returned to the caller) is unrelated
     // and still includes intent.reasons, unchanged, at the call site below.
     contradictions, uncertainties: extraUncertainties, ecosystemConnections, actions,
-    sourceCount: sources.length, searchCacheState, evidenceState,
+    sourceCount: sources.length, sources, searchCacheState, evidenceState,
     isDeterministicAnswer: !!deterministicAnswer(text, products),
+    durabilityQuestionAsked: intent.signals.durability,
   });
   const reasoningSynthesisBlock = buildReasoningSynthesisBlock(reasoningSynthesis);
 
@@ -551,7 +584,22 @@ export async function recordReceiptAndMaybeFallback(input: {
   // generic greeting instead of the user's real question (confirmed live: "What is photosynthesis?"
   // returned "Wah gwaan? How can I assist you today?"). Callers that omit this (existing tests, any
   // future non-HTTP caller) keep the exact prior behavior.
-  providerFactory?: (turns: IbisTurn[]) => GatewayProvider[];
+  //
+  // Item 2 correction: only authorized SIMPLE_TEXT/zero-capability plans can ever reach this
+  // function (a capability-requiring plan is never authorized for browser_local in the first place
+  // -- see executionAuthorized above), so this can no longer silently drop a plan's search/
+  // EBR/EcoMap/Correlation needs. But it WAS silently dropping the reasoning-synthesis lenses
+  // (Truthmode/Caribbean/Lindy/etc.) that the canonical path unconditionally computes and injects
+  // for every request, capabilities or not (see buildReasoningSynthesisPacket's call site below) --
+  // and it would ALSO have no way to run a genuinely-needed capability if the authorization gate
+  // above is ever loosened or a plan reaches here from a future, different caller. The signature
+  // now matches CanonicalRequest.providerFactory's (evidenceBlock, reasoningSynthesisBlock) shape,
+  // plus the resent turns as a third argument (since, unlike the canonical path, there is no
+  // request-scoped `turns` closure available here -- the receipt payload carries no messages).
+  providerFactory?: (evidenceBlock: string | null, reasoningSynthesisBlock: string | null, turns: IbisTurn[]) => GatewayProvider[];
+  // Test-only override so fallback-path tests can inject a fake search response deterministically,
+  // exactly like CanonicalRequest.searchFetchImpl -- real callers never need this.
+  searchFetchImpl?: typeof fetch;
   // Test-only override for LEASE_DURATION_MS, so lease/fencing tests can prove real behavior
   // deterministically and fast rather than sleeping 45+ real seconds for a lease to expire. Never
   // pass this in production request handling.
@@ -616,9 +664,29 @@ export async function recordReceiptAndMaybeFallback(input: {
   if (resentHash !== plan.textSha256) return { status: "REJECTED", reason: "TEXT_MISMATCH" };
   const products: IbisProduct[] = Array.isArray(r.products) ? (r.products as IbisProduct[]) : [];
 
-  const startedAt = new Date().toISOString();
-  const fallbackProviders = input.providerFactory ? input.providerFactory([{ role: "user", content: resentText }]) : input.providers;
-  const gatewayResult = await runGateway({ text: resentText, products, providers: fallbackProviders, requestId: plan.planId });
+  // Item 2 fix: run the SAME canonical pipeline (search, EBR/EcoMap/Correlation/etc. orchestration,
+  // reasoning-synthesis lenses) an ordinary request would get for this exact resent text, instead
+  // of a bare runGateway() call that bypassed all of it. `lifecycleStore: null` is what makes this
+  // safe and correct here: it forces durableStoreAvailable=false inside handleCanonicalRequest,
+  // which forces executionAuthorized=false unconditionally (see that computation above) --
+  // guaranteeing this inner call ALWAYS generates a real answer now (never defers to local
+  // execution again, which would be nonsensical -- local execution just failed) -- and it never
+  // touches this function's own careful lease/fencing state on `plan`, which is managed
+  // exclusively via claimFallback/finalizeFallback below. If capabilityPlan ends up non-empty for
+  // this resent text (defensive: should not happen given the authorization gate above, but this is
+  // exactly the scenario item 2 asks to handle safely if that gate is ever loosened), the full
+  // pipeline genuinely runs -- search, orchestration, and all -- exactly once, never a second,
+  // duplicate answer generation.
+  const resentTurns: IbisTurn[] = [{ role: "user", content: resentText }];
+  const inner = await handleCanonicalRequest({
+    text: resentText, products, requestId: plan.planId,
+    providers: input.providers,
+    providerFactory: input.providerFactory
+      ? (evidenceBlock, reasoningSynthesisBlock) => input.providerFactory!(evidenceBlock, reasoningSynthesisBlock ?? null, resentTurns)
+      : undefined,
+    searchFetchImpl: input.searchFetchImpl,
+    lifecycleStore: null,
+  });
 
   // Finalize: requires the EXACT (leaseOwner, leaseVersion) this call was issued at claim time.
   // If another worker reclaimed this plan's lease in the meantime (this worker's own call ran
@@ -631,22 +699,21 @@ export async function recordReceiptAndMaybeFallback(input: {
   const finalize = await store.finalizeFallback(plan.planId, claim.leaseOwner, claim.leaseVersion, "SUCCEEDED");
   if (!finalize.ok) return { status: "REJECTED", reason: "DUPLICATE_RECEIPT" };
 
-  const envelope = buildEnvelope({
-    requestId: plan.planId, startedAt, answer: gatewayResult.answer, objective: null, queryClass: plan.intent as QueryClass,
-    executionInstruction: { planId: plan.planId, executionTarget: "server_provider", executionAuthorized: false, intent: plan.intent as QueryClass, freshnessRequired: plan.freshnessRequired, constraints: ["fallback_after_local_execution_failure"] },
-    reasoningModesUsed: gatewayResult.answerClass === "FOUNDER_REASONING_FALLBACK"
-      ? [{ mode: "FOUNDER_REASONING_RULES_FALLBACK", executed: true, contribution: "Deterministic rules-based planning framework applied as the authorized fallback after local execution failed." }]
-      : [{ mode: "MODEL_TEXT", executed: true, contribution: `Authorized fallback after local execution failed; answered by ${gatewayResult.provider}.` }],
-    capabilitiesAttempted: ["TEXT"], providerPath: [gatewayResult.provider],
-    evidenceState: gatewayResult.evidenceState === "DETERMINISTIC" ? "DETERMINISTIC" : "MODEL_GENERATED",
-    sources: [], confidence: gatewayResult.confidence === "HIGH" ? "HIGH" : gatewayResult.confidence === "MODERATE" ? "MODERATE" : "UNVERIFIED",
-    confidenceBasis: gatewayResult.uncertainty || "Authorized fallback after browser-local execution failed.",
-    status: gatewayResult.answerClass === "DEGRADED" ? "DEGRADED" : "OK",
-    degradedStages: [
-      ...(gatewayResult.answerClass === "DEGRADED" ? ["ALL_TEXT_PROVIDERS_FAILED"] : ["LOCAL_EXECUTION_FAILED_FALLBACK_TO_SERVER"]),
-      ...(resumedFromCrash ? ["RESUMED_AFTER_CRASHED_FALLBACK_CLAIM"] : []),
-    ],
-  });
+  const envelope: CanonicalResponse = {
+    ...inner,
+    executionInstruction: {
+      ...inner.executionInstruction, planId: plan.planId, executionTarget: "server_provider", executionAuthorized: false,
+      constraints: ["fallback_after_local_execution_failure"],
+    },
+    receipt: {
+      ...inner.receipt,
+      degradedStages: [
+        ...inner.receipt.degradedStages,
+        "LOCAL_EXECUTION_FAILED_FALLBACK_TO_SERVER",
+        ...(resumedFromCrash ? ["RESUMED_AFTER_CRASHED_FALLBACK_CLAIM"] : []),
+      ],
+    },
+  };
   return { status: "ACCEPTED", terminal: true, envelope };
 }
 

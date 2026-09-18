@@ -1,5 +1,5 @@
 // FTN Platform — Founder reasoning lenses (Truthmode / Red Team / Pareto / FutureYou / Value Lens /
-// Caribbean lens).
+// Lindy / Caribbean lens).
 //
 // Every lens here is a PURE, DETERMINISTIC function over data this canonical brain has already
 // computed for real this request (search sources, the FOUNDER_THINKING/ECOMAP_*/BUTTERFLY engine
@@ -149,6 +149,99 @@ export function computeValueLens(founderResult: EngineResult | null): ValueLensR
   const objectiveFinding = founderResult.findings.find((f) => f.startsWith("Objective:")) || "";
   const shape = VALUE_LENS_BY_DECISION[decision] || VALUE_LENS_BY_DECISION.EXPERIMENT;
   return { outcome: objectiveFinding.replace("Objective: ", "") || "Not classified.", ...shape };
+}
+
+// --- Lindy ---------------------------------------------------------------------------------------
+// For a strategic choice, assesses durability/provenness versus fragility/novelty. This is
+// deliberately NOT "old = good" -- computeLindy() never recommends a mechanism merely for being
+// established, and never penalizes a novel approach that has no identified fragile dependency. It
+// only ever names a mechanism durable/fragile when this request's OWN text or already-retrieved
+// evidence (sources, EcoMap Place entities, Founder Thinking's own risk statement) actually
+// supports the label -- an absence of evidence either way is reported as such, never defaulted to
+// "assume fragile" or "assume durable". Relevance is gated on either (a) a direct ask about
+// durability/proven-vs-fragile (see LINDY_MARKERS in ibis-intent-router.ts), which activates
+// regardless of whether Founder Thinking ran, or (b) a genuine strategy/outcome question that
+// Founder Thinking already executed for -- an ordinary factual question never gets a Lindy section.
+export type LindyResult = {
+  relevance: "NONE" | "MODERATE" | "HIGH";
+  durableMechanisms: string[];
+  fragileDependencies: string[];
+  provenAlternatives: string[];
+  recommendation: string;
+};
+
+const SINGLE_DEPENDENCY_PATTERN = /\b(depend(?:s|ing)? (?:too heavily |solely |entirely )?on|reliance on|reliant on|single (?:provider|point of failure)|only provider|sole(?:ly)? (?:dependent|relying)|free[- ]tier|free ai provider)\b/i;
+const OPEN_STANDARD_PATTERN = /\b(open standard|open[- ]source|exported? data|data export|portable|no lock-?in|self-?host(?:ed)?|owned infrastructure|own(?:ed)? (?:the )?infrastructure)\b/i;
+const ESTABLISHED_INSTITUTION_PATTERN = /\b(ministry|government|central bank|chamber of commerce|established|regulator|statutory)\b/i;
+const UNPROVEN_WORKAROUND_PATTERN = /\b(workaround|untested|unproven|experimental|beta|new provider|brand[- ]new)\b/i;
+
+export function computeLindy(input: {
+  text: string;
+  durabilityQuestionAsked: boolean;
+  founderResult: EngineResult | null;
+  ecoMapPlaceResult: EngineResult | null;
+  sources: SourceRecord[];
+}): LindyResult | null {
+  const founderExecuted = !!(input.founderResult && input.founderResult.executed);
+  if (!input.durabilityQuestionAsked && !founderExecuted) return null;
+
+  const durableMechanisms: string[] = [];
+  const fragileDependencies: string[] = [];
+  const provenAlternatives: string[] = [];
+
+  // From the request's own text -- never inferred from silence.
+  if (OPEN_STANDARD_PATTERN.test(input.text)) {
+    durableMechanisms.push("The request itself names an open-standard/exported-data/self-hosted/owned-infrastructure characteristic -- a real durability signal, not merely age.");
+  }
+  if (SINGLE_DEPENDENCY_PATTERN.test(input.text)) {
+    fragileDependencies.push("The request itself describes a single point of dependency (one provider/free-tier service with no named fallback) -- fragile by construction: its continuity is not under this project's control.");
+  }
+  if (UNPROVEN_WORKAROUND_PATTERN.test(input.text)) {
+    fragileDependencies.push("The request itself names an untested/experimental/brand-new approach -- real novelty risk, distinct from the single-dependency risk above.");
+  }
+
+  // From Founder Thinking's own real risk statement (never a second, invented risk).
+  if (founderExecuted) {
+    const risk = input.founderResult!.assumptions[0] || "";
+    if (/provider lock-?in|dependence on one sponsor|dependence on a single/i.test(risk)) {
+      fragileDependencies.push(`Founder Thinking's own classified risk for this domain names a lock-in/single-dependency pattern: "${risk}"`);
+    }
+  }
+
+  // From EcoMap Place's real, sourced entities -- an ORGANIZATION/INSTITUTION entity (ministry,
+  // chamber, bank) is a more durable, established mechanism than a generic OPPORTUNITY/UNKNOWN
+  // entity found only in one search snippet; never claims this from silence.
+  if (input.ecoMapPlaceResult && input.ecoMapPlaceResult.executed) {
+    const institutional = input.ecoMapPlaceResult.findings.filter((f) => /\[ORGANIZATION,|\[INSTITUTION,/.test(f) || ESTABLISHED_INSTITUTION_PATTERN.test(f));
+    for (const f of institutional.slice(0, 3)) {
+      provenAlternatives.push(`EcoMap Place found an established organization/institution already active in this space: ${f}`);
+    }
+  }
+  for (const s of input.sources.slice(0, 5)) {
+    if (ESTABLISHED_INSTITUTION_PATTERN.test(`${s.title} ${s.snippet || ""}`)) {
+      provenAlternatives.push(`"${s.title}" (${s.publisher || s.url}) describes an established institutional route, not an unproven workaround.`);
+    }
+  }
+
+  const hasFragile = fragileDependencies.length > 0;
+  const hasDurable = durableMechanisms.length > 0 || provenAlternatives.length > 0;
+  // HIGH when the user directly asked about durability/fragility; otherwise MODERATE -- Lindy is
+  // still a relevant lens for any genuine strategy question Founder Thinking ran for, whether or
+  // not this specific request happened to surface a concrete durable/fragile signal.
+  const relevance: LindyResult["relevance"] = input.durabilityQuestionAsked ? "HIGH" : "MODERATE";
+
+  let recommendation: string;
+  if (hasFragile && (durableMechanisms.length || provenAlternatives.length)) {
+    recommendation = "A fragile dependency was identified AND a more durable/proven alternative is already visible in this request's own evidence -- prefer the proven mechanism for anything load-bearing, while still allowing the fragile option for genuinely low-cost experimentation.";
+  } else if (hasFragile) {
+    recommendation = "A fragile dependency was identified with no proven alternative yet visible in this request's own evidence -- name the dependency explicitly rather than treating it as a settled foundation, and look for a fallback before committing anything hard to reverse to it.";
+  } else if (hasDurable) {
+    recommendation = "A durable/established mechanism is already visible in this request's own evidence -- there is no basis here to prefer an untested alternative over it.";
+  } else {
+    recommendation = "Neither a fragile dependency nor a specific durable mechanism was identified from this request's own text or evidence -- this is not a basis to assume novelty is risky, or that an established option would be better; say so honestly rather than defaulting to caution for its own sake.";
+  }
+
+  return { relevance, durableMechanisms, fragileDependencies, provenAlternatives, recommendation };
 }
 
 // --- Caribbean lens -----------------------------------------------------------------------------

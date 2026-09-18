@@ -164,14 +164,15 @@ export function runFounderThinking(text: string, products: IbisProduct[]): Engin
 
 // --- CORRELATION -----------------------------------------------------------------------------
 // Wraps the real, ported deterministic Correlation Engine. Requires two actual numeric time
-// series -- no FTN data source is wired into the canonical brain to supply these automatically
-// for a free-text query yet, so for the vast majority of real conversational prompts this engine
-// is honestly SKIPPED (never fabricated as executed) unless the caller explicitly supplies
-// series data (e.g. a future FTN Statistics integration, or an API caller that already has two
-// series to compare).
+// series. As of item 5's re-investigation (ibis-correlation-datasource.ts), the canonical brain
+// DOES now wire one real FTN data source automatically -- the Central Bank of Trinidad and
+// Tobago's published TT$/US$ buying vs selling rate -- for queries that actually name the
+// exchange rate; every other conversational prompt still has no real second series to compare
+// against, so this engine is honestly SKIPPED (never fabricated as executed) unless the caller
+// explicitly supplies series data or the auto-connected FX pair applies.
 export function runCorrelation(seriesA: Series | null, seriesB: Series | null): EngineResult {
   if (!seriesA || !seriesB) {
-    return { engine: "CORRELATION", requested: true, executed: false, status: "SKIPPED", reason: "No numeric time-series data was supplied with this request -- Correlation requires two real series (periods+values), not free text. No FTN data-source integration feeds this automatically yet.", inputsUsed: {}, findings: [], assumptions: [], evidenceReferences: [], confidence: "UNAVAILABLE", downstreamEffects: [] };
+    return { engine: "CORRELATION", requested: true, executed: false, status: "SKIPPED", reason: "No numeric time-series data was supplied with this request -- Correlation requires two real series (periods+values), not free text, and this query did not match the one real FTN data source (Central Bank TT$/US$ exchange rate) that is auto-connected.", inputsUsed: {}, findings: [], assumptions: [], evidenceReferences: [], confidence: "UNAVAILABLE", downstreamEffects: [] };
   }
   const result = analyzeCorrelation(seriesA, seriesB);
   if (!result.success) {
@@ -185,7 +186,7 @@ export function runCorrelation(seriesA: Series | null, seriesB: Series | null): 
     reason: null,
     inputsUsed: { seriesA: seriesA.id || seriesA.label, seriesB: seriesB.id || seriesB.label, alignedPeriods: result.n },
     findings: [
-      `r = ${result.r.toFixed(3)} (${result.associationStrength}, ${result.direction}), n=${result.n}, sample depth ${result.sampleDepth}.`,
+      `${result.seriesA.label || result.seriesA.id} vs ${result.seriesB.label || result.seriesB.id}: r = ${result.r.toFixed(3)} (${result.associationStrength}, ${result.direction}), n=${result.n}, sample depth ${result.sampleDepth}.`,
       result.warning,
     ],
     assumptions: ["Exact-period intersection only; no interpolation or imputation of missing periods."],

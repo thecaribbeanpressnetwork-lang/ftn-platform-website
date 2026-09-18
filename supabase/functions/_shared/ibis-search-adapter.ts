@@ -185,6 +185,21 @@ const DEFAULT_CACHE_TTL_MS = 15 * 60_000; // 15 minutes -- long enough to dedupe
 const searchCache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<SearchResult>>();
 
+// Item 6 (rate-limit resilience, live-confirmed gap): the mission's own adversarial verification
+// pass produced real SearXNG upstream-engine CAPTCHA/throttling (DuckDuckGo CAPTCHA, Brave/Google
+// CSE "Suspended: too many requests") -- root-caused to repeated identical queries during automated
+// verification, which the positive-only cache above does nothing to prevent: a FAILED attempt was
+// never cached, so retrying the same already-failing query re-hit (and further hammered) the same
+// throttled upstream engines every single time, with no cooldown. A short negative-result cache
+// closes exactly that gap without touching freshness honesty: it never serves a stale SUCCESSFUL
+// answer for longer than the normal positive TTL above; it only avoids re-attempting a query that
+// JUST failed, for a much shorter window, so an upstream engine mid-throttle gets a real chance to
+// recover instead of being hit again every retry. After the cooldown, the very next identical
+// request tries again for real -- this is strictly less upstream load, never more staleness.
+type NegativeCacheEntry = { result: SearchResult; expiresAt: number };
+const DEFAULT_NEGATIVE_CACHE_TTL_MS = 45_000; // 45 seconds -- short enough that a genuine transient failure is retried well within any "current" freshness expectation.
+const negativeCache = new Map<string, NegativeCacheEntry>();
+
 function cacheKey(query: string): string {
   return query.trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -194,12 +209,18 @@ function cacheTtlMs(): number {
   return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_CACHE_TTL_MS;
 }
 
+function negativeCacheTtlMs(): number {
+  const configured = Number(Deno.env.get("IBIS_SEARCH_NEGATIVE_CACHE_TTL_MS"));
+  return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_NEGATIVE_CACHE_TTL_MS;
+}
+
 // Test-only: real callers never need to reset shared module state -- a fresh Deno test run holds
 // this same in-memory Map across Deno.test() blocks in one file, so tests that care about cache/
 // dedup/budget behavior in isolation call this first.
 export function resetSearchControlsForTests(): void {
   searchCache.clear();
   inFlight.clear();
+  negativeCache.clear();
   for (const key of Object.keys(dailyCounters)) delete dailyCounters[key];
   for (const key of Object.keys(monthlyCounters)) delete monthlyCounters[key];
 }
@@ -308,6 +329,10 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
   if (cached && cached.expiresAt > Date.now()) {
     return { ...(cached.result as Extract<SearchResult, { status: "OK" }>), cacheState: "CACHED" };
   }
+  const negative = negativeCache.get(key);
+  if (negative && negative.expiresAt > Date.now()) {
+    return negative.result;
+  }
   const existing = inFlight.get(key);
   if (existing) return existing;
 
@@ -329,12 +354,16 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
     }
     // No provider produced a result -- report the full per-provider failure chain (never just the
     // last attempt's reason), so the true root cause (e.g. a SearXNG timeout) is never masked by a
-    // later, unrelated provider's own honest "not configured" message.
-    return combinedUnavailableReason(query, [
+    // later, unrelated provider's own honest "not configured" message. Cached briefly (see
+    // negativeCache above) so an immediate identical retry does not re-hammer an already-throttled
+    // upstream engine.
+    const failure = combinedUnavailableReason(query, [
       { label: "SearXNG", result: searxngResult },
       { label: "Claude Web Search", result: claudeResult },
       { label: "Brave Search", result: braveResult },
     ]);
+    negativeCache.set(key, { result: failure, expiresAt: Date.now() + negativeCacheTtlMs() });
+    return failure;
   })();
   inFlight.set(key, promise);
   try {

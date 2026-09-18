@@ -89,7 +89,13 @@ const ECOMAP_PLACE_SIGNAL_MARKERS = /\b(map (?:the )?(?:services|organizations?)
 // genuine A-to-B pathway paraphrase, distinct from the existing "how do i apply/register/start"
 // phrasings -- added as its own alternative (additive capability planning only, same discipline as
 // the rest of this signal's broadening history below).
-const ECOMAP_PATHWAY_SIGNAL_MARKERS = /\b(steps? (?:and|to|needed|required|involved)|requirements? (?:i need|needed|to follow|to register)|how do i (?:apply|register|start|get (?:from|to))|register (?:a|my)|what (?:steps|documents) (?:are|is) required|eligibility|documents? (?:needed|required)|deadline)\b/i;
+// "funding/financing/grant pathway(s)", "route/steps to funding/support", "support pathway" added
+// (independent audit, live-confirmed gap: "Map the organizations, funding pathways and
+// relationships that could help a Trinidad and Tobago community technology project" did not plan
+// ECOMAP_PATHWAY at all -- the word "pathway" itself was not a trigger). Additive capability
+// planning only, same discipline as the rest of this signal's broadening history: an honest
+// SKIPPED_MISSING_INPUT when it turns out not to be relevant, never a fabricated execution.
+const ECOMAP_PATHWAY_SIGNAL_MARKERS = /\b(steps? (?:and|to|needed|required|involved)|requirements? (?:i need|needed|to follow|to register)|how do i (?:apply|register|start|get (?:from|to))|register (?:a|my)|what (?:steps|documents) (?:are|is) required|eligibility|documents? (?:needed|required)|deadline|(?:funding|financing|grant|support) pathways?|route to (?:funding|support)|steps to (?:funding|support))\b/i;
 // Broadened to a bare "relationship(s)" (in addition to the more specific referral/funding
 // phrasings) -- additive capability planning only, never primary classification, so erring toward
 // MORE scrutiny here just plans a capability that honestly reports SKIPPED_MISSING_INPUT when it
@@ -105,6 +111,13 @@ const ECOMAP_RELATIONSHIP_SIGNAL_MARKERS = /\b(relationships?|referrals?|which o
 // broadening what SELECTS it only ever risks an honest skip, never a fabricated result.
 const SECOND_ORDER_EFFECT_MARKERS = /\b(second-order effects?|downstream effects?|unintended consequences?|knock-on effects?|ripple effects?)\b/i;
 
+// A direct ask about durability/proven-vs-fragile mechanisms (the Lindy lens -- see
+// ibis-founder-lenses.ts's computeLindy()). Activates Founder Thinking directly (see
+// planCapabilities() in ibis-canonical-brain.ts) so Lindy has real context to work from, even when
+// no accompanying outcome/build marker is present -- e.g. "Which parts of this plan are proven and
+// durable, and which are fragile dependencies?" alone.
+const DURABILITY_MARKERS = /\b(proven and durable|durable (?:vs\.?|versus) fragile|fragile dependenc(?:y|ies)|battle-tested|time-tested|lindy effect|which parts? (?:of this|are) .{0,40}(?:proven|durable|fragile))\b/i;
+
 export type IntentSignals = {
   freshness: boolean;
   causeEvidence: boolean;
@@ -119,6 +132,7 @@ export type IntentSignals = {
   ecomapPathway: boolean;
   ecomapRelationship: boolean;
   secondOrderEffects: boolean;
+  durability: boolean;
 };
 
 export type IntentClassification = {
@@ -145,6 +159,7 @@ export function classifyIntent(text: string): IntentClassification {
     ecomapPathway: ECOMAP_PATHWAY_SIGNAL_MARKERS.test(q),
     ecomapRelationship: ECOMAP_RELATIONSHIP_SIGNAL_MARKERS.test(q),
     secondOrderEffects: SECOND_ORDER_EFFECT_MARKERS.test(q),
+    durability: DURABILITY_MARKERS.test(q),
   };
   const reasons: string[] = [];
 

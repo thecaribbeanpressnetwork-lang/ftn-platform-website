@@ -12,6 +12,12 @@ import { parseMonthlyFx } from './lib/cbtt-fx-parser.mjs';
 
 const url = 'https://www.central-bank.org.tt/exchange-rates-monthly/';
 const path = new URL('../data/fx-usd-ttd.json', import.meta.url);
+// ibis-assistant's Correlation engine (ibis-correlation-datasource.ts) reads a same-directory
+// JSON mirror rather than reaching outside supabase/functions/ -- see that file's header comment
+// for why. Written in lockstep here so the edge function's bundled snapshot never drifts from the
+// canonical data/fx-usd-ttd.json, and so a data-only update still lands inside
+// supabase/functions/_shared/**, which is what triggers ibis-assistant-release.yml's redeploy.
+const mirrorPath = new URL('../supabase/functions/_shared/ibis-correlation-fx-data.json', import.meta.url);
 const rows = await fetchAndParse({
   url,
   userAgent: 'FTN-Observer-Source-Check/1.0',
@@ -35,6 +41,8 @@ const data = {
   monthly,
 };
 
-await fs.writeFile(path, JSON.stringify(data, null, 2) + '\n');
+const serialized = JSON.stringify(data, null, 2) + '\n';
+await fs.writeFile(path, serialized);
+await fs.writeFile(mirrorPath, serialized);
 const latest = monthly[monthly.length - 1];
 console.log(`Central Bank FX ${retrieved}: ${monthly.length} monthly USD rate observation(s), latest ${latest.period} (buy ${latest.usdBuying}, sell ${latest.usdSelling})`);
