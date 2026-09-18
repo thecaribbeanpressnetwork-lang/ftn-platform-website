@@ -30,7 +30,7 @@
   // FTN Consolidation: loaded on demand (not on every ibis page load) since most messages never
   // need it -- the Caribbean music/audio-DSP/EPK engines it can call are each ALSO loaded lazily,
   // only once detectAndHandle() actually recognizes a matching request.
-  async function ensureCapabilityScript(){if(!global.FTN.IbisAbsorbedCapabilities)await loadScript('/js/ibis-absorbed-capabilities.js');return !!global.FTN.IbisAbsorbedCapabilities;}
+  async function ensureCapabilityScript(){if(!global.FTN.IbisAbsorbedCapabilities)await loadScript('/js/ibis-absorbed-capabilities.js?v=20260918.1');return !!global.FTN.IbisAbsorbedCapabilities;}
   function ensureVisualState(){if(global.FTN&&global.FTN.IbisVisualState)return Promise.resolve();return loadScript('/js/ibis-visual-state.js');}
   // Correction (canonical-brain completion pass): a client-side keyword gate used to live here
   // (QUICK_LIVE_PHRASES/quickLooksLikeLiveRequest) and decide, in the browser, that a message

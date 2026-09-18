@@ -61,7 +61,7 @@
   async function handleMusicGeneration(text, out, helpers) {
     var esc = helpers.esc;
     out.innerHTML = '<span class="workspace-kicker">MUSIC_GENERATION · FTN-owned Caribbean engine</span><p>Building your instrumental on-device — no external music-generation provider is used, no cost, nothing uploaded.</p>';
-    var Engine = await ensureEngine('CaribbeanMusicEngine', '/js/ibis-caribbean-music-engine.js', helpers);
+    var Engine = await ensureEngine('CaribbeanMusicEngine', '/js/ibis-caribbean-music-engine.js?v=20260918.1', helpers);
     if (!Engine) { out.innerHTML += '<p>The on-device Caribbean music engine could not load in this browser.</p>'; return; }
     var style = detectStyle(text);
     var recipe = Engine.buildRecipe({
@@ -108,7 +108,7 @@
       var file = fileInput.files && fileInput.files[0]; if (!file) return;
       status.textContent = 'Decoding ' + file.name + '…';
       try {
-        var Engine = await ensureEngine('AudioDSP', '/js/ftn-audio-dsp-engine.js', helpers);
+        var Engine = await ensureEngine('AudioDSP', '/js/ftn-audio-dsp-engine.js?v=20260918.1', helpers);
         var Ctx = global.AudioContext || global.webkitAudioContext, ctx = new Ctx();
         var buffer = await ctx.decodeAudioData(await file.arrayBuffer());
         status.textContent = 'Processing (gentle low-cut, presence lift, de-harsh) and rendering WAV…';
@@ -129,7 +129,7 @@
   // --- EPK_GENERATION --------------------------------------------------------------------------
   async function handleEpkGeneration(text, out, helpers) {
     var esc = helpers.esc;
-    var Schema = await ensureEngine('EpkSchema', '/js/ftn-epk-schema.js', helpers);
+    var Schema = await ensureEngine('EpkSchema', '/js/ftn-epk-schema.js?v=20260918.1', helpers);
     out.innerHTML = '<span class="workspace-kicker">EPK_GENERATION</span><p>Build a reusable FTN EPK (Electronic Press Kit) record. Your details stay on this device until you choose to export or submit them.</p>' +
       '<form class="ibis-epk-form"><div class="workspace-field"><label>Creator / artist name</label><input name="name" required></div>' +
       '<div class="workspace-field"><label>Professional email</label><input name="email" type="email" required></div>' +
@@ -215,7 +215,7 @@
   }
   async function handleScenarioAnalysis(text, out, helpers) {
     var esc = helpers.esc;
-    var Engine = await ensureEngine('ScenarioEngine', '/js/ibis-scenario-engine.js', helpers);
+    var Engine = await ensureEngine('ScenarioEngine', '/js/ibis-scenario-engine.js?v=20260918.1', helpers);
     out.innerHTML = '<span class="workspace-kicker">SCENARIO_ANALYSIS · illustrative weighted comparison</span>' +
       '<p>Set at least two options below (name + how they compare on each criterion, -5 to +5) and compare them. This is a transparent scoring tool, not a live AI judgement.</p>' +
       '<form class="ibis-scenario-form">' + [1, 2, 3].map(scenarioRowHTML).join('') +
@@ -245,8 +245,8 @@
   // --- COURSE_DISCOVERY / TRAINING_DISCOVERY --------------------------------------------------
   async function handleCourseDiscovery(text, out, helpers) {
     var esc = helpers.esc;
-    if (!global.FTN || !global.FTN.LearnData) await helpers.loadScript('/js/learn-data.js');
-    var Discovery = await ensureEngine('LearnDiscovery', '/js/ftn-learn-discovery.js', helpers);
+    if (!global.FTN || !global.FTN.LearnData) await helpers.loadScript('/js/learn-data.js?v=20260918.1');
+    var Discovery = await ensureEngine('LearnDiscovery', '/js/ftn-learn-discovery.js?v=20260918.1', helpers);
     var results = Discovery.search(text);
     var total = results.listings.length + results.providers.length;
     if (!total) {
