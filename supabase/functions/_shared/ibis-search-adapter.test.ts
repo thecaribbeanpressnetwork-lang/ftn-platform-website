@@ -312,6 +312,103 @@ Deno.test("COLD START: empty results never retries -- retrying would not help", 
   assertEquals(calls, 1, "an empty-results response must never trigger the cold-start retry");
 });
 
+// FTN Quality & UX Closure pass (2026-09-18): SearXNG fanout tests -- attempt #1 is always the
+// caller's literal query (a currently-working query must keep working with exactly one call); a
+// query that genuinely returns nothing tries normalized/precision retrieval-language variants next.
+Deno.test("FANOUT: a literal query with real results never triggers a second (normalized) attempt", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  let calls = 0;
+  await withPatchedFetch(async () => {
+    calls++;
+    return new Response(JSON.stringify({ results: [{ title: "Real result", url: "https://example.tt/real", content: "snippet" }] }), { status: 200 });
+  }, async () => {
+    const result = await search("What is happening in Trinidad and Tobago today?");
+    assertEquals(result.status, "OK");
+  });
+  assertEquals(calls, 1, "a query that already works must still make exactly one SearXNG call -- fanout must never fire when attempt #1 already succeeded");
+  clearSearchEnv();
+});
+
+Deno.test("FANOUT: a literal query with zero results falls through to a normalized retrieval-language attempt, which succeeds", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  const queriesSeen: string[] = [];
+  await withPatchedFetch(async (url) => {
+    const q = new URL(String(url)).searchParams.get("q") || "";
+    queriesSeen.push(q);
+    // The literal, unmodified user text returns nothing; any normalized fanout variant succeeds.
+    if (q === "What changed in Trinidad this week?") return new Response(JSON.stringify({ results: [] }), { status: 200 });
+    return new Response(JSON.stringify({ results: [{ title: "Normalized result", url: "https://example.tt/normalized", content: "snippet" }] }), { status: 200 });
+  }, async () => {
+    const result = await search("What changed in Trinidad this week?");
+    assertEquals(result.status, "OK", "a normalized fanout variant must recover a real result when the literal query returns nothing");
+  });
+  assert(queriesSeen.length >= 2 && queriesSeen.length <= 4, `fanout must be bounded (2-4 total attempts), got ${queriesSeen.length}`);
+  assertEquals(queriesSeen[0], "What changed in Trinidad this week?", "attempt #1 must always be the literal original query");
+  assert(queriesSeen[1] !== queriesSeen[0], "attempt #2 must be a genuinely different, normalized retrieval-language variant");
+  clearSearchEnv();
+});
+
+Deno.test("FANOUT: when every fanout attempt genuinely returns nothing, the reported `query` is still the user's original text, never an internal retrieval variant", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("SEARXNG_BASE_URL", "http://fake-searxng.test");
+  await withPatchedFetch(async () => new Response(JSON.stringify({ results: [] }), { status: 200 }), async () => {
+    const result = await search("What changed in Trinidad this week?");
+    assertEquals(result.status, "SEARCH_UNAVAILABLE");
+    assert(result.status === "SEARCH_UNAVAILABLE" && result.query === "What changed in Trinidad this week?", "the reported query must be the user's real question, never a normalized search string");
+  });
+  clearSearchEnv();
+});
+
+// FTN Quality & UX Closure pass (2026-09-18): Claude Web Search circuit-breaker tests -- live-caught
+// via the Wave 1 benchmark, Claude Web Search was failing on every single call (an invalid
+// credential), yet the cascade kept making a real network round-trip to Anthropic on every request.
+Deno.test("CIRCUIT: after 2 consecutive Claude Web Search failures, the circuit opens and the next call is skipped with zero network calls", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("ANTHROPIC_API_KEY", "test-key");
+  // No SEARXNG_BASE_URL, no BRAVE_SEARCH_API_KEY -- isolates the cascade to Claude Web Search alone.
+  let claudeCalls = 0;
+  await withPatchedFetch(async () => { claudeCalls++; return new Response("", { status: 400 }); }, async () => {
+    await search("circuit failure query one");
+    await search("circuit failure query two");
+    assertEquals(claudeCalls, 2, "both genuine failures must have actually reached the network");
+    const third = await search("circuit failure query three");
+    assertEquals(third.status, "SEARCH_UNAVAILABLE");
+    assert(third.status === "SEARCH_UNAVAILABLE" && /circuit is open/i.test(third.reason), "the third call's failure reason must explicitly name the open circuit, not a generic network error");
+  });
+  assertEquals(claudeCalls, 2, "the third call must be skipped entirely -- no network call once the circuit is open, to avoid wasting latency on a known-broken credential");
+  clearSearchEnv();
+});
+
+Deno.test("CIRCUIT: a successful Claude Web Search call resets the failure count (one earlier failure does not linger toward opening the circuit)", async () => {
+  resetSearchControlsForTests();
+  clearSearchEnv();
+  Deno.env.set("ANTHROPIC_API_KEY", "test-key");
+  let call = 0, claudeCalls = 0;
+  await withPatchedFetch(async () => {
+    claudeCalls++;
+    call++;
+    if (call === 1) return new Response("", { status: 400 });
+    return new Response(JSON.stringify({ content: [{ type: "web_search_tool_result", tool_use_id: "a", content: [{ type: "web_search_result", url: "https://example.tt/recovered", title: "Recovered result" }] }] }), { status: 200 });
+  }, async () => {
+    const first = await search("circuit recovery query one");
+    assertEquals(first.status, "SEARCH_UNAVAILABLE");
+    const second = await search("circuit recovery query two");
+    assertEquals(second.status, "OK", "a single failure must never open the circuit -- only 2 CONSECUTIVE failures do");
+    // A third, fresh failure after the reset-by-success must count as failure #1 again, not #3.
+    call = 0;
+    const third = await search("circuit recovery query three");
+    assertEquals(third.status, "SEARCH_UNAVAILABLE");
+  });
+  assertEquals(claudeCalls, 3, "every call in this sequence must have genuinely reached the network -- the circuit must still be closed throughout");
+  clearSearchEnv();
+});
+
 Deno.test("An explicit fetchImpl override (every existing test in this repo) bypasses cache/dedup/budget entirely -- always a fresh attempt", async () => {
   resetSearchControlsForTests();
   clearSearchEnv();

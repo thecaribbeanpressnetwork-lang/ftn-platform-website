@@ -46,6 +46,7 @@
 export type { SourceRecord, SearchResult, ExternalHandoff } from "./ibis-search-types.ts";
 import { unavailable, type SearchResult, type SourceRecord } from "./ibis-search-types.ts";
 import { claudeWebSearch } from "./ibis-claude-search-adapter.ts";
+import { buildQueryAttempts } from "./ibis-search-query-normalizer.ts";
 
 type SearXNGResponseItem = { title?: string; url?: string; content?: string; engine?: string; publishedDate?: string };
 type SearXNGResponse = { results?: SearXNGResponseItem[] };
@@ -119,6 +120,34 @@ export async function searxngSearch(
   const retry = await attempt(options.retryTimeoutMs ?? SEARXNG_RETRY_TIMEOUT_MS);
   if (!("timedOut" in retry)) return retry;
   return unavailable(query, "SearXNG request timed out (including one retry with a longer window -- likely a cold, sleeping preview instance).");
+}
+
+// FTN Quality & UX Closure pass (2026-09-18): live-caught via the Wave 1 benchmark -- several
+// completely reasonable questions ("What changed in Trinidad this week?") returned zero SearXNG
+// results while a near-identical phrasing ("What is happening in Trinidad and Tobago today?")
+// succeeded. The difference was retrieval-language quality, not the underlying question. This
+// wraps searxngSearch() with ibis-search-query-normalizer.ts's bounded fanout: attempt #1 is
+// always the caller's original (already-disambiguated) query, so every query that already works
+// keeps working with the exact same single call as before; only a query that genuinely returns
+// nothing tries up to 3 more normalized/precision/official-source variants, stopping at the first
+// real result. Never changes what the user sees -- only what string is sent to the search engine.
+async function searxngSearchWithFanout(
+  query: string,
+  options: { baseUrl?: string; timeoutMs?: number; retryTimeoutMs?: number; fetchImpl?: typeof fetch } = {},
+): Promise<SearchResult> {
+  const attempts = buildQueryAttempts(query);
+  if (!attempts.length) return searxngSearch(query, options);
+  const tried: { queryTried: string; result: Extract<SearchResult, { status: "SEARCH_UNAVAILABLE" }> }[] = [];
+  for (const attemptQuery of attempts) {
+    const result = await searxngSearch(attemptQuery, options);
+    if (result.status === "OK") return result;
+    tried.push({ queryTried: attemptQuery, result });
+  }
+  // Every fanout attempt failed -- report the ORIGINAL query (never an internal retrieval variant)
+  // as `query`, with an honest reason naming how many retrieval-language variants were tried, so a
+  // caller/log never sees a confusing normalized string where the user's own question belongs.
+  const last = tried[tried.length - 1];
+  return unavailable(query, `${last.result.reason} (tried ${tried.length} retrieval-language variant${tried.length === 1 ? "" : "s"}, none returned results.)`);
 }
 
 type BraveResponseItem = { title?: string; url?: string; description?: string; age?: string; page_age?: string; meta_url?: { hostname?: string } };
@@ -223,6 +252,12 @@ export function resetSearchControlsForTests(): void {
   negativeCache.clear();
   for (const key of Object.keys(dailyCounters)) delete dailyCounters[key];
   for (const key of Object.keys(monthlyCounters)) delete monthlyCounters[key];
+  // searchCircuits is declared further down this file (module-scope `const`, safe to reference
+  // here: by the time any test actually CALLS this function the whole module has already finished
+  // initializing) -- folded in here, rather than requiring every existing call site of this
+  // function across the test suite to also remember a second reset call, so the Claude Web Search
+  // circuit-breaker state introduced by this pass never leaks between unrelated tests.
+  searchCircuits.clear();
 }
 
 // Conservative defaults pending the founder's actual confirmed plan tier for whichever paid
@@ -281,6 +316,54 @@ async function searchProviderWithBudget(
   return run();
 }
 
+// FTN Quality & UX Closure pass (2026-09-18): live-caught -- Claude Web Search was failing HTTP 400
+// on every single call (a credential problem, confirmed via ibis-provider-health-preview's bare
+// GET /v1/models check, which references no model name at all), yet the cascade still made a real
+// network round-trip to Anthropic on every request that reached this rung before honestly failing.
+// This mirrors ibis-intelligence-gateway.ts's own circuit-breaker pattern (same shape, its own
+// independent state -- search and model-completion calls are different failure domains and must
+// not share one breaker): after 2 consecutive failures, the circuit opens and every call within the
+// cooldown window is skipped with ZERO network calls -- "do not waste latency" -- and automatically
+// re-enters the cascade the moment the cooldown expires, so a freshly-corrected API key recovers on
+// its own within minutes, never requiring a deploy or a manual reset.
+type SearchCircuit = { failures: number; openUntil: number };
+const searchCircuits = new Map<string, SearchCircuit>();
+const SEARCH_CIRCUIT_FAILURE_THRESHOLD = 2;
+const SEARCH_CIRCUIT_COOLDOWN_MS = 5 * 60_000;
+
+function searchCircuitAllows(id: string, now: number): boolean {
+  const circuit = searchCircuits.get(id);
+  return !circuit || circuit.openUntil <= now;
+}
+function recordSearchSuccess(id: string): void {
+  searchCircuits.delete(id);
+}
+function recordSearchFailure(id: string, now: number): void {
+  const previous = searchCircuits.get(id) || { failures: 0, openUntil: 0 };
+  const failures = previous.failures + 1;
+  searchCircuits.set(id, { failures, openUntil: failures >= SEARCH_CIRCUIT_FAILURE_THRESHOLD ? now + SEARCH_CIRCUIT_COOLDOWN_MS : 0 });
+}
+
+// Same budget gate as searchProviderWithBudget, plus a circuit-breaker check BEFORE it (cheapest
+// check first) for providers whose failures are typically persistent (a bad/expired credential),
+// not transient -- currently only Claude Web Search; SearXNG (self-hosted, budget Infinity) and
+// Brave (not yet provisioned) do not need one of their own here.
+async function searchProviderWithCircuitAndBudget(
+  provider: "claude-web-search",
+  label: string,
+  query: string,
+  run: () => Promise<SearchResult>,
+): Promise<SearchResult> {
+  const now = Date.now();
+  if (!searchCircuitAllows(provider, now)) {
+    return unavailable(query, `${label}'s circuit is open after repeated failures (likely an invalid or misconfigured credential) -- skipped immediately without a network call to avoid wasted latency; it will automatically retry after its cooldown.`);
+  }
+  const result = await searchProviderWithBudget(provider, label, query, run);
+  if (result.status === "OK") recordSearchSuccess(provider);
+  else if (!/budget has been reached/.test(result.reason)) recordSearchFailure(provider, now);
+  return result;
+}
+
 // The one exported entry point the canonical brain calls -- implements the fallback order in the
 // module header, PLUS the zero-cost controls above (cache -> dedup -> per-provider budget ->
 // SearXNG -> Claude Web Search -> Brave -> honest SEARCH_UNAVAILABLE). Adding a further real
@@ -337,12 +420,12 @@ export async function search(query: string, options: { fetchImpl?: typeof fetch 
   if (existing) return existing;
 
   const promise = (async (): Promise<SearchResult> => {
-    const searxngResult = await searchProviderWithBudget("searxng", "SearXNG", query, () => searxngSearch(query, options));
+    const searxngResult = await searchProviderWithBudget("searxng", "SearXNG", query, () => searxngSearchWithFanout(query, options));
     if (searxngResult.status === "OK") {
       searchCache.set(key, { result: searxngResult, expiresAt: Date.now() + cacheTtlMs() });
       return searxngResult;
     }
-    const claudeResult = await searchProviderWithBudget("claude-web-search", "Claude Web Search", query, () => claudeWebSearch(query, options));
+    const claudeResult = await searchProviderWithCircuitAndBudget("claude-web-search", "Claude Web Search", query, () => claudeWebSearch(query, options));
     if (claudeResult.status === "OK") {
       searchCache.set(key, { result: claudeResult, expiresAt: Date.now() + cacheTtlMs() });
       return claudeResult;
