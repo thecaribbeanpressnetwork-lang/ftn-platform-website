@@ -63,3 +63,9 @@ body.ibis-investor-landing #workspace-root ::-webkit-scrollbar{width:8px;height:
 body.ibis-investor-landing .site-footer{border-top:1px solid rgba(255,18,56,.45);background:#020203;}
 @media (max-width:1200px){.ibis-product-stage{width:min(100% - 2rem,1100px)}.ibis-below__grid{grid-template-columns:1fr 1fr}.ibis-hero h1{font-size:clamp(2.65rem,6vw,4rem)}}
 @media (max-width:760px){body.ibis-investor-landing .site-nav{display:none}.ibis-hero h1{font-size:clamp(2.35rem,11vw,3.35rem);line-height:1}.ibis-hero{padding:1rem 1rem 1.15rem}.ibis-below__grid{grid-template-columns:1fr}.ibis-product-stage{width:calc(100% - 1rem)}.ibis-product-frame{padding:.45rem;border-radius:18px}.ibis-product-frame #workspace-root{min-height:620px}.ibis-product-frame__bar{font-size:.62rem}.ibis-hero__actions a{width:100%}}
+/* FTN UX Pass (2026-09-18), Scenario 1 fix: on a real mobile viewport the hero (kicker + H1 +
+   lede + two full-width stacked buttons) consumed the entire first screen, so the actual input --
+   the thing the mission requires be the first thing a user sees ("What do you want to make
+   happen?") -- was scrolled fully off-screen below the fold. Shrinks the hero substantially at
+   phone widths without removing anything: same two actions, just compact and side-by-side. */
+@media (max-width:480px){.ibis-hero{padding:.7rem .85rem .8rem}.ibis-kicker{font-size:.6rem;margin-bottom:.35rem}.ibis-hero h1{font-size:clamp(1.5rem,7.5vw,2rem);line-height:1.05;margin-top:.35rem}.ibis-hero__lede{font-size:.82rem;line-height:1.35;margin-top:.4rem}.ibis-hero__actions{margin-top:.6rem;gap:.5rem;flex-wrap:nowrap}.ibis-hero__actions a{width:auto;flex:1;min-height:38px;padding:.5rem .6rem;font-size:.78rem}}
