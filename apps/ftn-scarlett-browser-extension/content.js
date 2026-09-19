@@ -502,6 +502,18 @@
       if(action.kind==='ask-ibis') prepareIbisHandoff(model,{escalation:'IBIS'});
       else if(action.kind==='open-headspace') prepareIbisHandoff(model,{escalation:'HEADSPACE'});
     });
+    // Preview-selling, not a paywall: Transform already works in full for free in this build (see
+    // entitlements.js -- 'free' currently includes every capability this build implements). This
+    // note only sets honest expectations about the FTN plan model after the user has already
+    // gotten the value, per the product definition's explicit "sell after the value, never before"
+    // rule -- it never blocks or degrades anything.
+    const entitlements=globalThis.FTN_SCARLETT_ENTITLEMENTS;
+    if(entitlements?.isPreviewOnly?.('scarlett.transform')){
+      const planNote=document.createElement('p');
+      planNote.className='sc-deck-confidence';
+      planNote.textContent='This Transform is a preview of what Scarlett+ includes on every page. Currently free in this build.';
+      container.appendChild(planNote);
+    }
     state.deckContainer=container;
     return {visualMode:'TRANSFORM',fellBack:false,spec};
   }

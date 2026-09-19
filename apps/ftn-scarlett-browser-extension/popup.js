@@ -15,7 +15,7 @@ async function ensureRuntime(id){
     const reply=await chrome.tabs.sendMessage(id,{type:'SCARLETT_ANALYZE'});
     if(reply?.ok) return reply;
   }catch{}
-  await chrome.scripting.executeScript({target:{tabId:id},files:['page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','content.js']});
+  await chrome.scripting.executeScript({target:{tabId:id},files:['page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','entitlements.js','content.js']});
   return chrome.tabs.sendMessage(id,{type:'SCARLETT_ANALYZE'});
 }
 function setPressed(mode){
@@ -99,6 +99,19 @@ shieldToggle.addEventListener('click',async()=>{
   renderShield();
 });
 renderShield();
+
+// Plan/entitlement status: reads live from entitlements.js (window.FTN_SCARLETT_ENTITLEMENTS,
+// loaded as a plain classic script before this module) rather than duplicating hardcoded copy, so
+// the popup can never drift from the actual tier data model.
+(function renderPlan(){
+  const el=window.FTN_SCARLETT_ENTITLEMENTS;
+  const statusEl=document.querySelector('#plan-status');
+  if(!el||!statusEl) return;
+  const tierId=el.currentTier();
+  const tier=el.TIERS.find(t=>t.id===tierId);
+  if(!tier) return;
+  statusEl.textContent=`You're on ${tier.name}. Every mode built so far (Assist, Adapt, Transform, Compare, Blend, Data Faucet) is included, free.`;
+})();
 
 // Search with Scarlett / Find with Scarlett: both hit the same canonical FTN ibis endpoint
 // (ibis-search-client.js) the production ibis companion extension already uses -- only on an

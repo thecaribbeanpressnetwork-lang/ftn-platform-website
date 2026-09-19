@@ -16,6 +16,7 @@ const popupHtml=read('popup.html');
 const shield=read('shield.js');
 const trackerRegistry=read('tracker-registry.js');
 const searchClient=read('ibis-search-client.js');
+const entitlements=read('entitlements.js');
 
 assert.equal(manifest.manifest_version,3);
 assert.equal(manifest.name,'Scarlett by FTN');
@@ -202,9 +203,22 @@ assert.doesNotMatch(searchClient,/\.title|\.headings|location\.href|document\./,
 assert.match(popup,/searchForm\.addEventListener\('submit'/);
 assert.doesNotMatch(popup,/searchQuery\.addEventListener\('input'/,'Search/Find must never fire on keystroke, only on explicit submit');
 
-for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','ibis-search-client.js','content.js','ibis-handoff.js','README.md']){
+for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','ibis-search-client.js','entitlements.js','content.js','ibis-handoff.js','README.md']){
   assert.ok(fs.statSync(new URL(name,root)).size>20,`${name} should exist and be non-empty`);
 }
+
+// Entitlements: a real, central data model -- but truth-in-labeling is mandatory. Only the free
+// tier may be marked LIVE; every paid tier must say PLANNED (no checkout exists), and nothing this
+// build actually implements may be gated behind a capability the free tier lacks.
+assert.match(entitlements,/NOTHING in this file is connected to a real\s*\n\/\/\s*payment processor/,'entitlements.js must disclose, in its own header, that no real billing exists');
+assert.match(entitlements,/status:\s*'LIVE'/);
+const plannedTierCount=(entitlements.match(/status:\s*'PLANNED'/g)||[]).length;
+assert(plannedTierCount>=3,'every paid tier (plus/intelligence/pro) must be marked PLANNED, not LIVE');
+assert.doesNotMatch(entitlements,/\bfetch\s*\(|XMLHttpRequest|stripe|paypal/i,'entitlements.js must not itself talk to any payment processor');
+assert.match(popupHtml,/Scarlett Free/);
+assert.match(popupHtml,/ftnplatform\.org\/ibis\/pricing\//);
+assert.match(popup,/entitlements\.js/,'popup.js should be reading the live entitlement data model, not restating it');
+assert.match(content,/isPreviewOnly/,'the in-page Transform preview note must be driven by the entitlement model, not a hardcoded string with no data behind it');
 
 // No source file in the extension makes any outbound network call, with the one disclosed
 // exception (ibis-search-client.js, checked separately above) -- the other "leave the device"
