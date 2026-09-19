@@ -1,6 +1,6 @@
 # Scarlett V1 — investor-readiness evidence pack
 
-Date: 2026-09-19
+Date: 2026-09-19 (updated same day: V1 gap-closure pass ahead of the V2 branch)
 Branch: `feature/scarlett-adaptive-interface-v1`
 Companion documents: `SCARLETT_V1_AUDIT_AND_BUILD_PLAN_2026-09-19.md`,
 `SCARLETT_ARCHITECTURE_AND_SECURITY_2026-09-19.md`
@@ -8,6 +8,35 @@ Companion documents: `SCARLETT_V1_AUDIT_AND_BUILD_PLAN_2026-09-19.md`,
 This pack states plainly what is proven, what is scaffolded, and what remains. It is not a
 marketing document — every claim below points at either a real test, a real live-browser run, or
 is explicitly labelled as not yet verified.
+
+## 0. V1 gap-closure pass (before branching to V2)
+
+Performed as a dedicated pass before cutting `feature/scarlett-consumer-v2`, per the explicit
+instruction not to branch away from an unverified V1 foundation:
+
+- **Broader visual QA**: three additional real, live sites exercised with the real unpacked
+  extension via Playwright — Hacker News (sparse/minimal chrome), BBC News (dense real-world news
+  homepage), Stripe.com (high-brand-color, mixed light/dark sections). Zero console errors on any.
+  The panel stayed fully within the viewport on all three (no clipping on dense layouts). Full
+  restore verified on all three. Stripe.com correctly triggered `HIGH` risk / Assist-only — its
+  homepage genuinely discusses credit-card/payment-processing content at length, so this is the
+  sensitive-surface policy working as intended, not a false positive.
+- **Authenticated Google Docs/Sheets/Gmail/Calendar QA**: confirmed, not assumed, that no safe
+  authenticated session is available. Checked two separate browser contexts — a fresh Playwright
+  profile and this session's own built-in browser pane — and both landed on Google's real sign-in
+  page (`accounts.google.com`) when navigating to `docs.google.com/document/create`. No credentials
+  were entered in either case (this session does not have and will not enter real Google account
+  credentials). **This remains an explicit, unresolved human QA item**: a person with their own
+  Google account needs to load the unpacked extension and verify the Assist panel/selection handoff
+  next to a real open Doc/Sheet, and Gmail/Calendar smoke QA, before any investor-ready claim covers
+  those four surfaces.
+- **Product Registry entry**: still deferred. The reasoning from the original pass still holds —
+  there is no truthful public Scarlett destination page to route a registry entry's `route` field
+  to, and forcing a `principal:true` entry would require unrelated sitewide integration work
+  (sitemap/nav/footer/ecosystem-group) gated by a large, tightly-coupled regression suite. This is
+  revisited once V2 ships a real installable/marketing destination.
+- **Site-wide regression gates**: not run in full this pass either (same reasoning as the original
+  V1 pass — nothing outside `apps/ftn-scarlett-browser-extension/`, its test, and `docs/` changed).
 
 ## 1. What Scarlett is (one line)
 
@@ -125,7 +154,9 @@ Transform/Compare/Blend later, without requiring a rewrite — see the architect
   handoff context beyond what the generic bridge already inserts as text.
 - **Live authenticated Google Docs/Sheets/Gmail/Calendar QA**: not performed (credentials
   out of scope). Code-level coverage exists; live proof does not yet.
-- **Visual QA across dark/light/dense/sparse/high-brand-color sites**: only the three surfaces in
-  §2 were exercised; a broader visual sweep (per build-plan §26) was not run this session.
+- **Visual QA across dark/light/dense/sparse/high-brand-color sites**: extended in the V1 gap-
+  closure pass (§0) to six real sites total (Wikipedia, gov.uk, Hacker News, BBC News, Stripe.com,
+  plus the local listing fixture). Still not exhaustive — no genuinely dark-themed site (dark by
+  default, not via a toggle) or a right-to-left-language site has been exercised yet.
 - **Chrome Web Store / Opera Add-ons submission**: unpacked-load only, as stated in the extension's
   own README; no store listing work was done.
