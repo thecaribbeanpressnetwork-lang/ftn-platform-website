@@ -13,7 +13,7 @@ async function ensureRuntime(id){
     const reply=await chrome.tabs.sendMessage(id,{type:'SCARLETT_ANALYZE'});
     if(reply?.ok) return reply;
   }catch{}
-  await chrome.scripting.executeScript({target:{tabId:id},files:['page-understanding.js','transformation-policy.js','content.js']});
+  await chrome.scripting.executeScript({target:{tabId:id},files:['page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','content.js']});
   return chrome.tabs.sendMessage(id,{type:'SCARLETT_ANALYZE'});
 }
 function setPressed(mode){
@@ -27,11 +27,13 @@ function render(reply){
   facts.textContent=`${app}${risk}${model.pageType||'Page'} · local analysis`;
   if(model.risk?.level==='HIGH' || model.app){
     document.querySelector('[data-mode="ADAPT"]').disabled=true;
+    document.querySelector('[data-mode="TRANSFORM"]').disabled=true;
     status.textContent=model.app
       ? 'Complex application detected. Scarlett keeps this surface in Assist to preserve muscle memory.'
       : 'Sensitive surface detected. Scarlett keeps this surface in Assist unless a future governed policy explicitly allows more.';
   }else{
     document.querySelector('[data-mode="ADAPT"]').disabled=false;
+    document.querySelector('[data-mode="TRANSFORM"]').disabled=false;
     status.textContent=`Recommended: ${reply.defaultMode||'ASSIST'}. Original is always available.`;
   }
 }
