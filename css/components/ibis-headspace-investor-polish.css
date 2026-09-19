@@ -1,0 +1,344 @@
+/* FTN ibis Headspace — Investor hardening layer
+   Purpose: preserve the existing Headspace architecture while making the surface calmer,
+   more legible, more distinctive, and easier to manipulate during investor/demo use. */
+
+:root{
+  --hs-black:#020303;
+  --hs-panel:rgba(5,10,10,.78);
+  --hs-panel-strong:rgba(7,14,14,.92);
+  --hs-border:rgba(255,255,255,.10);
+  --hs-border-active:rgba(0,229,201,.46);
+  --hs-text:#f8fffd;
+  --hs-muted:#9fb3af;
+  --hs-teal:#00e5c9;
+  --hs-red:#e10613;
+  --hs-radius-lg:28px;
+  --hs-radius-md:20px;
+  --hs-shadow:0 30px 90px rgba(0,0,0,.38);
+  --hs-ease:cubic-bezier(.22,1,.36,1);
+}
+
+body{
+  background:
+    radial-gradient(1000px 620px at 76% -8%,rgba(0,229,201,.09),transparent 62%),
+    radial-gradient(760px 520px at -8% 82%,rgba(225,6,19,.07),transparent 58%),
+    linear-gradient(180deg,#010202 0%,#020404 45%,#010202 100%) !important;
+}
+
+.headspace{
+  position:relative;
+  isolation:isolate;
+  min-height:100svh;
+  padding-top:clamp(22px,3vw,42px) !important;
+}
+
+.headspace::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.34;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:72px 72px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.85),transparent 78%);
+}
+
+.headspace-head{
+  align-items:center !important;
+  margin-bottom:clamp(26px,4vw,58px) !important;
+}
+
+.identity{max-width:940px !important}
+.kicker{
+  color:rgba(166,255,242,.82) !important;
+  letter-spacing:.22em !important;
+}
+.headspace h1{
+  max-width:980px !important;
+  font-size:clamp(42px,5.4vw,82px) !important;
+  line-height:.92 !important;
+  letter-spacing:-.055em !important;
+  font-weight:720 !important;
+  text-wrap:balance;
+}
+.subhead{
+  max-width:760px !important;
+  color:#aabbb8 !important;
+  font-size:clamp(15px,1.3vw,18px) !important;
+  line-height:1.65 !important;
+}
+
+.boot{
+  padding:8px 11px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  background:rgba(255,255,255,.025);
+}
+
+.head-actions{
+  align-self:flex-start;
+}
+.head-actions button,.head-actions a,.headspace-menu>summary{
+  border-color:rgba(255,255,255,.10) !important;
+  background:rgba(255,255,255,.028) !important;
+  backdrop-filter:blur(16px);
+  transition:transform .2s var(--hs-ease),border-color .2s ease,background .2s ease,color .2s ease;
+}
+.head-actions button:hover,.head-actions a:hover,.headspace-menu>summary:hover{
+  transform:translateY(-1px);
+  background:rgba(0,229,201,.06) !important;
+}
+
+/* The answer is the primary surface. Everything else supports it. */
+.field{
+  gap:20px !important;
+  max-width:1500px !important;
+}
+.thought{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--hs-border) !important;
+  border-radius:var(--hs-radius-lg) !important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.008)),
+    var(--hs-panel) !important;
+  box-shadow:var(--hs-shadow) !important;
+  backdrop-filter:blur(24px) saturate(118%) !important;
+  transition:
+    transform .28s var(--hs-ease),
+    border-color .22s ease,
+    box-shadow .28s ease,
+    opacity .2s ease !important;
+}
+.thought::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.035),transparent 28%,transparent 74%,rgba(0,229,201,.025));
+}
+.thought:hover,.thought:focus-within{
+  transform:translateY(-2px);
+  border-color:rgba(0,229,201,.26) !important;
+  box-shadow:0 36px 100px rgba(0,0,0,.48) !important;
+}
+
+.thought-answer{
+  grid-column:1 / -1 !important;
+  min-height:clamp(300px,38vh,520px) !important;
+  padding:clamp(28px,4vw,58px) !important;
+  background:
+    radial-gradient(780px 300px at 82% 0%,rgba(0,229,201,.075),transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.036),rgba(255,255,255,.009)),
+    rgba(3,9,9,.86) !important;
+}
+.thought-answer .thought-bar{
+  margin-bottom:clamp(32px,5vw,64px) !important;
+}
+.thought-answer h2{
+  max-width:980px;
+  font-size:clamp(34px,4.8vw,72px) !important;
+  line-height:.98 !important;
+  letter-spacing:-.055em !important;
+  text-wrap:balance;
+}
+.thought-answer p{
+  max-width:980px;
+  font-size:clamp(17px,1.45vw,21px) !important;
+  line-height:1.72 !important;
+  color:#deebe8 !important;
+}
+.thought-answer .actions{
+  margin-top:32px !important;
+}
+.thought-answer .actions button{
+  border:1px solid rgba(0,229,201,.18) !important;
+  border-radius:999px;
+  padding:9px 13px !important;
+  background:rgba(0,229,201,.035) !important;
+}
+
+/* Secondary surfaces should feel summoned, not permanently demanding attention. */
+.thought:not(.thought-answer){
+  min-height:180px !important;
+  padding:24px !important;
+}
+.thought-tools{opacity:.88}
+.thought-tools:hover,.thought-tools:focus-within{opacity:1}
+
+.thought-bar{
+  position:relative;
+  z-index:2;
+  border-bottom-color:rgba(255,255,255,.07) !important;
+}
+.thought-bar>span{
+  color:rgba(178,255,244,.74) !important;
+  letter-spacing:.18em !important;
+}
+
+.window-actions{
+  position:relative;
+  z-index:4;
+  opacity:.22 !important;
+  transition:opacity .2s ease !important;
+}
+.thought:hover .window-actions,.thought:focus-within .window-actions,.window-actions:focus-within{
+  opacity:1 !important;
+}
+.window-actions button{
+  width:27px;
+  min-width:27px !important;
+  height:27px;
+  display:inline-grid;
+  place-items:center;
+  padding:0 !important;
+  border-radius:8px !important;
+  color:#9eafac !important;
+}
+.window-actions button:hover{
+  color:#fff !important;
+  background:rgba(255,255,255,.075) !important;
+}
+
+.thought.hs-focus{
+  position:fixed !important;
+  inset:clamp(18px,3vw,42px) !important;
+  width:auto !important;
+  height:auto !important;
+  max-width:none !important;
+  max-height:none !important;
+  z-index:500 !important;
+  overflow:auto !important;
+  resize:none !important;
+  transform:none !important;
+  border-color:rgba(0,229,201,.32) !important;
+  box-shadow:0 50px 160px rgba(0,0,0,.78) !important;
+}
+body.hs-focus-active::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:490;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(12px);
+}
+
+/* A purposeful composer rather than a toolbar. */
+.input-orbit{
+  width:min(920px,calc(100vw - 32px)) !important;
+  min-height:62px;
+  padding:9px 12px 9px 16px !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+  border-radius:22px !important;
+  background:rgba(4,7,7,.91) !important;
+  box-shadow:0 22px 70px rgba(0,0,0,.6),0 0 0 1px rgba(225,6,19,.08) inset !important;
+  backdrop-filter:blur(30px) saturate(130%) !important;
+  transition:width .38s var(--hs-ease),border-color .2s ease,box-shadow .25s ease,transform .25s var(--hs-ease);
+}
+.input-orbit:focus-within{
+  width:min(1040px,calc(100vw - 24px)) !important;
+  border-color:rgba(0,229,201,.32) !important;
+  box-shadow:0 26px 90px rgba(0,0,0,.68),0 0 0 1px rgba(0,229,201,.06) inset !important;
+}
+.input-orbit input[type=text]{
+  min-height:42px;
+  font-size:clamp(16px,1.3vw,19px) !important;
+  letter-spacing:-.01em;
+}
+.input-orbit button[type=submit]{
+  min-height:40px;
+  border-radius:13px !important;
+  padding:0 15px !important;
+  color:#03110f !important;
+  background:var(--hs-teal) !important;
+  font-weight:800 !important;
+}
+.input-orbit .icon-button,.input-orbit .secondary{
+  min-width:34px;
+  min-height:34px;
+  border-radius:10px !important;
+}
+.input-orbit .icon-button:hover,.input-orbit .secondary:hover{
+  background:rgba(255,255,255,.07) !important;
+}
+
+.command-hint{
+  color:#63736f !important;
+  letter-spacing:.01em;
+}
+
+/* Engaged state becomes a workspace: intro recedes, answer moves up. */
+.headspace-engaged .headspace-head{
+  min-height:42px;
+  margin-bottom:14px !important;
+}
+.headspace-engaged .headspace-head .identity{
+  max-height:0;
+  overflow:hidden;
+}
+.headspace-engaged .field{
+  padding-top:4px;
+}
+
+.window-shelf{
+  bottom:102px !important;
+  border-color:rgba(255,255,255,.08) !important;
+  background:rgba(2,5,5,.88) !important;
+}
+
+/* Reduced motion is a first-class mode. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
+/* Tablet: answer stays dominant and the rest becomes one clean column. */
+@media(max-width:1000px){
+  .field{grid-template-columns:1fr !important}
+  .thought-answer{grid-column:auto !important}
+  .headspace-head{align-items:flex-start !important}
+}
+
+/* Mobile: Headspace becomes a calm conversation surface, not draggable desktop windows. */
+@media(max-width:720px){
+  .headspace{
+    padding:18px 12px 132px !important;
+  }
+  .headspace-head{
+    margin-bottom:20px !important;
+  }
+  .headspace h1{
+    font-size:clamp(36px,11vw,52px) !important;
+    line-height:.94 !important;
+  }
+  .subhead{font-size:15px !important}
+  .thought,.thought-answer{
+    padding:22px !important;
+    border-radius:22px !important;
+    min-height:0 !important;
+  }
+  .thought-answer h2{font-size:clamp(30px,9vw,46px) !important}
+  .thought-answer p{font-size:16px !important}
+  .thought:not(.thought-answer){padding:20px !important}
+  .input-orbit{
+    bottom:10px !important;
+    width:calc(100vw - 16px) !important;
+    min-height:58px;
+    border-radius:18px !important;
+  }
+  .input-orbit:focus-within{width:calc(100vw - 12px) !important}
+  .orbit-grip,.command-hint{display:none !important}
+  .window-actions{opacity:.7 !important}
+  .thought.hs-focus{inset:8px !important;border-radius:22px !important}
+}
+
+@media(min-width:1300px){
+  .field[data-layout="grid"]{
+    grid-template-columns:minmax(0,1.55fr) minmax(320px,.75fr) !important;
+  }
+  .field[data-layout="grid"] .thought-answer{
+    grid-column:1 / -1 !important;
+  }
+}
