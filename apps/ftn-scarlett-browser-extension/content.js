@@ -39,6 +39,12 @@
     const row=state.ledger.find(x=>x.el===el&&x.name===name);
     if(row) row.newState=value;
   }
+  function unsetAttr(el,name,meta){
+    rememberAttr(el,name,meta);
+    el.removeAttribute(name);
+    const row=state.ledger.find(x=>x.el===el&&x.name===name);
+    if(row) row.newState=null;
+  }
   function restoreLedger(){
     for(const row of state.ledger.reverse()){
       if(!row.el?.isConnected) continue;
@@ -156,7 +162,11 @@
     if(prefs.textScale==='large') flags.push('text-lg');
     if(prefs.spacing==='relaxed') flags.push('spacing-lg');
     if(prefs.focus==='strong') flags.push('focus-strong');
-    if(flags.length) setAttr(root,'data-ftn-scarlett-a11y',flags.join(' '),{operationType:'accessibility-adjustment',reason:'USER_ACCESSIBILITY_PREFERENCE'});
+    const meta={operationType:'accessibility-adjustment',reason:'USER_ACCESSIBILITY_PREFERENCE'};
+    // Explicit unset (not just "don't set") when every toggle is off, so a mid-session toggle-all-
+    // off doesn't leave a stale attribute value from an earlier applyA11y call in the same render.
+    if(flags.length) setAttr(root,'data-ftn-scarlett-a11y',flags.join(' '),meta);
+    else unsetAttr(root,'data-ftn-scarlett-a11y',meta);
   }
 
   function safeSummary(model){
@@ -267,11 +277,15 @@
     ];
     for(const t of toggles){
       const b=document.createElement('button');b.type='button';b.textContent=t.label;
-      const active=a11yPrefs?.[t.key]===t.on;
-      b.setAttribute('aria-pressed',String(active));
+      b.setAttribute('aria-pressed',String(a11yPrefs?.[t.key]===t.on));
       b.addEventListener('click',async()=>{
+        // Read "is this currently on" fresh from state.a11y at click time, not from a value
+        // captured once when the panel was built -- a stale capture here silently broke repeated
+        // toggling (confirmed live: clicking "Larger text" twice left it on instead of turning it
+        // back off, because every click re-decided direction from the same original snapshot).
+        const isActive=state.a11y?.[t.key]===t.on;
         const next=Object.assign({},state.a11y);
-        next[t.key]=active?t.off:t.on;
+        next[t.key]=isActive?t.off:t.on;
         state.a11y=next;
         await saveA11yPrefs(next);
         applyA11y(next);
