@@ -16,6 +16,9 @@
   const representation=()=>globalThis.__FTN_SCARLETT_REPRESENTATION__;
   const deck=()=>globalThis.__FTN_SCARLETT_DECK__;
   const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Local-only, best-effort product analytics (see analytics.js). Never blocks the feature it's
+  // attached to -- fire-and-forget, swallow any error.
+  function track(name,props){ try{ globalThis.FTN_SCARLETT_ANALYTICS?.logEvent(name,props); }catch{} }
 
   // Transformation ledger: every mutation Scarlett makes to the host page is recorded here before
   // it is applied, with enough metadata (operationId, operationType, reason, timestamp, previous
@@ -513,6 +516,7 @@
       planNote.className='sc-deck-confidence';
       planNote.textContent='This Transform is a preview of what Scarlett+ includes on every page. Currently free in this build.';
       container.appendChild(planNote);
+      track('paywall_impression',{capability:'scarlett.transform'});
     }
     state.deckContainer=container;
     return {visualMode:'TRANSFORM',fellBack:false,spec};
@@ -621,6 +625,7 @@
 
     if(resolved.effectiveMode==='ORIGINAL'){
       state.mode='ORIGINAL';state.blendLevel=0;
+      track('mode_applied',{mode:'ORIGINAL',pageType:model.pageType,reason:resolved.reason});
       return {mode:'ORIGINAL',reason:resolved.reason,policy:policySummary,model:safeModel(model)};
     }
 
@@ -640,18 +645,20 @@
       // rendered a reveal view it didn't.
       buildPanel(model,'COMPARE',resolved.reason,a11yPrefs,{compareCaptureFailed:!captureOk});
       buildControl();
+      track('compare_used',{pageType:model.pageType,captureOk});
       return {mode:'COMPARE',reason:resolved.reason,policy:policySummary,model:safeModel(model),captureOk};
     }
 
     if(resolved.effectiveMode==='BLEND'){
       state.blendLevel=resolved.blendLevel;
       const visualMode=blendVisualMode(resolved.blendLevel);
-      if(!visualMode){ state.mode='ORIGINAL'; return {mode:'ORIGINAL',reason:resolved.reason,policy:policySummary,model:safeModel(model)}; }
+      if(!visualMode){ state.mode='ORIGINAL'; track('mode_applied',{mode:'ORIGINAL',pageType:model.pageType,reason:resolved.reason}); return {mode:'ORIGINAL',reason:resolved.reason,policy:policySummary,model:safeModel(model)}; }
       const mounted=await mountVisualMode(visualMode,model,resolved);
       const a11yPrefs=await loadA11yPrefs();state.a11y=a11yPrefs;applyA11y(a11yPrefs);
       state.mode='BLEND';state.lastScarlettMode=mounted.visualMode;
       buildPanel(model,'BLEND',resolved.reason,a11yPrefs,{blendMaxLevel:resolved.blendMaxLevel});
       buildControl();
+      track('blend_used',{level:resolved.blendLevel,pageType:model.pageType});
       return {mode:'BLEND',reason:resolved.reason,policy:policySummary,model:safeModel(model)};
     }
 
@@ -664,6 +671,8 @@
     applyA11y(a11yPrefs);
     buildPanel(model,mounted.visualMode,effectiveReason,a11yPrefs,{transformFellBack:mounted.fellBack});
     buildControl();
+    track('mode_applied',{mode:mounted.visualMode,pageType:model.pageType,reason:effectiveReason});
+    if(mounted.visualMode==='TRANSFORM'&&!mounted.fellBack) track('transform_used',{pageType:model.pageType,confidence:mounted.spec?.confidence||null});
     return {mode:mounted.visualMode,reason:effectiveReason,policy:policySummary,model:safeModel(model)};
   }
 
@@ -696,6 +705,7 @@
     };
     await chrome.storage.session.set({scarlettIbisHandoff:context});
     chrome.runtime.sendMessage({type:'SCARLETT_OPEN_IBIS',escalation});
+    track(escalation==='HEADSPACE'?'headspace_handoff':'ibis_handoff',{pageType:model.pageType,selectionOnly});
   }
 
   chrome.runtime.onMessage.addListener((message,_sender,send)=>{

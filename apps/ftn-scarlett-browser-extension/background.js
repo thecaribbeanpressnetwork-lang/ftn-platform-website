@@ -1,4 +1,8 @@
-importScripts('tracker-registry.js', 'shield.js');
+importScripts('tracker-registry.js', 'shield.js', 'analytics.js');
+
+chrome.runtime.onInstalled.addListener((details) => {
+  self.FTN_SCARLETT_ANALYTICS.logEvent('activation', { reason: details.reason });
+});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === 'SCARLETT_OPEN_IBIS') {

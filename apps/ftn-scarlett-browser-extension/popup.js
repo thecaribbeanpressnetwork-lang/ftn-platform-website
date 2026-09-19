@@ -15,7 +15,7 @@ async function ensureRuntime(id){
     const reply=await chrome.tabs.sendMessage(id,{type:'SCARLETT_ANALYZE'});
     if(reply?.ok) return reply;
   }catch{}
-  await chrome.scripting.executeScript({target:{tabId:id},files:['page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','entitlements.js','content.js']});
+  await chrome.scripting.executeScript({target:{tabId:id},files:['page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','entitlements.js','analytics.js','content.js']});
   return chrome.tabs.sendMessage(id,{type:'SCARLETT_ANALYZE'});
 }
 function setPressed(mode){
@@ -89,16 +89,23 @@ shieldToggle.addEventListener('click',async()=>{
     if(!current?.granted){
       const result=await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_REQUEST'});
       if(!result?.granted) shieldStatusEl.textContent='Permission was not granted. Data Faucet stays off.';
+      else window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_enabled',{});
     }else if(current.enabled){
       await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_REVOKE'});
+      window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_disabled',{});
     }else{
       await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_TOGGLE',enabled:true});
+      window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_enabled',{});
     }
   }catch(error){shieldStatusEl.textContent=error?.message||String(error);}
   shieldToggle.disabled=false;
   renderShield();
 });
 renderShield();
+
+document.querySelector('#open-analytics').addEventListener('click',()=>{
+  chrome.tabs.create({url:chrome.runtime.getURL('analytics-dashboard.html')});
+});
 
 // Plan/entitlement status: reads live from entitlements.js (window.FTN_SCARLETT_ENTITLEMENTS,
 // loaded as a plain classic script before this module) rather than duplicating hardcoded copy, so
@@ -133,6 +140,9 @@ searchForm.addEventListener('submit',async(event)=>{
   searchStatus.textContent=(searchMode==='FIND'?'Finding':'Searching')+'…';
   try{
     const{rows,classification}=await ibisSearch(query,{mode:searchMode});
+    // Never log the query text itself -- only the mode and the (local, keyword-based) intent
+    // classification, per the analytics privacy boundary (no search-query content, ever).
+    window.FTN_SCARLETT_ANALYTICS?.logEvent(searchMode==='FIND'?'find_used':'search_used',{intent:classification.intent,resultCount:rows.length});
     searchStatus.textContent=rows.length
       ? rows.length+' result'+(rows.length===1?'':'s')+(searchMode==='FIND'?' · shown as '+classification.representation.replace('-',' '):'')
       : 'No indexed result matched. Open FTN ibis for a broader search.';

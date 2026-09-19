@@ -17,6 +17,8 @@ const shield=read('shield.js');
 const trackerRegistry=read('tracker-registry.js');
 const searchClient=read('ibis-search-client.js');
 const entitlements=read('entitlements.js');
+const analytics=read('analytics.js');
+const analyticsDashboard=read('analytics-dashboard.js');
 
 assert.equal(manifest.manifest_version,3);
 assert.equal(manifest.name,'Scarlett by FTN');
@@ -165,7 +167,6 @@ assert.match(background,/ibis-headspace-preview/);
 assert.match(background,/ibis-ai/);
 assert.match(background,/SCARLETT_CAPTURE_TAB/);
 assert.match(background,/captureVisibleTab/);
-assert.match(background,/importScripts\(['"]tracker-registry\.js['"],\s*['"]shield\.js['"]\)/);
 assert.match(background,/SCARLETT_SHIELD_STATUS/);
 assert.match(background,/SCARLETT_SHIELD_REQUEST/);
 assert.match(background,/SCARLETT_SHIELD_REVOKE/);
@@ -203,9 +204,29 @@ assert.doesNotMatch(searchClient,/\.title|\.headings|location\.href|document\./,
 assert.match(popup,/searchForm\.addEventListener\('submit'/);
 assert.doesNotMatch(popup,/searchQuery\.addEventListener\('input'/,'Search/Find must never fire on keystroke, only on explicit submit');
 
-for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','ibis-search-client.js','entitlements.js','content.js','ibis-handoff.js','README.md']){
+for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','ibis-search-client.js','entitlements.js','analytics.js','analytics-dashboard.html','analytics-dashboard.js','content.js','ibis-handoff.js','README.md']){
   assert.ok(fs.statSync(new URL(name,root)).size>20,`${name} should exist and be non-empty`);
 }
+
+// Analytics: real, local-only, privacy-bounded. Never a network call (this is the one guarantee
+// that keeps "founder analytics" honest while there is no real backend) -- an explicit allowlist
+// of event names, and a structural filter that drops anything that looks like a URL/query/content/
+// identifier even if a call site passed one by mistake.
+assert.match(analytics,/never makes a network call/);
+assert.match(analytics,/KNOWN_EVENTS/);
+assert.match(analytics,/url\|href\|query\|text\|content\|title\|email\|selector\|selection/,'the sanitize() filter must reject property names that could carry page content/URLs/queries/identifiers');
+assert.doesNotMatch(analytics,/\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/);
+assert.doesNotMatch(analyticsDashboard,/\bfetch\s*\(|XMLHttpRequest/);
+const analyticsDashboardHtml=read('analytics-dashboard.html');
+assert.match(analyticsDashboardHtml,/Nothing here has ever left your browser/);
+assert.match(analyticsDashboardHtml,/Not connected to any backend/);
+assert.match(background,/importScripts\(['"]tracker-registry\.js['"],\s*['"]shield\.js['"],\s*['"]analytics\.js['"]\)/);
+assert.match(background,/chrome\.runtime\.onInstalled/);
+assert.match(content,/function track\(/);
+assert.match(content,/track\('transform_used'/);
+assert.match(content,/track\('paywall_impression'/);
+// Search/Find analytics must never log the query text -- only the local intent classification.
+assert.match(popup,/logEvent\(searchMode===.FIND.\?'find_used':'search_used',\{intent:classification\.intent,resultCount:rows\.length\}\)/);
 
 // Entitlements: a real, central data model -- but truth-in-labeling is mandatory. Only the free
 // tier may be marked LIVE; every paid tier must say PLANNED (no checkout exists), and nothing this
