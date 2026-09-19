@@ -22,6 +22,18 @@
     <p id="status" role="status" aria-live="polite"></p>
     <div id="page-facts"></div>
     <p class="mode-hint">Compare and Blend are available from the Scarlett panel on the page itself, where there is room to show them properly.</p>
+    <section class="shield" aria-label="Data Faucet Protection">
+      <h2>Data Faucet</h2>
+      <p id="shield-status" class="shield-status">Checking…</p>
+      <p id="shield-explain" class="shield-explain" hidden>
+        Turning this on lets Scarlett see which sites this page talks to (analytics, advertising,
+        social and unknown third parties) on every site you visit, and optionally block known
+        trackers. This stays entirely on your device: Scarlett never uploads what it observes, and
+        FTN receives nothing from it. You can turn it off at any time, which removes the permission
+        entirely.
+      </p>
+      <button id="shield-toggle" type="button">Turn on Data Faucet Protection</button>
+    </section>
   </main>
   <footer>Preserve identity. Replace friction.</footer>
   <script src="popup.js"></script>

@@ -13,6 +13,8 @@ const background=read('background.js');
 const representation=read('representation-engine.js');
 const deckRenderer=read('deck-renderer.js');
 const popupHtml=read('popup.html');
+const shield=read('shield.js');
+const trackerRegistry=read('tracker-registry.js');
 
 assert.equal(manifest.manifest_version,3);
 assert.equal(manifest.name,'Scarlett by FTN');
@@ -29,6 +31,34 @@ assert.deepEqual([...manifest.host_permissions].sort(),[
 assert.equal(manifest.background.service_worker,'background.js');
 assert.equal(manifest.content_scripts.length,1,'Scarlett must ship exactly one content script definition');
 assert.deepEqual([...manifest.content_scripts[0].matches].sort(),[...manifest.host_permissions].sort(),'content script matches must stay identical to the declared host permissions (no silent scope drift)');
+
+// Shield: webRequest/declarativeNetRequest/<all_urls> must be optional, never baked into Core --
+// this is the whole point of the opt-in bundle (§16 of the product definition).
+assert.deepEqual([...manifest.optional_permissions].sort(),['declarativeNetRequest','webRequest'].sort());
+assert.deepEqual(manifest.optional_host_permissions,['<all_urls>']);
+
+// Tracker registry: a curated, disclosed list, not a claim of completeness. Payment/CDN/font
+// infrastructure must never be blockable (blocking it would break ordinary site functionality).
+assert.match(trackerRegistry,/UNKNOWN/);
+assert.match(trackerRegistry,/FUNCTIONALLY_REQUIRED/);
+for(const neverBlockDomain of ['js.stripe.com','fonts.gstatic.com','cdnjs.cloudflare.com']){
+  assert(trackerRegistry.includes(neverBlockDomain),`Tracker registry missing expected functionally-required domain: ${neverBlockDomain}`);
+}
+assert.doesNotMatch(trackerRegistry,/fetch\s*\(|XMLHttpRequest/);
+
+// Shield: gated entirely behind chrome.permissions.request()/contains()/remove(), real
+// declarativeNetRequest blocking (not a fake "blocked" label), a real webRequest observer that
+// excludes the page's own origin from the tally, and a local, disclosed site-exception mechanism.
+assert.match(shield,/chrome\.permissions\.request/);
+assert.match(shield,/chrome\.permissions\.contains/);
+assert.match(shield,/chrome\.permissions\.remove/);
+assert.match(shield,/declarativeNetRequest\.updateDynamicRules/);
+assert.match(shield,/onBeforeRequest/);
+assert.match(shield,/details\.type === 'main_frame'\) return/,'the page\'s own top-level navigation must never be counted as a third-party connection');
+assert.match(shield,/excludedInitiatorDomains/);
+assert.match(shield,/blockableDomains/);
+assert.match(trackerRegistry,/neverBlock/);
+assert.doesNotMatch(shield,/\bfetch\s*\(|XMLHttpRequest/);
 
 // Page understanding: local, bounded, deterministic. No network call of any kind.
 assert.match(understanding,/google-sheets/);
@@ -117,6 +147,10 @@ assert.match(content,/SCARLETT_CAPTURE_TAB/);
 assert.match(content,/compareCaptureFailed/,'Compare must tell the user plainly when the before-capture is unavailable, never pretend it rendered one');
 assert.match(content,/blendVisualMode/);
 assert.match(content,/blendLevel/);
+assert.match(content,/SCARLETT_FAUCET_SUMMARY/);
+assert.match(content,/Close the Faucet/);
+assert.match(content,/Site broken/);
+assert.match(content,/not a claim of complete visibility/);
 assert.doesNotMatch(content,/\bfetch\s*\(/);
 assert.doesNotMatch(content,/document\.cookie|chrome\.history|chrome\.cookies/);
 assert.doesNotMatch(content,/innerHTML\s*=/);
@@ -129,6 +163,11 @@ assert.match(background,/ibis-headspace-preview/);
 assert.match(background,/ibis-ai/);
 assert.match(background,/SCARLETT_CAPTURE_TAB/);
 assert.match(background,/captureVisibleTab/);
+assert.match(background,/importScripts\(['"]tracker-registry\.js['"],\s*['"]shield\.js['"]\)/);
+assert.match(background,/SCARLETT_SHIELD_STATUS/);
+assert.match(background,/SCARLETT_SHIELD_REQUEST/);
+assert.match(background,/SCARLETT_SHIELD_REVOKE/);
+assert.match(background,/SCARLETT_FAUCET_SUMMARY/);
 assert.doesNotMatch(background,/chrome\.storage/,'the capture reply must go straight back to the tab, never be persisted');
 assert.doesNotMatch(background,/fetch\s*\(/);
 
@@ -145,15 +184,21 @@ assert.match(popup,/SCARLETT_MODE/);
 assert.match(popup,/representation-engine\.js/);
 assert.match(popup,/deck-renderer\.js/);
 assert.match(popupHtml,/data-mode="TRANSFORM"/);
+assert.match(popup,/SCARLETT_SHIELD_STATUS/);
+assert.match(popup,/SCARLETT_SHIELD_REQUEST/);
+assert.match(popupHtml,/Turn on Data Faucet Protection/);
+assert.match(popupHtml,/FTN receives nothing from it/,'popup must explain what FTN receives before requesting the Shield permission, per the product definition\'s explicit disclosure requirement');
 
-for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','content.js','ibis-handoff.js','README.md']){
+for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','content.js','ibis-handoff.js','README.md']){
   assert.ok(fs.statSync(new URL(name,root)).size>20,`${name} should exist and be non-empty`);
 }
 
 // No source file in the extension makes any outbound network call -- the only "leave the device"
 // actions are the explicit, reviewed session-storage handoff, the background worker opening an
 // ftnplatform.org tab, and the ephemeral local screenshot capture that never leaves the browser.
-for(const [name,source] of Object.entries({understanding,policy,content,handoff,background,popup,representation,deckRenderer})){
+// Shield's network-layer blocking is declarative (declarativeNetRequest rules), not a fetch of its
+// own, and observation is read-only (webRequest), so it belongs in this same no-fetch guarantee.
+for(const [name,source] of Object.entries({understanding,policy,content,handoff,background,popup,representation,deckRenderer,shield,trackerRegistry})){
   assert.doesNotMatch(source,/\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/,`${name} must not make a network call`);
 }
 

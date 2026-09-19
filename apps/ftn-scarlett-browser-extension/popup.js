@@ -61,3 +61,39 @@ buttons.forEach(button=>button.addEventListener('click',async()=>{
   }catch(error){status.textContent=error?.message||String(error);}
 }));
 init();
+
+// Data Faucet / Shield: the ONLY place Scarlett ever asks for a permission beyond Core, and only
+// from this real user-gesture click -- chrome.permissions.request() requires exactly that context.
+const shieldStatusEl=document.querySelector('#shield-status');
+const shieldExplainEl=document.querySelector('#shield-explain');
+const shieldToggle=document.querySelector('#shield-toggle');
+async function renderShield(){
+  const reply=await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_STATUS'});
+  if(!reply?.ok){ shieldStatusEl.textContent='Data Faucet status unavailable.'; return; }
+  if(!reply.granted){
+    shieldStatusEl.textContent='Off. Scarlett cannot see third-party network activity.';
+    shieldExplainEl.hidden=false;
+    shieldToggle.textContent='Turn on Data Faucet Protection';
+  }else{
+    shieldStatusEl.textContent=reply.enabled?'On. Known trackers are being blocked.':'Granted, but blocking is paused.';
+    shieldExplainEl.hidden=true;
+    shieldToggle.textContent=reply.enabled?'Turn off Data Faucet Protection':'Resume blocking';
+  }
+}
+shieldToggle.addEventListener('click',async()=>{
+  shieldToggle.disabled=true;
+  try{
+    const current=await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_STATUS'});
+    if(!current?.granted){
+      const result=await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_REQUEST'});
+      if(!result?.granted) shieldStatusEl.textContent='Permission was not granted. Data Faucet stays off.';
+    }else if(current.enabled){
+      await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_REVOKE'});
+    }else{
+      await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_TOGGLE',enabled:true});
+    }
+  }catch(error){shieldStatusEl.textContent=error?.message||String(error);}
+  shieldToggle.disabled=false;
+  renderShield();
+});
+renderShield();

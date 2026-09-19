@@ -315,6 +315,10 @@
     headspace.addEventListener('click',()=>prepareIbisHandoff(model,{escalation:'HEADSPACE'}));
     row.appendChild(headspace);
     state.headspaceButton=headspace;
+    const faucetToggle=document.createElement('button');faucetToggle.type='button';faucetToggle.textContent='Data Faucet';
+    faucetToggle.title='See which third parties this page talks to.';
+    faucetToggle.addEventListener('click',()=>toggleFaucetSection(faucetSection));
+    row.appendChild(faucetToggle);
 
     const note=document.createElement('div');note.className='sc-note';
     note.textContent=extra.compareCaptureFailed
@@ -375,12 +379,76 @@
     for(const s of (policy()?.BLEND_STOPS||[])) stops.appendChild(document.createElement('span')).textContent=s.level+'%';
     blendSection.append(blendLabel,blendInput,stops);
 
+    const faucetSection=document.createElement('div');faucetSection.className='sc-section';faucetSection.hidden=true;
+
     body.append(kicker,heading,copy);
     if(factsEl) body.appendChild(factsEl);
-    body.append(row,note,intentSection,a11ySection,blendSection);
+    body.append(row,note,intentSection,a11ySection,blendSection,faucetSection);
     panel.append(h,body);
     document.body.appendChild(panel);
     state.panel=panel;
+  }
+
+  // Data Faucet: lazy-loaded and collapsed by default (per Scarlett Bar's "collapse when
+  // unnecessary" rule) -- populated only when the user actually opens it, from a background
+  // summary of what this tab has observed. Never triggers the permission prompt itself (Chrome
+  // only allows chrome.permissions.request() from a genuine user gesture inside the popup, which a
+  // content script cannot reach) -- if Shield hasn't been granted yet, this points the user at the
+  // popup instead of pretending to turn it on.
+  async function toggleFaucetSection(section){
+    section.hidden=!section.hidden;
+    if(section.hidden || section.dataset.loaded==='true') return;
+    section.dataset.loaded='true';
+    section.replaceChildren();
+    const label=document.createElement('span');label.className='sc-label';label.textContent='Data Faucet';
+    const loading=document.createElement('p');loading.textContent='Checking what this page talks to…';
+    section.append(label,loading);
+    let summary;
+    try{ summary=await chrome.runtime.sendMessage({type:'SCARLETT_FAUCET_SUMMARY'}); }
+    catch(error){ loading.textContent='Data Faucet unavailable: '+(error?.message||String(error)); return; }
+    section.replaceChildren(label);
+    if(!summary?.ok){ section.appendChild(document.createElement('p')).textContent='Data Faucet unavailable this session.'; return; }
+    if(!summary.shieldGranted){
+      const p=document.createElement('p');
+      p.textContent='Off. Open the Scarlett toolbar icon and turn on Data Faucet Protection to see and block third-party connections on every site.';
+      section.appendChild(p);
+      return;
+    }
+    const tally=document.createElement('p');
+    tally.textContent=`${summary.totalConnections} external connection${summary.totalConnections===1?'':'s'} · ${summary.knownTrackers} known tracker${summary.knownTrackers===1?'':'s'} · ${summary.blocked} blocked · ${summary.allowed} allowed`;
+    section.appendChild(tally);
+    const cats=document.createElement('p');cats.className='sc-facts';
+    cats.textContent=`Analytics ${summary.byCategory.ANALYTICS} · Advertising ${summary.byCategory.ADVERTISING} · Social ${summary.byCategory.SOCIAL} · Required ${summary.byCategory.FUNCTIONALLY_REQUIRED} · Unknown ${summary.byCategory.UNKNOWN}`;
+    section.appendChild(cats);
+    if(summary.rows?.length){
+      const list=document.createElement('ul');list.className='sc-deck-links';
+      for(const row of summary.rows.slice(0,12)){
+        const li=document.createElement('li');
+        li.textContent=`${row.hostname} — ${row.category.replace('_',' ').toLowerCase()} · ${row.status.replace('_',' ').toLowerCase()}${row.purpose?' · '+row.purpose:''}`;
+        list.appendChild(li);
+      }
+      section.appendChild(list);
+    }
+    const actionRow=document.createElement('div');actionRow.className='sc-row';
+    const closeBtn=document.createElement('button');closeBtn.type='button';
+    closeBtn.textContent=summary.shieldEnabled?'Open the Faucet':'Close the Faucet';
+    closeBtn.addEventListener('click',async()=>{
+      await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_TOGGLE',enabled:!summary.shieldEnabled});
+      section.dataset.loaded='false';
+      toggleFaucetSection(section);
+    });
+    const brokenBtn=document.createElement('button');brokenBtn.type='button';brokenBtn.textContent='Site broken?';
+    brokenBtn.title='Adds this site to a local exception list so Shield stops blocking anything on it.';
+    brokenBtn.addEventListener('click',async()=>{
+      await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_EXCEPTION_ADD',hostname:location.hostname});
+      brokenBtn.textContent='Exception saved. Reload to apply.';
+      brokenBtn.disabled=true;
+    });
+    actionRow.append(closeBtn,brokenBtn);
+    section.appendChild(actionRow);
+    const note=document.createElement('p');note.className='sc-note';
+    note.textContent='Data Faucet reflects what Scarlett has actually observed on this tab since it loaded, from a curated, disclosed list of well-known domains -- not a claim of complete visibility into every tracker.';
+    section.appendChild(note);
   }
 
   function buildControl(){

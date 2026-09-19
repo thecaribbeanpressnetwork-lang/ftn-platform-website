@@ -15,6 +15,13 @@
     "https://ftnplatform.org/ibis-headspace-preview/*",
     "https://www.ftnplatform.org/ibis-headspace-preview/*"
   ],
+  "optional_permissions": [
+    "webRequest",
+    "declarativeNetRequest"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
   "action": {
     "default_title": "Scarlett",
     "default_popup": "popup.html"
