@@ -45,8 +45,19 @@ Scarlett is FTN's adaptive interface layer for existing digital environments.
   looks genuinely multi-step (a listing/service page with real decision facts, or user intent
   naming a comparison/decision), never embedded in the page
 - no browsing-history collection, no full-page upload, no automatic AI call
-- Search/Find, entitlements/paywall and founder analytics: see the V2 documentation for what is
-  built vs. explicitly not wired to real infrastructure yet.
+- **Search with Scarlett / Find with Scarlett**: reuses the exact same canonical FTN ibis MCP
+  endpoint and verified-real tool names (`search`, `opportunity_scout`) the shipped
+  `ftn-ibis-browser-extension` already calls -- not a new retrieval stack. Only on explicit submit;
+  never sends page content, URL or an identifier, just the typed query
+- **Entitlements**: a real, central tier/capability data model (`entitlements.js`) and an honest
+  preview-selling note after Transform is used -- but no real payment processor is wired to
+  anything; every capability this build implements is free and unrestricted
+- **Analytics**: real, local-only event logging (never a network call, an explicit event-name
+  allowlist, a structural filter against anything that looks like page content/URLs/queries/
+  identifiers) plus a local demo dashboard; no real founder-facing cross-user backend exists
+- See `docs/SCARLETT_V2_ARCHITECTURE_2026-09-19.md`, `docs/SCARLETT_V2_INVESTOR_READINESS_2026-09-19.md`
+  and `docs/SCARLETT_V2_ANALYTICS_PRIVACY_MODEL.md` for full detail on what's built vs. explicitly
+  not wired to real infrastructure yet.
 
 ## Architecture boundary
 
