@@ -26,7 +26,15 @@ await landing.close();
 
 const page=await context.newPage();
 await isolate(page);
-await page.route('https://api.github.com/repos/thecaribbeanpressnetwork-lang/ftn-platform-website/actions/runs?*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({total_count:1,workflow_runs:[{name:'FTN Scout 2.0',event:'schedule',status:'completed',conclusion:'success',run_number:18,run_started_at:'2026-09-09T14:41:22Z'}]})}));
+// Investor-hardening fix (2026-09-19): Scout status now comes from the FTN-controlled, same-origin
+// data/scout-status.json (written by .github/workflows/scout-2.yml) instead of a live, unauthenticated
+// call to GitHub's own Actions API -- see js/ibis-headspace-scout-health.js's own header for why.
+// Mocked here purely so this test can assert the "healthy, run #18" rendering path deterministically,
+// the same way it always could; a real page load would get this from the real static file, with zero
+// network dependency on github.com at all.
+await page.route('**/data/scout-status.json',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({schemaVersion:1,workflowName:'FTN Scout 2.0',status:'success',runNumber:18,runId:'123456',updatedAt:'2026-09-09T14:41:22Z',note:null})}));
+let githubApiCalled=false;
+await page.route('https://api.github.com/**',r=>{githubApiCalled=true;r.abort();});
 await page.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[{id:'fixture-caribbean-ai-grant',title:'Caribbean AI Grant',organization:'Fixture Official Institution',country:'Trinidad and Tobago / Caribbean',type:'Grant / Funding',deadline:'2026-10-05',fee:0,payoutCompatible:true,ownershipImpact:'non-dilutive, no equity',strategicValue:5,probability:.75,amount:'USD 100,000',eligibility:'Trinidad and Tobago registered entities may apply.',summary:'Source-backed browser fixture for the connected funding funnel.',sourceUrl:'https://example.test/caribbean-ai-grant',lastVerified:'2026-09-08T12:00:00Z'}]})}));
 const consoleErrors=[];page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});page.on('pageerror',e=>consoleErrors.push(e.message));
 await open(page,'/ibis-headspace-preview/','#headspaceQuery');
@@ -48,4 +56,8 @@ await page.screenshot({path:'test-artifacts/ibis-headspace-desktop.png',fullPage
 
 const mobile=await context.newPage();await isolate(mobile);await mobile.setViewportSize({width:390,height:844});await open(mobile,'/ibis-headspace-preview/','#headspaceQuery');await mobile.waitForFunction(()=>document.documentElement.classList.contains('headspace-hydrated'),null,{timeout:15000});const rail=mobile.locator('.rail');if(await rail.count())assert.equal(await rail.evaluate(el=>getComputedStyle(el).display),'none');const bw=await mobile.evaluate(()=>document.body.scrollWidth),vw=await mobile.evaluate(()=>window.innerWidth);assert(bw<=vw+2);await mobile.locator('#headspaceQuery').fill('What is the latest USD selling rate?');await mobile.locator('#inputOrbit button[type="submit"]').click();await mobile.waitForTimeout(900);assert.equal(await mobile.locator('.thought:not(.dematerialized)').count()<=3,true);await mobile.screenshot({path:'test-artifacts/ibis-headspace-mobile.png',fullPage:true});
 
-assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));await context.close();await browser.close();console.log('ibis Headspace browser audit passed.');
+assert.equal(consoleErrors.length,0,'Headspace should not emit browser console/page errors: '+consoleErrors.join(' | '));
+// Regression test (2026-09-19): Headspace's public runtime must never depend on GitHub's own API
+// for ordinary UI health -- Scout status now comes exclusively from data/scout-status.json.
+assert.equal(githubApiCalled,false,'Headspace must not make any request to api.github.com during ordinary page load/interaction');
+await context.close();await browser.close();console.log('ibis Headspace browser audit passed.');

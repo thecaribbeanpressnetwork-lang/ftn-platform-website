@@ -46,7 +46,24 @@ body{
   mask-image:linear-gradient(to bottom,rgba(0,0,0,.85),transparent 78%);
 }
 
+/* Investor-hardening fix (2026-09-19, confirmed via the IBIS Behavioral UX Gate test suite, and via
+   direct computed-style inspection): an old, otherwise-inert stylesheet still linked from this page
+   (css/components/ibis-headspace-preview.css) sets `.headspace-head{position:relative;z-index:3}`.
+   Because that's a POSITIONED element with an EXPLICIT (non-auto) z-index, it unintentionally
+   creates its own stacking context for the entire header -- which traps the workspace menu's own
+   z-index:240 inside it, making that 240 meaningless for comparison against anything OUTSIDE the
+   header. In the shared outer context, the header itself then only counts as "3", which routinely
+   loses to an ordinary card's own z-index (assigned by ibis-headspace-window-manager.js, now capped
+   at 199 -- see that file's nextZ() fix) -- reproduced directly: with just one question answered,
+   opening the workspace menu let the answer card's own heading render on top of the "Freeform"
+   button, intercepting the click meant for it. Raised well above that 199 ceiling (and safely below
+   focus/expand mode's own 500, so a focused card can still cover the header as intended) --
+   independent of whether that old stylesheet is present, so this stays correct after it is removed
+   as the separate cleanup already recorded as post-merge debt.
+*/
 .headspace-head{
+  position:relative !important;
+  z-index:300 !important;
   align-items:center !important;
   margin-bottom:clamp(26px,4vw,58px) !important;
 }

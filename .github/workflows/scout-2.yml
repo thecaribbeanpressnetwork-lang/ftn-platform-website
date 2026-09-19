@@ -15,7 +15,7 @@ on:
       - '.github/workflows/scout-2.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   scout-2:
@@ -42,3 +42,42 @@ jobs:
             /tmp/FTN_Scout_2_Report.md
             /tmp/FTN_Scout_2_Report.json
           retention-days: 90
+      # Investor-hardening fix (2026-09-19): Headspace's Scout status card previously called
+      # GitHub's own Actions REST API directly FROM THE BROWSER to answer "did the last scheduled
+      # run succeed" -- unauthenticated, so it hit GitHub's public rate limit under ordinary
+      # investor-demo traffic and produced a hard console error the FTN UX Guardian gate correctly
+      # treats as a blocker (a browser's own network stack logs a failed HTTP response as a console
+      # error regardless of whether application JS catches the resulting rejected promise -- no
+      # amount of try/catch in the browser can suppress it). The fix is architectural, not
+      # cosmetic: this workflow -- the one place that genuinely KNOWS its own run status, for free,
+      # via built-in context -- now writes that status to an FTN-controlled, same-origin static
+      # file the browser can always fetch successfully. `data/scout-status.json` is deliberately
+      # named OUTSIDE this workflow's own `paths:` push trigger (`data/scout-2-*.json`) so this
+      # commit can never retrigger itself; `[skip ci]` in the commit message is a second,
+      # independent safeguard against that same self-trigger loop.
+      - name: Persist Scout 2.0 run status for the browser (no GitHub API call required to read it)
+        if: always()
+        run: |
+          cat > data/scout-status.json <<'JSON'
+          {
+            "schemaVersion": 1,
+            "workflowName": "FTN Scout 2.0",
+            "scheduleLabel": "daily at 06:30 Trinidad & Tobago time",
+            "status": "${{ job.status }}",
+            "runNumber": ${{ github.run_number }},
+            "runId": "${{ github.run_id }}",
+            "updatedAt": "PLACEHOLDER_TIMESTAMP",
+            "note": null
+          }
+          JSON
+          sed -i "s/PLACEHOLDER_TIMESTAMP/$(date -u +%Y-%m-%dT%H:%M:%SZ)/" data/scout-status.json
+          git config user.name 'ftn-scout-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/scout-status.json
+          if git diff --cached --quiet; then
+            echo "Scout status unchanged; nothing to commit."
+          else
+            git commit -m "chore(scout): update Scout 2.0 run status [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

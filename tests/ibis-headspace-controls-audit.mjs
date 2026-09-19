@@ -78,9 +78,16 @@ assert.doesNotMatch(toolHealth, /API[_ -]?KEY|SECRET|TOKEN\s*=/i,'Headspace tool
 // Scout truth-state: configured sources, scheduled automation and observed execution are separate.
 assert.match(fabric, /ibis-headspace-scout-health\.js/,'Headspace fabric must load Scout Network health.');
 assert.match(scoutHealth, /\/data\/scout-2-source-registry\.json/,'Scout health must use the governed Scout 2.0 source registry.');
-assert.match(scoutHealth, /actions\/runs\?event=schedule/,'Scout health must check observable scheduled workflow history rather than claim an unseen run.');
-assert.match(scoutHealth, /run\.status==='in_progress'\|\|run\.status==='queued'/,'Scout health must distinguish an active run from a completed run.');
+// Investor-hardening fix (2026-09-19): Scout run status must come from the FTN-controlled, same-
+// origin data/scout-status.json (written by .github/workflows/scout-2.yml from its own real run
+// context) -- never a live, unauthenticated call to GitHub's own Actions API, which produced a hard
+// browser console error under ordinary investor-demo traffic that no application-level try/catch
+// could suppress (a browser logs a failed HTTP response as a console error regardless of whether
+// the resulting rejected promise is handled). This is a regression test for that exact class of bug.
+assert.match(scoutHealth, /\/data\/scout-status\.json/,'Scout health must read the FTN-controlled static run-status file.');
+assert.doesNotMatch(scoutHealth, /api\.github\.com/,'Scout health must never call GitHub\'s API directly from the browser.');
 assert.match(scoutHealth, /will not claim a scout is running/i,'Scout health must fail closed when runtime state cannot be verified.');
+assert.match(scoutHealth, /run status could not be confirmed/i,'Scout health must show a truthful degraded sentence, never a silent "healthy" guess, when the status file cannot be read.');
 assert.equal(scoutRegistry.sources.length,9,'Scout 2.0 official-source registry count changed; review the Headspace truth surface.');
 assert.equal(scoutRegistry.policy.paidApis,false,'Scout 2.0 must remain zero-paid-API by default.');
 assert.equal(scoutRegistry.policy.automaticApplications,false,'Scout 2.0 must not auto-apply.');
