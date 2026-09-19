@@ -18,5 +18,5 @@
   // Register on document capture so specialist capital intent wins before any generic form-level
   // Headspace interpreter regardless of script registration order.
   if(form)document.addEventListener('submit',function(e){if(e.target!==form)return;var text=input&&input.value||'';if(!relevant(text))return;e.preventDefault();e.stopImmediatePropagation();handle(text);},true);
-  if(!document.querySelector('script[data-headspace-opportunities]')){var opportunityScript=document.createElement('script');opportunityScript.src='/js/ibis-headspace-opportunities.js?v=20260907.2';opportunityScript.defer=true;opportunityScript.dataset.headspaceOpportunities='';document.head.appendChild(opportunityScript);}
+  if(!document.querySelector('script[data-headspace-opportunities]')){var opportunityScript=document.createElement('script');opportunityScript.src='/js/ibis-headspace-opportunities.js?v=20260919.1';opportunityScript.defer=true;opportunityScript.dataset.headspaceOpportunities='';document.head.appendChild(opportunityScript);}
 })(typeof window!=='undefined'?window:globalThis);
