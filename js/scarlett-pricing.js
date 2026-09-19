@@ -6,7 +6,12 @@ function markCurrent(tier){document.querySelectorAll('[data-tier-card]').forEach
 async function checkout(planId,button){
   var originalText=button.textContent;button.disabled=true;button.textContent='Preparing secure WAM checkout…';
   try{
-    var result=await global.FTN.Auth.invoke('ftn-scarlett-billing',{action:'checkout',planId:planId});
+    var body={action:'checkout',planId:planId};
+    var acq=global.FTN.ScarlettAcquisition&&global.FTN.ScarlettAcquisition.read();
+    if(acq)body.acquisition=acq;
+    var aid=new URLSearchParams(location.search).get('aid');
+    if(aid&&/^[0-9a-f-]{36}$/i.test(aid))body.anonymousInstallId=aid;
+    var result=await global.FTN.Auth.invoke('ftn-scarlett-billing',body);
     if(!result||!/^https:\/\/(staging\.)?billing\.wam\.money\/pay\//.test(result.checkoutUrl||''))throw new Error('Invalid checkout destination');
     location.assign(result.checkoutUrl);
   }catch(e){

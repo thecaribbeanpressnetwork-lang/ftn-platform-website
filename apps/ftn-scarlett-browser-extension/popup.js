@@ -48,6 +48,7 @@ async function init(){
   }catch(error){
     status.textContent=error?.message||String(error);
     buttons.forEach(b=>b.disabled=true);
+    window.FTN_SCARLETT_ANALYTICS?.logEvent('error',{errorClass:'render',errorCode:'page_analysis_failed',feature:'popup'});
   }
 }
 buttons.forEach(button=>button.addEventListener('click',async()=>{
@@ -89,13 +90,13 @@ shieldToggle.addEventListener('click',async()=>{
     if(!current?.granted){
       const result=await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_REQUEST'});
       if(!result?.granted) shieldStatusEl.textContent='Permission was not granted. Data Faucet stays off.';
-      else window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_enabled',{});
+      else window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_enabled',{feature:'shield'});
     }else if(current.enabled){
       await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_REVOKE'});
-      window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_disabled',{});
+      window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_disabled',{feature:'shield'});
     }else{
       await chrome.runtime.sendMessage({type:'SCARLETT_SHIELD_TOGGLE',enabled:true});
-      window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_enabled',{});
+      window.FTN_SCARLETT_ANALYTICS?.logEvent('shield_enabled',{feature:'shield'});
     }
   }catch(error){shieldStatusEl.textContent=error?.message||String(error);}
   shieldToggle.disabled=false;
@@ -105,6 +106,22 @@ renderShield();
 
 document.querySelector('#open-analytics').addEventListener('click',()=>{
   chrome.tabs.create({url:chrome.runtime.getURL('analytics-dashboard.html')});
+});
+
+// Minimal, one-way conversion attribution (see docs/FTN_SCARLETT_ANALYTICS_PIPELINE.md section 8):
+// if the user reaches checkout via this exact link, the pricing page can attach this install id to
+// the resulting order so a real conversion can be traced back to "came from the extension popup" --
+// never the reverse, and never anything beyond this one id.
+(async()=>{
+  const planLink=document.querySelector('#plan-link');
+  const installId=await window.FTN_SCARLETT_ANALYTICS?.getInstallId();
+  if(planLink&&installId){ const url=new URL(planLink.href); url.searchParams.set('aid',installId); planLink.href=url.toString(); }
+})();
+
+const analyticsToggle=document.querySelector('#analytics-toggle');
+(async()=>{ analyticsToggle.checked=await window.FTN_SCARLETT_ANALYTICS?.getAnalyticsEnabled()??true; })();
+analyticsToggle.addEventListener('change',()=>{
+  window.FTN_SCARLETT_ANALYTICS?.setAnalyticsEnabled(analyticsToggle.checked);
 });
 
 // Account + plan status: real, server-checked entitlement state (background.js's
@@ -177,7 +194,7 @@ searchForm.addEventListener('submit',async(event)=>{
     const{rows,classification}=await ibisSearch(query,{mode:searchMode});
     // Never log the query text itself -- only the mode and the (local, keyword-based) intent
     // classification, per the analytics privacy boundary (no search-query content, ever).
-    window.FTN_SCARLETT_ANALYTICS?.logEvent(searchMode==='FIND'?'find_used':'search_used',{intent:classification.intent,resultCount:rows.length});
+    window.FTN_SCARLETT_ANALYTICS?.logEvent(searchMode==='FIND'?'find_used':'search_used',{feature:'search',searchIntent:classification.intent,resultCount:rows.length});
     searchStatus.textContent=rows.length
       ? rows.length+' result'+(rows.length===1?'':'s')+(searchMode==='FIND'?' · shown as '+classification.representation.replace('-',' '):'')
       : 'No indexed result matched. Open FTN ibis for a broader search.';

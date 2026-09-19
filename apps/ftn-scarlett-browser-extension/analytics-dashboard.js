@@ -32,12 +32,13 @@
     statsEl.appendChild(stat(byName.compare_used || 0, 'Compare used'));
     statsEl.appendChild(stat(byName.blend_used || 0, 'Blend used'));
     statsEl.appendChild(stat((byName.search_used || 0) + (byName.find_used || 0), 'Search/Find used'));
+    statsEl.appendChild(stat(byName.data_faucet_opened || 0, 'Data Faucet opened'));
     statsEl.appendChild(stat(byName.shield_enabled || 0, 'Shield enabled'));
     statsEl.appendChild(stat((byName.ibis_handoff || 0) + (byName.headspace_handoff || 0), 'ibis/Headspace handoffs'));
-    statsEl.appendChild(stat(byName.paywall_impression || 0, 'Paywall impressions'));
+    statsEl.appendChild(stat(byName.premium_preview_used || 0, 'Premium previews seen'));
     statsEl.appendChild(stat(byName.error || 0, 'Errors'));
 
-    const modeEvents = log.filter((e) => e.name === 'mode_applied');
+    const modeEvents = log.filter((e) => e.name === 'mode_used');
     const byMode = {};
     for (const e of modeEvents) byMode[e.props.mode] = (byMode[e.props.mode] || 0) + 1;
     if (Object.keys(byMode).length) {
@@ -75,6 +76,14 @@
     await window.FTN_SCARLETT_ANALYTICS.clearLog();
     render();
   });
+
+  async function renderPref() {
+    const enabled = await window.FTN_SCARLETT_ANALYTICS.getAnalyticsEnabled();
+    document.querySelector('#pref-line').textContent = enabled
+      ? 'Product analytics is ON -- these events are sent to FTN in small batches.'
+      : 'Product analytics is OFF -- these events stay on this device only (except checkout/subscription events, needed to keep your plan working).';
+  }
+  renderPref();
 
   render();
 })();

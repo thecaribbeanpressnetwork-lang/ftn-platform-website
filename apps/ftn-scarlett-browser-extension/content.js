@@ -402,6 +402,7 @@
     section.hidden=!section.hidden;
     if(section.hidden || section.dataset.loaded==='true') return;
     section.dataset.loaded='true';
+    track('data_faucet_opened',{feature:'data_faucet'});
     section.replaceChildren();
     const label=document.createElement('span');label.className='sc-label';label.textContent='Data Faucet';
     const loading=document.createElement('p');loading.textContent='Checking what this page talks to…';
@@ -520,7 +521,7 @@
       planNote.className='sc-deck-confidence';
       planNote.textContent='This Transform is a preview of what Scarlett+ includes on every page. Currently free in this build.';
       container.appendChild(planNote);
-      track('paywall_impression',{capability:'scarlett.transform'});
+      track('premium_preview_used',{feature:'transform',capability:'scarlett.transform',accountState:accountState||'SIGNED_OUT'});
     }
     state.deckContainer=container;
     return {visualMode:'TRANSFORM',fellBack:false,spec};
@@ -629,7 +630,7 @@
 
     if(resolved.effectiveMode==='ORIGINAL'){
       state.mode='ORIGINAL';state.blendLevel=0;
-      track('mode_applied',{mode:'ORIGINAL',pageType:model.pageType,reason:resolved.reason});
+      track('mode_used',{mode:'ORIGINAL',pageType:model.pageType});
       return {mode:'ORIGINAL',reason:resolved.reason,policy:policySummary,model:safeModel(model)};
     }
 
@@ -649,20 +650,20 @@
       // rendered a reveal view it didn't.
       buildPanel(model,'COMPARE',resolved.reason,a11yPrefs,{compareCaptureFailed:!captureOk});
       buildControl();
-      track('compare_used',{pageType:model.pageType,captureOk});
+      track('compare_used',{pageType:model.pageType,result:captureOk?'success':'capture_failed'});
       return {mode:'COMPARE',reason:resolved.reason,policy:policySummary,model:safeModel(model),captureOk};
     }
 
     if(resolved.effectiveMode==='BLEND'){
       state.blendLevel=resolved.blendLevel;
       const visualMode=blendVisualMode(resolved.blendLevel);
-      if(!visualMode){ state.mode='ORIGINAL'; track('mode_applied',{mode:'ORIGINAL',pageType:model.pageType,reason:resolved.reason}); return {mode:'ORIGINAL',reason:resolved.reason,policy:policySummary,model:safeModel(model)}; }
+      if(!visualMode){ state.mode='ORIGINAL'; track('mode_used',{mode:'ORIGINAL',pageType:model.pageType}); return {mode:'ORIGINAL',reason:resolved.reason,policy:policySummary,model:safeModel(model)}; }
       const mounted=await mountVisualMode(visualMode,model,resolved);
       const a11yPrefs=await loadA11yPrefs();state.a11y=a11yPrefs;applyA11y(a11yPrefs);
       state.mode='BLEND';state.lastScarlettMode=mounted.visualMode;
       buildPanel(model,'BLEND',resolved.reason,a11yPrefs,{blendMaxLevel:resolved.blendMaxLevel});
       buildControl();
-      track('blend_used',{level:resolved.blendLevel,pageType:model.pageType});
+      track('blend_used',{mode:'BLEND',pageType:model.pageType,blendLevel:resolved.blendLevel});
       return {mode:'BLEND',reason:resolved.reason,policy:policySummary,model:safeModel(model)};
     }
 
@@ -675,8 +676,10 @@
     applyA11y(a11yPrefs);
     buildPanel(model,mounted.visualMode,effectiveReason,a11yPrefs,{transformFellBack:mounted.fellBack});
     buildControl();
-    track('mode_applied',{mode:mounted.visualMode,pageType:model.pageType,reason:effectiveReason});
-    if(mounted.visualMode==='TRANSFORM'&&!mounted.fellBack) track('transform_used',{pageType:model.pageType,confidence:mounted.spec?.confidence||null});
+    track('mode_used',{mode:mounted.visualMode,pageType:model.pageType});
+    if(mounted.visualMode==='ASSIST') track('assist_used',{mode:'ASSIST',pageType:model.pageType});
+    else if(mounted.visualMode==='ADAPT') track('adapt_used',{mode:'ADAPT',pageType:model.pageType});
+    else if(mounted.visualMode==='TRANSFORM'&&!mounted.fellBack) track('transform_used',{mode:'TRANSFORM',pageType:model.pageType});
     return {mode:mounted.visualMode,reason:effectiveReason,policy:policySummary,model:safeModel(model)};
   }
 

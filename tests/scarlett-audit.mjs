@@ -23,7 +23,7 @@ const accountBridge=read('account-bridge.js');
 
 assert.equal(manifest.manifest_version,3);
 assert.equal(manifest.name,'Scarlett by FTN');
-assert.deepEqual([...manifest.permissions].sort(),['activeTab','scripting','storage'].sort());
+assert.deepEqual([...manifest.permissions].sort(),['activeTab','alarms','scripting','storage'].sort());
 for(const forbidden of ['<all_urls>','history','cookies','webRequest','declarativeNetRequest','geolocation','clipboardRead','clipboardWrite']){
   assert(!manifest.permissions.includes(forbidden),`Scarlett Core must not request ${forbidden} -- optional Shield permissions belong in their own opt-in bundle, never Core`);
 }
@@ -218,18 +218,23 @@ for(const name of ['popup.html','popup.css','popup.js','background.js','page-und
   assert.ok(fs.statSync(new URL(name,root)).size>20,`${name} should exist and be non-empty`);
 }
 
-// Analytics: real, local-only, privacy-bounded. Never a network call (this is the one guarantee
-// that keeps "founder analytics" honest while there is no real backend) -- an explicit allowlist
-// of event names, and a structural filter that drops anything that looks like a URL/query/content/
-// identifier even if a call site passed one by mistake.
-assert.match(analytics,/never makes a network call/);
-assert.match(analytics,/KNOWN_EVENTS/);
-assert.match(analytics,/url\|href\|query\|text\|content\|title\|email\|selector\|selection/,'the sanitize() filter must reject property names that could carry page content/URLs/queries/identifiers');
-assert.doesNotMatch(analytics,/\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/);
-assert.doesNotMatch(analyticsDashboard,/\bfetch\s*\(|XMLHttpRequest/);
+// Analytics: real, network-transmitted, privacy-bounded product telemetry -- see
+// tests/scarlett-analytics-audit.mjs for the full event-schema/ingestion/dashboard/privacy audit.
+// This file keeps only the extension-side structural guarantees: a closed event-name allowlist, a
+// metadata allowlist (not a blocklist -- only 5 closed-vocabulary keys can ever survive), delivery
+// only to Scarlett's own telemetry function, and that a network send only ever happens from
+// background.js's bounded chrome.alarms tick, never per-event or per-content-script.
+assert.match(analytics,/ALLOWED_EVENTS/);
+assert.match(analytics,/METADATA_VALIDATORS/,'metadata must be allow-listed (closed vocabulary), not merely blocklist-filtered');
+assert.match(analytics,/ftn-scarlett-telemetry/,'telemetry must be delivered only to Scarlett\'s own ingestion function');
+assert.match(analytics,/ANALYTICS_PREF_KEY/,'the analytics-off preference must gate network delivery');
+assert.match(analytics,/if \(!enabled\) return;/,'nothing may be queued for the network once the preference is off');
+assert.doesNotMatch(background,/\bsetInterval\s*\(|\bsetTimeout\s*\([^,]*,\s*\d+\)/,'delivery must use chrome.alarms (survives service-worker suspension), not an actual setInterval/setTimeout call');
+assert.match(background,/chrome\.alarms\.create/);
+assert.doesNotMatch(analyticsDashboard,/\bfetch\s*\(|XMLHttpRequest/,'the local transparency dashboard itself must never be the thing that sends network telemetry');
 const analyticsDashboardHtml=read('analytics-dashboard.html');
-assert.match(analyticsDashboardHtml,/Nothing here has ever left your browser/);
-assert.match(analyticsDashboardHtml,/Not connected to any backend/);
+assert.match(analyticsDashboardHtml,/no URL, page[\s\S]{0,20}title, page text, search query, form value, email or document content/,'the local transparency view must keep disclosing the same forbidden-field list as the real ingestion boundary');
+assert.match(analyticsDashboardHtml,/legal\/privacy-policy\/#scarlett/,'the local transparency view must link to the real public privacy disclosure');
 assert.match(background,/importScripts\(['"]tracker-registry\.js['"],\s*['"]shield\.js['"],\s*['"]analytics\.js['"],\s*['"]account-bridge\.js['"]\)/);
 assert.match(background,/chrome\.storage\.session\.setAccessLevel/);
 assert.match(background,/SCARLETT_ACCOUNT_STATUS/);
@@ -238,9 +243,10 @@ assert.match(background,/SCARLETT_ACCOUNT_OPEN_SIGN_IN/);
 assert.match(background,/chrome\.runtime\.onInstalled/);
 assert.match(content,/function track\(/);
 assert.match(content,/track\('transform_used'/);
-assert.match(content,/track\('paywall_impression'/);
+assert.match(content,/track\('premium_preview_used'/);
+assert.match(content,/track\('data_faucet_opened'/);
 // Search/Find analytics must never log the query text -- only the local intent classification.
-assert.match(popup,/logEvent\(searchMode===.FIND.\?'find_used':'search_used',\{intent:classification\.intent,resultCount:rows\.length\}\)/);
+assert.match(popup,/logEvent\(searchMode===.FIND.\?'find_used':'search_used',\{feature:'search',searchIntent:classification\.intent,resultCount:rows\.length\}\)/);
 
 // chrome.storage.session defaults to TRUSTED_CONTEXTS (extension pages/background only) --
 // content.js (a content script) calls chrome.storage.session.set() for the ibis/Headspace handoff,

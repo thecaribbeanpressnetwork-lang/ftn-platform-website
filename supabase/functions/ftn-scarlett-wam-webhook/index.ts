@@ -52,9 +52,22 @@ Deno.serve(async(req:Request)=>{
     const {data:plan}=await admin.from("ftn_scarlett_plans").select("duration_days,tier").eq("plan_id",order.plan_id).single();
     if(!plan||!plan.duration_days)return await fail("PLAN_NOT_FULFILLABLE");
     const {data:existing}=await admin.from("ftn_scarlett_entitlements").select("ends_at").eq("user_id",order.user_id).eq("plan_id",order.plan_id).maybeSingle();
-    const base=existing&&new Date(existing.ends_at).getTime()>Date.now()?new Date(existing.ends_at):new Date(),ends=new Date(base.getTime()+plan.duration_days*86_400_000),nowIso=new Date().toISOString();
+    const wasRenewal=!!(existing&&new Date(existing.ends_at).getTime()>Date.now());
+    const base=wasRenewal?new Date(existing!.ends_at):new Date(),ends=new Date(base.getTime()+plan.duration_days*86_400_000),nowIso=new Date().toISOString();
     const {error:entitlementError}=await admin.from("ftn_scarlett_entitlements").upsert({user_id:order.user_id,plan_id:order.plan_id,tier:plan.tier,status:"ACTIVE",starts_at:nowIso,ends_at:ends.toISOString(),source_order_id:order.id,updated_at:nowIso},{onConflict:"user_id,plan_id"});
     if(entitlementError){await admin.from("ftn_scarlett_payment_events").update({processing_status:"FAILED",error_code:"ENTITLEMENT_WRITE_FAILED"}).eq("event_id",eventId);return json({error:"Fulfillment failed"},500);}
+    // Essential operational analytics, emitted server-side by the function that just verified the
+    // real payment outcome -- never trusted from a client report. Best-effort: never blocks or
+    // fails fulfillment. See docs/FTN_SCARLETT_ANALYTICS_PIPELINE.md section 5.
+    const anonId=crypto.randomUUID();
+    try{
+      await admin.from("ftn_scarlett_analytics_events").insert([
+        {event_id:crypto.randomUUID(),event_name:"checkout_completed",anonymous_install_id:anonId,anonymous_session_id:crypto.randomUUID(),subscription_tier:plan.tier==="PLUS"?"SCARLETT_PLUS":plan.tier==="INTELLIGENCE"?"FTN_INTELLIGENCE":"FTN_PRO",feature:"checkout"},
+        {event_id:crypto.randomUUID(),event_name:wasRenewal?"subscription_renewed":"subscription_started",anonymous_install_id:anonId,anonymous_session_id:crypto.randomUUID(),subscription_tier:plan.tier==="PLUS"?"SCARLETT_PLUS":plan.tier==="INTELLIGENCE"?"FTN_INTELLIGENCE":"FTN_PRO",feature:"subscription"},
+      ]);
+      // One-way conversion attribution: only set once, never overwritten by a later renewal.
+      await admin.from("ftn_scarlett_acquisition_attribution").update({converted_at:nowIso,converted_tier:plan.tier==="PLUS"?"SCARLETT_PLUS":plan.tier==="INTELLIGENCE"?"FTN_INTELLIGENCE":"FTN_PRO"}).eq("order_id",order.id).is("converted_at",null);
+    }catch{ /* analytics is best-effort; fulfillment above already succeeded */ }
   }
   const nowIso=new Date().toISOString();
   await admin.from("ftn_scarlett_payment_orders").update({status:next,completed_at:next==="SUCCEEDED"?nowIso:null,updated_at:nowIso}).eq("id",order.id);

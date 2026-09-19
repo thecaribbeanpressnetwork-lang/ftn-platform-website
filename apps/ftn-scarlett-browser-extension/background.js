@@ -11,7 +11,18 @@ importScripts('tracker-registry.js', 'shield.js', 'analytics.js', 'account-bridg
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
 chrome.runtime.onInstalled.addListener((details) => {
-  self.FTN_SCARLETT_ANALYTICS.logEvent('activation', { reason: details.reason });
+  if (details.reason === 'install') self.FTN_SCARLETT_ANALYTICS.logEvent('install', {});
+  else if (details.reason === 'update') self.FTN_SCARLETT_ANALYTICS.logEvent('extension_updated', {});
+  // 'chrome_update'/'shared_module_update' are not a Scarlett-meaningful product event -- not logged.
+});
+
+// Batched, bounded telemetry delivery -- chrome.alarms is the MV3-correct primitive for this (a
+// service worker is not persistent; setInterval would not survive suspension). One tick every 2
+// minutes, each tick sends at most one batch (analytics.js's FLUSH_BATCH_SIZE) -- this is "bounded
+// event emission", never continuous transmission or a liveness ping.
+chrome.alarms.create('scarlett-telemetry-flush', { periodInMinutes: 2 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'scarlett-telemetry-flush') self.FTN_SCARLETT_ANALYTICS.flushQueue();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

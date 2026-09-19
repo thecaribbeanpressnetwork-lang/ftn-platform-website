@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Scarlett — local analytics (demo)</title>
+  <title>Scarlett — your analytics log</title>
   <style>
     :root{font-family:Inter,system-ui,sans-serif;color-scheme:dark}
     *{box-sizing:border-box}
@@ -25,17 +25,16 @@
   </style>
 </head>
 <body>
-  <h1>Scarlett — local analytics</h1>
-  <p style="color:#9a9ca2;margin:0">This browser profile only. Not connected to any backend.</p>
+  <h1>Scarlett — your analytics log</h1>
+  <p id="pref-line" style="color:#9a9ca2;margin:0">Checking your analytics preference…</p>
   <div class="disclosure">
-    <strong>What this actually is:</strong> every row below comes from events logged locally to
-    <code>chrome.storage.local</code> on this device, in this browser profile, while you used
-    Scarlett. <strong>Nothing here has ever left your browser.</strong> This page exists to prove
-    the event schema is real and populated correctly -- it is not a founder dashboard aggregating
-    real users. Wiring these events to an actual backend so a founder could see real, cross-user
-    adoption is a separate, deliberate decision (see the V2 analytics privacy model doc) that has
-    not been made. Event content is deliberately narrow: mode names, category labels, counts and
-    booleans only -- never a URL, page title, search query or any identifier.
+    <strong>What this actually is:</strong> every row below is a real event Scarlett recorded on
+    this device, in this browser profile. When product analytics is on (see the toggle in
+    Scarlett's popup), these events -- and only these events, in exactly this shape -- are sent in
+    small batches to FTN's own servers to help the founder understand adoption, retention and
+    feature use. <strong>Nothing else ever leaves your browser this way:</strong> no URL, page
+    title, page text, search query, form value, email or document content is ever a field here.
+    Full disclosure: <a href="https://ftnplatform.org/legal/privacy-policy/#scarlett" target="_blank" rel="noreferrer" style="color:#ef3340">Scarlett's privacy policy</a>.
   </div>
 
   <div id="stats" class="stat-grid"></div>

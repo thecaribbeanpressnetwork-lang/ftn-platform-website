@@ -173,6 +173,179 @@ Deno.serve(async (req) => {
 
   if (action === "authorize") return reply(origin, { allowed: true, state: current?.mode || "normal", device: { id: device.id, name: device.device_name }, verifiedAt: new Date().toISOString() });
 
+  if (action === "scarlett-analytics") {
+    // Reuses this function's own founder+device authorization chain end to end (the same checks
+    // every other action above already passed) -- no separate admin auth system, per the
+    // repository's "reuse existing infrastructure" rule. Read-only: this action never writes.
+    const WINDOW_DAYS = 90;
+    const since = new Date(Date.now() - WINDOW_DAYS * 86400000).toISOString();
+    const [eventsRes, entitlementsRes, plansRes, acquisitionRes] = await Promise.all([
+      admin.from("ftn_scarlett_analytics_events")
+        .select("event_name,anonymous_install_id,anonymous_session_id,occurred_at,browser_family,platform_family,scarlett_version,subscription_tier,feature,mode,result,duration_bucket,performance_bucket,error_class,error_code,acquisition_source,campaign_id,country_or_region_coarse,experiment_variant")
+        .gte("occurred_at", since).order("occurred_at", { ascending: false }).limit(20000),
+      admin.from("ftn_scarlett_entitlements").select("user_id,plan_id,tier,status,starts_at,ends_at,created_at"),
+      admin.from("ftn_scarlett_plans").select("plan_id,tier,active,price_minor,currency"),
+      admin.from("ftn_scarlett_acquisition_attribution").select("source,referrer_category,converted_at,converted_tier,first_touch_at").gte("first_touch_at", since),
+    ]);
+    const events = eventsRes.data || [];
+    const nowIso = new Date().toISOString();
+    const day = (iso: string) => iso.slice(0, 10); // UTC calendar day -- see docs/FTN_SCARLETT_ANALYTICS_PIPELINE.md section 7 for why UTC, not user-local time.
+    const today = day(nowIso);
+    const daysAgo = (n: number) => day(new Date(Date.now() - n * 86400000).toISOString());
+
+    const byInstall = new Map<string, typeof events>();
+    for (const e of events) { const k = String(e.anonymous_install_id); if (!byInstall.has(k)) byInstall.set(k, []); byInstall.get(k)!.push(e); }
+
+    const USED_EVENTS = new Set(["mode_used", "assist_used", "adapt_used", "transform_used", "compare_used", "blend_used", "search_used", "find_used", "data_faucet_opened"]);
+    let installs = 0, activated = 0;
+    const dau = new Set<string>(), wau = new Set<string>(), mau = new Set<string>();
+    // Retention: cohort = the UTC calendar day of an install's first 'install' event. "Returned on
+    // day N" = any event at all (not just 'install') on cohort_day + N. An install is only counted
+    // in a day-N denominator once cohort_day + N has actually elapsed -- a 3-day-old install is
+    // excluded from D7/D30, never counted as "did not return" (that would be a misleading
+    // denominator, per the assignment's own instruction).
+    let d1Eligible = 0, d1Returned = 0, d7Eligible = 0, d7Returned = 0, d30Eligible = 0, d30Returned = 0;
+    const byDay: Record<string, number> = {}, byVersion: Record<string, number> = {}, byBrowser: Record<string, number> = {}, byPlatform: Record<string, number> = {}, bySelfReportedTier: Record<string, number> = {}, byAcquisitionSource: Record<string, number> = {}, byCampaign: Record<string, number> = {}, byRegion: Record<string, number> = {}, byExperimentVariant: Record<string, number> = {};
+    const modeUsage: Record<string, number> = {};
+    let dataFaucetOpened = 0, shieldEnabled = 0, shieldDisabled = 0, siteBreakRecoveryUsed = 0, searchUsed = 0, findUsed = 0, ibisHandoff = 0, headspaceHandoff = 0, onboardingStarted = 0, onboardingCompleted = 0;
+    let paywallSeen = 0, premiumPreviewUsed = 0, checkoutStarted = 0, checkoutCompleted = 0, checkoutFailed = 0;
+    let subStarted = 0, subRenewed = 0, subCancelled = 0, subExpired = 0, subPastDue = 0;
+    let errorCount = 0; const errorsByClass: Record<string, number> = {};
+    const performanceByFeature: Record<string, Record<string, number>> = {};
+
+    for (const e of events) {
+      const d = day(String(e.occurred_at)), install = String(e.anonymous_install_id);
+      byDay[d] = (byDay[d] || 0) + 1;
+      if (d === today) dau.add(install);
+      if (d >= daysAgo(7)) wau.add(install);
+      if (d >= daysAgo(30)) mau.add(install);
+      if (e.scarlett_version) byVersion[e.scarlett_version] = (byVersion[e.scarlett_version] || 0) + 1;
+      if (e.browser_family) byBrowser[e.browser_family] = (byBrowser[e.browser_family] || 0) + 1;
+      if (e.platform_family) byPlatform[e.platform_family] = (byPlatform[e.platform_family] || 0) + 1;
+      if (e.subscription_tier) bySelfReportedTier[e.subscription_tier] = (bySelfReportedTier[e.subscription_tier] || 0) + 1;
+      byAcquisitionSource[e.acquisition_source || "unknown"] = (byAcquisitionSource[e.acquisition_source || "unknown"] || 0) + 1;
+      if (e.campaign_id) byCampaign[e.campaign_id] = (byCampaign[e.campaign_id] || 0) + 1;
+      if (e.country_or_region_coarse) byRegion[e.country_or_region_coarse] = (byRegion[e.country_or_region_coarse] || 0) + 1;
+      if (e.experiment_variant) byExperimentVariant[e.experiment_variant] = (byExperimentVariant[e.experiment_variant] || 0) + 1;
+      switch (e.event_name) {
+        case "mode_used": case "assist_used": case "adapt_used": case "transform_used": case "compare_used": case "blend_used":
+          modeUsage[e.event_name] = (modeUsage[e.event_name] || 0) + 1; break;
+        case "data_faucet_opened": dataFaucetOpened++; break;
+        case "shield_enabled": shieldEnabled++; break;
+        case "shield_disabled": shieldDisabled++; break;
+        case "site_break_recovery_used": siteBreakRecoveryUsed++; break;
+        case "search_used": searchUsed++; break;
+        case "find_used": findUsed++; break;
+        case "ibis_handoff": ibisHandoff++; break;
+        case "headspace_handoff": headspaceHandoff++; break;
+        case "onboarding_started": onboardingStarted++; break;
+        case "onboarding_completed": onboardingCompleted++; break;
+        case "paywall_seen": paywallSeen++; break;
+        case "premium_preview_used": premiumPreviewUsed++; break;
+        case "checkout_started": checkoutStarted++; break;
+        case "checkout_completed": checkoutCompleted++; break;
+        case "checkout_failed": checkoutFailed++; break;
+        case "subscription_started": subStarted++; break;
+        case "subscription_renewed": subRenewed++; break;
+        case "subscription_cancelled": subCancelled++; break;
+        case "subscription_expired": subExpired++; break;
+        case "subscription_past_due": subPastDue++; break;
+        case "error": errorCount++; if (e.error_class) errorsByClass[e.error_class] = (errorsByClass[e.error_class] || 0) + 1; break;
+        case "performance_sample": {
+          const feature = e.feature || "unknown";
+          performanceByFeature[feature] = performanceByFeature[feature] || {};
+          if (e.performance_bucket) performanceByFeature[feature][e.performance_bucket] = (performanceByFeature[feature][e.performance_bucket] || 0) + 1;
+          break;
+        }
+      }
+    }
+
+    let secondSessionInstalls = 0;
+    for (const [, rows] of byInstall) {
+      const sessions = new Set(rows.map((r) => String(r.anonymous_session_id)));
+      if (sessions.size >= 2) secondSessionInstalls++;
+      const hasInstallEvent = rows.some((r) => r.event_name === "install");
+      if (hasInstallEvent) installs++;
+      if (rows.some((r) => USED_EVENTS.has(String(r.event_name)))) activated++;
+      const installRow = rows.filter((r) => r.event_name === "install").sort((a, b) => String(a.occurred_at).localeCompare(String(b.occurred_at)))[0];
+      if (!installRow) continue;
+      const cohortDay = day(String(installRow.occurred_at));
+      const eventDays = new Set(rows.map((r) => day(String(r.occurred_at))));
+      const offsetDay = (n: number) => day(new Date(Date.parse(cohortDay + "T00:00:00Z") + n * 86400000).toISOString());
+      for (const [n, eligibleKey, returnedKey] of [[1, "d1e", "d1r"], [7, "d7e", "d7r"], [30, "d30e", "d30r"]] as const) {
+        const target = offsetDay(n);
+        if (target > today) continue; // too recent to know yet -- excluded from the denominator, never counted as churn.
+        if (n === 1) { d1Eligible++; if (eventDays.has(target)) d1Returned++; }
+        if (n === 7) { d7Eligible++; if (eventDays.has(target)) d7Returned++; }
+        if (n === 30) { d30Eligible++; if (eventDays.has(target)) d30Returned++; }
+      }
+    }
+
+    const entitlements = entitlementsRes.data || [];
+    const plans = plansRes.data || [];
+    const anyPlanLive = plans.some((p: any) => p.active);
+    const activeEntitlements = entitlements.filter((e: any) => e.status === "ACTIVE" && e.ends_at > nowIso);
+    const trialEntitlements = entitlements.filter((e: any) => e.status === "TRIAL" && e.ends_at > nowIso);
+    const pastDueEntitlements = entitlements.filter((e: any) => e.status === "PAST_DUE" && e.ends_at > nowIso);
+    const paidUserIds = new Set(activeEntitlements.map((e: any) => e.user_id));
+    const planPrice = new Map(plans.map((p: any) => [p.plan_id, { price: p.price_minor, currency: p.currency, active: p.active }]));
+    const mrrMinor = anyPlanLive ? activeEntitlements.reduce((sum: number, e: any) => sum + (planPrice.get(e.plan_id)?.active ? (planPrice.get(e.plan_id)?.price || 0) : 0), 0) : null;
+
+    const acquisition = acquisitionRes.data || [];
+    const acquisitionConverted = acquisition.filter((a: any) => a.converted_at);
+    const acquisitionBySourceConverted: Record<string, number> = {};
+    for (const a of acquisitionConverted) acquisitionBySourceConverted[a.source] = (acquisitionBySourceConverted[a.source] || 0) + 1;
+
+    return reply(origin, {
+      allowed: true,
+      windowDays: WINDOW_DAYS,
+      methodology: {
+        timezoneBasis: "UTC calendar days",
+        cohortDefinition: "An install's cohort day is the UTC calendar day of its first 'install' event.",
+        activationDefinition: "An install is 'activated' once it has fired any of: " + [...USED_EVENTS].join(", ") + ".",
+        returnDefinition: "An install 'returns' on cohort_day+N if it fired ANY event (not only 'install') on that exact UTC calendar day.",
+        retentionDenominatorNote: "D1/D7/D30 denominators exclude installs too recent for that offset to have elapsed yet -- never counted as non-returning.",
+      },
+      adoption: {
+        installs, activatedInstalls: activated,
+        dau: dau.size, wau: wau.size, mau: mau.size,
+        retention: {
+          d1: d1Eligible ? d1Returned / d1Eligible : null, d1Eligible, d1Returned,
+          d7: d7Eligible ? d7Returned / d7Eligible : null, d7Eligible, d7Returned,
+          d30: d30Eligible ? d30Returned / d30Eligible : null, d30Eligible, d30Returned,
+        },
+      },
+      subscriptions: {
+        freeUsers: null, // Free is "everyone without an entitlement row" -- not a countable identity set without joining to auth.users at scale; omitted rather than guessed.
+        trialUsers: new Set(trialEntitlements.map((e: any) => e.user_id)).size,
+        paidUsers: paidUserIds.size,
+        pastDueUsers: new Set(pastDueEntitlements.map((e: any) => e.user_id)).size,
+        trialToPaidConversion: "Not measurable yet -- ftn_scarlett_entitlements stores current state per (user,plan), so a trial->paid transition overwrites the trial row in place rather than preserving both states. A dedicated entitlement-transition log would be needed; not built this pass.",
+        installToPaidApprox: installs ? paidUserIds.size / installs : null,
+        installToPaidApproxNote: "Approximate only: paid users (server truth, ftn_scarlett_entitlements) divided by total installs (product telemetry). Not a matched cohort -- anonymous install identity and FTN account identity are deliberately not joined.",
+        cancellations30d: subCancelled, expired30dEvents: subExpired,
+        mrrMinorUnits: mrrMinor, mrrCurrency: mrrMinor !== null ? (plans.find((p: any) => p.active)?.currency || null) : null,
+        mrrStatus: anyPlanLive ? "live" : "NOT_LIVE_YET",
+      },
+      funnels: {
+        activation: { install: installs, onboardingStarted, onboardingCompleted, firstModeUsed: activated, secondSession: secondSessionInstalls,
+          note: onboardingStarted === 0 && onboardingCompleted === 0 ? "Scarlett has no dedicated onboarding flow yet -- these two steps are schema-ready but not emitted." : undefined },
+        privacy: { dataFaucetOpened, shieldEnabled, shieldRetained: shieldEnabled - shieldDisabled > 0 ? shieldEnabled - shieldDisabled : 0 },
+        premium: { premiumFeatureEncountered: premiumPreviewUsed, paywallSeen, checkoutStarted, subscriptionActivated: checkoutCompleted },
+        intelligence: { search: searchUsed, find: findUsed, ibisHandoff, headspaceHandoff },
+      },
+      featureUsage: { modeUsage, dataFaucetOpened, shieldEnabled, shieldDisabled, siteBreakRecoveryUsed, searchUsed, findUsed, ibisHandoff, headspaceHandoff },
+      paywall: { paywallSeen, premiumPreviewUsed, checkoutStarted, checkoutCompleted, checkoutFailed, checkoutCompletionRate: checkoutStarted ? checkoutCompleted / checkoutStarted : null },
+      subscriptionLifecycleEvents: { started: subStarted, renewed: subRenewed, cancelled: subCancelled, expired: subExpired, pastDue: subPastDue },
+      reliability: {
+        errorCount, errorRate: events.length ? errorCount / events.length : null, errorsByClass,
+        performanceByFeature,
+      },
+      dimensions: { byDay, byVersion, byBrowser, byPlatform, bySelfReportedTier, byAcquisitionSource, byCampaign, byRegion, byExperimentVariant },
+      acquisition: { touches: acquisition.length, converted: acquisitionConverted.length, bySourceConverted: acquisitionBySourceConverted },
+    });
+  }
+
   if (action === "dashboard") {
     const [products, features, auditRows, controlJournal, devices, grants, sources, links, readiness, deployments, founderActions, providers, jobs, credits, affiliateClicks, issues, requests, savedItems, preferences, ibisMcpUsageRows] = await Promise.all([
       admin.from("ftn_product_controls").select("*").order("product_id"),
