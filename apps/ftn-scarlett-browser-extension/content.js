@@ -6,23 +6,43 @@
   const PANEL_ID='ftn-scarlett-v1-panel';
   const CONTROL_ID='ftn-scarlett-v1-control';
   const root=document.documentElement;
-  let state={mode:'ORIGINAL',lastScarlettMode:'ASSIST',model:null,ledger:[],panel:null,control:null};
+  let state={mode:'ORIGINAL',lastScarlettMode:'ASSIST',model:null,ledger:[],panel:null,control:null,intent:'',a11y:null,headspaceButton:null};
 
   const page=()=>globalThis.__FTN_SCARLETT_PAGE__;
   const policy=()=>globalThis.__FTN_SCARLETT_POLICY__;
 
-  function rememberAttr(el,name){
+  // Transformation ledger: every mutation Scarlett makes to the host page is recorded here before
+  // it is applied, with enough metadata (operationId, operationType, reason, timestamp, previous
+  // state) to explain and fully reverse it. restoreLedger() (called by Original and by every mode
+  // switch, since each switch rebuilds from a clean slate) walks it in reverse so nothing is left
+  // behind -- this is the mechanism that makes "Original restores exact" true rather than aspirational.
+  let opCounter=0;
+  function nextOperationId(){ opCounter+=1; return 'sc-op-'+Date.now().toString(36)+'-'+opCounter; }
+  function rememberAttr(el,name,meta){
     if(!el || state.ledger.some(x=>x.el===el&&x.name===name)) return;
-    state.ledger.push({el,name,had:el.hasAttribute(name),value:el.getAttribute(name)});
+    state.ledger.push({
+      operationId:nextOperationId(),
+      el,name,
+      operationType:meta?.operationType||'attribute-change',
+      reason:meta?.reason||'PRESENTATION_ADJUSTMENT',
+      source:'SCARLETT',
+      reversible:true,
+      timestamp:new Date().toISOString(),
+      had:el.hasAttribute(name),
+      previousState:el.getAttribute(name),
+      newState:null
+    });
   }
-  function setAttr(el,name,value){
-    rememberAttr(el,name);
+  function setAttr(el,name,value,meta){
+    rememberAttr(el,name,meta);
     el.setAttribute(name,value);
+    const row=state.ledger.find(x=>x.el===el&&x.name===name);
+    if(row) row.newState=value;
   }
   function restoreLedger(){
     for(const row of state.ledger.reverse()){
       if(!row.el?.isConnected) continue;
-      if(row.had) row.el.setAttribute(row.name,row.value ?? '');
+      if(row.had) row.el.setAttribute(row.name,row.previousState ?? '');
       else row.el.removeAttribute(row.name);
     }
     state.ledger=[];
@@ -58,6 +78,21 @@
         outline:3px solid #ef3340 !important;
         outline-offset:3px !important;
       }
+      html[data-ftn-scarlett-a11y~="text-lg"] :where(main,article,[role="main"],p,li,label,button,input,textarea,h1,h2,h3){
+        font-size:1.14em !important;
+      }
+      html[data-ftn-scarlett-a11y~="spacing-lg"] :where(main,article,[role="main"]) :where(p,li){
+        line-height:1.85 !important;
+        margin-bottom:1.1em !important;
+      }
+      html[data-ftn-scarlett-a11y~="spacing-lg"] :where(button,a,input,select,[role="button"]){
+        min-height:44px !important;
+        padding-block:.5em !important;
+      }
+      html[data-ftn-scarlett-a11y~="focus-strong"] :focus-visible{
+        outline:4px solid #ef3340 !important;
+        outline-offset:4px !important;
+      }
       #${PANEL_ID}{
         --sc-site-accent:${model?.site?.accent || '#6f7680'};
         position:fixed;right:18px;top:72px;z-index:2147483000;width:min(360px,calc(100vw - 36px));
@@ -79,7 +114,12 @@
       #${PANEL_ID} button{border:1px solid rgba(255,255,255,.16);background:#17171a;color:#fff;border-radius:999px;padding:9px 12px;cursor:pointer;font:inherit}
       #${PANEL_ID} button[data-primary]{border-color:#ef3340;background:#ef3340;color:#fff}
       #${PANEL_ID} button:hover{border-color:var(--sc-site-accent)}
+      #${PANEL_ID} button[aria-pressed="true"]{background:#2a2a30;border-color:#8f9096}
       #${PANEL_ID} .sc-note{font-size:12px;color:#999ca3;margin-top:10px}
+      #${PANEL_ID} .sc-facts{font-size:12px;color:#b7b9be;margin:0 0 10px;line-height:1.5}
+      #${PANEL_ID} .sc-section{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1)}
+      #${PANEL_ID} .sc-label{display:block;font-size:12px;color:#a9abb1;margin-bottom:6px}
+      #${PANEL_ID} input[type="text"]{width:100%;border:1px solid rgba(255,255,255,.18);background:#151517;color:#fff;border-radius:10px;padding:8px 10px;font:inherit}
       #${CONTROL_ID}{position:fixed;right:18px;bottom:18px;z-index:2147483001;display:flex;align-items:center;
         background:#0b0b0d;color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:999px;
         box-shadow:0 14px 40px rgba(0,0,0,.28);font:13px/1 Inter,system-ui,sans-serif;overflow:hidden}
@@ -96,6 +136,29 @@
     return style;
   }
 
+  // Local-only accessibility preferences. Truthful and narrow: Scarlett reports exactly what it
+  // changed (a data-attribute flag set -> a specific CSS rule above), never a blanket compliance
+  // claim. Stored in chrome.storage.local (per-browser-profile, never sent anywhere) so a returning
+  // user's preference persists across pages without a server-side personalization service.
+  const A11Y_KEY='scarlettA11yPrefs';
+  async function loadA11yPrefs(){
+    const defaults={textScale:'normal',spacing:'normal',focus:'normal'};
+    try{
+      const stored=await chrome.storage.local.get(A11Y_KEY);
+      return Object.assign({},defaults,stored?.[A11Y_KEY]||{});
+    }catch{ return defaults; }
+  }
+  async function saveA11yPrefs(prefs){
+    try{ await chrome.storage.local.set({[A11Y_KEY]:prefs}); }catch{ /* local storage unavailable: preference just won't persist */ }
+  }
+  function applyA11y(prefs){
+    const flags=[];
+    if(prefs.textScale==='large') flags.push('text-lg');
+    if(prefs.spacing==='relaxed') flags.push('spacing-lg');
+    if(prefs.focus==='strong') flags.push('focus-strong');
+    if(flags.length) setAttr(root,'data-ftn-scarlett-a11y',flags.join(' '),{operationType:'accessibility-adjustment',reason:'USER_ACCESSIBILITY_PREFERENCE'});
+  }
+
   function safeSummary(model){
     const risk=model?.risk?.level === 'HIGH';
     if(risk) return 'Sensitive surface detected. Scarlett is keeping the original workflow intact and limiting itself to assistance.';
@@ -106,7 +169,30 @@
     return 'Scarlett is using the least invasive intervention that improves clarity on this page.';
   }
 
-  function buildPanel(model,mode,reason){
+  function decisionFacts(model){
+    const facts=[];
+    const prices=model?.commerce?.pricing||[];
+    if(prices.length) facts.push('Price mentioned: '+prices.slice(0,2).join(', '));
+    if(model?.deadlines?.length) facts.push('Deadline language found: '+model.deadlines[0]);
+    if(model?.eligibilitySignal) facts.push('Eligibility/requirements language detected.');
+    if(model?.downloads?.length) facts.push(model.downloads.length+' downloadable document'+(model.downloads.length===1?'':'s')+' found.');
+    return facts;
+  }
+
+  // Conservative, deterministic heuristic for when "Open in Headspace" is worth showing at all --
+  // per the product boundary, Scarlett never embeds Headspace, it only offers the escalation when
+  // the task looks like it has outgrown a single-page assist (decision-relevant facts on a listing
+  // or service page, or the user's own stated intent names a multi-factor decision).
+  function isComplexEscalationCandidate(model,intentText){
+    if(!model) return false;
+    const t=String(intentText||'').toLowerCase();
+    const intentComplex=/compare|decide|due diligence|financing|mortgage|grant|contract|acquisition|multiple sources|research/.test(t);
+    const pageComplex=model.pageType==='LISTING'||model.pageType==='FORM_SERVICE';
+    const hasDecisionFacts=(model.commerce?.pricing?.length>0)||(model.deadlines?.length>0)||!!model.eligibilitySignal;
+    return intentComplex || (pageComplex && hasDecisionFacts);
+  }
+
+  function buildPanel(model,mode,reason,a11yPrefs){
     document.getElementById(PANEL_ID)?.remove();
     const panel=document.createElement('aside');
     panel.id=PANEL_ID;
@@ -121,24 +207,83 @@
     kicker.textContent=(model?.app?.label || model?.pageType || 'Page') + (model?.risk?.level==='HIGH'?' · sensitive':'');
     const heading=document.createElement('h2');heading.textContent=model?.content?.title || document.title || 'Current page';
     const copy=document.createElement('p');copy.textContent=safeSummary(model);
+
+    const facts=decisionFacts(model);
+    let factsEl=null;
+    if(facts.length){
+      factsEl=document.createElement('p');
+      factsEl.className='sc-facts';
+      factsEl.textContent=facts.join(' · ');
+    }
+
     const row=document.createElement('div');row.className='sc-row';
     const ask=document.createElement('button');ask.type='button';ask.dataset.primary='';ask.textContent='Ask ibis about this page';
-    ask.addEventListener('click',()=>prepareIbisHandoff(model));
+    ask.addEventListener('click',()=>prepareIbisHandoff(model,{escalation:'IBIS'}));
     const original=document.createElement('button');original.type='button';original.textContent='Original';
     original.addEventListener('click',()=>applyMode('ORIGINAL'));
     row.append(ask,original);
     if(model?.selection){
       const selected=document.createElement('button');selected.type='button';selected.textContent='Use selected text';
-      selected.addEventListener('click',()=>prepareIbisHandoff(model,{selectionOnly:true}));
+      selected.addEventListener('click',()=>prepareIbisHandoff(model,{selectionOnly:true,escalation:'IBIS'}));
       row.insertBefore(selected,original);
     }
+    const headspace=document.createElement('button');headspace.type='button';headspace.textContent='Open in Headspace';
+    headspace.title='Leaves lightweight Scarlett assistance and opens the full FTN ibis Headspace workspace for multi-step work.';
+    headspace.hidden=!isComplexEscalationCandidate(model,state.intent);
+    headspace.addEventListener('click',()=>prepareIbisHandoff(model,{escalation:'HEADSPACE'}));
+    row.appendChild(headspace);
+    state.headspaceButton=headspace;
+
     const note=document.createElement('div');note.className='sc-note';
     note.textContent=reason==='SENSITIVE_SURFACE_ASSIST_ONLY'
       ? 'Adapt was reduced to Assist because this page contains sensitive controls or content.'
       : reason==='COMPLEX_APP_MUSCLE_MEMORY'
         ? 'Complex app detected: Scarlett is preserving the native workspace.'
         : 'Page analysis stays local until you deliberately hand context to ibis.';
-    body.append(kicker,heading,copy,row,note);
+
+    // Intent section: optional, compact, single field -- not a conversational subsystem. It only
+    // ever influences (a) the Headspace escalation visibility above and (b) what is shown to the
+    // user before an explicit ibis/Headspace handoff. It never changes Original/Assist/Adapt mode
+    // selection, which stays deterministic and page/risk-driven per the transformation policy.
+    const intentSection=document.createElement('div');intentSection.className='sc-section';
+    const intentLabel=document.createElement('label');intentLabel.className='sc-label';intentLabel.textContent='What are you trying to do? (optional)';intentLabel.htmlFor='ftn-scarlett-intent-input';
+    const intentInput=document.createElement('input');intentInput.type='text';intentInput.id='ftn-scarlett-intent-input';intentInput.placeholder='e.g. decide whether to apply, compare options…';
+    intentInput.value=state.intent||'';
+    intentInput.addEventListener('input',()=>{
+      state.intent=intentInput.value.slice(0,220);
+      if(state.headspaceButton) state.headspaceButton.hidden=!isComplexEscalationCandidate(model,state.intent);
+    });
+    intentSection.append(intentLabel,intentInput);
+
+    // Accessibility section: three narrow, truthfully-labelled, reversible toggles. Persisted
+    // locally (see loadA11yPrefs/saveA11yPrefs); never described as WCAG compliance.
+    const a11ySection=document.createElement('div');a11ySection.className='sc-section';
+    const a11yLabel=document.createElement('span');a11yLabel.className='sc-label';a11yLabel.textContent='Accessibility';
+    const a11yRow=document.createElement('div');a11yRow.className='sc-row';
+    const toggles=[
+      {key:'textScale',on:'large',off:'normal',label:'Larger text'},
+      {key:'spacing',on:'relaxed',off:'normal',label:'More spacing'},
+      {key:'focus',on:'strong',off:'normal',label:'Stronger focus'}
+    ];
+    for(const t of toggles){
+      const b=document.createElement('button');b.type='button';b.textContent=t.label;
+      const active=a11yPrefs?.[t.key]===t.on;
+      b.setAttribute('aria-pressed',String(active));
+      b.addEventListener('click',async()=>{
+        const next=Object.assign({},state.a11y);
+        next[t.key]=active?t.off:t.on;
+        state.a11y=next;
+        await saveA11yPrefs(next);
+        applyA11y(next);
+        b.setAttribute('aria-pressed',String(next[t.key]===t.on));
+      });
+      a11yRow.appendChild(b);
+    }
+    a11ySection.append(a11yLabel,a11yRow);
+
+    body.append(kicker,heading,copy);
+    if(factsEl) body.appendChild(factsEl);
+    body.append(row,note,intentSection,a11ySection);
     panel.append(h,body);
     document.body.appendChild(panel);
     state.panel=panel;
@@ -165,10 +310,10 @@
 
   function markAdapt(model){
     const main=document.querySelector('article,main,[role="main"]');
-    if(main) setAttr(main,'data-ftn-scarlett-reading','');
+    if(main) setAttr(main,'data-ftn-scarlett-reading','',{operationType:'readability-constraint',reason:'IMPROVE_READING_WIDTH'});
     for(const el of model?._clutterNodes || []){
       if(el.closest('nav,header,main,article,form,[role="dialog"]')) continue;
-      setAttr(el,'data-ftn-scarlett-deprioritize','');
+      setAttr(el,'data-ftn-scarlett-deprioritize','',{operationType:'de-emphasize',reason:'REDUCE_PERIPHERAL_CLUTTER'});
     }
   }
 
@@ -178,52 +323,76 @@
     document.getElementById(CONTROL_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
     root.removeAttribute('data-ftn-scarlett-mode');
+    root.removeAttribute('data-ftn-scarlett-a11y');
     state.panel=null;state.control=null;
   }
 
-  function applyMode(requested){
+  async function applyMode(requested){
+    // clearPresentation() must run BEFORE analyze(): otherwise analyze() scans a DOM that still
+    // contains the previous mode's own panel/control, and Scarlett's own button labels and panel
+    // copy leak into the page model (observed live during QA: the panel's "Larger text" button and
+    // a stray "Deadline language found: ..." string from the panel's own copy were picked up as if
+    // they were page content). clearPresentation() only removes ledger-tracked attributes and
+    // Scarlett's own DOM nodes, so it never depends on the model -- safe to run first.
+    clearPresentation();
     const model=page().analyze();
     const resolved=policy().resolve(model,requested);
-    clearPresentation();
     state.model=model;
-    state.mode=resolved.mode;
-    if(resolved.mode==='ORIGINAL'){
+    state.mode=resolved.effectiveMode;
+    const policySummary={
+      requestedMode:resolved.requestedMode,
+      effectiveMode:resolved.effectiveMode,
+      reason:resolved.reason,
+      riskLevel:resolved.riskLevel,
+      preservedRegions:resolved.preservedRegions,
+      allowedOperations:resolved.allowedOperations,
+      blockedOperations:resolved.blockedOperations
+    };
+    if(resolved.effectiveMode==='ORIGINAL'){
       state.mode='ORIGINAL';
-      return {mode:'ORIGINAL',reason:resolved.reason,model:safeModel(model)};
+      return {mode:'ORIGINAL',reason:resolved.reason,policy:policySummary,model:safeModel(model)};
     }
-    state.lastScarlettMode=resolved.mode;
+    state.lastScarlettMode=resolved.effectiveMode;
     ensureStyle(model);
-    setAttr(root,'data-ftn-scarlett-mode',resolved.mode);
-    if(resolved.mode==='ADAPT') markAdapt(model);
-    buildPanel(model,resolved.mode,resolved.reason);
+    setAttr(root,'data-ftn-scarlett-mode',resolved.effectiveMode,{operationType:'mode-change',reason:resolved.reason});
+    if(resolved.effectiveMode==='ADAPT') markAdapt(model);
+    const a11yPrefs=await loadA11yPrefs();
+    state.a11y=a11yPrefs;
+    applyA11y(a11yPrefs);
+    buildPanel(model,resolved.effectiveMode,resolved.reason,a11yPrefs);
     buildControl();
-    return {mode:resolved.mode,reason:resolved.reason,model:safeModel(model)};
+    return {mode:resolved.effectiveMode,reason:resolved.reason,policy:policySummary,model:safeModel(model)};
   }
 
   function safeModel(model){
     return {
       version:model.version,pageType:model.pageType,app:model.app,risk:model.risk,site:model.site,
       regions:model.regions,actions:model.actions,content:model.content,reducedMotion:model.reducedMotion,capturedAt:model.capturedAt,
+      commerce:model.commerce,deadlines:model.deadlines,eligibilitySignal:model.eligibilitySignal,downloads:model.downloads,
+      warnings:model.warnings,accessibility:model.accessibility,focus:model.focus,potentialClutterCount:model.potentialClutterCount,
       selectionPresent:!!model.selection
     };
   }
 
   async function prepareIbisHandoff(model,options={}){
     const selectionOnly=!!options.selectionOnly;
+    const escalation=options.escalation==='HEADSPACE' ? 'HEADSPACE' : 'IBIS';
     const context={
       source:'SCARLETT',
       version:'SCARLETT_HANDOFF_V1',
+      escalation,
       sourceUrl:location.href.slice(0,1800),
       sourceTitle:(document.title||'').slice(0,220),
       pageType:model.pageType,
       app:model.app?.id || null,
       riskLevel:model.risk?.level || 'NORMAL',
+      userIntent:(state.intent||'').slice(0,220),
       selectedText:selectionOnly ? (model.selection||'').slice(0,4000) : (model.selection||'').slice(0,1800),
       visibleContext:selectionOnly ? '' : [model.content?.title,model.content?.description,...(model.content?.headings||[])].filter(Boolean).join('\n').slice(0,5000),
       createdAt:new Date().toISOString()
     };
     await chrome.storage.session.set({scarlettIbisHandoff:context});
-    chrome.runtime.sendMessage({type:'SCARLETT_OPEN_IBIS'});
+    chrome.runtime.sendMessage({type:'SCARLETT_OPEN_IBIS',escalation});
   }
 
   chrome.runtime.onMessage.addListener((message,_sender,send)=>{
@@ -234,7 +403,7 @@
       }else if(message?.type==='SCARLETT_MODE'){
         Promise.resolve(applyMode(message.mode)).then(result=>send({ok:true,...result}));return true;
       }else if(message?.type==='SCARLETT_STATE'){
-        send({ok:true,mode:state.mode,lastScarlettMode:state.lastScarlettMode,model:state.model?safeModel(state.model):null});
+        send({ok:true,mode:state.mode,lastScarlettMode:state.lastScarlettMode,intent:state.intent,model:state.model?safeModel(state.model):null});
       }else return false;
     }catch(error){send({ok:false,error:error?.message||String(error)});}
     return true;

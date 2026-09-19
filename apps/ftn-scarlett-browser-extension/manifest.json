@@ -11,7 +11,9 @@
   ],
   "host_permissions": [
     "https://ftnplatform.org/ibis-ai/*",
-    "https://www.ftnplatform.org/ibis-ai/*"
+    "https://www.ftnplatform.org/ibis-ai/*",
+    "https://ftnplatform.org/ibis-headspace-preview/*",
+    "https://www.ftnplatform.org/ibis-headspace-preview/*"
   ],
   "action": {
     "default_title": "Scarlett",
@@ -21,7 +23,9 @@
     {
       "matches": [
         "https://ftnplatform.org/ibis-ai/*",
-        "https://www.ftnplatform.org/ibis-ai/*"
+        "https://www.ftnplatform.org/ibis-ai/*",
+        "https://ftnplatform.org/ibis-headspace-preview/*",
+        "https://www.ftnplatform.org/ibis-headspace-preview/*"
       ],
       "js": [
         "ibis-handoff.js"
