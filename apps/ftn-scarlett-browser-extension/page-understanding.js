@@ -28,7 +28,11 @@
     const passwordField = !!document.querySelector('input[type="password"]');
     const paymentField = !!document.querySelector('input[autocomplete^="cc-"], input[name*="card" i], input[id*="card" i]');
     const health = /patient|medical|health record|prescription|diagnosis|clinic|hospital/.test(sample);
-    const financial = /bank|banking|credit card|debit card|wire transfer|account balance|mortgage|loan payment/.test(sample);
+    // Deliberately excludes a bare "bank" match: false-positived live during QA against a real
+    // Wikipedia article (matched "World Bank"/"Bahama Banks"-style institutional/geographic usage,
+    // not a banking transaction context) and forced an ordinary article into HIGH risk for no real
+    // reason. Every remaining phrase requires an actual transactional/account context.
+    const financial = /online banking|internet banking|bank account|banking details|bank transfer|credit card|debit card|wire transfer|account balance|mortgage|loan payment/.test(sample);
     const identity = /passport|national id|identity verification|social security|taxpayer id|two-factor|2fa|security code/.test(sample);
     const governmentAuth = /gov\.|government|ministry/.test(host + ' ' + sample) && passwordField;
     const sensitive = passwordField || paymentField || health || financial || identity || governmentAuth;
@@ -116,11 +120,78 @@
     const heading = Array.from(document.querySelectorAll('h1,h2,[role="heading"]')).find(visible);
     const description = document.querySelector('meta[name="description"]')?.content || '';
     const headings = Array.from(document.querySelectorAll('h1,h2,h3')).filter(visible).map(el => text(el, 160)).filter(Boolean).slice(0, 8);
+    const listCount = Array.from(document.querySelectorAll('ul,ol')).filter(visible).length;
     return {
       title: clean(text(heading, 220) || document.title, 220),
       description: clean(description, 420),
-      headings
+      headings,
+      lists: listCount
     };
+  }
+
+  // Bounded single-pass scans over a capped slice of body text (20k chars) -- these look for
+  // decision-relevant facts (price, deadline, eligibility, required documents) that a task-aware
+  // interface should be able to surface, without ever calling a network/AI service to interpret
+  // them. Deterministic pattern matching only; capped result counts keep this cheap even on dense
+  // pages.
+  function bodySample(max = 20000) {
+    return clean(text(document.body, max), max);
+  }
+
+  function pricingFacts() {
+    const sample = bodySample();
+    const matches = sample.match(/(?:US\$|TT\$|BBD\$|EC\$|\$|USD|TTD)\s?\d[\d,]*(?:\.\d{2})?/g) || [];
+    return Array.from(new Set(matches)).slice(0, 5);
+  }
+
+  function deadlineFacts() {
+    const sample = bodySample();
+    const matches = sample.match(/\b(?:deadline|closes?|due (?:by|date)|apply by|expires?|last date)\b[^.\n]{0,90}/gi) || [];
+    return matches.slice(0, 5).map((s) => clean(s, 150));
+  }
+
+  function eligibilitySignal() {
+    const sample = bodySample().toLowerCase();
+    return /eligib|must be (?:a|an|over|under|resident)|requirements?:|who can apply|qualifying criteria/.test(sample);
+  }
+
+  function downloadFacts() {
+    return Array.from(document.querySelectorAll('a[href$=".pdf" i],a[href$=".doc" i],a[href$=".docx" i],a[download]'))
+      .filter(visible)
+      .slice(0, 10)
+      .map((a) => clean(a.textContent || a.getAttribute('href') || '', 140))
+      .filter(Boolean);
+  }
+
+  function warningFacts() {
+    return Array.from(document.querySelectorAll('[role="alert"],[class*="warning" i],[class*="error" i]'))
+      .filter(visible)
+      .slice(0, 6)
+      .map((el) => clean(text(el, 160), 160))
+      .filter(Boolean);
+  }
+
+  function accessibilitySignals() {
+    const imagesMissingAlt = Array.from(document.querySelectorAll('img')).filter(visible)
+      .filter((img) => !img.alt || !img.alt.trim()).length;
+    const formFieldsMissingLabel = Array.from(document.querySelectorAll('input,select,textarea')).filter(visible)
+      .filter((el) => {
+        const id = el.id;
+        const hasLabel = id && document.querySelector(`label[for="${CSS.escape(id)}"]`);
+        return !hasLabel && !el.getAttribute('aria-label') && !el.getAttribute('aria-labelledby') && !el.closest('label');
+      }).length;
+    return {
+      imagesMissingAlt,
+      formFieldsMissingLabel,
+      reducedMotionPreferred: matchMedia('(prefers-reduced-motion: reduce)').matches
+    };
+  }
+
+  function focusFacts() {
+    const el = document.activeElement;
+    const hasFocus = !!(el && el !== document.body && el !== document.documentElement);
+    const editableSurface = !!(el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable));
+    return { hasFocus, editableSurface, focusTag: hasFocus ? el.tagName.toLowerCase() : null };
   }
 
   function analyze() {
@@ -128,8 +199,9 @@
     const risk = sensitivity();
     const type = pageType(app);
     const facts = contentFacts();
+    const clutter = clutterCandidates();
     const model = {
-      version:'SCARLETT_PAGE_MODEL_V1',
+      version:'SCARLETT_PAGE_MODEL_V2',
       pageType:type,
       app,
       risk,
@@ -137,11 +209,19 @@
       regions:regions(),
       actions:actions(),
       content:facts,
+      commerce:{ pricing:pricingFacts() },
+      deadlines:deadlineFacts(),
+      eligibilitySignal:eligibilitySignal(),
+      downloads:downloadFacts(),
+      warnings:warningFacts(),
+      accessibility:accessibilitySignals(),
+      focus:focusFacts(),
+      potentialClutterCount:clutter.length,
       selection: clean(getSelection()?.toString() || '', 4000),
       reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
       capturedAt:new Date().toISOString()
     };
-    Object.defineProperty(model, '_clutterNodes', { value:clutterCandidates(), enumerable:false });
+    Object.defineProperty(model, '_clutterNodes', { value:clutter, enumerable:false });
     return model;
   }
 
