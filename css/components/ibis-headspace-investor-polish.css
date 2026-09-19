@@ -128,6 +128,14 @@ body{
 
 .thought-answer{
   grid-column:1 / -1 !important;
+  /* Live QA finding (2026-09-19): an older, otherwise-inert stylesheet still linked from this page
+     (css/components/ibis-headspace-preview.css, a pre-existing sidebar-layout design whose own
+     markup no longer exists in this DOM) sets a bare `.thought{max-width:640px}` rule that, having
+     no competing declaration anywhere, silently capped the answer card at 640px even after it was
+     correctly spanning the full grid row -- the primary surface never actually reached the width its
+     own grid placement implied. Overridden here, scoped to the answer card only; ordinary secondary
+     `.thought` cards keep that 640px ceiling, which suits their smaller, quieter role. */
+  max-width:none !important;
   min-height:clamp(300px,38vh,520px) !important;
   padding:clamp(28px,4vw,58px) !important;
   background:
