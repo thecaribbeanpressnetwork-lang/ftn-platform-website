@@ -78,6 +78,46 @@ Deno.test("REVISE: framework-leak vocabulary is detected and stripped determinis
   assert(revised.includes("Tobago"), "stripping the leaked sentence must not destroy the rest of a genuinely useful answer");
 });
 
+// Investor-critical fix (2026-09-19): live-caught -- "2 + 2" leaked js/ibis-founder-cognitive-
+// layer.js's PUBLIC_DECISION_GATE vocabulary verbatim ("Considering the decision gate: user value;
+// ecosystem value; ownership; data value..."). The real fix is upstream routing (see
+// js/ibis-multi-agent-orchestrator.js's taskFor(), now gated to STRATEGY tasks only); this proves
+// the expanded deterministic safety net here would also have caught and stripped it on its own.
+Deno.test("REVISE: the expanded internal-vocabulary set (decision gate / lens names) is detected and stripped", () => {
+  const draft = "The result is 4. Considering the decision gate: user value; ecosystem value; ownership; data value; revenue and economic value; execution cost; future optionality, this calculation is complete.";
+  const r = validateRelease({ ...BASE_INPUT, draftAnswer: draft, evidencePacket: packet({ temporal: { required: false, satisfied: null, unresolved: false } }), claimsLedger: [] });
+  assertEquals(r.decision, "REVISE");
+  assert(r.failures.some((f) => f.type === "FRAMEWORK_LEAKAGE"));
+  const revised = applyDeterministicRevision(draft, r.failures, frame());
+  assertFalse(/decision gate|ecosystem value|ownership value|data value/i.test(revised));
+  assert(revised.includes("The result is 4."), "stripping the leaked sentence must not destroy the real answer");
+});
+
+Deno.test("RELEASE: ordinary legitimate use of common words the leak vocabulary is drawn from is never flagged", () => {
+  const r = validateRelease({
+    ...BASE_INPUT,
+    draftAnswer: "Land ownership records in Trinidad are held by the Land Registry, and property data is publicly searchable.",
+    evidencePacket: packet({ temporal: { required: false, satisfied: null, unresolved: false } }),
+    claimsLedger: [],
+  });
+  assertFalse(r.failures.some((f) => f.type === "FRAMEWORK_LEAKAGE"), "bare common words like 'ownership' or 'data' must not be flagged outside the specific internal compound phrases");
+});
+
+Deno.test("WITHHOLD: a deliberately leaking model response that also fails a non-revisable check is sanitized, and stays sanitized after withholding", () => {
+  const draft = "The correlation is strong (r=0.8). Considering the decision gate: user value; ecosystem value.";
+  const r = validateRelease({
+    ...BASE_INPUT, draftAnswer: draft,
+    requestFrame: frame({ queryClass: "CORRELATION" }),
+    evidenceContract: contract({ queryClass: "CORRELATION" }),
+    evidencePacket: packet({ temporal: { required: false, satisfied: null, unresolved: false } }),
+    claimsLedger: [],
+    engineResults: [],
+  });
+  assertEquals(r.decision, "WITHHOLD", "a capability overclaim (no CORRELATION engine ran) is not revisable, regardless of the co-occurring framework leak");
+  const withheld = buildWithholdAnswer({ requestFrame: frame({ queryClass: "CORRELATION" }), evidencePacket: packet(), failures: r.failures, originalText: "is there a correlation" });
+  assertFalse(/decision gate|ecosystem value/i.test(withheld), "the final withheld answer must never carry the original leaked draft's internal vocabulary");
+});
+
 Deno.test("RELEASE: a deterministic-engine answer skips evidence/temporal checks entirely", () => {
   const r = validateRelease({
     ...BASE_INPUT, draftAnswer: "2 + 2 = 4.",

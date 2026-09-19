@@ -27,7 +27,14 @@ jobs:
           for(const required of ['payload.action === "health"','inferenceAttempted: false','AbortSignal.timeout(20_000)','@cf/meta/llama-3.1-8b-instruct']){
             if(!src.includes(required))throw new Error(`missing text readiness invariant: ${required}`);
           }
-          if(!gateway.includes('const providers = [cloudflare(turns, system), anthropic('))throw new Error('production gateway must attempt proven zero-cost Cloudflare before paid external models');
+          // Investor-critical CI drift fix (2026-09-19): a second, independent stale assertion in
+          // this same gate -- a prior refactor renamed this array from `providers` to `list` (adding
+          // the DeepSeek/Item L reasoning-budget-aware reordering), but this check was never updated
+          // to match, so THIS step alone had been failing the whole job before the deployed-health
+          // check below (step 2) ever ran. Checking Cloudflare's plain presence as the first entry of
+          // the literal array, independent of whatever the array is named, is robust to a future
+          // rename in the same way the array's own content already is.
+          if(!/const \w+ = \[cloudflare\(turns, system\), anthropic\(/.test(gateway))throw new Error('production gateway must attempt proven zero-cost Cloudflare before paid external models');
           console.log('Text source and gateway ordering contract: PASS');
           NODE
       - name: Probe deployed text and assistant gateway without inference
@@ -43,7 +50,20 @@ jobs:
           const response=await fetch(textEndpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
           const body=await response.json().catch(()=>({}));
           if(!response.ok)throw new Error(`text health HTTP ${response.status}: ${body.error||'unknown'}`);
-          if(body.capability!=='TEXT'||body.provider!=='cloudflare-workers-ai'||body.configured!==true||body.ready!==true||body.inferenceAttempted!==false)throw new Error('standalone text route health mismatch');
+          // Investor-critical CI drift fix (2026-09-19): this route's deployed health response has
+          // legitimately evolved from a single-provider shape (provider:'cloudflare-workers-ai') to a
+          // multi-provider gateway shape (provider:'FTN multi-provider text gateway', with a
+          // `providers` array listing each backend and whether it's configured) -- confirmed live via
+          // direct probe, genuinely healthy (ready:true, configured:true), not a real outage. The old
+          // assertion never caught up to this repo's own Phase 5 multi-provider text-gateway work, so
+          // this gate had been failing on a real production/repo shape mismatch rather than an actual
+          // health problem. Updated to the real, verified contract -- still requires the standalone
+          // TEXT capability to be configured/ready with no inference attempted, and now additionally
+          // requires Cloudflare Workers AI specifically to be present and configured within the
+          // multi-provider list, rather than assuming it is the sole provider.
+          if(body.capability!=='TEXT'||body.configured!==true||body.ready!==true||body.inferenceAttempted!==false)throw new Error(`standalone text route health mismatch: ${JSON.stringify(body)}`);
+          const standaloneCf=(body.providers||[]).find(p=>p.id==='cloudflare-workers-ai');
+          if(!standaloneCf||standaloneCf.configured!==true)throw new Error(`Cloudflare missing/unconfigured in standalone text route's provider list: ${JSON.stringify(body.providers)}`);
           const gatewayEndpoint='https://jshmidfpqrajxtukzges.supabase.co/functions/v1/ibis-assistant';
           const health=await fetch(gatewayEndpoint,{method:'POST',headers,body:JSON.stringify({action:'health'})});
           const h=await health.json().catch(()=>({}));

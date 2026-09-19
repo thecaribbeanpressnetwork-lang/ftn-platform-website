@@ -93,6 +93,16 @@ export function computeCanonicalPublicEvidenceState(
 // Known internal-vocabulary leaks -- the exact terms the Phase 5 FCL prompt instructions already ask
 // the model never to print. The Release Validator is the SAFETY NET for when that instruction is not
 // followed, not the primary defense (see Phase 5's FOUNDER_COGNITIVE_LAYER_INSTRUCTION).
+// Investor-critical fix (2026-09-19): confirmed live -- a trivial "2 + 2" query produced a correct
+// final number, but the draft it was buried in read back js/ibis-founder-cognitive-layer.js's own
+// PUBLIC_DECISION_GATE array verbatim ("Considering the decision gate: user value; ecosystem value;
+// ownership; data value; revenue and economic value; execution cost; future optionality"). The real
+// fix is upstream (this file's own routing no longer sends that block into a task prompt for a
+// non-STRATEGY task at all -- see js/ibis-multi-agent-orchestrator.js's taskFor()); these patterns
+// are only the deterministic safety net Item 4 of the Phase 6 directive describes, expanded to the
+// specific internal-vocabulary set named in this pass. Each is a distinctive compound phrase or an
+// unusual single-word internal lens name (FutureYou, Truthmode) rather than a bare common word like
+// "ownership" or "data" alone, which a legitimate answer could use in an ordinary sentence.
 const FRAMEWORK_LEAK_PATTERNS: RegExp[] = [
   /ricardo founder reasoning model/i,
   /founder cognitive layer/i,
@@ -103,6 +113,15 @@ const FRAMEWORK_LEAK_PATTERNS: RegExp[] = [
   /\brelease validator\b/i,
   /\[R\d+\]/, // reasoning-synthesis line labels
   /reasoning synthesis for this request/i,
+  /\bdecision gate\b/i,
+  /\becosystem value\b/i,
+  /\bownership value\b/i,
+  /\bdata value\b/i,
+  /\bfutureyou\b/i,
+  /\btruthmode\b/i,
+  /\bred team\b/i,
+  /\bpareto lens\b/i,
+  /\blindy lens\b/i,
 ];
 
 const TEMPORAL_QUALIFIER_PATTERNS =

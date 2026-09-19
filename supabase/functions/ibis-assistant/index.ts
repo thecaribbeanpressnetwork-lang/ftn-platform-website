@@ -2,6 +2,7 @@ import { gatewayHealth, runGateway, deterministicAnswer, type GatewayProvider, t
 import { handleCanonicalRequest, recordReceiptAndMaybeFallback } from "../_shared/ibis-canonical-brain.ts";
 import { classifyIntent, isFounderConsequential } from "../_shared/ibis-intent-router.ts";
 import { buildRequestFrame } from "../_shared/ibis-request-frame.ts";
+import { buildEvidenceContract } from "../_shared/ibis-evidence-contract.ts";
 import { resolveLifecycleStore } from "../_shared/ibis-lifecycle-store.ts";
 import { assessReasoningBudget, reasoningBudgetToDeepSeekEffort, type ReasoningBudgetLevel } from "../_shared/ibis-reasoning-budget.ts";
 
@@ -343,7 +344,19 @@ Deno.serve(async (request) => {
   // placeholder: this call only reads `.requiresFreshEvidence`, so the (irrelevant to this decision)
   // deterministic-answer check is not run a second time just to populate a field nothing here uses.
   const legacyFrame = buildRequestFrame({ requestId: "legacy-gate-check", text, intent: classifyIntent(text), isDeterministicAnswer: false });
-  if (legacyFrame.requiresFreshEvidence) {
+  // Investor-critical fix (2026-09-19): this gate previously only checked requiresFreshEvidence
+  // (CURRENT/live-ness), so a HISTORICAL question like "What happened in Trinidad in 1990?" fell
+  // straight through to the bare, ungrounded runGateway() below and answered confidently from raw
+  // model memory -- reproduced live: it named the wrong prime minister for the actual 1990 coup
+  // attempt. ibis-canonical-brain.ts's planCapabilities() already plans real RESEARCH for a
+  // HISTORICAL temporalRequirement (see its own "Item T" comment) and ibis-evidence-contract.ts's
+  // buildEvidenceContract() already marks any non-deterministic, non-TIMELESS SIMPLE_TEXT question
+  // as requiredEvidence:true -- neither of those existing, already-correct authorities was ever
+  // being consulted here. This is not a new fact-checker: it is the one existing check this gate was
+  // missing, so every evidence-requiring legacy request (historical included, not just fresh) now
+  // reaches the same canonical, search-attempting path a freshness-sensitive one already did.
+  const legacyEvidenceContract = buildEvidenceContract(legacyFrame);
+  if (legacyFrame.requiresFreshEvidence || legacyEvidenceContract.requiredEvidence) {
     const providerFactory = (evidenceBlock: string | null, reasoningSynthesisBlock?: string | null) => {
       const groundedSystem = [system, evidenceBlock, reasoningSynthesisBlock].filter((part): part is string => !!part).join("\n\n");
       return buildProviders(turns, groundedSystem, promptBudget.level);

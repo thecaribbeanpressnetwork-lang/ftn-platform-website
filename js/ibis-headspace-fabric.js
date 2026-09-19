@@ -26,13 +26,13 @@
   function attachUniversal(){setTimeout(function(){attach('/js/ibis-headspace-universal.js?v=20260911.2','data-headspace-universal');attach('/js/ibis-investor-handoff-guards.js?v=20260910.1','data-ibis-investor-handoff-guards');investorDefault();},0);}
   attachStyle('/css/components/ibis-headspace-elegance.css?v=20260908.1','data-headspace-elegance');
   attachStyle('/css/components/ibis-investor-readiness.css?v=20260910.1','data-ibis-investor-readiness');
-  attach('/js/ibis-runtime-loader.js?v=20260908.2','data-ibis-runtime');
+  attach('/js/ibis-runtime-loader.js?v=20260919.1','data-ibis-runtime');
   attach('/js/ibis-headspace-tool-health.js?v=20260909.1','data-headspace-tool-health');
   attach('/js/ibis-headspace-scout-health.js?v=20260909.1','data-headspace-scout-health');
   attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');
   attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');
   attach('/js/ibis-headspace-foresight.js?v=20260907.1','data-headspace-foresight');
-  attach('/js/ibis-headspace-opportunities.js?v=20260919.2','data-headspace-opportunities');
+  attach('/js/ibis-headspace-opportunities.js?v=20260919.3','data-headspace-opportunities');
   attach('/js/ibis-headspace-entry.js?v=20260908.1','data-headspace-entry');
   if(typeof document!=='undefined'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachUniversal,{once:true});else attachUniversal();global.addEventListener&&global.addEventListener('resize',function(){clearTimeout(global.__ibisInvestorLayoutTimer);global.__ibisInvestorLayoutTimer=setTimeout(investorDefault,120);});}
 })(typeof window!=='undefined'?window:globalThis);

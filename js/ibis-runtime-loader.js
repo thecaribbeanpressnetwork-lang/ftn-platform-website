@@ -17,9 +17,15 @@
     await load('/js/ibis-native-connections.js',function(){return !!(FTN.ConnectionFabric&&FTN.ConnectionFabric.gateway('REST'));});
     await load('/js/ibis-universal-router.js',function(){return !!FTN.UniversalRouter;});
     await load('/js/ibis-build-preview-share.js',function(){return !!FTN.BuildPreviewShare;});
-    await load('/js/ibis-multi-agent-orchestrator.js',function(){return !!FTN.MultiAgentOrchestrator;});
+    // Investor-critical fix (2026-09-19): these two lines had no cache-busting ?v= query param at
+    // all, unlike every other dynamically-loaded Headspace module in this codebase -- a real gap,
+    // not a style choice, found while deploying the canonical request-deadline fix to
+    // js/ibis-runtime.js and the FCL-scoping fix to js/ibis-multi-agent-orchestrator.js: without a
+    // version bump available, a client with either file already cached at this exact URL would keep
+    // running the old, unfixed code indefinitely.
+    await load('/js/ibis-multi-agent-orchestrator.js?v=20260919.1',function(){return !!FTN.MultiAgentOrchestrator;});
     await load('/js/ibis-device-sensor-bridge.js',function(){return !!FTN.DeviceSensorBridge;});
-    await load('/js/ibis-runtime.js',function(){return !!FTN.IbisRuntime;});
+    await load('/js/ibis-runtime.js?v=20260919.1',function(){return !!FTN.IbisRuntime;});
     return FTN.IbisRuntime;
   })();
 })(typeof window!=='undefined'?window:globalThis);

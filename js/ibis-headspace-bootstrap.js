@@ -11,17 +11,17 @@
     '/js/ibis-country-themes.js',
     '/js/charts.js?v=20260907.1',
     '/js/ibis-presentation.js?v=20260907.2',
-    '/js/ibis-headspace-request-state.js?v=20260908.1',
+    '/js/ibis-headspace-request-state.js?v=20260919.1',
     '/js/ibis-headspace-window-manager.js?v=20260910.6',
     '/js/ibis-speech-shared.js?v=20260918.1',
     '/js/ibis-headspace-speech.js?v=20260918.2',
-    '/js/ibis-headspace-fabric.js?v=20260919.2',
+    '/js/ibis-headspace-fabric.js?v=20260919.3',
     '/js/ibis-headspace-universal.js?v=20260911.2',
     '/js/ibis-headspace-preview.js?v=20260919.2',
     '/js/ibis-headspace-handoff-guards.js?v=20260910.2',
     '/js/ibis-headspace-statistics.js?v=20260907.1',
     '/js/ibis-headspace-live-statistics.js?v=20260907.2',
-    '/js/ibis-headspace-capital.js?v=20260919.2',
+    '/js/ibis-headspace-capital.js?v=20260919.3',
     '/js/ibis-headspace-live-model.js?v=20260907.1'
   ];
 
