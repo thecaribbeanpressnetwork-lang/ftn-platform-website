@@ -44,7 +44,14 @@ function jsonRpc(id: any, result: any) { return { jsonrpc: "2.0", id, result }; 
 function error(id: any, code: number, message: string) { return { jsonrpc: "2.0", id, error: { code, message } }; }
 
 Deno.serve(async (req) => {
-  const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*", "access-control-allow-methods": "GET,POST,OPTIONS", "access-control-allow-headers": "content-type,accept,mcp-session-id" };
+  // authorization,apikey were missing here (this endpoint's own handler never reads either
+  // header -- it is public/read-only) while every other FTN Supabase function's CORS allow-list
+  // includes them, matching what a real browser client sends by default alongside apikey. Any
+  // cross-origin client that sent those two headers -- including the shipped
+  // apps/ftn-ibis-browser-extension's own ibis-api.js -- had its preflight rejected by the
+  // browser before the request ever reached this handler. Found live via a real extension
+  // request; fixed to match the established convention (see e.g. ibis-browser-context/index.ts).
+  const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*", "access-control-allow-methods": "GET,POST,OPTIONS", "access-control-allow-headers": "authorization,apikey,content-type,accept,mcp-session-id" };
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers });
   if (req.method === "GET") return new Response(JSON.stringify({ ok: true, name: "FTN ibis — Caribbean Intelligence", version: "0.1.0", mcpPath: "/functions/v1/ftn-ibis-mcp", canonicalPage: CANONICAL_PAGE }), { headers });
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "POST required" }), { status: 405, headers });
