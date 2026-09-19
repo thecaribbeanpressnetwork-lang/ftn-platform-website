@@ -17,7 +17,7 @@
     '/js/ibis-headspace-speech.js?v=20260918.2',
     '/js/ibis-headspace-fabric.js?v=20260911.2',
     '/js/ibis-headspace-universal.js?v=20260911.2',
-    '/js/ibis-headspace-preview.js?v=20260919.1',
+    '/js/ibis-headspace-preview.js?v=20260919.2',
     '/js/ibis-headspace-handoff-guards.js?v=20260910.2',
     '/js/ibis-headspace-statistics.js?v=20260907.1',
     '/js/ibis-headspace-live-statistics.js?v=20260907.2',

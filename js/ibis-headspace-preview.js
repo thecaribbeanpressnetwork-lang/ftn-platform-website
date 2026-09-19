@@ -45,7 +45,15 @@ function interpret(text){const q=text.toLowerCase().trim();if(!q)return false;if
 // remove capital-scenario or opportunity handling: js/ibis-headspace-capital.js and
 // js/ibis-headspace-opportunities.js already register their own precise, phrase-level relevant()
 // matchers ahead of this generic fallback and are unaffected by this change.
-const dictionary={graph:['graph','chart','demand'],opportunity:['opportunity','funding'],context:['context','signals','weather'],media:['media','music'],tools:['tool','api','file','agent'],answer:['answer','response'],explain:['why','evidence','explain'],scouts:['scout'],correlation:['correlation'],device:['device','mixer','deck']};for(const [name,terms] of Object.entries(dictionary)){if(terms.some(term=>q.includes(term))){if(/hide|remove|send away|close/.test(q))dematerialize([name],`Sent ${name} out of view.`);else materialize([name],`Brought ${name} into Headspace.`);return true}}return false}
+const dictionary={graph:['graph','chart','demand'],opportunity:['opportunity','funding'],context:['context','signals','weather'],media:['media','music'],tools:['tool','api','file','agent'],answer:['answer','response'],explain:['why','evidence','explain'],scouts:['scout'],correlation:['correlation'],device:['device','mixer','deck']};
+  // Investor acceptance fix (2026-09-19), part 2: q.includes(term) matched a bare substring of the
+  // whole question, so short terms like 'api' or 'tool' also matched inside unrelated ordinary
+  // words (e.g. 'api' inside "capital", as in "What is the capital of Barbados?"), silently
+  // hijacking the submit before it ever reached the real ibis intelligence pipeline. Every term
+  // here is a plain alphabetic word, so a \b word-boundary match is a safe, minimal, root-cause fix
+  // for the whole dictionary at once rather than patching one accidental collision at a time.
+  function wordMatch(term){return new RegExp('\\b'+term+'\\b','i').test(q);}
+  for(const [name,terms] of Object.entries(dictionary)){if(terms.some(wordMatch)){if(/hide|remove|send away|close/.test(q))dematerialize([name],`Sent ${name} out of view.`);else materialize([name],`Brought ${name} into Headspace.`);return true}}return false}
 document.getElementById('inputOrbit')?.addEventListener('submit',e=>{const text=query.value.trim();if(!text)return;if(!interpret(text))return;e.preventDefault();e.stopImmediatePropagation()},true);
 document.querySelectorAll('[data-recall]').forEach(b=>b.addEventListener('click',()=>materialize([b.dataset.recall],`Recalled ${b.dataset.recall}.`)));
 document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{const p=b.dataset.preset;dematerialize(thoughts.map(t=>t.dataset.thought));if(p==='blank')return;if(p==='dj')materialize(['device','media','tools']);else if(p==='media')materialize(['answer','media','context']);else if(p==='opportunity')materialize(['answer','opportunity','graph','tools']);else if(p==='place')materialize(['answer','context','graph','media']);else materialize(['answer','graph','opportunity','context','tools'])}));
