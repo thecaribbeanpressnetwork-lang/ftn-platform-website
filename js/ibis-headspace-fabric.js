@@ -32,7 +32,7 @@
   attach('/js/ibis-headspace-correlation.js?v=20260907.1','data-headspace-correlation');
   attach('/js/ibis-headspace-context.js?v=20260907.1','data-headspace-context');
   attach('/js/ibis-headspace-foresight.js?v=20260907.1','data-headspace-foresight');
-  attach('/js/ibis-headspace-opportunities.js?v=20260919.1','data-headspace-opportunities');
+  attach('/js/ibis-headspace-opportunities.js?v=20260919.2','data-headspace-opportunities');
   attach('/js/ibis-headspace-entry.js?v=20260908.1','data-headspace-entry');
   if(typeof document!=='undefined'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachUniversal,{once:true});else attachUniversal();global.addEventListener&&global.addEventListener('resize',function(){clearTimeout(global.__ibisInvestorLayoutTimer);global.__ibisInvestorLayoutTimer=setTimeout(investorDefault,120);});}
 })(typeof window!=='undefined'?window:globalThis);
