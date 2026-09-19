@@ -1,5 +1,15 @@
 importScripts('tracker-registry.js', 'shield.js', 'analytics.js');
 
+// The session storage area defaults to accessLevel 'TRUSTED_CONTEXTS' -- extension pages and the
+// background worker only. content.js (a content script, an "untrusted context" for this API)
+// writes to that area for the ibis/Headspace handoff, and ibis-handoff.js reads it back the same
+// way on the destination page. Without the call below, both of those throw "Access to storage is
+// not allowed from this context" and the entire handoff silently fails -- found live, end to end,
+// in this session's integration QA (clicking "Ask ibis about this page" produced exactly that
+// error and never opened ibis at all). This is a pre-existing defect inherited from the original
+// V1 scaffold, not something introduced this pass -- fixed here.
+chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+
 chrome.runtime.onInstalled.addListener((details) => {
   self.FTN_SCARLETT_ANALYTICS.logEvent('activation', { reason: details.reason });
 });

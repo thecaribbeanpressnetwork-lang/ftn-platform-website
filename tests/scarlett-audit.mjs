@@ -171,7 +171,10 @@ assert.match(background,/SCARLETT_SHIELD_STATUS/);
 assert.match(background,/SCARLETT_SHIELD_REQUEST/);
 assert.match(background,/SCARLETT_SHIELD_REVOKE/);
 assert.match(background,/SCARLETT_FAUCET_SUMMARY/);
-assert.doesNotMatch(background,/chrome\.storage/,'the capture reply must go straight back to the tab, never be persisted');
+// background.js's only legitimate chrome.storage reference is raising chrome.storage.session's
+// access level (checked explicitly further below) -- it must never itself persist the Compare
+// screenshot or any other captured data.
+assert.doesNotMatch(background,/chrome\.storage\.(local|session)\.(set|get)\(/,'the capture reply must go straight back to the tab, never be persisted by background.js itself');
 assert.doesNotMatch(background,/fetch\s*\(/);
 
 assert.match(handoff,/Review the minimal page context before inserting it into ibis/);
@@ -227,6 +230,14 @@ assert.match(content,/track\('transform_used'/);
 assert.match(content,/track\('paywall_impression'/);
 // Search/Find analytics must never log the query text -- only the local intent classification.
 assert.match(popup,/logEvent\(searchMode===.FIND.\?'find_used':'search_used',\{intent:classification\.intent,resultCount:rows\.length\}\)/);
+
+// chrome.storage.session defaults to TRUSTED_CONTEXTS (extension pages/background only) --
+// content.js (a content script) calls chrome.storage.session.set() for the ibis/Headspace handoff,
+// and ibis-handoff.js reads it back the same way on the destination page. Found live via a full
+// click-through integration test (clicking "Ask ibis about this page" threw "Access to storage is
+// not allowed from this context" and the handoff never opened ibis at all): without raising the
+// access level once from the background worker, that entire path silently fails in real usage.
+assert.match(background,/chrome\.storage\.session\.setAccessLevel\(\{\s*accessLevel:\s*'TRUSTED_AND_UNTRUSTED_CONTEXTS'\s*\}\)/,'background.js must raise chrome.storage.session access level so content scripts (content.js, ibis-handoff.js) can actually use it -- otherwise the entire ibis/Headspace handoff silently fails');
 
 // Entitlements: a real, central data model -- but truth-in-labeling is mandatory. Only the free
 // tier may be marked LIVE; every paid tier must say PLANNED (no checkout exists), and nothing this
