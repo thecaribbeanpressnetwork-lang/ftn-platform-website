@@ -222,6 +222,7 @@
       capturedAt:new Date().toISOString()
     };
     Object.defineProperty(model, '_clutterNodes', { value:clutter, enumerable:false });
+    Object.defineProperty(model, '_mainRegion', { value:document.querySelector('article,main,[role="main"]')||null, enumerable:false });
     return model;
   }
 

@@ -1,0 +1,26 @@
+:root{color-scheme:dark}
+.sp-shell{min-height:100vh;background:radial-gradient(circle at 80% 5%,rgba(225,6,19,.14),transparent 34%),#0b0b0d;color:#f5f7f8;padding:28px clamp(20px,5vw,84px) 70px}
+.sp-nav{display:flex;justify-content:space-between;gap:18px;max-width:1200px;margin:auto}
+.sp-nav a{color:#f18b93}
+.sp-hero{max-width:900px;margin:72px auto 38px;text-align:center}
+.sp-hero>span{font-size:.76rem;letter-spacing:.18em;color:#ef3340;font-weight:800}
+.sp-hero h1{font-size:clamp(2.2rem,5.6vw,4.6rem);line-height:1.02;margin:18px 0}
+.sp-hero p{max-width:760px;margin:auto;color:#b8b9bd;font-size:1.1rem;line-height:1.7}
+.sp-status{display:inline-block;margin-top:24px;border:1px solid #3a3a42;border-radius:999px;padding:9px 16px;color:#e6e7ea}
+.sp-status[data-tone=error]{border-color:#8e4050;color:#ffb7c2}
+.sp-status[data-tone=success]{border-color:#32795c;color:#8ef0bd}
+.sp-plans{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.sp-plan{background:#131316;border:1px solid #2a2a30;border-radius:22px;padding:26px;box-shadow:0 20px 65px rgba(0,0,0,.28);display:flex;flex-direction:column}
+.sp-plan--current{border-color:#ef3340;background:linear-gradient(155deg,#1a1113,#131316)}
+.sp-plan>span{font-size:.72rem;letter-spacing:.14em;color:#a9abb1;font-weight:800}
+.sp-plan h2{font-size:1.3rem;margin:10px 0}
+.sp-price{font-size:2rem;font-weight:800;margin:8px 0}
+.sp-price small{font-size:.85rem;color:#9a9ca2;font-weight:500}
+.sp-plan ul{padding-left:18px;line-height:1.7;color:#c7c9ce;font-size:.92rem;min-height:150px;flex:1}
+.sp-plan .btn{width:100%;justify-content:center;margin-top:8px}
+.sp-fine{font-size:.78rem;color:#8d8f95;line-height:1.5;margin-top:10px}
+.sp-boundary{max-width:1200px;margin:26px auto 0;border:1px solid #2a2a30;border-radius:20px;padding:24px;background:#111113}
+.sp-boundary p{color:#b7b9be;line-height:1.7}
+.sp-boundary a{color:#f18b93}
+@media(max-width:1080px){.sp-plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.sp-plans{grid-template-columns:1fr}.sp-hero{margin-top:48px}.sp-plan ul{min-height:0}}
