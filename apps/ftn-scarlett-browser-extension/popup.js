@@ -1,3 +1,5 @@
+import {search as ibisSearch,sourceLink} from './ibis-search-client.js';
+
 const status=document.querySelector('#status');
 const facts=document.querySelector('#page-facts');
 const buttons=[...document.querySelectorAll('[data-mode]')];
@@ -97,3 +99,39 @@ shieldToggle.addEventListener('click',async()=>{
   renderShield();
 });
 renderShield();
+
+// Search with Scarlett / Find with Scarlett: both hit the same canonical FTN ibis endpoint
+// (ibis-search-client.js) the production ibis companion extension already uses -- only on an
+// explicit form submit, never as the user types.
+const searchForm=document.querySelector('#search-form');
+const searchQuery=document.querySelector('#search-query');
+const searchStatus=document.querySelector('#search-status');
+const searchResults=document.querySelector('#search-results');
+let searchMode='SEARCH';
+searchForm.addEventListener('click',(event)=>{
+  const button=event.target.closest('[data-search-mode]');
+  if(button) searchMode=button.dataset.searchMode;
+});
+searchForm.addEventListener('submit',async(event)=>{
+  event.preventDefault();
+  const query=searchQuery.value.trim();
+  if(!query){ searchStatus.textContent='Type something to search or find.'; return; }
+  searchResults.replaceChildren();
+  searchStatus.textContent=(searchMode==='FIND'?'Finding':'Searching')+'…';
+  try{
+    const{rows,classification}=await ibisSearch(query,{mode:searchMode});
+    searchStatus.textContent=rows.length
+      ? rows.length+' result'+(rows.length===1?'':'s')+(searchMode==='FIND'?' · shown as '+classification.representation.replace('-',' '):'')
+      : 'No indexed result matched. Open FTN ibis for a broader search.';
+    for(const row of rows.slice(0,8)){
+      const card=document.createElement('article');card.className='search-card';
+      const heading=document.createElement('h3');heading.textContent=row.title||row.organization||'FTN ibis record';
+      const meta=document.createElement('p');meta.className='meta';meta.textContent=[row.type,row.organization,row.geography].filter(Boolean).join(' · ');
+      const summary=document.createElement('p');summary.textContent=row.summary||'Open the original source for details.';
+      card.append(heading,meta,summary);
+      const href=sourceLink(row.sourceUrl);
+      if(href){const link=document.createElement('a');link.href=href;link.target='_blank';link.rel='noreferrer';link.textContent='Open source';card.appendChild(link);}
+      searchResults.appendChild(card);
+    }
+  }catch(error){searchStatus.textContent=error?.message||String(error);}
+});

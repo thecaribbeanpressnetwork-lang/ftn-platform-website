@@ -15,6 +15,7 @@ const deckRenderer=read('deck-renderer.js');
 const popupHtml=read('popup.html');
 const shield=read('shield.js');
 const trackerRegistry=read('tracker-registry.js');
+const searchClient=read('ibis-search-client.js');
 
 assert.equal(manifest.manifest_version,3);
 assert.equal(manifest.name,'Scarlett by FTN');
@@ -189,11 +190,24 @@ assert.match(popup,/SCARLETT_SHIELD_REQUEST/);
 assert.match(popupHtml,/Turn on Data Faucet Protection/);
 assert.match(popupHtml,/FTN receives nothing from it/,'popup must explain what FTN receives before requesting the Shield permission, per the product definition\'s explicit disclosure requirement');
 
-for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','content.js','ibis-handoff.js','README.md']){
+// Search with Scarlett / Find with Scarlett: reuse the exact same canonical FTN ibis MCP endpoint
+// and verified-real tool names (search, opportunity_scout) the shipped ftn-ibis-browser-extension
+// already calls -- not a new, disconnected retrieval stack. Only ever called on an explicit form
+// submit (never as the user types), and only ever sends a bare query string, never page content,
+// page URL, browsing history or any identifier.
+assert.match(searchClient,/jshmidfpqrajxtukzges\.supabase\.co\/functions\/v1\/ftn-ibis-mcp/,'must call the same canonical ibis MCP endpoint the shipped ibis extension uses, not a new stack');
+assert.match(searchClient,/opportunity_scout/);
+assert.match(searchClient,/classifyIntent/);
+assert.doesNotMatch(searchClient,/\.title|\.headings|location\.href|document\./,'Search/Find must never send page content -- only the user-typed query');
+assert.match(popup,/searchForm\.addEventListener\('submit'/);
+assert.doesNotMatch(popup,/searchQuery\.addEventListener\('input'/,'Search/Find must never fire on keystroke, only on explicit submit');
+
+for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','ibis-search-client.js','content.js','ibis-handoff.js','README.md']){
   assert.ok(fs.statSync(new URL(name,root)).size>20,`${name} should exist and be non-empty`);
 }
 
-// No source file in the extension makes any outbound network call -- the only "leave the device"
+// No source file in the extension makes any outbound network call, with the one disclosed
+// exception (ibis-search-client.js, checked separately above) -- the other "leave the device"
 // actions are the explicit, reviewed session-storage handoff, the background worker opening an
 // ftnplatform.org tab, and the ephemeral local screenshot capture that never leaves the browser.
 // Shield's network-layer blocking is declarative (declarativeNetRequest rules), not a fetch of its

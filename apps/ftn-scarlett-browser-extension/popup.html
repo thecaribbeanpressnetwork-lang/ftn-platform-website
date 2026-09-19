@@ -12,6 +12,18 @@
     <div><strong>Scarlett</strong><small>Adaptive interface by FTN</small></div>
   </header>
   <main>
+    <section class="search" aria-label="Search and Find with Scarlett">
+      <form id="search-form">
+        <label for="search-query" class="sr-only">Search or describe what you want to find</label>
+        <input type="text" id="search-query" maxlength="400" placeholder="Search, or describe what you want to find…">
+        <div class="search-actions">
+          <button type="submit" data-search-mode="SEARCH">Search</button>
+          <button type="submit" data-search-mode="FIND" class="secondary">Find</button>
+        </div>
+      </form>
+      <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+      <div id="search-results" class="search-results"></div>
+    </section>
     <p id="summary">Scarlett adapts only the page you choose.</p>
     <div class="mode-control" aria-label="Scarlett mode">
       <button data-mode="ORIGINAL">Original</button>
@@ -36,6 +48,6 @@
     </section>
   </main>
   <footer>Preserve identity. Replace friction.</footer>
-  <script src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>
