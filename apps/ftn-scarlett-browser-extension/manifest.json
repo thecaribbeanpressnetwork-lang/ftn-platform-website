@@ -4,6 +4,7 @@
   "short_name": "Scarlett",
   "version": "0.2.0",
   "description": "A local-first adaptive interface layer that helps you work with the page you are on while preserving the original.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqXnjEnc40drJjcBNPrqs2XNp0ZbiNm3ZsULsxZxXR/0U51Yy0BKaxKWjSx6RYgxAN0qfR0FxDynPKogsbKLP7H4bqPTaaFnSbQqw+7Ad8PwTjtSCuNsyrGCxW3RE0CwMAj0xalMacqdINlgz8LMUpheLTONXDIgQSkuYjRxsuOHQjTBcBlkscKxIZHDSSVOq45pojPaORArNlW32aTJcye7+vYSxW8b/5q1rP5fHNSFNr+F6xz0MlLH4s6+A5qTBtPKJ5osSdsVstI7+SjvqJZXpJLBn/8oBFVKR6qXz8n71h9R2ASr1eXjICdIZPU/s1xhmgGRji5iIr/dcyhRmrwIDAQAB",
   "permissions": [
     "activeTab",
     "scripting",
@@ -24,7 +25,19 @@
   ],
   "action": {
     "default_title": "Scarlett",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/scarlett-16.png",
+      "32": "icons/scarlett-32.png",
+      "48": "icons/scarlett-48.png",
+      "128": "icons/scarlett-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/scarlett-16.png",
+    "32": "icons/scarlett-32.png",
+    "48": "icons/scarlett-48.png",
+    "128": "icons/scarlett-128.png"
   },
   "content_scripts": [
     {
@@ -45,5 +58,11 @@
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "externally_connectable": {
+    "matches": [
+      "https://ftnplatform.org/*",
+      "https://www.ftnplatform.org/*"
+    ]
   }
 }

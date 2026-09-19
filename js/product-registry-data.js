@@ -405,11 +405,34 @@ product({
   description:'FTN Invest-in’s supporting recommendation capability with free-first guidance and explicit affiliate, support and editorial relationship labels.',route:'/top-picks/',status:'AVAILABLE',parentProduct:'invest',principal:false,absorbedInto:'invest',
   primaryUser:'Creators and small Caribbean teams',primaryJourney:'Compare a disclosed recommendation and continue to the provider independently.',callsToAction:[{label:'Browse FTN Picks',route:'/top-picks/'}],visualMnemonic:'Curated tool marker',
   dataSources:['FTN relationship registry','provider public pages'],accessRules:['guest'],featureFlags:['top-picks'],relatedProducts:['invest'],legalNotices:['Affiliate and relationship disclosure'],keywords:['tools','affiliate','software','creator','recommendation'],capabilities:['recommendations','relationship-disclosure']
+}),
+product({
+  id:'scarlett',name:'Scarlett by FTN',shortName:'Scarlett',tagline:'The web adapts to you. Not the other way around.',
+  description:'A browser extension that adapts how an existing site is presented and interacted with, based on page type, task and sensitivity -- not an AI sidebar, a page summarizer or a site skin. Original is always one click away.',
+  route:'/scarlett/',status:'AVAILABLE',
+  primaryUser:'Anyone browsing the web who wants the interface to adapt to their task',
+  primaryJourney:'Install the extension (unpacked developer-mode install pending Chrome Web Store review), open any page, and choose Original/Assist/Adapt/Transform/Compare/Blend.',
+  callsToAction:[{label:'Install Scarlett',route:'/scarlett/#install'},{label:'See plans',route:'/scarlett/pricing/'}],
+  visualMnemonic:'Adaptive interface red mark',
+  icon:'/assets/scarlett/scarlett-icon.png',
+  heroAsset:'/assets/scarlett/scarlett-transform.png',heroAlt:'Scarlett Transform mode showing a real property-listing page rebuilt as a task-focused deck',
+  accent:'#ef3340',atmosphere:{accent:'#ef3340',background:'dark-minimal',motionProfile:'scan-materialize',heroStyle:'product-screenshot'},
+  dataSources:['Live page DOM (local-only analysis)','FTN ibis registry (Search/Find, review-before-send handoff)'],
+  accessRules:['guest','FTN Account optional for paid plans'],featureFlags:['scarlett-v2'],relatedProducts:['ibis-ai'],
+  legalNotices:['FTN product terms','FTN privacy policy'],
+  keywords:['browser extension','adaptive interface','accessibility','privacy','tracker blocking','transform','compare','blend','data faucet'],
+  capabilities:['adaptive-interface','page-understanding','accessibility-augmentation','interface-simplification','task-aware-presentation','privacy-inspection','tracker-protection','search','find','ibis-context-handoff','headspace-handoff'],
+  purposeStatement:'Capability truth, not aspiration: Original/Assist/Adapt/Transform/Compare/Blend, Data Faucet/Shield, Search and the ibis/Headspace handoff are real and shipped (unpacked-install only, no Chrome Web Store listing yet). Find is LIMITED -- it adapts result presentation to a stated objective using the same source-backed search FTN ibis already exposes, not yet a separate multi-step planning pipeline. Paid entitlements (Scarlett+/FTN Intelligence/FTN Pro) and any founder-facing cross-user analytics are PLANNED -- the data model, UI and billing architecture exist (see docs/SCARLETT_V2_ACCOUNT_AND_BILLING_ARCHITECTURE.md) but no payment processor is connected and no real usage backend is wired yet. See docs/SCARLETT_V2_ARCHITECTURE_2026-09-19.md and docs/SCARLETT_V2_INVESTOR_READINESS_2026-09-19.md for full evidence.',
+  navPlacement:{primary:false,ecosystemGroup:'information-intelligence',footer:true},authRequirement:'guest',
+  dataProduced:['Local-only page model and transformation ledger (never transmitted)','Local-only product analytics event log'],
+  integrations:[{productId:'ibis-ai',kind:'shares-data-with'}],
+  provenanceLevel:'none',
+  ownerModules:['scarlett/index.html','scarlett/pricing/index.html','apps/ftn-scarlett-browser-extension/','js/ftn-scarlett-bridge.js','js/scarlett-pricing.js','css/components/scarlett-page.css','css/components/scarlett-pricing.css']
 })
 ];
 var ECOSYSTEM_GROUPS=[
   {id:'civic-public-life',title:'Civic & public life',description:'Participate and follow the public record through one civic-source system.',productIds:['community-connect','govern','facethenation']},
-  {id:'information-intelligence',title:'Information & intelligence',description:'One current-information system (FTN Live) and FTN ibis, Caribbean-first intelligence and orchestration for everything else.',productIds:['ftn-live','ibis-ai','statistics']},
+  {id:'information-intelligence',title:'Information & intelligence',description:'One current-information system (FTN Live) and FTN ibis, Caribbean-first intelligence and orchestration for everything else.',productIds:['ftn-live','ibis-ai','statistics','scarlett']},
   {id:'media-culture',title:'Media & culture',description:'One media/screen system for Caribbean stories, film, TV and radio through permitted sources.',productIds:['radio','screen']},
   {id:'music-creation',title:'Music & creation',description:'Create with ibis\'s Caribbean music and audio engines; perform live with FTN DJ Tube\'s specialized interface.',productIds:['ibis-ai','dj-tube']},
   {id:'opportunities-business',title:'Opportunities & business',description:'Find verified paths to work, funding and partnerships; ibis reasons over the same live data.',productIds:['opportunities','invest']},

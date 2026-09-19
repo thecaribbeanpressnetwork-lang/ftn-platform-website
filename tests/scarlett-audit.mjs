@@ -19,6 +19,7 @@ const searchClient=read('ibis-search-client.js');
 const entitlements=read('entitlements.js');
 const analytics=read('analytics.js');
 const analyticsDashboard=read('analytics-dashboard.js');
+const accountBridge=read('account-bridge.js');
 
 assert.equal(manifest.manifest_version,3);
 assert.equal(manifest.name,'Scarlett by FTN');
@@ -35,6 +36,12 @@ assert.deepEqual([...manifest.host_permissions].sort(),[
 assert.equal(manifest.background.service_worker,'background.js');
 assert.equal(manifest.content_scripts.length,1,'Scarlett must ship exactly one content script definition');
 assert.deepEqual([...manifest.content_scripts[0].matches].sort(),[...manifest.host_permissions].sort(),'content script matches must stay identical to the declared host permissions (no silent scope drift)');
+
+// Pinned extension ID (manifest "key") so js/ftn-scarlett-bridge.js on ftnplatform.org can address
+// Scarlett deterministically even for an unpacked/dev install, and externally_connectable is
+// scoped to exactly the two FTN hosts -- never a broader origin.
+assert.ok(typeof manifest.key==='string' && manifest.key.length>100,'manifest must pin a stable extension id via "key"');
+assert.deepEqual([...manifest.externally_connectable.matches].sort(),['https://ftnplatform.org/*','https://www.ftnplatform.org/*'].sort());
 
 // Shield: webRequest/declarativeNetRequest/<all_urls> must be optional, never baked into Core --
 // this is the whole point of the opt-in bundle (§16 of the product definition).
@@ -207,7 +214,7 @@ assert.doesNotMatch(searchClient,/\.title|\.headings|location\.href|document\./,
 assert.match(popup,/searchForm\.addEventListener\('submit'/);
 assert.doesNotMatch(popup,/searchQuery\.addEventListener\('input'/,'Search/Find must never fire on keystroke, only on explicit submit');
 
-for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','ibis-search-client.js','entitlements.js','analytics.js','analytics-dashboard.html','analytics-dashboard.js','content.js','ibis-handoff.js','README.md']){
+for(const name of ['popup.html','popup.css','popup.js','background.js','page-understanding.js','transformation-policy.js','representation-engine.js','deck-renderer.js','shield.js','tracker-registry.js','ibis-search-client.js','entitlements.js','analytics.js','analytics-dashboard.html','analytics-dashboard.js','account-bridge.js','content.js','ibis-handoff.js','README.md']){
   assert.ok(fs.statSync(new URL(name,root)).size>20,`${name} should exist and be non-empty`);
 }
 
@@ -223,7 +230,11 @@ assert.doesNotMatch(analyticsDashboard,/\bfetch\s*\(|XMLHttpRequest/);
 const analyticsDashboardHtml=read('analytics-dashboard.html');
 assert.match(analyticsDashboardHtml,/Nothing here has ever left your browser/);
 assert.match(analyticsDashboardHtml,/Not connected to any backend/);
-assert.match(background,/importScripts\(['"]tracker-registry\.js['"],\s*['"]shield\.js['"],\s*['"]analytics\.js['"]\)/);
+assert.match(background,/importScripts\(['"]tracker-registry\.js['"],\s*['"]shield\.js['"],\s*['"]analytics\.js['"],\s*['"]account-bridge\.js['"]\)/);
+assert.match(background,/chrome\.storage\.session\.setAccessLevel/);
+assert.match(background,/SCARLETT_ACCOUNT_STATUS/);
+assert.match(background,/SCARLETT_ACCOUNT_SIGN_OUT/);
+assert.match(background,/SCARLETT_ACCOUNT_OPEN_SIGN_IN/);
 assert.match(background,/chrome\.runtime\.onInstalled/);
 assert.match(content,/function track\(/);
 assert.match(content,/track\('transform_used'/);
@@ -248,9 +259,37 @@ const plannedTierCount=(entitlements.match(/status:\s*'PLANNED'/g)||[]).length;
 assert(plannedTierCount>=3,'every paid tier (plus/intelligence/pro) must be marked PLANNED, not LIVE');
 assert.doesNotMatch(entitlements,/\bfetch\s*\(|XMLHttpRequest|stripe|paypal/i,'entitlements.js must not itself talk to any payment processor');
 assert.match(popupHtml,/Scarlett Free/);
-assert.match(popupHtml,/ftnplatform\.org\/ibis\/pricing\//);
-assert.match(popup,/entitlements\.js/,'popup.js should be reading the live entitlement data model, not restating it');
-assert.match(content,/isPreviewOnly/,'the in-page Transform preview note must be driven by the entitlement model, not a hardcoded string with no data behind it');
+assert.match(popupHtml,/ftnplatform\.org\/scarlett\/pricing\//);
+assert.match(popupHtml,/<script src="entitlements\.js">/,'popup must load the live entitlement data model');
+
+// Account/entitlement: the popup shows REAL, server-checked state (not the static data model
+// alone), and the in-page Transform preview note is gated on real account state so an already-
+// paying user is never told to upgrade for something they already have.
+assert.match(popup,/SCARLETT_ACCOUNT_STATUS/);
+assert.match(popup,/SCARLETT_ACCOUNT_OPEN_SIGN_IN/);
+assert.match(popup,/SIGNED_OUT/);
+assert.match(content,/PAID_TIERS_WITH_TRANSFORM/,'the in-page Transform preview note must check real account state, not just the static entitlement model, so a paying user is never told to upgrade for something they already have');
+assert.match(content,/SCARLETT_ACCOUNT_STATUS/);
+
+// account-bridge.js: server truth vs local cache made explicit and testable -- a bounded fresh-
+// cache TTL, a longer bounded offline-tolerance window, and a hard downgrade to FREE once that
+// window is exceeded, regardless of what the stale cache claims.
+assert.match(accountBridge,/CACHE_TTL_MS/);
+assert.match(accountBridge,/MAX_OFFLINE_MS/);
+assert.match(accountBridge,/onMessageExternal/);
+assert.match(accountBridge,/ALLOWED_EXTERNAL_ORIGINS/);
+assert.match(accountBridge,/SIGNED_OUT/);
+assert.match(accountBridge,/fetch\(BILLING_ENDPOINT/,'the background worker is the one legitimate place Scarlett calls out to check real entitlement truth');
+assert.match(accountBridge,/jshmidfpqrajxtukzges\.supabase\.co\/functions\/v1\/ftn-scarlett-billing/);
+
+// js/ftn-scarlett-bridge.js (website side): never sends a password or a privileged key, only an
+// access token + expiry + user id, and every send is wrapped so a missing extension is a silent
+// no-op, never a page error.
+const scarlettBridge=fs.readFileSync('js/ftn-scarlett-bridge.js','utf8');
+assert.match(scarlettBridge,/clfkbacenkaicfpgchbmmolfbnanngfe/,'must address Scarlett\'s pinned extension id');
+assert.match(scarlettBridge,/chrome\.runtime\.lastError/,'must read lastError so a missing extension never logs an unhandled page error');
+assert.doesNotMatch(scarlettBridge,/\.password|passwordField|session\.password/i,'must never reference a password value, even to forward it');
+assert.match(scarlettBridge,/FTN_SESSION_CLEAR/);
 
 // No source file in the extension makes any outbound network call, with the one disclosed
 // exception (ibis-search-client.js, checked separately above) -- the other "leave the device"

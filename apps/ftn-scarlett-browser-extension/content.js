@@ -509,9 +509,13 @@
     // entitlements.js -- 'free' currently includes every capability this build implements). This
     // note only sets honest expectations about the FTN plan model after the user has already
     // gotten the value, per the product definition's explicit "sell after the value, never before"
-    // rule -- it never blocks or degrades anything.
-    const entitlements=globalThis.FTN_SCARLETT_ENTITLEMENTS;
-    if(entitlements?.isPreviewOnly?.('scarlett.transform')){
+    // rule -- it never blocks or degrades anything. Checked against REAL account state (not just
+    // the static entitlements.js data model) so an already-paying Scarlett+/Intelligence/Pro user
+    // is never shown a note implying they need to upgrade for something they already have.
+    const PAID_TIERS_WITH_TRANSFORM=new Set(['SCARLETT_PLUS','FTN_INTELLIGENCE','FTN_PRO']);
+    let accountState=null;
+    try{ const reply=await chrome.runtime.sendMessage({type:'SCARLETT_ACCOUNT_STATUS'}); if(reply?.ok) accountState=reply.state; }catch{}
+    if(!accountState || !PAID_TIERS_WITH_TRANSFORM.has(accountState)){
       const planNote=document.createElement('p');
       planNote.className='sc-deck-confidence';
       planNote.textContent='This Transform is a preview of what Scarlett+ includes on every page. Currently free in this build.';

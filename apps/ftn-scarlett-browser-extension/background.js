@@ -1,4 +1,4 @@
-importScripts('tracker-registry.js', 'shield.js', 'analytics.js');
+importScripts('tracker-registry.js', 'shield.js', 'analytics.js', 'account-bridge.js');
 
 // The session storage area defaults to accessLevel 'TRUSTED_CONTEXTS' -- extension pages and the
 // background worker only. content.js (a content script, an "untrusted context" for this API)
@@ -64,5 +64,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (tabId == null) { sendResponse({ ok: false, error: 'No tab context available.' }); return; }
     self.FTN_SCARLETT_SHIELD.faucetSummary(tabId).then((r) => sendResponse({ ok: true, ...r }));
     return true;
+  }
+
+  // Account/entitlement -- reads the session the website handed off via externally_connectable
+  // (see account-bridge.js's onMessageExternal listener) and resolves real, server-checked
+  // entitlement truth. Never trusts a purely local flag as subscription truth.
+  if (message?.type === 'SCARLETT_ACCOUNT_STATUS') {
+    self.FTN_SCARLETT_ACCOUNT.resolveEntitlementState().then((r) => sendResponse({ ok: true, ...r }));
+    return true;
+  }
+  if (message?.type === 'SCARLETT_ACCOUNT_SIGN_OUT') {
+    self.FTN_SCARLETT_ACCOUNT.signOut().then(() => sendResponse({ ok: true }));
+    return true;
+  }
+  if (message?.type === 'SCARLETT_ACCOUNT_OPEN_SIGN_IN') {
+    chrome.tabs.create({ url: 'https://ftnplatform.org/account/?return=' + encodeURIComponent('/account/') });
+    return;
   }
 });

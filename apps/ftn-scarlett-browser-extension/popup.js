@@ -107,18 +107,53 @@ document.querySelector('#open-analytics').addEventListener('click',()=>{
   chrome.tabs.create({url:chrome.runtime.getURL('analytics-dashboard.html')});
 });
 
-// Plan/entitlement status: reads live from entitlements.js (window.FTN_SCARLETT_ENTITLEMENTS,
-// loaded as a plain classic script before this module) rather than duplicating hardcoded copy, so
-// the popup can never drift from the actual tier data model.
-(function renderPlan(){
-  const el=window.FTN_SCARLETT_ENTITLEMENTS;
-  const statusEl=document.querySelector('#plan-status');
-  if(!el||!statusEl) return;
-  const tierId=el.currentTier();
-  const tier=el.TIERS.find(t=>t.id===tierId);
-  if(!tier) return;
-  statusEl.textContent=`You're on ${tier.name}. Every mode built so far (Assist, Adapt, Transform, Compare, Blend, Data Faucet) is included, free.`;
-})();
+// Account + plan status: real, server-checked entitlement state (background.js's
+// account-bridge.js), not the static entitlements.js data model alone. SIGNED_OUT is a real,
+// distinct state -- sign-in happens on the real FTN Account page (no duplicate identity system
+// inside Scarlett), and the session is handed to the extension by js/ftn-scarlett-bridge.js once
+// the user signs in there.
+const accountStatusEl=document.querySelector('#account-status');
+const accountActionEl=document.querySelector('#account-action');
+const planStatusEl=document.querySelector('#plan-status');
+
+const STATE_LABEL={
+  SIGNED_OUT:'Not signed in',
+  FREE:'Scarlett Free',
+  TRIAL:'Trial',
+  SCARLETT_PLUS:'Scarlett+',
+  FTN_INTELLIGENCE:'FTN Intelligence',
+  FTN_PRO:'FTN Pro',
+  EXPIRED:'Plan expired',
+  PAYMENT_PAST_DUE:'Payment past due',
+  CANCELLED:'Plan cancelled',
+};
+
+async function renderAccount(){
+  let reply;
+  try{ reply=await chrome.runtime.sendMessage({type:'SCARLETT_ACCOUNT_STATUS'}); }
+  catch(error){ accountStatusEl.textContent='Account status unavailable.'; return; }
+  if(!reply?.ok){ accountStatusEl.textContent='Account status unavailable.'; return; }
+  const label=STATE_LABEL[reply.state]||reply.state;
+  if(reply.state==='SIGNED_OUT'){
+    accountStatusEl.textContent='Not signed in. Sign in to your FTN Account to sync a paid plan across devices.';
+    accountActionEl.textContent='Sign in with FTN Account';
+    accountActionEl.onclick=()=>{ chrome.runtime.sendMessage({type:'SCARLETT_ACCOUNT_OPEN_SIGN_IN'}); };
+    planStatusEl.textContent=`You're on Scarlett Free. Every mode built so far (Assist, Adapt, Transform, Compare, Blend, Data Faucet) is included, free.`;
+    return;
+  }
+  accountStatusEl.textContent='Signed in · '+label+(reply.source?.startsWith('cache-stale')?' (offline, last known)':'');
+  accountActionEl.textContent='Sign out';
+  accountActionEl.onclick=async()=>{
+    accountActionEl.disabled=true;
+    await chrome.runtime.sendMessage({type:'SCARLETT_ACCOUNT_SIGN_OUT'});
+    accountActionEl.disabled=false;
+    renderAccount();
+  };
+  planStatusEl.textContent=label==='Scarlett Free'||reply.state==='FREE'
+    ? `You're on Scarlett Free. Every mode built so far (Assist, Adapt, Transform, Compare, Blend, Data Faucet) is included, free.`
+    : `You're on ${label}.`;
+}
+renderAccount();
 
 // Search with Scarlett / Find with Scarlett: both hit the same canonical FTN ibis endpoint
 // (ibis-search-client.js) the production ibis companion extension already uses -- only on an
