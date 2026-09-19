@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "workflowName": "FTN Scout 2.0",
+  "scheduleLabel": "daily at 06:30 Trinidad & Tobago time",
+  "status": "unknown",
+  "runNumber": null,
+  "runId": null,
+  "updatedAt": null,
+  "note": "No workflow run has reported status to this file yet."
+}

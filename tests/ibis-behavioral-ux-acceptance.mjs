@@ -33,7 +33,10 @@ await isolate(head);
 // selects; stubbing only one left the other making a real, unstubbed network call that failed.
 await head.route('**/functions/v1/ibis-text-cloudflare*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({answer:'GENERAL_ROUTE_MARKER: The Caribbean contains sovereign states and dependent territories.','provider':'behavioral-fixture'})}));
 await head.route('**/functions/v1/ibis-assistant*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({answer:'GENERAL_ROUTE_MARKER: The Caribbean contains sovereign states and dependent territories.','provider':'behavioral-fixture'})}));
-await head.route('https://api.github.com/repos/thecaribbeanpressnetwork-lang/ftn-platform-website/actions/runs?*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({total_count:1,workflow_runs:[{name:'FTN Scout 2.0',event:'schedule',status:'completed',conclusion:'success',run_number:18,run_started_at:'2026-09-09T14:41:22Z'}]})}));
+// Investor-hardening fix (2026-09-19): Scout status now comes from the FTN-controlled, same-origin
+// data/scout-status.json, never a live call to GitHub's own API -- see
+// js/ibis-headspace-scout-health.js's own header for why.
+await head.route('**/data/scout-status.json',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({schemaVersion:1,workflowName:'FTN Scout 2.0',status:'success',runNumber:18,runId:'123456',updatedAt:'2026-09-09T14:41:22Z',note:null})}));
 await head.route('**/functions/v1/ftn-opportunities*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fetchedAt:'2026-09-08T12:00:00Z',warnings:[],items:[]})}));
 await open(head,'/ibis-headspace-preview/','#headspaceQuery');
 await head.waitForFunction(()=>document.documentElement.classList.contains('headspace-hydrated'),null,{timeout:15000});
