@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Scarlett — your analytics log</title>
+  <style>
+    :root{font-family:Inter,system-ui,sans-serif;color-scheme:dark}
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b0b0d;color:#f2f2f3;padding:28px 32px 60px;max-width:880px}
+    h1{font-size:22px;margin:0 0 4px}
+    .disclosure{background:#151518;border:1px solid #2a2a30;border-left:3px solid #ef3340;border-radius:12px;padding:14px 16px;margin:16px 0 28px;font-size:13px;line-height:1.6;color:#cfd0d4}
+    .disclosure strong{color:#fff}
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px}
+    .stat{background:#111113;border:1px solid #232328;border-radius:12px;padding:14px}
+    .stat .n{font-size:26px;font-weight:700}
+    .stat .l{font-size:12px;color:#9a9ca2;margin-top:2px}
+    table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+    th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #212126}
+    th{color:#9a9ca2;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+    tr:hover{background:#131315}
+    .empty{color:#7d7f85;font-style:italic;padding:20px 0}
+    button{border:1px solid #303037;border-radius:10px;background:#151518;color:#fff;padding:8px 14px;cursor:pointer;font:inherit}
+    .section-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#a9abb1;margin:28px 0 8px}
+  </style>
+</head>
+<body>
+  <h1>Scarlett — your analytics log</h1>
+  <p id="pref-line" style="color:#9a9ca2;margin:0">Checking your analytics preference…</p>
+  <div class="disclosure">
+    <strong>What this actually is:</strong> every row below is a real event Scarlett recorded on
+    this device, in this browser profile. When product analytics is on (see the toggle in
+    Scarlett's popup), these events -- and only these events, in exactly this shape -- are sent in
+    small batches to FTN's own servers to help the founder understand adoption, retention and
+    feature use. <strong>Nothing else ever leaves your browser this way:</strong> no URL, page
+    title, page text, search query, form value, email or document content is ever a field here.
+    Full disclosure: <a href="https://ftnplatform.org/legal/privacy-policy/#scarlett" target="_blank" rel="noreferrer" style="color:#ef3340">Scarlett's privacy policy</a>.
+  </div>
+
+  <div id="stats" class="stat-grid"></div>
+
+  <div class="section-title">Mode usage</div>
+  <div id="mode-table"></div>
+
+  <div class="section-title">Recent events</div>
+  <div id="event-table"></div>
+
+  <p style="margin-top:24px"><button id="clear">Clear local log</button></p>
+
+  <script src="analytics.js"></script>
+  <script src="analytics-dashboard.js"></script>
+</body>
+</html>

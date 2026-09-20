@@ -42,6 +42,7 @@
       target.focus();
       if(target.matches('[contenteditable="true"]')){target.textContent=prompt;target.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:prompt}));}
       else{const setter=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target),'value')?.set;setter?.call(target,prompt);target.dispatchEvent(new Event('input',{bubbles:true}));}
+      try{ globalThis.FTN_SCARLETT_ANALYTICS?.logEvent(isHeadspace?'headspace_handoff':'ibis_handoff',{}); }catch{}
       await chrome.storage.session.remove('scarlettIbisHandoff');
       box.remove();
     };

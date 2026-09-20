@@ -12,16 +12,68 @@
     <div><strong>Scarlett</strong><small>Adaptive interface by FTN</small></div>
   </header>
   <main>
+    <section class="search" aria-label="Search and Find with Scarlett">
+      <form id="search-form">
+        <label for="search-query" class="sr-only">Search or describe what you want to find</label>
+        <input type="text" id="search-query" maxlength="400" placeholder="Search, or describe what you want to find…">
+        <div class="search-actions">
+          <button type="submit" data-search-mode="SEARCH">Search</button>
+          <button type="submit" data-search-mode="FIND" class="secondary">Find</button>
+        </div>
+      </form>
+      <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+      <div id="search-results" class="search-results"></div>
+    </section>
     <p id="summary">Scarlett adapts only the page you choose.</p>
     <div class="mode-control" aria-label="Scarlett mode">
       <button data-mode="ORIGINAL">Original</button>
       <button data-mode="ASSIST">Assist</button>
       <button data-mode="ADAPT">Adapt</button>
+      <button data-mode="TRANSFORM">Transform</button>
     </div>
     <p id="status" role="status" aria-live="polite"></p>
     <div id="page-facts"></div>
+    <p class="mode-hint">Compare and Blend are available from the Scarlett panel on the page itself, where there is room to show them properly.</p>
+    <section class="shield" aria-label="Data Faucet Protection">
+      <h2>Data Faucet</h2>
+      <p id="shield-status" class="shield-status">Checking…</p>
+      <p id="shield-explain" class="shield-explain" hidden>
+        Turning this on lets Scarlett see which sites this page talks to (analytics, advertising,
+        social and unknown third parties) on every site you visit, and optionally block known
+        trackers. This stays entirely on your device: Scarlett never uploads what it observes, and
+        FTN receives nothing from it. You can turn it off at any time, which removes the permission
+        entirely.
+      </p>
+      <button id="shield-toggle" type="button">Turn on Data Faucet Protection</button>
+    </section>
+    <section class="account" aria-label="FTN Account">
+      <h2>FTN Account</h2>
+      <p id="account-status">Checking…</p>
+      <button id="account-action" type="button">Sign in</button>
+    </section>
+    <section class="plan" aria-label="Scarlett plan">
+      <p id="plan-status">You're on <strong>Scarlett Free</strong>. Every mode built so far (Assist, Adapt, Transform, Compare, Blend, Data Faucet) is included, free.</p>
+      <a id="plan-link" href="https://ftnplatform.org/scarlett/pricing/" target="_blank" rel="noreferrer">See Scarlett plans</a>
+      <button id="open-analytics" type="button" class="link-button">View local usage log</button>
+    </section>
+    <section class="privacy-settings" aria-label="Analytics preference">
+      <h2>Product analytics</h2>
+      <label class="analytics-toggle">
+        <input type="checkbox" id="analytics-toggle" checked>
+        Help improve Scarlett with anonymous product analytics
+      </label>
+      <p class="analytics-explain">
+        Measures things like which modes get used, install/retention counts and error rates -- an
+        anonymous install id, never your account. Never includes the sites you visit, page text,
+        search queries, form values, emails or documents. Checkout and subscription events (needed
+        to keep your plan working) are sent regardless of this setting; everything else stops
+        immediately when this is off. Full detail: <a href="https://ftnplatform.org/legal/privacy-policy/#scarlett" target="_blank" rel="noreferrer">Scarlett's privacy policy</a>.
+      </p>
+    </section>
   </main>
   <footer>Preserve identity. Replace friction.</footer>
-  <script src="popup.js"></script>
+  <script src="entitlements.js"></script>
+  <script src="analytics.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>

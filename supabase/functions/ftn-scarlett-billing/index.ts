@@ -1,0 +1,108 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.112.2";
+
+// Modeled directly on supabase/functions/ftn-ibis-billing/index.ts -- same WAM signing scheme,
+// same order/entitlement table shape, same rate limiting. Two differences, both deliberate:
+// 1. Three plan ids instead of one (scarlett-plus-monthly / ftn-intelligence-monthly /
+//    ftn-pro-monthly), matching apps/ftn-scarlett-browser-extension/entitlements.js's tier model.
+// 2. `status` additionally accepts a request Origin of Scarlett's own pinned extension id, because
+//    the extension's background worker calls `status` directly (read-only, no side effects) to
+//    resolve real entitlement truth without needing a webpage in between. `checkout` is NOT opened
+//    to the extension origin: creating a real payment order and redirecting to WAM's hosted
+//    checkout must happen in a real browser tab on ftnplatform.org, never invisibly from a
+//    background service worker.
+const webOrigins = new Set(["https://ftnplatform.org","https://www.ftnplatform.org"]);
+const extensionOrigin = "chrome-extension://clfkbacenkaicfpgchbmmolfbnanngfe";
+const windows = new Map<string,{start:number,count:number}>();
+const headers=(origin:string|null)=>({"content-type":"application/json; charset=utf-8","access-control-allow-origin":origin&&(webOrigins.has(origin)||origin===extensionOrigin)?origin:"https://ftnplatform.org","access-control-allow-headers":"authorization,apikey,content-type","access-control-allow-methods":"POST,OPTIONS","cache-control":"no-store","vary":"Origin"});
+const reply=(origin:string|null,body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:headers(origin)});
+const hex=(bytes:ArrayBuffer)=>Array.from(new Uint8Array(bytes)).map(v=>v.toString(16).padStart(2,"0")).join("");
+async function hmac(key:string,value:string){const cryptoKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(key),{name:"HMAC",hash:"SHA-256"},false,["sign"]);return hex(await crypto.subtle.sign("HMAC",cryptoKey,new TextEncoder().encode(value)));}
+function limited(userId:string){const now=Date.now(),slot=windows.get(userId);if(!slot||now-slot.start>900_000){windows.set(userId,{start:now,count:1});return false;}slot.count++;return slot.count>5;}
+
+const VALID_PLAN_IDS = new Set(["scarlett-plus-monthly","ftn-intelligence-monthly","ftn-pro-monthly"]);
+const ACQUISITION_SOURCES = new Set(["ftn_site","organic_search","youtube","tiktok","facebook","instagram","direct","partner","press","unknown"]);
+const REFERRER_CATEGORIES = new Set(["ftn_site","search_engine","social","video","direct","partner","press","unknown"]);
+const isUuid=(v:unknown)=>typeof v==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+const shortText=(v:unknown,max:number)=>typeof v==="string"&&v.length>0&&v.length<=max?v:null;
+// Fire-and-forget analytics insert -- billing correctness never depends on this succeeding. See
+// docs/FTN_SCARLETT_ANALYTICS_PIPELINE.md section 5 ("essential operational events" are emitted
+// server-side, directly by the function that already knows the real outcome, rather than trusting
+// the client to report its own checkout result).
+async function trackEvent(admin:any,name:string,installId:string|null,extra:Record<string,unknown> = {}){
+  try{
+    await admin.from("ftn_scarlett_analytics_events").insert({
+      event_id:crypto.randomUUID(),event_name:name,anonymous_install_id:installId||crypto.randomUUID(),anonymous_session_id:crypto.randomUUID(),
+      ...extra,
+    });
+  }catch{ /* analytics is best-effort; never blocks or fails a billing operation */ }
+}
+
+Deno.serve(async(req:Request)=>{
+  const origin=req.headers.get("origin");
+  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:headers(origin)});
+  const isWebOrigin=!origin||webOrigins.has(origin);
+  const isExtensionOrigin=origin===extensionOrigin;
+  if(req.method!=="POST"||!(isWebOrigin||isExtensionOrigin))return reply(origin,{error:"Not allowed"},403);
+  const url=Deno.env.get("SUPABASE_URL")||"",service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
+  const token=req.headers.get("authorization")?.replace(/^Bearer\s+/i,"")||"";
+  if(!url||!service)return reply(origin,{error:"Billing service is unavailable"},503);
+  const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
+  const {data:userData,error:userError}=await admin.auth.getUser(token),user=userData?.user;
+  if(userError||!user)return reply(origin,{error:"Sign in to manage your Scarlett plan"},401);
+  let body:{action?:string,planId?:string,anonymousInstallId?:string,acquisition?:{source?:string,medium?:string,campaignId?:string,creative?:string,referrerCategory?:string}}={};try{body=await req.json();}catch{return reply(origin,{error:"Invalid request"},400);}
+  const installId=isUuid(body.anonymousInstallId)?body.anonymousInstallId!:null;
+
+  if(body.action==="status"){
+    const now=new Date().toISOString();
+    const {data:entitlement}=await admin.from("ftn_scarlett_entitlements").select("plan_id,tier,status,starts_at,ends_at").eq("user_id",user.id).in("status",["ACTIVE","TRIAL","PAST_DUE"]).order("ends_at",{ascending:false}).limit(1).maybeSingle();
+    // An entitlement whose ends_at has already passed but whose row is still ACTIVE (the webhook
+    // hasn't swept it yet) is reported as EXPIRED here rather than as a live paid tier -- the
+    // client must never see a stale "ACTIVE" that has actually lapsed.
+    const lapsed=entitlement&&entitlement.ends_at<now&&entitlement.status==="ACTIVE";
+    return reply(origin,{tier:entitlement?entitlement.tier:null,status:lapsed?"EXPIRED":(entitlement?.status||"ACTIVE"),endsAt:entitlement?.ends_at||null});
+  }
+  if(!isWebOrigin)return reply(origin,{error:"Checkout must be started from ftnplatform.org"},403);
+  if(body.action!=="checkout"||!VALID_PLAN_IDS.has(body.planId||""))return reply(origin,{error:"Unknown billing action or plan"},422);
+  if(limited(user.id))return reply(origin,{error:"Too many checkout attempts. Wait 15 minutes."},429);
+
+  const {data:plan,error:planError}=await admin.from("ftn_scarlett_plans").select("plan_id,name,tier,price_minor,currency,duration_days,active").eq("plan_id",body.planId).eq("active",true).single();
+  if(planError||!plan||plan.price_minor<=0)return reply(origin,{error:"This plan is unavailable"},409);
+  const businessId=Deno.env.get("WAM_BUSINESS_ID")||"",apiKey=Deno.env.get("WAM_API_KEY")||"",environment=Deno.env.get("WAM_ENVIRONMENT")==="production"?"production":"staging";
+  if(!/^[0-9a-f-]{36}$/i.test(businessId)||!(/^[0-9a-f]{64}$/i.test(apiKey)||/^sk_test_[0-9a-f]+$/i.test(apiKey)))return reply(origin,{error:"WAM checkout is awaiting merchant connection; no charge was created",code:"WAM_NOT_CONFIGURED"},503);
+
+  const orderId=crypto.randomUUID(),reference=`FTNSCARLETT-${Date.now()}-${orderId.slice(0,8)}`;
+  const {error:orderError}=await admin.from("ftn_scarlett_payment_orders").insert({id:orderId,user_id:user.id,plan_id:plan.plan_id,order_reference:reference,amount_minor:plan.price_minor,currency:plan.currency});
+  if(orderError)return reply(origin,{error:"Checkout order could not be recorded"},500);
+  // Minimal, one-way acquisition attribution: this row links an anonymous channel touch (and/or
+  // install id, when the checkout click came from the extension's popup) to THIS order id only --
+  // never to the user's identity. See supabase/migrations/20260919140000_ftn_scarlett_analytics.sql
+  // and docs/FTN_SCARLETT_ANALYTICS_PIPELINE.md section 8.
+  const acq=body.acquisition||{};
+  const source=ACQUISITION_SOURCES.has(String(acq.source))?acq.source!:"unknown";
+  const referrerCategory=REFERRER_CATEGORIES.has(String(acq.referrerCategory))?acq.referrerCategory!:"unknown";
+  await admin.from("ftn_scarlett_acquisition_attribution").insert({
+    anonymous_install_id:installId,order_id:orderId,source,referrer_category:referrerCategory,
+    medium:shortText(acq.medium,40),campaign_id:shortText(acq.campaignId,60)&&/^[a-z0-9_-]{1,60}$/.test(String(acq.campaignId))?acq.campaignId:null,creative:shortText(acq.creative,60),
+  });
+  await trackEvent(admin,"checkout_started",installId,{subscription_tier:null,feature:"checkout",mode:null,acquisition_source:source,campaign_id:shortText(acq.campaignId,60)});
+  const payload=JSON.stringify({amountCents:plan.price_minor,currency:plan.currency,orderReference:reference,description:plan.name,returnUrl:"https://ftnplatform.org/scarlett/pricing/?checkout=return",metadata:{ftnOrderId:orderId,ftnPlanId:plan.plan_id,ftnUserId:user.id},idempotencyKey:reference});
+  const timestamp=Math.floor(Date.now()/1000).toString(),signature=await hmac(apiKey,`${timestamp}.${payload}`),base=environment==="production"?"https://billing.wam.money":"https://staging.billing.wam.money";
+  try{
+    const upstream=await fetch(`${base}/api/public/payment-intents`,{method:"POST",headers:{"content-type":"application/json","X-WAM-Api-Key":apiKey,"X-WAM-Timestamp":timestamp,"X-WAM-Signature":signature},body:payload,signal:AbortSignal.timeout(20_000)});
+    const result=await upstream.json().catch(()=>({})),intent=result?.data;
+    const checkout=typeof intent?.checkoutUrl==="string"?intent.checkoutUrl:"";
+    const safeCheckout=checkout.startsWith(`${base}/pay/`);
+    if(!upstream.ok||!intent?.paymentId||!safeCheckout){
+      await admin.from("ftn_scarlett_payment_orders").update({status:"FAILED",updated_at:new Date().toISOString()}).eq("id",orderId);
+      await trackEvent(admin,"checkout_failed",installId,{error_class:"billing",error_code:"wam_checkout_failed",feature:"checkout"});
+      return reply(origin,{error:"WAM could not create checkout; no plan access was granted",code:result?.code||"WAM_CHECKOUT_FAILED"},502);
+    }
+    await admin.from("ftn_scarlett_payment_orders").update({status:"CHECKOUT_READY",provider_payment_id:String(intent.paymentId),provider_invoice_id:intent.invoiceId?String(intent.invoiceId):null,checkout_expires_at:intent.expiresAt||null,updated_at:new Date().toISOString()}).eq("id",orderId);
+    return reply(origin,{checkoutUrl:checkout,orderId,environment},201);
+  }catch{
+    await admin.from("ftn_scarlett_payment_orders").update({status:"FAILED",updated_at:new Date().toISOString()}).eq("id",orderId);
+    await trackEvent(admin,"checkout_failed",installId,{error_class:"billing",error_code:"wam_checkout_timeout",feature:"checkout"});
+    return reply(origin,{error:"WAM checkout timed out; no plan access was granted"},504);
+  }
+});

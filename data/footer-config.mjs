@@ -26,7 +26,7 @@ export const FULL_COLUMNS = [
       { registry: 'community-connect' }, { registry: 'ibis-ai' }, { registry: 'ftn-live' },
       { registry: 'govern' }, { registry: 'facethenation' }, { registry: 'events' },
       { registry: 'screen' }, { registry: 'radio' }, { registry: 'opportunities' },
-      { registry: 'display-network' }, { registry: 'statistics' },
+      { registry: 'display-network' }, { registry: 'statistics' }, { registry: 'scarlett' },
     ],
   },
   { heading: 'Company', links: [{ label: 'FTN Invest-in', href: '/invest/' }, { label: 'Insights', href: '/insights/' }] },
@@ -45,7 +45,7 @@ export const PAGES = {
     'legal/privacy-policy/index.html', 'legal/responsible-ai/index.html', 'legal/terms-of-service/index.html',
     'love/index.html', 'observatory/index.html', 'parliament/index.html', 'resources/index.html',
     'scenario-workspace/index.html', 'sitemap/index.html', 'statistics/index.html', 'trust/index.html',
-    'caribbean-ecosystem-intelligence/index.html',
+    'caribbean-ecosystem-intelligence/index.html', 'scarlett/index.html',
   ],
   'bottom-only': [
     'clock/index.html', 'display/index.html', 'display-network/index.html', 'events/index.html',
@@ -54,4 +54,6 @@ export const PAGES = {
     'community-connect/index.html', 'top-picks/index.html', 'riddim/fire/index.html', 'riddim/dj/index.html',
     'riddim/daw/index.html',
   ],
+  // scarlett/pricing/index.html deliberately has no footer entry here, matching the precedent
+  // ibis/pricing/index.html already sets: a minimal checkout-shell page with no footer at all.
 };

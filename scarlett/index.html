@@ -1,0 +1,126 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scarlett — FTN's adaptive interface layer</title><meta name="description" content="Scarlett adapts the sites you already use around your task, shows you who they talk to, and hands off to FTN ibis only when you choose. Original always one click away."><link rel="canonical" href="https://ftnplatform.org/scarlett/"><link rel="icon" href="/assets/icons/ftn-shortcut-mark.svg?v=20260811.2"><link rel="stylesheet" href="/css/tokens.css"><link rel="stylesheet" href="/css/base.css"><link rel="stylesheet" href="/css/components/buttons.css"><link rel="stylesheet" href="/css/components/nav.css"><link rel="stylesheet" href="/css/components/country-switcher.css"><link rel="stylesheet" href="/css/components/footer.css"><link rel="stylesheet" href="/css/components/scarlett-page.css"><link rel="stylesheet" href="/css/utilities.css"></head><body class="sc-page"><a class="skip-link" href="#main">Skip to main content</a><header class="site-header"><div class="container site-header__bar"><a class="site-header__logo" href="/" aria-label="FTN Platform home"><svg viewBox="0 0 220 64" role="img" aria-labelledby="headerLogoTitle" class="logo-mark"><title id="headerLogoTitle">FTN Platform</title><text x="0" y="40" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="#FFFFFF">F<tspan class="logo-mark__t">T</tspan>N</text><text x="2" y="57" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#FFFFFF">PLATFORM</text></svg></a><!-- Scarlett is registered in js/product-registry-data.js with navPlacement.primary:false --
+    PRIMARY_NAV in data/nav-config.mjs is a deliberately curated ~8-product list, not every
+    registry entry, so this page intentionally does not carry the FTN:NAV:START/END markers
+    scripts/sync-nav.mjs owns; it links FTN Platform / FTN ibis / FTN Directory directly instead. --><nav class="site-nav" aria-label="Primary"><ul class="site-nav__list"><li class="site-nav__item"><a href="/" class="site-nav__trigger site-nav__trigger--link">FTN Platform</a></li><li class="site-nav__item"><a href="/ibis-ai/" class="site-nav__trigger site-nav__trigger--link">FTN ibis</a></li><li class="site-nav__item"><a href="/applications/" class="site-nav__trigger site-nav__trigger--link">FTN Directory</a></li></ul></nav><div class="site-header__actions"><a class="btn btn-primary btn-sm" href="#install">Install Scarlett</a></div></div></header><main id="main">
+
+<section class="sc-hero">
+  <span class="sc-hero__eyebrow">FTN SCARLETT · ADAPTIVE INTERFACE LAYER</span>
+  <h1>The web adapts to you. Not the other way around.</h1>
+  <p>Scarlett is a browser extension that changes how an existing site is presented and interacted with — based on what kind of page it is, what you're trying to do, and how sensitive it is. It's not an AI sidebar, a page summarizer or a site skin. Original is always one click away.</p>
+  <div class="sc-hero__actions"><a class="btn btn-primary" href="#install">Install Scarlett</a><a class="btn btn-outline" href="/scarlett/pricing/">See plans</a></div>
+</section>
+
+<section class="sc-section">
+  <h2>What Scarlett actually does</h2>
+  <p class="sc-lede">Everything below is a real, working state of the shipped extension — these are unedited screenshots of Scarlett running on a real page, not mockups.</p>
+  <img class="sc-shot" src="/assets/scarlett/scarlett-adapt.png" alt="Scarlett's Assist panel open on a real property-listing page, showing the detected page type, decision-relevant facts (price, deadline, eligibility) and mode controls (Original, Transform, Compare, Data Faucet).">
+  <img class="sc-shot" src="/assets/scarlett/scarlett-transform.png" alt="Scarlett's Transform mode on the same listing page, showing a task-focused deck with OVERVIEW, PRICE, ACTIONS and DOCUMENTS tabs built entirely from real page content.">
+</section>
+
+<section class="sc-section">
+  <h2>The mode continuum</h2>
+  <p class="sc-lede">Six intervention levels, from doing nothing to fully rebuilding the page's presentation — you choose how far Scarlett goes, and it never goes further than the page's own sensitivity allows.</p>
+  <div class="sc-modes">
+    <div class="sc-mode-card" data-status="live"><h3>Original</h3><p>The untouched source page. Always one click away.</p><span class="sc-badge sc-badge--available">Available</span></div>
+    <div class="sc-mode-card" data-status="live"><h3>Assist</h3><p>Native interface stays primary; Scarlett adds a contextual panel, accessibility help and an ibis handoff.</p><span class="sc-badge sc-badge--available">Available</span></div>
+    <div class="sc-mode-card" data-status="live"><h3>Adapt</h3><p>Improves hierarchy and reduces clutter while preserving the source's own identity and controls.</p><span class="sc-badge sc-badge--available">Available</span></div>
+    <div class="sc-mode-card" data-status="live"><h3>Transform</h3><p>Rebuilds the page as a task-focused deck — grounded only in real page content, never invented.</p><span class="sc-badge sc-badge--available">Available</span></div>
+    <div class="sc-mode-card" data-status="live"><h3>Compare</h3><p>A draggable reveal between the original page and Scarlett's presentation of it.</p><span class="sc-badge sc-badge--available">Available</span></div>
+    <div class="sc-mode-card" data-status="live"><h3>Blend</h3><p>A staged 0–100% slider between Original and full Transform, six fixed stops.</p><span class="sc-badge sc-badge--available">Available</span></div>
+  </div>
+  <p style="margin-top:16px;color:#8d8f95;font-size:.86rem">On sensitive surfaces (banking, payment, health, identity, government sign-in) and inside Google Docs/Sheets/Gmail/Calendar, Scarlett automatically stays in Assist — Adapt, Transform and deep Blend levels are not offered there, to protect muscle memory and avoid touching anything consequential.</p>
+</section>
+
+<section class="sc-section">
+  <h2>Data Faucet — see who a page talks to</h2>
+  <div class="sc-grid-2">
+    <div>
+      <p class="sc-lede" style="margin-bottom:14px">Turn on Data Faucet Protection and Scarlett shows you the real, observed third-party connections a page makes — analytics, advertising, social pixels, and unknown hosts — categorized from a disclosed, curated domain list. It's never presented as complete tracker coverage, because no such claim would be honest.</p>
+      <ul class="sc-list">
+        <li>Real blocking of known trackers, never payment/CDN/font infrastructure (so it can't silently break checkout or a site's layout)</li>
+        <li>"Site broken?" adds a one-click local exception if Shield ever breaks something</li>
+        <li>Entirely opt-in — a separate permission, requested only when you turn it on, removable in one click</li>
+      </ul>
+    </div>
+    <img class="sc-shot" src="/assets/scarlett/scarlett-data-faucet.png" alt="Scarlett's Data Faucet panel, showing 3 external connections, 3 known trackers correctly categorized as analytics/advertising/social, and all 3 blocked after Shield was turned on.">
+  </div>
+</section>
+
+<section class="sc-section">
+  <h2>Search with Scarlett · Find with Scarlett</h2>
+  <div class="sc-grid-2">
+    <div>
+      <h3 style="margin:0 0 6px;font-size:1.1rem;color:#fff">Search</h3>
+      <p style="color:#a9abb1;line-height:1.6;margin:0 0 18px">A short query, source-backed results from FTN's own reviewed intelligence registry — the exact same canonical endpoint FTN's own ibis browser companion already uses.</p>
+      <h3 style="margin:0 0 6px;font-size:1.1rem;color:#fff">Find</h3>
+      <p style="color:#a9abb1;line-height:1.6">Describe an objective instead of typing keywords ("find me a grant I could apply for") and Scarlett adapts how results are presented to what you're actually trying to do.</p>
+    </div>
+    <div>
+      <span class="sc-badge sc-badge--limited">Limited</span>
+      <p style="color:#8d8f95;font-size:.86rem;margin-top:8px">Find's retrieval today uses the same source-backed search FTN ibis already exposes, with the presentation adapted to your objective — it is not yet a separate multi-step research pipeline. Only ever sent on explicit submit; your query text is never logged by Scarlett's own analytics.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sc-section">
+  <h2>How Scarlett, ibis and Headspace fit together</h2>
+  <div class="sc-boundary-strip">
+    <div><strong>Scarlett</strong><span>Adapts how the page in front of you looks and behaves</span></div>
+    <div><strong>ibis</strong><span>Reasons: evidence, provenance, governed action</span></div>
+    <div><strong>Headspace</strong><span>The workspace a complex task unfolds inside</span></div>
+  </div>
+  <p class="sc-lede">Scarlett never becomes a second intelligence brain — it doesn't call any AI model itself. "Ask ibis about this page" and "Open in Headspace" are explicit, reviewed handoffs: you see exactly what would be sent before anything leaves your browser, and nothing is ever sent automatically.</p>
+</section>
+
+<section class="sc-section">
+  <h2>Privacy model</h2>
+  <div class="sc-privacy-grid">
+    <div class="sc-privacy-card"><h3>Local by default</h3><p>Page analysis, risk classification, Site DNA, the transformation ledger and your accessibility preferences never leave your device.</p></div>
+    <div class="sc-privacy-card"><h3>Data Faucet</h3><p>Reads request destinations on the current tab only, once Shield is on. Never inspects request/response bodies.</p></div>
+    <div class="sc-privacy-card"><h3>ibis / Headspace handoff</h3><p>A single reviewed package — page type, your typed intent, selected text or a short summary — sent only after you click Insert.</p></div>
+    <div class="sc-privacy-card"><h3>Search / Find</h3><p>Only the text you typed, sent to FTN's own ibis endpoint on explicit submit. No page content, no identifiers.</p></div>
+    <div class="sc-privacy-card"><h3>Analytics</h3><p>Local-only event log (mode used, feature adopted) with a structural filter against anything resembling page content. No real-user backend is wired yet.</p></div>
+    <div class="sc-privacy-card"><h3>Billing</h3><p>WAM's hosted checkout receives payment details directly — FTN and Scarlett never see card, CVV or wallet credentials.</p></div>
+  </div>
+</section>
+
+<section class="sc-section">
+  <h2>Free vs. paid</h2>
+  <p class="sc-lede">Privacy is never paywalled. Everything that keeps you safer stays free.</p>
+  <div class="sc-grid-2">
+    <div><h3 style="color:#fff;font-size:1.05rem">Free, always</h3><ul class="sc-list"><li>Original / Assist / meaningful Adapt</li><li>Data Faucet visibility &amp; baseline Shield blocking</li><li>Search with Scarlett</li><li>Accessibility controls</li></ul></div>
+    <div><h3 style="color:#fff;font-size:1.05rem">Scarlett+ and above</h3><ul class="sc-list"><li>Full Transform on every supported page</li><li>Full Compare &amp; Blend</li><li>Deeper ibis research &amp; Headspace</li><li>Cross-device sync</li></ul></div>
+  </div>
+  <p style="margin-top:14px"><a class="btn btn-outline" href="/scarlett/pricing/">See full plan comparison</a></p>
+</section>
+
+<section class="sc-section" id="install">
+  <h2>Supported browsers &amp; installation</h2>
+  <div class="sc-browser-row">
+    <span class="sc-browser-chip">Chrome</span>
+    <span class="sc-browser-chip">Edge</span>
+    <span class="sc-browser-chip">Opera</span>
+    <span class="sc-browser-chip" data-status="planned">Firefox — not yet ported (Manifest V3 differences)</span>
+  </div>
+  <p style="color:#8d8f95;font-size:.86rem;margin-top:10px">Not yet published to the Chrome Web Store. Until then, install the developer build directly:</p>
+  <ol class="sc-install-steps">
+    <li>Download the latest release ZIP from FTN's GitHub releases and unzip it.</li>
+    <li>Open <code>chrome://extensions</code> (or the equivalent Edge/Opera page) and turn on Developer mode.</li>
+    <li>Click "Load unpacked" and select the unzipped Scarlett folder.</li>
+    <li>Pin Scarlett's icon to your toolbar and open any normal web page to start.</li>
+  </ol>
+</section>
+
+</main>
+
+<div class="sc-cta">
+  <h2>See it on your own page</h2>
+  <p style="color:#a9abb1;max-width:560px;margin:0 auto 20px">Install Scarlett, open any article or listing page, and try Assist → Adapt → Transform → Original. It takes under a minute.</p>
+  <a class="btn btn-primary" href="#install">Install Scarlett</a>
+</div>
+
+<!-- FTN:FOOTER:START (generated by scripts/sync-footer.mjs -- do not hand-edit this region, edit data/footer-config.mjs instead) -->
+<footer class="site-footer"><div class="container"><div class="site-footer__top"><div class="site-footer__brand"><svg viewBox="0 0 220 64" role="img" class="logo-mark--footer"><text x="0" y="40" font-family="Montserrat,Arial,sans-serif" font-weight="800" font-size="40" fill="#fff">F<tspan class="logo-mark__t">T</tspan>N</text><text x="2" y="57" font-family="Montserrat,Arial,sans-serif" font-weight="600" font-size="11" letter-spacing="4" fill="#fff">PLATFORM</text></svg><p class="site-footer__tagline">One Ecosystem. One Mission. Built for the Caribbean.</p></div><div class="site-footer__columns"><div><p class="site-footer__heading">Platform</p><div class="site-footer__links"><a href="/about/">About FTN</a><a href="/community-connect/">FTN Community Connect</a><a href="/ibis-ai/">FTN ibis</a><a href="/observatory/">FTN Live</a><a href="/govern/">FTN Govern</a><a href="/facethenation">FTN Face The Nation</a><a href="/events/">FTN Events</a><a href="/screen/">FTN Screen</a><a href="/radio/">FTN Radio</a><a href="/opportunities/">FTN Opportunities</a><a href="/display-network/">FTN Display Network</a><a href="/statistics/">FTN Statistics</a><a href="/scarlett/">Scarlett by FTN</a></div></div><div><p class="site-footer__heading">Company</p><div class="site-footer__links"><a href="/invest/">FTN Invest-in</a><a href="/insights/">Insights</a></div></div><div><p class="site-footer__heading">Legal</p><div class="site-footer__links"><a href="/legal/privacy-policy/">Privacy Policy</a><a href="/legal/terms-of-service/">Terms of Service</a><a href="/legal/cookie-policy/">Cookie Policy</a><a href="/legal/data-retention/">Data Retention</a></div></div></div></div><div class="site-footer__bottom"><p>© 2026 FTN Platform. All Rights Reserved. Designed by Boss Consulting.</p><div class="site-footer__bottom-links"><a href="/sitemap/">Sitemap</a><a href="/accessibility/">Accessibility</a><a href="/applications/">FTN Directory</a><a href="/contact/">Contact</a><a href="/trust/">Trust Centre</a></div></div></div></footer>
+<!-- FTN:FOOTER:END -->
+<script src="/js/nav.js?v=20260824.5"></script><script src="/js/country-switcher.js"></script><script src="/js/scarlett-acquisition.js?v=20260919.1"></script>
+</body></html>

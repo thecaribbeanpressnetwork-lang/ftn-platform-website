@@ -44,3 +44,8 @@
 # Generated acceptance-test run output (tests/ibis-investor-readiness.mjs) -- one run-id directory
 # per invocation, never intentionally-maintained fixtures. Not committed.
 /test-results/
+
+# Scarlett extension release package (apps/ftn-scarlett-browser-extension/build-package.mjs output)
+# -- a build artifact meant to be uploaded to a GitHub Release, same pattern as the ibis browser
+# companion's own release assets. Not committed; regenerate with `node build-package.mjs`.
+/apps/ftn-scarlett-browser-extension/dist/
