@@ -59,12 +59,28 @@ function hasCommand(cmd) {
 if (hasCommand('zip')) {
   execFileSync('zip', ['-q', '-X', '-FS', archivePath, ...files], { cwd: root, stdio: 'inherit' });
 } else if (process.platform === 'win32') {
-  // Compress-Archive is part of every Windows PowerShell install -- no extra tooling needed on a
-  // founder's own machine.
-  const fileArgs = files.map((f) => `"${path.join(root, f)}"`).join(',');
+  // Investor-QA fix (2026-09-20): confirmed live -- `Compress-Archive -Path f1,f2,...` with a list of
+  // individual file paths flattens every file to the archive ROOT; it does not preserve the relative
+  // directory each path came from. That silently produced a store ZIP whose icons/*.png files ended
+  // up at the archive root instead of under icons/, while manifest.json still referenced
+  // "icons/scarlett-16.png" etc. -- a real, wrong package that passed this script's own "built
+  // successfully" log. Verified by extracting the previous ZIP and loading it as an unpacked
+  // extension in a real Chromium via Playwright: Chrome hung during extension load rather than
+  // starting, unlike the same load from the correct source tree (which registers its service worker
+  // in ~2s). Fixed by staging every file into a temp directory that mirrors its manifest-relative
+  // path (creating icons/ as a real subdirectory) and compressing THAT directory's contents, which
+  // Compress-Archive -Path <dir>/* preserves correctly, one level of subdirectories included.
+  const stageDir = path.join(distDir, `.stage-${manifest.version}`);
+  fs.rmSync(stageDir, { recursive: true, force: true });
+  for (const file of files) {
+    const dest = path.join(stageDir, file);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(path.join(root, file), dest);
+  }
   execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
-    `Compress-Archive -Path ${fileArgs} -DestinationPath "${archivePath}" -Force`
+    `Compress-Archive -Path "${stageDir}\\*" -DestinationPath "${archivePath}" -Force`
   ], { stdio: 'inherit' });
+  fs.rmSync(stageDir, { recursive: true, force: true });
 } else {
   throw new Error('No zip CLI found and this is not Windows (PowerShell fallback unavailable). Install `zip` to package Scarlett.');
 }
