@@ -53,9 +53,25 @@
     if (app) return 'APP';
     const schema = Array.from(document.querySelectorAll('script[type="application/ld+json"]')).map(x => x.textContent || '').join(' ').toLowerCase();
     const body = clean(text(document.body, 18000), 18000).toLowerCase();
+    const articleCount = document.querySelectorAll('article').length;
+    // Investor-QA fix (2026-09-20): confirmed live -- a bare document.querySelector('article') check
+    // (any <article> tag anywhere) misclassified books.toscrape.com's product-tile grid as ARTICLE,
+    // because a common, valid HTML5 pattern wraps each self-contained card (product tile, search
+    // hit, forum post) in its own <article> element -- the tag means "self-contained composition",
+    // not "this is a news article". A real single reading article has one primary <article> (rarely
+    // two, e.g. with a "related" aside); a whole page of them is a collection/grid, i.e. LISTING.
+    // Separately, the bare keyword OR-match (.../news|opinion|article/.test(body)) misclassified
+    // discord.com as ARTICLE purely because the word "News" appeared once in nav/footer copy --
+    // ordinary marketing/app pages routinely contain these words without being an article. Both are
+    // generic structural/metadata fixes (article count, schema.org/OpenGraph article typing, byline/
+    // publish-date presence), not a hardcoded site name for either site.
+    const ogType = (document.querySelector('meta[property="og:type"]')?.content || '').toLowerCase();
+    const isArticleTyped = ogType === 'article' || /"@type"\s*:\s*"(news ?article|article|blogposting)"/.test(schema);
+    const hasByline = !!document.querySelector('[rel="author"], [itemprop="author"], time[datetime], time[pubdate]');
     if (/product|offer|pricecurrency/.test(schema) || /add to cart|buy now|property details|for sale|listing/.test(body)) return 'LISTING';
+    if (articleCount >= 3) return 'LISTING';
     if (document.querySelector('form') && /apply|application|submit|eligibility|required documents|appointment|request/.test(body)) return 'FORM_SERVICE';
-    if (document.querySelector('article') || /published|author|read time|news|opinion|article/.test(body)) return 'ARTICLE';
+    if (isArticleTyped || (articleCount >= 1 && articleCount <= 2 && (hasByline || /published|author|read time/.test(body)))) return 'ARTICLE';
     if (document.querySelector('[role="application"], [contenteditable="true"]')) return 'APP';
     return 'GENERIC';
   }
