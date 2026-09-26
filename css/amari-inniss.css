@@ -1,0 +1,215 @@
+/* Amari Inniss artist hub — intentionally independent of FTN's public-site visual system. */
+:root {
+  --amari-ink: #111111;
+  --amari-paper: #f4ecdf;
+  --amari-paper-2: #fffaf2;
+  --amari-red: #b3202b;
+  --amari-gold: #c49a4a;
+  --amari-magenta: #b62767;
+  --amari-turquoise: #3f9d9b;
+  --amari-muted: #aaa196;
+  --amari-line: rgba(255,255,255,.13);
+  --amari-max: 1180px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: var(--amari-ink); }
+body {
+  margin: 0;
+  color: #f7f3ed;
+  background: var(--amari-ink);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.55;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+.skip-link {
+  position: fixed; left: 1rem; top: -6rem; z-index: 99;
+  background: #fff; color: #111; padding: .7rem 1rem; border-radius: 999px;
+}
+.skip-link:focus { top: 1rem; }
+.amari-shell { overflow: clip; }
+.amari-wrap { width: min(calc(100% - 2rem), var(--amari-max)); margin: 0 auto; }
+
+.amari-nav {
+  position: absolute; inset: 0 0 auto 0; z-index: 10;
+  padding: 1rem 0;
+}
+.amari-nav__inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.amari-wordmark {
+  text-decoration: none; font-weight: 900; text-transform: uppercase;
+  letter-spacing: .12em; font-size: .95rem;
+}
+.amari-wordmark span { color: var(--amari-gold); }
+.amari-nav__links { display: flex; align-items: center; gap: .9rem; }
+.amari-nav__links a {
+  text-decoration: none; font-size: .82rem; font-weight: 700;
+}
+.amari-pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  min-height: 44px; padding: .7rem 1rem; border-radius: 999px;
+  background: var(--amari-red); color: #fff; text-decoration: none; font-weight: 800;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.amari-pill--ghost { background: rgba(17,17,17,.4); border-color: rgba(255,255,255,.32); }
+.amari-pill:hover, .amari-pill:focus-visible { filter: brightness(1.08); }
+
+.amari-hero {
+  min-height: 92vh; display: grid; align-items: end; position: relative;
+  background: #171513;
+}
+.amari-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgba(17,17,17,.08) 0%, rgba(17,17,17,.40) 52%, rgba(17,17,17,.92) 100%),
+    linear-gradient(0deg, #111 0%, transparent 32%),
+    url('/assets/amari-inniss/amari-hero.webp') left top / cover no-repeat;
+}
+.amari-hero__content {
+  position: relative; z-index: 1; width: min(100%, 720px); margin-left: auto;
+  padding: 8rem 0 5rem;
+}
+.amari-kicker {
+  margin: 0 0 .8rem; color: var(--amari-gold); text-transform: uppercase;
+  letter-spacing: .2em; font-size: .75rem; font-weight: 900;
+}
+.amari-hero h1 {
+  margin: 0; font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(3.4rem, 9vw, 8rem); line-height: .82; letter-spacing: -.06em;
+  font-weight: 400;
+}
+.amari-hero h1 small {
+  display: block; font-family: Arial, sans-serif; font-size: .17em;
+  letter-spacing: .42em; margin: 1.1rem 0 0 .45rem; font-weight: 800;
+}
+.amari-hero__lede { font-size: clamp(1rem, 1.8vw, 1.35rem); max-width: 38rem; color: #eee7dc; margin: 1.5rem 0; }
+.amari-hero__meta { display: flex; flex-wrap: wrap; gap: .55rem; margin-bottom: 1.4rem; }
+.amari-chip {
+  padding: .4rem .65rem; border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px; font-size: .72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.amari-actions { display: flex; flex-wrap: wrap; gap: .7rem; }
+
+.amari-section { padding: clamp(4rem, 7vw, 7rem) 0; }
+.amari-section--paper { background: var(--amari-paper); color: #181512; }
+.amari-section--paper2 { background: var(--amari-paper-2); color: #181512; }
+.amari-section__head {
+  display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  gap: 2rem; align-items: start; margin-bottom: 2.5rem;
+}
+.amari-eyebrow { color: var(--amari-red); text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; font-weight: 900; }
+.amari-section h2 {
+  margin: .45rem 0 0; font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.2rem, 5vw, 4.8rem); line-height: .95; font-weight: 400; letter-spacing: -.04em;
+}
+.amari-copy { font-size: 1.05rem; max-width: 48rem; }
+.amari-copy p { margin: 0 0 1rem; }
+.amari-copy strong { color: var(--amari-red); }
+
+.amari-profile {
+  display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(2rem, 5vw, 5rem); align-items: center;
+}
+.amari-profile__image {
+  aspect-ratio: 4 / 5; border-radius: 1.2rem; overflow: hidden;
+  box-shadow: 0 20px 55px rgba(37,24,14,.18);
+}
+.amari-profile__image img { width: 100%; height: 100%; object-fit: cover; }
+.amari-signature {
+  margin-top: 1.4rem; font-family: 'Segoe Script', 'Brush Script MT', cursive;
+  font-size: clamp(1.8rem, 4vw, 3.2rem); color: var(--amari-red);
+}
+
+.amari-album {
+  display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.2fr);
+  gap: clamp(2rem, 5vw, 5rem); align-items: start;
+}
+.amari-album__cover { border-radius: 1.2rem; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.32); }
+.amari-album__title { font-family: Georgia, serif; font-size: clamp(2.4rem, 5vw, 4.6rem); line-height: .98; margin: 0 0 .8rem; font-weight: 400; }
+.amari-album__date { color: var(--amari-gold); font-weight: 900; text-transform: uppercase; letter-spacing: .12em; font-size: .78rem; }
+.amari-tracklist { margin-top: 1.8rem; display: grid; gap: .5rem; }
+.amari-track {
+  display: grid; grid-template-columns: 2rem 1fr auto; gap: .8rem; align-items: center;
+  padding: .7rem 0; border-bottom: 1px solid var(--amari-line);
+}
+.amari-track__no { color: var(--amari-muted); font-size: .75rem; }
+.amari-track__name { font-weight: 800; }
+.amari-track__genre { color: #cfc7bd; font-size: .75rem; text-align: right; }
+
+.amari-covers {
+  margin-top: 3rem; display: grid; grid-template-columns: repeat(5, 1fr); gap: .7rem;
+}
+.amari-cover-card { background: #1b1917; border-radius: .8rem; overflow: hidden; }
+.amari-cover-card img { aspect-ratio: 1; object-fit: cover; width: 100%; }
+.amari-cover-card span { display: block; padding: .65rem .7rem .8rem; font-size: .72rem; font-weight: 800; }
+
+.amari-thoughts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.amari-thought {
+  min-height: 280px; padding: 1.4rem; border: 1px solid rgba(24,21,18,.15);
+  border-radius: 1rem; display: flex; flex-direction: column; justify-content: space-between;
+  background: rgba(255,255,255,.35);
+}
+.amari-thought__topic { text-transform: uppercase; letter-spacing: .15em; font-size: .68rem; font-weight: 900; color: var(--amari-red); }
+.amari-thought blockquote {
+  margin: 1.2rem 0 0; font-family: Georgia, serif; font-size: clamp(1.35rem, 2.4vw, 2rem); line-height: 1.16;
+}
+.amari-thought__note { margin-top: 1.4rem; font-size: .7rem; color: #6d655d; }
+
+.amari-made {
+  display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(2rem, 6vw, 6rem); align-items: start;
+}
+.amari-made__statement {
+  font-family: Georgia, serif; font-size: clamp(2.2rem, 5vw, 4.4rem); line-height: .98; margin: 0;
+}
+.amari-made__statement em { color: var(--amari-gold); font-style: normal; }
+.amari-steps { display: grid; gap: .7rem; }
+.amari-step {
+  padding: 1rem 0 1rem 1rem; border-left: 3px solid var(--amari-red);
+}
+.amari-step h3 { margin: 0 0 .3rem; font-size: 1rem; }
+.amari-step p { margin: 0; color: #cec6bc; }
+
+.amari-press {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+.amari-panel {
+  border-radius: 1rem; padding: 1.4rem; background: #191715; border: 1px solid var(--amari-line);
+}
+.amari-panel h3 { margin: 0 0 .7rem; font-family: Georgia, serif; font-size: 1.7rem; font-weight: 400; }
+.amari-panel p { color: #cfc7bd; }
+.amari-links { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1rem; }
+
+.amari-footer {
+  border-top: 1px solid var(--amari-line); padding: 2rem 0 3rem; color: #aaa196;
+  font-size: .76rem;
+}
+.amari-footer__inner { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.amari-footer a { color: #d8d0c5; }
+
+@media (max-width: 900px) {
+  .amari-nav__links a:not(.amari-pill) { display: none; }
+  .amari-hero { min-height: 100svh; }
+  .amari-hero::before {
+    background:
+      linear-gradient(0deg, #111 2%, rgba(17,17,17,.4) 52%, rgba(17,17,17,.13) 100%),
+      url('/assets/amari-inniss/amari-hero.webp') center top / cover no-repeat;
+  }
+  .amari-hero__content { width: 100%; margin: 0; padding: 55vh 0 3rem; }
+  .amari-section__head, .amari-profile, .amari-album, .amari-made, .amari-press { grid-template-columns: 1fr; }
+  .amari-profile__image { max-width: 520px; }
+  .amari-covers { grid-template-columns: repeat(2, 1fr); }
+  .amari-thoughts { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .amari-wrap { width: min(calc(100% - 1.25rem), var(--amari-max)); }
+  .amari-wordmark { font-size: .8rem; }
+  .amari-nav__links .amari-pill { padding-inline: .75rem; font-size: .74rem; }
+  .amari-track { grid-template-columns: 1.6rem 1fr; }
+  .amari-track__genre { grid-column: 2; text-align: left; margin-top: -.35rem; }
+  .amari-covers { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
