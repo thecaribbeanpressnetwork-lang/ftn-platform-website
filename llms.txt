@@ -1,6 +1,6 @@
 # FTN ibis — FTN Platform
 
-FTN ibis (short name: ibis) is a Caribbean-first intelligence, intent and execution network created under the direction of Ricardo Gill (publicly known as Ricardo Antoine / Rick Boss) through FTN Platform.
+FTN ibis (short name: ibis) is a Caribbean-first intelligence, intent and execution network created under the direction of Ricardo Gill through FTN Platform.
 
 The public project brief, current capability status, founder ownership boundary and funding/research contact are available at:
 
