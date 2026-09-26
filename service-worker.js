@@ -12,7 +12,7 @@
 // Bump this value for every production shell release. A new cache namespace makes
 // sure a browser that previously installed FTN does not continue rendering an
 // obsolete HTML/CSS/JS shell after Cloudflare has deployed a repair.
-var VERSION='ftn-public-v2.4.2';
+var VERSION='ftn-public-v2.4.3';
 var SHELL=[
   '/','/offline/','/manifest.webmanifest','/css/tokens.css','/css/base.css',
   '/css/components/buttons.css','/css/components/nav.css','/css/components/nexus-foundation.css',
@@ -31,6 +31,10 @@ self.addEventListener('message',function(event){if(event.data&&event.data.type==
 self.addEventListener('fetch',function(event){
   var req=event.request;if(req.method!=='GET')return;var url=new URL(req.url);
   if(url.origin!==self.location.origin||PRIVATE.test(url.pathname)||NEVER.test(url.pathname)||/\/functions\/v1\//.test(url.pathname))return;
+  if(url.pathname==='/css/amari-inniss.css'||url.pathname==='/js/amari-player.js'){
+    event.respondWith(fetch(req).then(function(response){if(response&&response.ok)caches.open(VERSION).then(function(cache){cache.put(req,response.clone());});return response;}).catch(function(){return caches.match(req);}));
+    return;
+  }
   if(req.mode==='navigate'){
     event.respondWith(fetch(req).then(function(response){if(response&&response.ok){var copy=response.clone();caches.open(VERSION).then(function(cache){cache.put(req,copy);});}return response;}).catch(function(){return caches.match(req).then(function(hit){return hit||caches.match('/offline/');});}));return;
   }
