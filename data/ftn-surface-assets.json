@@ -16,30 +16,293 @@
       "approvedForProduction": true
     },
     {
-      "productId":"ftn-index-locked-master",
-      "reference":"founder-locked FTN Index golden spiral identity",
-      "productionAsset":"/assets/logos/ftn-index-locked-master.png",
-      "source":"Exact crop from founder-locked FTN Index brand master supplied 2026-08-27",
-      "license":"FTN-owned approved brand master",
-      "dimensions":"1025x430 PNG",
-      "fileHashSha256":"3d1d28847bc63b917dfae1a950757d30d1eacae3177f9c0fb7191f859d904f9b",
-      "desktopFocalPoint":"50% 50%",
-      "mobileFocalPoint":"50% 50%",
-      "safeArea":"Preserve the full spiral/ibis/network symbol and FTN INDEX wordmark; do not crop into the mark, recolor, redraw, replace the ibis, or reinterpret the composition.",
-      "approvedForProduction":true
+      "productId": "ftn-index-locked-master",
+      "reference": "founder-locked FTN Index golden spiral identity",
+      "productionAsset": "/assets/logos/ftn-index-locked-master.png",
+      "source": "Exact crop from founder-locked FTN Index brand master supplied 2026-08-27",
+      "license": "FTN-owned approved brand master",
+      "dimensions": "1025x430 PNG",
+      "fileHashSha256": "3d1d28847bc63b917dfae1a950757d30d1eacae3177f9c0fb7191f859d904f9b",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "safeArea": "Preserve the full spiral/ibis/network symbol and FTN INDEX wordmark; do not crop into the mark, recolor, redraw, replace the ibis, or reinterpret the composition.",
+      "approvedForProduction": true
     },
-    {"productId":"ftn-index","reference":"implementation derivative of the founder-locked raster master","productionAsset":"/assets/logos/ftn-index-lockup.svg","source":"FTN-owned SVG derivative retained only for small/vector contexts; the locked PNG remains authoritative","license":"FTN-owned implementation derivative","dimensions":"1180x320 SVG viewBox","desktopFocalPoint":"50% 50%","mobileFocalPoint":"50% 50%","approvedForProduction":true},
-    {"productId":"ftn-index-mark","reference":"implementation derivative of the founder-locked raster master","productionAsset":"/assets/logos/ftn-index-mark.svg","source":"FTN-owned simplified SVG derivative retained only where a compact vector icon is required; it must not replace the locked master in flagship identity surfaces","license":"FTN-owned implementation derivative","dimensions":"512x512 SVG viewBox","desktopFocalPoint":"50% 50%","mobileFocalPoint":"50% 50%","approvedForProduction":true},
-    {"productId":"ibis-mark","reference":"FTN ibis compact signal identity","productionAsset":"/assets/ibis/ibis-mark.svg","source":"FTN-owned vector identity created for FTN ibis and committed with the public provenance record","license":"FTN-owned production asset","dimensions":"256x256 SVG viewBox","desktopFocalPoint":"50% 50%","mobileFocalPoint":"50% 50%","safeArea":"Preserve the complete rounded obsidian field, gold wing, blue signal wing and eye; do not crop, mirror or recolor the mark.","approvedForProduction":true},
-    {"productId":"ibis-wordmark","reference":"FTN ibis name and publisher lockup","productionAsset":"/assets/ibis/ibis-wordmark.svg","source":"FTN-owned vector identity created for FTN ibis and committed with the public provenance record","license":"FTN-owned production asset","dimensions":"640x180 SVG viewBox","desktopFocalPoint":"50% 50%","mobileFocalPoint":"50% 50%","safeArea":"Preserve the complete ibis wordmark, signal mark and BY FTN PLATFORM publisher line; use the compact mark where the full lockup would become illegible.","approvedForProduction":true},
-    {"productId":"community-connect","reference":"approved page reference board","productionAsset":"/assets/heroes/community-connect-report.webp","source":"High-resolution parent scene generated from the founder-approved Community Connect reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"66% 50%","approvedForProduction":true},
-    {"productId":"screen","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-screen-film-crew.webp","source":"High-resolution parent scene generated from the founder-approved FTN Screen reference","dimensions":"1600x900 WebP","desktopFocalPoint":"66% 50%","mobileFocalPoint":"64% 50%","approvedForProduction":true},
-    {"productId":"tv","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-tv-control-room.webp","source":"High-resolution parent scene generated from the founder-approved FTN TV reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"62% 50%","approvedForProduction":true},
-    {"productId":"opportunities","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-opportunities-port.webp","source":"High-resolution parent scene generated from the founder-approved FTN Opportunities reference","dimensions":"1600x900 WebP","desktopFocalPoint":"68% 50%","mobileFocalPoint":"66% 50%","approvedForProduction":true},
-    {"productId":"kaiso","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-kaiso-newsroom.webp","source":"High-resolution parent scene generated from the founder-approved FTN Kaiso reference","dimensions":"1600x900 WebP","desktopFocalPoint":"67% 50%","mobileFocalPoint":"68% 50%","approvedForProduction":true},
-    {"productId":"riddim","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-riddim-studio.webp","source":"High-resolution parent scene generated from the founder-approved FTN Riddim reference","dimensions":"1600x900 WebP","desktopFocalPoint":"64% 50%","mobileFocalPoint":"66% 50%","approvedForProduction":true},
-    {"productId":"ftn-fire","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-fire-producer.webp","source":"High-resolution parent scene generated from the founder-approved FTN Fire reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"60% 50%","approvedForProduction":true},
-    {"productId":"dj-tube","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-dj-tube-club.webp","source":"High-resolution parent scene generated from the founder-approved FTN DJ Tube reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"58% 50%","approvedForProduction":true},
-    {"productId":"account","reference":"approved page reference board","productionAsset":"/assets/heroes/ftn-account-control.webp","source":"High-resolution parent scene generated from the founder-approved FTN Account reference","dimensions":"1600x900 WebP","desktopFocalPoint":"50% 50%","mobileFocalPoint":"58% 50%","approvedForProduction":true}
+    {
+      "productId": "ftn-index",
+      "reference": "implementation derivative of the founder-locked raster master",
+      "productionAsset": "/assets/logos/ftn-index-lockup.svg",
+      "source": "FTN-owned SVG derivative retained only for small/vector contexts; the locked PNG remains authoritative",
+      "license": "FTN-owned implementation derivative",
+      "dimensions": "1180x320 SVG viewBox",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "ftn-index-mark",
+      "reference": "implementation derivative of the founder-locked raster master",
+      "productionAsset": "/assets/logos/ftn-index-mark.svg",
+      "source": "FTN-owned simplified SVG derivative retained only where a compact vector icon is required; it must not replace the locked master in flagship identity surfaces",
+      "license": "FTN-owned implementation derivative",
+      "dimensions": "512x512 SVG viewBox",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "ibis-mark",
+      "reference": "FTN ibis compact signal identity",
+      "productionAsset": "/assets/ibis/ibis-mark.svg",
+      "source": "FTN-owned vector identity created for FTN ibis and committed with the public provenance record",
+      "license": "FTN-owned production asset",
+      "dimensions": "256x256 SVG viewBox",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "safeArea": "Preserve the complete rounded obsidian field, gold wing, blue signal wing and eye; do not crop, mirror or recolor the mark.",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "ibis-wordmark",
+      "reference": "FTN ibis name and publisher lockup",
+      "productionAsset": "/assets/ibis/ibis-wordmark.svg",
+      "source": "FTN-owned vector identity created for FTN ibis and committed with the public provenance record",
+      "license": "FTN-owned production asset",
+      "dimensions": "640x180 SVG viewBox",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "safeArea": "Preserve the complete ibis wordmark, signal mark and BY FTN PLATFORM publisher line; use the compact mark where the full lockup would become illegible.",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "community-connect",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/community-connect-report.webp",
+      "source": "High-resolution parent scene generated from the founder-approved Community Connect reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "66% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "screen",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/ftn-screen-film-crew.webp",
+      "source": "High-resolution parent scene generated from the founder-approved FTN Screen reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "66% 50%",
+      "mobileFocalPoint": "64% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "tv",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/ftn-tv-control-room.webp",
+      "source": "High-resolution parent scene generated from the founder-approved FTN TV reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "62% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "opportunities",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/ftn-opportunities-port.webp",
+      "source": "High-resolution parent scene generated from the founder-approved FTN Opportunities reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "68% 50%",
+      "mobileFocalPoint": "66% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "kaiso",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/ftn-kaiso-newsroom.webp",
+      "source": "High-resolution parent scene generated from the founder-approved FTN Kaiso reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "67% 50%",
+      "mobileFocalPoint": "68% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "riddim",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/ftn-riddim-studio.webp",
+      "source": "High-resolution parent scene generated from the founder-approved FTN Riddim reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "64% 50%",
+      "mobileFocalPoint": "66% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "ftn-fire",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/ftn-fire-producer.webp",
+      "source": "High-resolution parent scene generated from the founder-approved FTN Fire reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "60% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "dj-tube",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/ftn-dj-tube-club.webp",
+      "source": "High-resolution parent scene generated from the founder-approved FTN DJ Tube reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "58% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "account",
+      "reference": "approved page reference board",
+      "productionAsset": "/assets/heroes/ftn-account-control.webp",
+      "source": "High-resolution parent scene generated from the founder-approved FTN Account reference",
+      "dimensions": "1600x900 WebP",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "58% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-01-one-for-the-road",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/01-one-for-the-road.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-02-right-dey",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/02-right-dey.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-03-no-behaviour",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/03-no-behaviour.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-04-de-whole-road",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/04-de-whole-road.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-05-pretty-in-oil",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/05-pretty-in-oil.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-06-pretty-gyal-smoke-too",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/06-pretty-gyal-smoke-too.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-07-dougla-gyal",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/07-dougla-gyal.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-08-take-your-time-with-me",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/08-take-your-time-with-me.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-09-doh-study-me",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/09-doh-study-me.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-10-no-long-talk",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/10-no-long-talk.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-album-cover",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/album-cover.jpg",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-album-cover",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/album-cover.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-amari-hero",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/amari-hero.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-amari-portrait",
+      "reference": "Amari Inniss artist hub public media",
+      "productionAsset": "/assets/amari-inniss/amari-portrait.webp",
+      "source": "Founder-approved Amari Inniss visual identity and release artwork supplied by Boss Entertainment TT / ReggaeAI",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    }
   ]
 }
