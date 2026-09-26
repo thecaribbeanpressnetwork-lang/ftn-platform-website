@@ -12,7 +12,7 @@
 // Bump this value for every production shell release. A new cache namespace makes
 // sure a browser that previously installed FTN does not continue rendering an
 // obsolete HTML/CSS/JS shell after Cloudflare has deployed a repair.
-var VERSION='ftn-public-v2.4.5';
+var VERSION='ftn-public-v2.4.6';
 var SHELL=[
   '/','/offline/','/manifest.webmanifest','/css/tokens.css','/css/base.css',
   '/css/components/buttons.css','/css/components/nav.css','/css/components/nexus-foundation.css',
@@ -36,6 +36,10 @@ self.addEventListener('fetch',function(event){
     return;
   }
   if(req.mode==='navigate'){
+    if(url.pathname==='/amari-inniss/'||url.pathname==='/rick-boss/'||url.pathname==='/ricardo/'||url.pathname==='/ricardogill/'){
+      event.respondWith(fetch(new Request(req,{cache:'reload'})).then(function(response){return response;}).catch(function(){return caches.match(req).then(function(hit){return hit||caches.match('/offline/');});}));return;
+    }
+
     event.respondWith(fetch(req).then(function(response){if(response&&response.ok){var copy=response.clone();caches.open(VERSION).then(function(cache){cache.put(req,copy);});}return response;}).catch(function(){return caches.match(req).then(function(hit){return hit||caches.match('/offline/');});}));return;
   }
   if(/\.(?:css|js|svg|png|jpg|jpeg|webp|woff2?)$/i.test(url.pathname)){
