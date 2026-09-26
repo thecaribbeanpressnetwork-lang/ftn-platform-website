@@ -303,6 +303,126 @@
       "desktopFocalPoint": "50% 50%",
       "mobileFocalPoint": "50% 50%",
       "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-amari-hero-v2",
+      "reference": "Amari artist hub hero",
+      "productionAsset": "/assets/amari-inniss/amari-hero-v2.webp",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-amari-profile",
+      "reference": "Amari artist hub profile",
+      "productionAsset": "/assets/amari-inniss/amari-profile.webp",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-01-one-for-the-road",
+      "reference": "Amari audio — One for the Road",
+      "productionAsset": "/assets/amari-inniss/audio/01-one-for-the-road.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-02-right-dey",
+      "reference": "Amari audio — Right Dey",
+      "productionAsset": "/assets/amari-inniss/audio/02-right-dey.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-03-no-behaviour",
+      "reference": "Amari audio — No Behaviour",
+      "productionAsset": "/assets/amari-inniss/audio/03-no-behaviour.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-04-de-whole-road",
+      "reference": "Amari audio — De Whole Road",
+      "productionAsset": "/assets/amari-inniss/audio/04-de-whole-road.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-05-pretty-in-oil",
+      "reference": "Amari audio — Pretty in Oil",
+      "productionAsset": "/assets/amari-inniss/audio/05-pretty-in-oil.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-06-pretty-gyal-smoke-too",
+      "reference": "Amari audio — Pretty Gyal Smoke Too",
+      "productionAsset": "/assets/amari-inniss/audio/06-pretty-gyal-smoke-too.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-07-dougla-gyal",
+      "reference": "Amari audio — Dougla Gyal",
+      "productionAsset": "/assets/amari-inniss/audio/07-dougla-gyal.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-08-take-your-time-with-me",
+      "reference": "Amari audio — Take Your Time With Me",
+      "productionAsset": "/assets/amari-inniss/audio/08-take-your-time-with-me.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-09-doh-study-me",
+      "reference": "Amari audio — Doh Study Me",
+      "productionAsset": "/assets/amari-inniss/audio/09-doh-study-me.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
+    },
+    {
+      "productId": "amari-artist-hub-audio-10-no-long-talk",
+      "reference": "Amari audio — NO LONG TALK",
+      "productionAsset": "/assets/amari-inniss/audio/10-no-long-talk.mp3",
+      "source": "Boss Entertainment TT / ReggaeAI Amari Inniss release package",
+      "license": "Boss Entertainment TT / ReggaeAI owned promotional/release asset",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "approvedForProduction": true
     }
   ]
 }
