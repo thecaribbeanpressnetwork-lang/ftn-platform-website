@@ -10,14 +10,44 @@
   "release": {
     "title": "Doh Study Me. Study De Music.",
     "date": "2026-10-09",
-    "preSave": "https://distrokid.com/hyperfollow/amariinniss/doh-study-me-study-de-music"
+    "preSave": "https://distrokid.com/hyperfollow/amariinniss/doh-study-me-study-de-music",
+    "upc": "700575397795",
+    "label": "Boss Entertainment TT",
+    "trackCount": 10,
+    "language": "English",
+    "territory": "Trinidad & Tobago",
+    "genres": [
+      "Groovy Soca",
+      "Power Soca",
+      "Soca Jab",
+      "Chutney Soca",
+      "Reggae",
+      "Reggae / Lovers Rock",
+      "Hip-Hop / Dancehall Fusion",
+      "Clean Trinibad / Dancehall"
+    ],
+    "distributionStatus": "Available from October 9, 2026"
   },
   "links": {
     "instagram": "https://www.instagram.com/amariinniss/",
     "tiktok": "https://www.tiktok.com/@amariinniss2027",
     "artistContact": "amariinniss2027@gmail.com",
     "servicingContact": "reggaeitt@gmail.com",
-    "djRadioPack": "https://drive.google.com/file/d/1sqRca5A_gSpuLeRHYAT0svyE_uOQ-xeL/view?usp=drivesdk"
+    "djRadioPack": "https://drive.google.com/drive/folders/1nb8q5_AuIzz9sJCInlG_U8ISp9gtdn_w",
+    "trackMetadata": "https://docs.google.com/spreadsheets/d/19puSVGaHptXBCkojfI5NmeOxlXeNFNsszJfj-t_5_eE/edit",
+    "artistBio": "https://docs.google.com/document/d/1SzO8mV6GQi0aMUkP0-eGMeFiTvFMzssgJ4_Di5nj_xs/edit",
+    "officialWebsite": "https://ftnplatform.org/amari-inniss/"
   },
-  "notes": "Source record for the Amari artist hub. Public page remains static and lightweight; update this alongside approved marketing revisions."
+  "notes": "Source record for the Amari artist and EPK hub. Keep the public web page, Drive servicing package and release metadata synchronized.",
+  "production": {
+    "statement": "Human-written. Human-produced. Human-mixed and mastered. AI-assisted artist performance.",
+    "disclosure": "All songs are human-written, human-directed, mixed and mastered by the Boss Entertainment TT / ReggaeAI production team. AI is used as part of the artist-performance and creative production workflow, not as a replacement for songwriting, production judgment, mixing, mastering or ownership."
+  },
+  "rights": {
+    "masterOwner": "Ricardo Gill / Boss Entertainment TT",
+    "publishing": "Boss Entertainment Publishing",
+    "pro": "BMI",
+    "oneStopClearance": true,
+    "syncStatus": "Cleared for pitching"
+  }
 }
