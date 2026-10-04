@@ -1,5 +1,11 @@
 # FTN Platform Website — Version Record
 
+## De Whole Road final master — 2026-10-04
+
+Track 04 now uses the owner-approved stem remix/master with the pan aligned to “road” and the requested ending fade from 03:01 to 25% gain at 03:11.250. The tagged 320 kbps, 48 kHz stereo MP3 is the exact derivative supplied in the DJ/Drive pack. The lossless master is 24-bit/48 kHz stereo, −11.5 LUFS and −1.8 dBTP; the MP3 measures −1.6 dBTP. Full decode, clipping, tag and embedded-art checks pass. The current correct-v4 De Whole Road artwork is embedded, and the canonical ISRC is TT-AJ2-26-00050.
+
+The owner approved the timing and faded ending after the earlier source doubling report near 03:05. The fade attenuates the remaining source layer; this does not claim isolated removal of that layer. Original sources and previous delivery files are archived outside the repository. The final track restores the ten-track servicing package. Production byte verification is recorded in the release QC report.
+
 This internal record separates verified production state from prepared work. The public website does not display build/version badges.
 
 ## Amari audio metadata servicing — 2026-10-04
