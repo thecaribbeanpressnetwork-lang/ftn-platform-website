@@ -144,3 +144,47 @@ body{padding-bottom:150px}
 .album__back{margin:2rem 0 0}.album__back img{width:100%;height:auto;object-fit:contain;border-radius:1rem}.album__back figcaption{margin-top:.7rem;color:var(--muted);font-size:.9rem}
 
 .profile__image video:focus-visible{outline:3px solid var(--gold);outline-offset:-4px}
+
+
+/* Compact mobile reading rhythm + persistent playback progress */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.mini-player{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"top actions" "progress actions";gap:.35rem 1rem;padding:.65rem max(1rem,calc((100vw - 1180px)/2))}
+.mini-player__top{grid-area:top;display:flex;align-items:baseline;justify-content:space-between;gap:.8rem;min-width:0}
+.mini-player__meta{display:flex;align-items:baseline;gap:.65rem;min-width:0}
+.mini-player__meta strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-player__time{display:flex;gap:.25rem;white-space:nowrap;color:#d8cfc4;font-size:.75rem;font-variant-numeric:tabular-nums}
+.mini-player__progress{grid-area:progress;display:flex;align-items:center;min-width:0}
+#miniSeek{width:100%;height:24px;margin:0;accent-color:var(--gold);cursor:pointer}
+.mini-player__actions{grid-area:actions;align-items:center;flex-wrap:nowrap}
+
+@media(max-width:900px){
+  .section{padding:3rem 0}
+  .section__head{gap:1rem;margin-bottom:1.5rem}
+  .card{min-height:0;padding:1.05rem}
+  .card blockquote{margin:.65rem 0 .8rem}
+  .thoughts{gap:.7rem}
+  .quotes{margin-top:1.5rem;gap:.7rem}
+  .quote-card{padding:1.05rem}
+  .mini-player{display:grid;grid-template-columns:1fr;grid-template-areas:"top" "progress" "actions";gap:.25rem;padding:.45rem .65rem .55rem}
+  .mini-player__top{gap:.5rem}
+  .mini-player__meta{gap:.45rem}
+  .mini-player__meta strong{font-size:.86rem;max-width:55vw}
+  .mini-player__meta #miniState{font-size:.7rem}
+  .mini-player__time{font-size:.7rem}
+  #miniSeek{height:20px}
+  .mini-player__actions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.3rem}
+  .mini-player button{min-width:0;min-height:40px;padding:.38rem .25rem;font-size:.72rem}
+  body{padding-bottom:128px}
+}
+@media(max-width:560px){
+  .hero .hero__media{height:46svh;min-height:330px}
+  .hero .hero__copy{padding:1.75rem .65rem 2.2rem}
+  .section{padding:2.35rem 0}
+  .section h2{font-size:clamp(2.05rem,11vw,3rem)}
+  .section__head{margin-bottom:1.15rem}
+  .profile-life{margin-top:1.25rem}
+  .life-card img,.life-card--tall img{min-height:0;aspect-ratio:4/5}
+  .life-banner img{aspect-ratio:16/7}
+  .album__back{margin-top:1.25rem}
+  .mini-player__meta strong{max-width:48vw}
+}

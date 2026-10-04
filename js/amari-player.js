@@ -13,6 +13,22 @@
   const mini = document.querySelector('.mini-player');
   const miniTitle = document.getElementById('miniTitle');
   const miniState = document.getElementById('miniState');
+  const miniElapsed = document.getElementById('miniElapsed');
+  const miniDuration = document.getElementById('miniDuration');
+  const miniSeek = document.getElementById('miniSeek');
+  const formatTime = (seconds) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return mins + ':' + String(secs).padStart(2, '0');
+  };
+  function syncProgress() {
+    const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+    miniElapsed.textContent = formatTime(audio.currentTime);
+    miniDuration.textContent = formatTime(duration);
+    miniSeek.value = duration ? Math.round((audio.currentTime / duration) * 1000) : 0;
+    miniSeek.setAttribute('aria-valuetext', formatTime(audio.currentTime) + ' of ' + formatTime(duration));
+  }
   let playerVisible = true;
   function syncPlayback() {
     tracks.forEach((track, i) => {
@@ -28,6 +44,7 @@
     document.getElementById('previousTrack').disabled = current === 0;
     document.getElementById('nextTrack').disabled = current === tracks.length - 1;
     mini.hidden = playerVisible;
+    syncProgress();
     document.getElementById('miniRepeat').setAttribute('aria-pressed', String(audio.loop));
   }
 
@@ -133,6 +150,15 @@
   });
   audio.addEventListener('play', syncPlayback);
   audio.addEventListener('pause', syncPlayback);
+  audio.addEventListener('timeupdate', syncProgress);
+  audio.addEventListener('durationchange', syncProgress);
+  audio.addEventListener('loadedmetadata', syncProgress);
+  miniSeek.addEventListener('input', () => {
+    if (Number.isFinite(audio.duration) && audio.duration > 0) {
+      audio.currentTime = (Number(miniSeek.value) / 1000) * audio.duration;
+      syncProgress();
+    }
+  });
   new IntersectionObserver(entries => { playerVisible = entries[0].isIntersecting; syncPlayback(); }).observe(player);
   window.addEventListener('hashchange', () => fromHash());
   const menu = document.querySelector('.nav__menu');
