@@ -3,6 +3,13 @@
   --red:#b82431;--gold:#c79b4b;--magenta:#b62767;--turq:#3f9d9b;
   --muted:#bdb3a6;--line:rgba(255,255,255,.14);--max:1180px;
 }
+.cover{text-decoration:none;display:block}
+a:focus-visible,button:focus-visible,.player:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+.player,.track{scroll-margin-top:2rem}
+.player__controls{margin-top:1rem}
+.player__controls button{cursor:pointer;font-family:inherit}
+#repeatTrack[aria-pressed="true"]{background:var(--red);border-color:var(--red)}
+#playerStatus{min-height:1.5em;font-size:.85rem}
 *{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--ink)}
 body{margin:0;background:var(--ink);color:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.55}
 img{display:block;max-width:100%;height:auto}a{color:inherit}
