@@ -2,6 +2,14 @@
 
 This internal record separates verified production state from prepared work. The public website does not display build/version badges.
 
+## Amari audio metadata servicing — 2026-10-04
+
+Tracks 01, 02, 03, and 05–10 now use the verified 320 kbps, 48 kHz stereo DJ-pack derivatives of the canonical 24-bit WAV masters. Their encoded audio payloads are unchanged from that pack. Embedded tags consistently identify Amari Inniss, Doh Study Me. Study De Music., the track sequence, 2027 campaign branding, the canonical ISRCs, ℗ 2027 Boss Entertainment TT, Boss Entertainment Publishing and the current website cover art. Track 05's ISRC is TT-AJ2-26-00040. Versioned audio URLs refresh cached copies.
+
+De Whole Road (04) is excluded from this update: the owner confirmed a takeover near 03:05 in the canonical source. A new stem-based audition requires listening approval before replacing its delivery copies. This servicing change does not certify that unresolved track. Original delivery files are archived outside the website repository.
+
+Validation: all eighteen replacement WAV/MP3 delivery files decode fully, carry the expected tags/artwork and preserve their original audio payloads. All nine previous website files match the canonical master duration and correlate above 0.995. The repository-wide visual-asset manifest audit currently fails on an unchanged, already-published approved-v3 cover missing from its ledger; no cover asset was added or modified by this audio update. Production verification is recorded in the task QC report after publication.
+
 ## Deployment path (reconciled 2026-08-24)
 
 `ftnplatform.org` is served by **Cloudflare Pages, via its native GitHub integration** — not by
