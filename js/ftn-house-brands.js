@@ -11,7 +11,7 @@
     { id: 'boss-distribution', name: 'BossDistribution', role: 'Music Distribution', relatedProductId: 'riddim' },
     { id: 'boss-entertainment', name: 'BossEntertainment', role: 'Events', relatedProductId: 'events' },
     { id: 'realityarttv', name: 'RealityArtTV', role: 'Media / Video Production', relatedProductId: 'screen' },
-    { id: 'rick-boss', name: 'Rick Boss', role: 'Executive Producer', relatedProductId: null },
+    { id: 'rick-boss', name: 'RickBoss', role: 'Executive Producer', relatedProductId: null },
   ];
 
   function forProduct(productId) {

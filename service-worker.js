@@ -12,7 +12,7 @@
 // Bump this value for every production shell release. A new cache namespace makes
 // sure a browser that previously installed FTN does not continue rendering an
 // obsolete HTML/CSS/JS shell after Cloudflare has deployed a repair.
-var VERSION='ftn-public-v2.4.8';
+var VERSION='ftn-public-v2.4.9-amari-20261004';
 var SHELL=[
   '/','/offline/','/manifest.webmanifest','/css/tokens.css','/css/base.css',
   '/css/components/buttons.css','/css/components/nav.css','/css/components/nexus-foundation.css',
@@ -36,7 +36,7 @@ self.addEventListener('fetch',function(event){
     return;
   }
   if(req.mode==='navigate'){
-    if(url.pathname==='/amari-inniss/'||url.pathname==='/rick-boss/'||url.pathname==='/ricardo/'||url.pathname==='/ricardogill/'){
+    if(url.pathname==='/amari-inniss/'||url.pathname==='/rick-boss/'||url.pathname==='/Rick/'||url.pathname==='/ricardogill/'){
       event.respondWith(fetch(new Request(req,{cache:'reload'})).then(function(response){return response;}).catch(function(){return caches.match(req).then(function(hit){return hit||caches.match('/offline/');});}));return;
     }
 

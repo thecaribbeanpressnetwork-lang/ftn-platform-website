@@ -2,7 +2,7 @@
   "schema": "ftn.provenance-manifest/v1",
   "project": "FTN ibis",
   "shortName": "ibis",
-  "steward": "Ricardo Gill",
+  "steward": "RickBoss",
   "canonicalUrl": "https://ftnplatform.org/ibis/",
   "generatedAt": "2026-09-08T18:32:28.708Z",
   "releaseCommit": "88e84b5fda7ac55ea272ac5dff3eea4da3815aad",

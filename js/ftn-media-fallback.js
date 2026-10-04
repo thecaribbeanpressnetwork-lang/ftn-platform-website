@@ -34,12 +34,12 @@
   function houseFallbackHTML() {
     return (
       '<div class="ftn-media-fallback">' +
-        '<img src="/assets/face-the-nation/ftn-hero-master-shot.jpg" alt="Face the Nation with Ricardo Antoine" loading="lazy">' +
+        '<img src="/assets/face-the-nation/ftn-hero-master-shot.jpg" alt="Face the Nation with RickBoss" loading="lazy">' +
         '<div class="ftn-media-fallback__overlay">' +
           '<img class="ftn-media-fallback__badge" src="/assets/face-the-nation/ftn-badge-logo.jpg" alt="" width="48" height="48">' +
           '<p class="ftn-media-fallback__eyebrow">Now on FTN</p>' +
           '<h3>Watch Face The Nation</h3>' +
-          '<p>with Ricardo Antoine</p>' +
+          '<p>with RickBoss</p>' +
           '<a class="btn btn-primary btn-sm" href="/facethenation">Open Face The Nation &rarr;</a>' +
         '</div>' +
       '</div>'

@@ -10,6 +10,26 @@
   const status = document.getElementById('playerStatus');
   const repeat = document.getElementById('repeatTrack');
   let current = 0;
+  const mini = document.querySelector('.mini-player');
+  const miniTitle = document.getElementById('miniTitle');
+  const miniState = document.getElementById('miniState');
+  let playerVisible = true;
+  function syncPlayback() {
+    tracks.forEach((track, i) => {
+      const active = i === current;
+      track.parentElement.closest('.track').classList.toggle('track--current', active);
+      const action = active && !audio.paused ? 'Pause' : active && audio.currentTime > 0 ? 'Resume' : 'Play';
+      track.textContent = action;
+      track.setAttribute('aria-label', action + ' ' + track.dataset.title);
+    });
+    miniTitle.textContent = title.textContent;
+    miniState.textContent = audio.paused ? 'Paused' : 'Playing';
+    document.getElementById('togglePlayback').textContent = audio.paused ? 'Play' : 'Pause';
+    document.getElementById('previousTrack').disabled = current === 0;
+    document.getElementById('nextTrack').disabled = current === tracks.length - 1;
+    mini.hidden = playerVisible;
+    document.getElementById('miniRepeat').setAttribute('aria-pressed', String(audio.loop));
+  }
 
   function play() {
     audio.play().catch(() => { status.textContent = 'Press Play in the player to start listening.'; });
@@ -34,11 +54,12 @@
       else track.removeAttribute('aria-current');
     });
     status.textContent = '';
+    syncPlayback();
     if (start) play();
   }
 
   function fromHash(start = false, focus = false) {
-    const index = tracks.findIndex(track => '#' + track.parentElement.id === location.hash);
+    const index = tracks.findIndex(track => '#' + track.closest('.track').id === location.hash);
     if (index < 0) return;
     select(index, start);
     if (focus) player.focus({preventScroll: true});
@@ -56,37 +77,40 @@
     const button = event.target.closest('.track__play, .feature__play');
     if (!button) return;
     const index = tracks.findIndex(track => track.dataset.src === button.dataset.src);
+    if (button.classList.contains('track__play') && index === current && !audio.paused) { audio.pause(); return; }
     select(index, true);
-    history.replaceState(null, '', '#' + tracks[index].parentElement.id);
+    history.replaceState(null, '', '#' + tracks[index].closest('.track').id);
   });
   document.getElementById('playAlbum').addEventListener('click', () => {
     audio.loop = false;
     repeat.setAttribute('aria-pressed', 'false');
     select(0);
     audio.currentTime = 0;
-    history.replaceState(null, '', '#' + tracks[0].parentElement.id);
+    history.replaceState(null, '', '#' + tracks[0].closest('.track').id);
     play();
   });
   repeat.addEventListener('click', () => {
     audio.loop = !audio.loop;
     repeat.setAttribute('aria-pressed', String(audio.loop));
+    syncPlayback();
   });
   audio.addEventListener('ended', () => {
     if (audio.loop) return;
     if (current + 1 < tracks.length) {
       select(current + 1, true);
-      history.replaceState(null, '', '#' + tracks[current].parentElement.id);
+      history.replaceState(null, '', '#' + tracks[current].closest('.track').id);
     } else status.textContent = 'Album finished. Press Play album to listen again.';
   });
   async function share(trackOnly) {
     const url = new URL(location.href);
-    url.hash = trackOnly ? tracks[current].parentElement.id : '';
+    url.hash = trackOnly ? tracks[current].closest('.track').id : '';
     const shareTitle = trackOnly ? tracks[current].dataset.title + ' — Amari Inniss' : 'Amari Inniss';
     try {
       if (navigator.share) await navigator.share({title: shareTitle, url: url.href});
       else {
         await navigator.clipboard.writeText(url.href);
         status.textContent = 'Link copied.';
+        document.getElementById('miniFeedback').textContent = 'Link copied.';
       }
     } catch (error) {
       if (error.name !== 'AbortError') {
@@ -100,6 +124,16 @@
   }
   document.getElementById('shareTrack').addEventListener('click', () => share(true));
   document.getElementById('sharePage').addEventListener('click', () => share(false));
+  document.getElementById('miniShare').addEventListener('click', () => share(true));
+  document.getElementById('miniRepeat').addEventListener('click', () => repeat.click());
+  document.getElementById('togglePlayback').addEventListener('click', () => audio.paused ? play() : audio.pause());
+  for (const [id, delta] of [['previousTrack', -1], ['nextTrack', 1]]) document.getElementById(id).addEventListener('click', () => {
+    select(current + delta, true);
+    history.replaceState(null, '', '#' + tracks[current].closest('.track').id);
+  });
+  audio.addEventListener('play', syncPlayback);
+  audio.addEventListener('pause', syncPlayback);
+  new IntersectionObserver(entries => { playerVisible = entries[0].isIntersecting; syncPlayback(); }).observe(player);
   window.addEventListener('hashchange', () => fromHash());
   const menu = document.querySelector('.nav__menu');
   const mobileMenu = matchMedia('(max-width: 900px)');
