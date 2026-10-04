@@ -46,7 +46,7 @@
   }
 
   document.addEventListener('click', (event) => {
-    const cover = event.target.closest('.cover');
+    const cover = event.target.closest('.cover, .track-link');
     if (cover && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) {
       event.preventDefault();
       history.pushState(null, '', cover.getAttribute('href'));
@@ -101,6 +101,14 @@
   document.getElementById('shareTrack').addEventListener('click', () => share(true));
   document.getElementById('sharePage').addEventListener('click', () => share(false));
   window.addEventListener('hashchange', () => fromHash());
+  const menu = document.querySelector('.nav__menu');
+  const mobileMenu = matchMedia('(max-width: 900px)');
+  const updateMenu = () => { menu.open = !mobileMenu.matches; };
+  updateMenu();
+  mobileMenu.addEventListener('change', updateMenu);
+  menu.addEventListener('click', (event) => {
+    if (mobileMenu.matches && event.target.closest('a')) event.currentTarget.removeAttribute('open');
+  });
   select(0);
   fromHash();
 })();
