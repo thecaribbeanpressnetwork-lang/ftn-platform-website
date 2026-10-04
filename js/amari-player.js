@@ -171,4 +171,34 @@
   });
   select(0);
   fromHash();
+
+  const requestAmari = document.getElementById('requestAmari');
+  if (requestAmari) {
+    requestAmari.addEventListener('click', (event) => {
+      event.preventDefault();
+      const address = 'amariinniss2027' + '@' + 'gmail.com';
+      const subject = 'Amari Inniss — Personal Message / Dubplate Request';
+      const body = [
+        'Hi Amari / Boss Entertainment TT,',
+        '',
+        "I'd like to request:",
+        '[ ] Personal message',
+        '[ ] Dubplate',
+        '',
+        'Name:',
+        'Country:',
+        'Occasion / event:',
+        'Requested wording / names to mention:',
+        'Song / riddim (for dubplate, if applicable):',
+        'Needed by:',
+        'Budget / other details:',
+        '',
+        'Please send me the next steps and pricing.',
+        '',
+        'Thanks.'
+      ].join('\n');
+      window.location.href = 'mailto:' + address + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    });
+  }
+
 })();
