@@ -4,6 +4,7 @@
   --muted:#bdb3a6;--line:rgba(255,255,255,.14);--max:1180px;
 }
 .cover{text-decoration:none;display:block}
+.cover img[src*="correct-20261004"],.player__art{object-fit:contain;background:#090909}
 a:focus-visible,button:focus-visible,.player:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
 .player,.track{scroll-margin-top:2rem}
 .player__controls{margin-top:1rem}
