@@ -4,7 +4,7 @@
   --muted:#bdb3a6;--line:rgba(255,255,255,.14);--max:1180px;
 }
 .cover{text-decoration:none;display:block}
-.cover img[src*="correct-20261004"],.player__art{object-fit:contain;background:#090909}
+.cover img[src*="-2027.webp"],.player__art{object-fit:contain;background:#090909}
 a:focus-visible,button:focus-visible,.player:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
 .player,.track{scroll-margin-top:2rem}
 .player__controls{margin-top:1rem}
@@ -115,3 +115,4 @@ img{display:block;max-width:100%;height:auto}a{color:inherit}
 .watchcard__body strong{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2}
 @media(max-width:900px){.profile-life{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.profile-life{grid-template-columns:repeat(2,1fr);gap:.5rem}}
+
