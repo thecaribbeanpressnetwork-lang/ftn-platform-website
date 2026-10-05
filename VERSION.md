@@ -1,5 +1,13 @@
 # FTN Platform Website — Version Record
 
+## Approved Amari master repairs — 2026-10-05
+
+The owner approved the new De Whole Road master and seven targeted repairs: One for the Road, Pretty in Oil, Pretty Gyal Smoke Too, Dougla Gyal, Take Your Time With Me, Doh Study Me and NO LONG TALK. The latter seven preserve duration, metadata/artwork and the mono program outside end fades; the largest loudness difference is 0.126 LU. Dougla Gyal and Take Your Time With Me have the stray post-silence bursts removed. Local stereo-side reductions address the five other tracks' flagged one-second stereo/mono diagnostics. This does not claim to recover material already absent from the original mono sum.
+
+The site uses the exact approved 320 kbps MP3 bytes from the servicing package at new dated audio URLs. Legacy filenames also serve the approved versions. The service-worker cache namespace changes. Newer production artwork, mobile markup and other site content are retained. Old masters and delivery ZIPs are archived outside the repository. The source update is prepared for deployment; production completion requires checking the served page, audio hashes and cache identity after deployment.
+
+Baseline repository-wide asset-manifest and service-worker-policy audits already fail on the unmodified production branch (an unlisted approved cover and existing route-policy drift). This audio release does not change route policy or unrelated artwork. Targeted validation checks all eight replacement audio hashes, page references, manifest coverage and MP3 metadata/artwork.
+
 ## De Whole Road final master — 2026-10-04
 
 Track 04 now uses the owner-approved stem remix/master with the pan aligned to “road” and the requested ending fade from 03:01 to 25% gain at 03:11.250. The tagged 320 kbps, 48 kHz stereo MP3 is the exact derivative supplied in the DJ/Drive pack. The lossless master is 24-bit/48 kHz stereo, −11.5 LUFS and −1.8 dBTP; the MP3 measures −1.6 dBTP. Full decode, clipping, tag and embedded-art checks pass. The current correct-v4 De Whole Road artwork is embedded, and the canonical ISRC is TT-AJ2-26-00050.
