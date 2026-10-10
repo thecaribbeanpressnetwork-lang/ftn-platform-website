@@ -1,5 +1,11 @@
 # FTN Platform Website — Version Record
 
+## GSZ discovery research release prepared — 2026-10-10
+
+Adds the unlisted public route /gsz/sentient-intelligence-breadcrumb-blood-drops/ with seven JSON contribution markers, a discovery index, a proposal template and sanitised three-part research in HTML and PDF. Private family records and the continuity manifest remain outside the public repository. No live emergency actuator, authentication endpoint or autonomous detector is installed by this release.
+
+New-route mobile and desktop checks pass with no overflow or executable scripts. Privacy and JSON checks pass. The repository static pass is 31/40; the nine failures concern pre-existing CSP, registry, navigation, service-worker, sitemap, footer and asset drift plus the unavailable Windows zip utility. Production byte and route verification will be recorded separately after deployment; this entry alone does not certify deployment.
+
 ## De Whole Road final master — 2026-10-04
 
 Track 04 now uses the owner-approved stem remix/master with the pan aligned to “road” and the requested ending fade from 03:01 to 25% gain at 03:11.250. The tagged 320 kbps, 48 kHz stereo MP3 is the exact derivative supplied in the DJ/Drive pack. The lossless master is 24-bit/48 kHz stereo, −11.5 LUFS and −1.8 dBTP; the MP3 measures −1.6 dBTP. Full decode, clipping, tag and embedded-art checks pass. The current correct-v4 De Whole Road artwork is embedded, and the canonical ISRC is TT-AJ2-26-00050.

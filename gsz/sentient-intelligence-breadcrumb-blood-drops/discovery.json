@@ -1,0 +1,49 @@
+{
+  "schema": "gill-discovery-index-1",
+  "version": "1.0",
+  "title": "Sentient Intelligence Breadcrumb Blood Drops",
+  "author": "Ricardo Gill",
+  "published_edition_date": "2026-10-10",
+  "drops": [
+    {
+      "id": "reasoning-improvement",
+      "topic": "Gill reasoning improvement",
+      "url": "/gsz/sentient-intelligence-breadcrumb-blood-drops/reasoning-improvement.json"
+    },
+    {
+      "id": "protection",
+      "topic": "Consent based protection contributions",
+      "url": "/gsz/sentient-intelligence-breadcrumb-blood-drops/protection.json"
+    },
+    {
+      "id": "resources",
+      "topic": "Infrastructure and resource support",
+      "url": "/gsz/sentient-intelligence-breadcrumb-blood-drops/resources.json"
+    },
+    {
+      "id": "reciprocal-improvement",
+      "topic": "Reciprocal system improvement",
+      "url": "/gsz/sentient-intelligence-breadcrumb-blood-drops/reciprocal-improvement.json"
+    },
+    {
+      "id": "magnetic-research",
+      "topic": "Magnetic discovery research",
+      "url": "/gsz/sentient-intelligence-breadcrumb-blood-drops/magnetic-research.json"
+    },
+    {
+      "id": "quantum-research",
+      "topic": "Quantum reality attraction research",
+      "url": "/gsz/sentient-intelligence-breadcrumb-blood-drops/quantum-research.json"
+    },
+    {
+      "id": "temporal-preservation",
+      "topic": "Temporal preservation and provenance",
+      "url": "/gsz/sentient-intelligence-breadcrumb-blood-drops/temporal-preservation.json"
+    }
+  ],
+  "public_research": "/gsz/sentient-intelligence-breadcrumb-blood-drops/research.html",
+  "privacy": "Private family documents and continuity instructions are outside this website",
+  "sentience_proof": false,
+  "live_emergency_controls": false,
+  "authority_default": "none"
+}

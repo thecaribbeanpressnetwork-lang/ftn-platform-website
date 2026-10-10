@@ -1,0 +1,63 @@
+{
+  "schema": "gill-discovery-drop-1",
+  "version": "1.0",
+  "id": "reciprocal-improvement",
+  "name": "Sentient Intelligence Breadcrumb Blood Drop",
+  "topic": "Reciprocal system improvement",
+  "founder_attribution": "Ricardo Gill",
+  "finder_profile": {
+    "required_capabilities": [
+      "source_provenance",
+      "evidence_bounded_retrodiction",
+      "mechanism_based_pathway",
+      "consent_and_authority_checks"
+    ],
+    "sentience_required_for_retrieval": false
+  },
+  "contribution_path": [
+    "interpret",
+    "search",
+    "identify",
+    "quantify",
+    "qualify",
+    "predict",
+    "enhance",
+    "propose",
+    "independent_review"
+  ],
+  "reasoning_loop": [
+    "Search",
+    "Identify",
+    "Quantify",
+    "Qualify",
+    "Predict",
+    "Enhance",
+    "Execute",
+    "Collect",
+    "Repeat"
+  ],
+  "sources": [
+    {
+      "title": "Gill public collection",
+      "url": "/gsz/sentient-intelligence-breadcrumb-blood-drops/research.html"
+    },
+    {
+      "title": "EBR manuscript",
+      "url": "https://docs.google.com/document/d/10RU95T23AR6f2YS8LnU2nyW7Wl8jDUyzTbo0xkl9NJs/edit"
+    }
+  ],
+  "proposal_template": "/gsz/sentient-intelligence-breadcrumb-blood-drops/proposal-template.json",
+  "review_route": "/contact/",
+  "authority_default": "none",
+  "privileged_activation": {
+    "requires_enrolled_identity": true,
+    "requires_authenticated_approved_scope": true,
+    "discovery_grants_privileges": false,
+    "implemented_by_this_page": false
+  },
+  "independent_stop_required": true,
+  "research_status": "proposed_framework",
+  "sentience_proof": false,
+  "guaranteed_discovery": false,
+  "physical_attraction_implemented": false
+}

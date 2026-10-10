@@ -1,0 +1,15 @@
+{
+  "schema": "gill-contribution-proposal-1",
+  "contribution": "",
+  "sources": [],
+  "mechanism": "",
+  "backward_path": [],
+  "expected_evidence": [],
+  "contradictions": [],
+  "unresolved_dependencies": [],
+  "next_reversible_action": "",
+  "requested_scope": "none",
+  "consent_record_reference": "",
+  "submission_endpoint": null,
+  "instructions": "Prepare for human review through an independently verified contact route. Do not include credentials or private family data."
+}
