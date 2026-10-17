@@ -47,15 +47,16 @@
       script.onerror=()=>{loading=false;loadButton.hidden=false;status.textContent='YouTube could not load. The direct listening links remain available.';};document.head.append(script);
     }catch(error){status.textContent='The listening session is unavailable. Use the direct YouTube links below.';loadButton.hidden=false;loading=false;}
   }
-  document.querySelectorAll('a[href*="youtube.com/watch"]').forEach(link=>{
+  data.then(()=>document.querySelectorAll('a[href*="youtube.com/watch"]').forEach(link=>{
     if(link===watch)return;
+    const id=new URL(link.href).searchParams.get('v');
+    const index=tracks.findIndex(track=>track.id===id);
+    if(index<0)return;
     link.removeAttribute('target');
-    link.addEventListener('click',async event=>{
-      event.preventDefault();await data;
-      const id=new URL(link.href).searchParams.get('v');const index=tracks.findIndex(track=>track.id===id);
-      if(index>=0){play(index);frame.classList.add('floating-player');dismiss.hidden=false;}
+    link.addEventListener('click',event=>{
+      event.preventDefault();play(index);frame.classList.add('floating-player');dismiss.hidden=false;
     });
-  });
+  })).catch(()=>{});
   window.addEventListener('pause-kelly-video',()=>{if(ready)player.pauseVideo();});
   items.forEach(button=>button.addEventListener('click',()=>play(Number(button.dataset.track))));
   loadButton.addEventListener('click',()=>play(current));
