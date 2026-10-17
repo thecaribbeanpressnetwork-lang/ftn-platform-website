@@ -66,11 +66,11 @@
     },
     {
       id: 'weather-satellite', category: 'weather', title: 'Satellite (GOES-19)', signal: 'SAT',
-      embedType: 'anchor', anchorSelector: '.ftn-sat',
+      embedType: 'external',
       authority: 'NOAA / NESDIS / STAR', sourceClass: 'OFFICIAL_GOVERNMENT',
       sourceUrl: 'https://www.star.nesdis.noaa.gov/GOES/sector.php?sat=G19&sector=car&src=nav',
-      description: 'Current GOES-19 GeoColor Caribbean view — already live at the top of this page.',
-      status: 'LIVE', nowFeed: false
+      description: 'GOES-19 Caribbean imagery and animation from NOAA. Open the source for the latest available frame and service notices.',
+      status: 'EXTERNAL', nowFeed: false
     },
     {
       id: 'weather-lightning', category: 'weather', title: 'Lightning', signal: 'LTG',
@@ -848,14 +848,18 @@
     });
 
     document.addEventListener('click', function (e) {
-      var tab = e.target.closest && e.target.closest('[data-observer-tab]');
+      var tab = e.target.closest && e.target.closest('[data-observer-tab], a[href^="#observer/"]');
       if (!tab) return;
-      var cat = tab.getAttribute('data-observer-tab');
+      e.preventDefault();
+      var cat = tab.getAttribute('data-observer-tab') || tab.getAttribute('href').split('/')[1];
+      activateCategory(cat, root);
       global.location.hash = 'observer/' + cat;
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     global.addEventListener('hashchange', function () {
       activateCategory(categoryFromHash(), root);
+      if (/^#observer\//.test(global.location.hash)) root.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
 
@@ -876,6 +880,7 @@
     buildNav(root);
     wireInteractions(root);
     activateCategory(categoryFromHash(), root);
+    if (/^#observer\//.test(global.location.hash)) requestAnimationFrame(function () { root.scrollIntoView({ block: 'start' }); });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -1,0 +1,15 @@
+/* Keep the live dashboard on one continuous black canvas. */
+.ftn-observatory-page{background:#000;color:#f5f5f5}
+.ftn-observatory-page main,.ftn-observatory-page .section,.ftn-observatory-page .observer-console,.ftn-observatory-page .observatory-hero,.ftn-observatory-page .site-header,.ftn-observatory-page .site-footer{background:#000;color:#f5f5f5}
+.ftn-observatory-page .observer-console{scroll-margin-top:90px;border-radius:0}
+.ftn-observatory-page .observer-console::before{background:#000;border-radius:0}
+.ftn-observatory-page .site-header .logo-mark text{fill:#fff}
+.ftn-observatory-page .site-header .logo-mark__t{fill:#e31b23}
+.ftn-observatory-page .site-nav__trigger,.ftn-observatory-page .site-header__actions a{color:#f5f5f5}
+.ftn-observatory-page .what-changed__item,.ftn-observatory-page .methodology-banner,.ftn-observatory-page .category-jump,.ftn-observatory-page .customize-panel{background:#000;color:#ddd;border-color:#333}
+.ftn-observatory-page .what-changed__item .trust-trigger,.ftn-observatory-page .what-changed__value,.ftn-observatory-page .category-chip{color:#ddd}
+
+.ftn-observatory-page .observer-console .btn-outline{color:#f5f5f5;border-color:#777;background:#000}
+.ftn-observatory-page .observer-console .btn-outline:hover{background:#242424;border-color:#fff}
+.ftn-observatory-page .site-header button:not(.btn-primary){background:#000;color:#fff;border:1px solid #555}
+.ftn-observatory-page .observer-card__signal{color:#b8c2ce}
