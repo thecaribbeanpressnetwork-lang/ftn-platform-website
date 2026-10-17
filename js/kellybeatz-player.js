@@ -56,6 +56,7 @@
       if(index>=0){play(index);frame.classList.add('floating-player');dismiss.hidden=false;}
     });
   });
+  window.addEventListener('pause-kelly-video',()=>{if(ready)player.pauseVideo();});
   items.forEach(button=>button.addEventListener('click',()=>play(Number(button.dataset.track))));
   loadButton.addEventListener('click',()=>play(current));
   document.getElementById('previous-track').addEventListener('click',()=>play(current-1));
