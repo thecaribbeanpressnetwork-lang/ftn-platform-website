@@ -22,19 +22,19 @@
     current=(index+tracks.length)%tracks.length;
     const track=tracks[current];
     title.textContent=track.title+' / '+track.artist;
-    reason.textContent=track.reason;
+    reason.textContent="";
     watch.href='https://www.youtube.com/watch?v='+encodeURIComponent(track.id);
     items.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===current)));
   }
   async function play(index){
     try{
-      await data;select(index);wantsPlayback=true;dismissed=false;watch.hidden=true;
+      await data;select(index);delete frame.dataset.playerError;wantsPlayback=true;dismissed=false;watch.hidden=true;
       if(ready){player.loadVideoById(tracks[current].id);return;}
       if(loading)return;
       loading=true;loadButton.hidden=true;status.textContent='Loading the selected release video…';
       window.onYouTubeIframeAPIReady=()=>{
         player=new YT.Player('youtube-player',{
-          host:'https://www.youtube-nocookie.com',videoId:tracks[current].id,
+          host:'https://www.youtube.com',videoId:tracks[current].id,
           playerVars:{playsinline:1,controls:1,origin:location.origin,rel:0},
           events:{
             onReady:()=>{ready=true;status.textContent='Use the visible video controls for play, pause, volume and seeking.';if(wantsPlayback)player.playVideo();},

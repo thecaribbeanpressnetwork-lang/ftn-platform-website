@@ -1,29 +1,5 @@
 [
   {
-    "title": "Catch 22",
-    "artist": "Prince Swanny",
-    "id": "o1Z8AaT9AGM",
-    "reason": "Melody-led production with Kelly credited as composer in the release audio."
-  },
-  {
-    "title": "Real Mad Dawgs",
-    "artist": "Prince Swanny",
-    "id": "H4y4eKqnG1I",
-    "reason": "A contrasting side of the selected Prince Swanny production work."
-  },
-  {
-    "title": "Contract",
-    "artist": "Boy Boy",
-    "id": "_mrk4YVsfCM",
-    "reason": "A recording with published production, mix and mastering credits."
-  },
-  {
-    "title": "Adrenaline",
-    "artist": "Boy Boy",
-    "id": "XIwRrMzrKBg",
-    "reason": "The artist collaboration described in Joshua\u00e2\u20ac\u2122s 2020 interview."
-  },
-  {
     "id": "-Wf4FAQYlPw",
     "title": "Covid-19",
     "artist": "Zerimar",
@@ -46,5 +22,17 @@
     "title": "Ghetto Story",
     "artist": "Teejah",
     "reason": "270K public YouTube views on Kelly Beatz\u2019s channel; checked 17 October 2026."
+  },
+  {
+    "title": "Contract",
+    "artist": "Boy Boy",
+    "id": "_mrk4YVsfCM",
+    "reason": "A recording with published production, mix and mastering credits."
+  },
+  {
+    "title": "Adrenaline",
+    "artist": "Boy Boy",
+    "id": "XIwRrMzrKBg",
+    "reason": "The artist collaboration described in Joshua\u00e2\u20ac\u2122s 2020 interview."
   }
 ]
