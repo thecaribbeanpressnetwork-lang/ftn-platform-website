@@ -1,5 +1,11 @@
 # FTN Platform Website — Version Record
 
+## WhatsApp/social preview refresh — 2026-10-18
+
+Replaces the legacy Operating System platform share artwork with a versioned 1200×630 JPEG bearing the current Caribbean Ecosystem tagline. All 40 pages using the generic platform card now reference the new filename, declare JPEG type/secure URL/dimensions and accessible image text. Page titles, descriptions, canonical URLs, product-specific cards, page bodies and application code remain intact; the homepage OG description now matches its existing standard/Twitter description.
+
+The focused social-preview audit checks initial HTML tags, canonical/OG URL agreement, duplicate tags, image format, dimensions and size. Deployment-artifact and CSP audits pass. The asset-manifest audit has a pre-existing failure on assets/amari-inniss/01-one-for-the-road-20261013-canon.webp; this share image is separately recorded in the ledger. Publication is through the existing main-branch Cloudflare Pages integration; production verification is recorded in the task report after publication. A new image filename avoids the prior asset's one-year immutable cache; Meta/WhatsApp may still need a page-preview refresh.
+
 ## GSZ discovery research release prepared — 2026-10-10
 
 Adds the unlisted public route /gsz/sentient-intelligence-breadcrumb-blood-drops/ with seven JSON contribution markers, a discovery index, a proposal template and sanitised three-part research in HTML and PDF. Private family records and the continuity manifest remain outside the public repository. No live emergency actuator, authentication endpoint or autonomous detector is installed by this release.

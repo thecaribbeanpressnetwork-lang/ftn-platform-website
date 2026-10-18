@@ -67,6 +67,9 @@ jobs:
       - name: Check every page footer matches data/footer-config.mjs
         run: node scripts/sync-footer.mjs --check
 
+      - name: Audit server-rendered platform share cards
+        run: node tests/social-preview-audit.mjs
+
       - name: Audit visual asset manifest coverage
         run: node tests/asset-manifest-audit.mjs
 
