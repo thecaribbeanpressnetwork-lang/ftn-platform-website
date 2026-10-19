@@ -151,6 +151,78 @@
   }
   normalizeNavigation();
 
+  // Shared page controls: keep header navigation uncluttered on narrow screens.
+  function mountPageActions() {
+    var header = document.querySelector('.site-header, .nexus-header');
+    if (!header || document.querySelector('[data-page-actions]')) return;
+    var bar = document.createElement('div');
+    bar.className = 'ftn-page-actions';
+    bar.setAttribute('data-page-actions', '');
+    bar.innerHTML = '<div class="container ftn-page-actions__inner"><div role="group" aria-label="Page actions"><button type="button" data-page-back>← Back</button><button type="button" data-page-share>Share ↗</button></div><span class="ftn-page-actions__status" role="status" aria-live="polite"></span></div>';
+    header.insertAdjacentElement('afterend', bar);
+    var back = bar.querySelector('[data-page-back]');
+    var share = bar.querySelector('[data-page-share]');
+    var status = bar.querySelector('[role="status"]');
+    back.addEventListener('click', function () {
+      if (history.length > 1) history.back();
+      else location.assign('/');
+    });
+    var dialog = document.createElement('dialog');
+    dialog.className = 'ftn-share-dialog';
+    dialog.setAttribute('aria-labelledby', 'ftn-share-title');
+    dialog.innerHTML = '<h2 id="ftn-share-title">Share this page</h2><label for="ftn-share-url">Page link</label><input id="ftn-share-url" type="url" readonly><p data-share-help>Select and copy this link to share it.</p><div><button type="button" data-share-copy>Copy link</button><button type="button" data-share-close>Close</button></div>';
+    document.body.appendChild(dialog);
+    var input = dialog.querySelector('input');
+    var copy = dialog.querySelector('[data-share-copy]');
+    var help = dialog.querySelector('[data-share-help]');
+    function showCopyLink(url) {
+      input.value = url;
+      help.textContent = 'Select and copy this link to share it.';
+      if (!dialog.open) dialog.showModal();
+      input.focus();
+      input.select();
+    }
+    dialog.querySelector('[data-share-close]').addEventListener('click', function () { dialog.close(); });
+    dialog.addEventListener('close', function () { share.focus(); });
+    copy.addEventListener('click', function () {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) {
+        input.focus(); input.select();
+        help.textContent = 'Link selected. Use your device’s Copy command.';
+        return;
+      }
+      navigator.clipboard.writeText(input.value).then(function () {
+        help.textContent = 'Link copied.';
+        status.textContent = 'Link copied.';
+      }).catch(function () {
+        input.focus(); input.select();
+        help.textContent = 'Select the link and use your device’s Copy command.';
+      });
+    });
+    share.addEventListener('click', function () {
+      var url = new URL(location.href);
+      // Never put account callbacks or private query parameters in a shared link.
+      url.search = ''; url.hash = '';
+      var canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) {
+        try {
+          var target = new URL(canonical.href);
+          if (target.origin === location.origin) { target.search = ''; target.hash = ''; url = target; }
+        } catch (e) {}
+      }
+      var data = { title: document.title, url: url.href };
+      status.textContent = '';
+      if (!navigator.share) { showCopyLink(url.href); return; }
+      navigator.share(data).then(function () {
+        status.textContent = 'Shared.';
+      }).catch(function (error) {
+        if (error.name !== 'AbortError') showCopyLink(url.href);
+      });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountPageActions);
+  else mountPageActions();
+
+
   // Canonical Platform / Company / Legal structure -- one shared footer, same on every
   // site-footer page (see CLAUDE.md FIX 6). Social icons are normalized separately below
   // since they live in .site-footer__brand, a sibling this function does not touch.
