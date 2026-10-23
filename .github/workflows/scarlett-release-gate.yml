@@ -1,0 +1,61 @@
+name: Scarlett Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scarlett/**
+      - js/scarlett-engine.js
+      - js/scarlett-page.js
+      - css/components/scarlett.css
+      - extensions/scarlett/**
+      - docs/scarlett-architecture.md
+      - data/scarlett-evidence-registry.json
+      - tests/scarlett-release.mjs
+      - .github/workflows/scarlett-release-gate.yml
+  push:
+    branches: [scarlett-foundation-2026-09-10]
+    paths:
+      - scarlett/**
+      - js/scarlett-engine.js
+      - js/scarlett-page.js
+      - css/components/scarlett.css
+      - extensions/scarlett/**
+      - docs/scarlett-architecture.md
+      - data/scarlett-evidence-registry.json
+      - tests/scarlett-release.mjs
+      - .github/workflows/scarlett-release-gate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scarlett-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and static server
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0 http-server
+          npx playwright install chromium
+      - name: Serve repository
+        run: |
+          npx http-server . -p 3000 -c-1 > /tmp/scarlett-server.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/scarlett/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/scarlett-server.log
+          exit 1
+      - name: Run Scarlett acceptance gate
+        env:
+          FTN_TEST_BASE: http://127.0.0.1:3000
+        run: node tests/scarlett-release.mjs
