@@ -1,0 +1,61 @@
+const status=document.querySelector('#status');
+const facts=document.querySelector('#page-facts');
+const buttons=[...document.querySelectorAll('[data-mode]')];
+let tabId=null;
+
+async function activeTab(){
+  const [tab]=await chrome.tabs.query({active:true,currentWindow:true});
+  if(!tab?.id) throw new Error('No active page is available.');
+  return tab;
+}
+async function ensureRuntime(id){
+  try{
+    const reply=await chrome.tabs.sendMessage(id,{type:'SCARLETT_ANALYZE'});
+    if(reply?.ok) return reply;
+  }catch{}
+  await chrome.scripting.executeScript({target:{tabId:id},files:['page-understanding.js','transformation-policy.js','content.js']});
+  return chrome.tabs.sendMessage(id,{type:'SCARLETT_ANALYZE'});
+}
+function setPressed(mode){
+  for(const button of buttons) button.setAttribute('aria-pressed',String(button.dataset.mode===mode));
+}
+function render(reply){
+  const model=reply.model||{};
+  setPressed(reply.mode||'ORIGINAL');
+  const app=model.app?.label ? model.app.label+' · ' : '';
+  const risk=model.risk?.level==='HIGH' ? 'Sensitive · ' : '';
+  facts.textContent=`${app}${risk}${model.pageType||'Page'} · local analysis`;
+  if(model.risk?.level==='HIGH' || model.app){
+    document.querySelector('[data-mode="ADAPT"]').disabled=true;
+    status.textContent=model.app
+      ? 'Complex application detected. Scarlett keeps this surface in Assist to preserve muscle memory.'
+      : 'Sensitive surface detected. Scarlett keeps this surface in Assist unless a future governed policy explicitly allows more.';
+  }else{
+    document.querySelector('[data-mode="ADAPT"]').disabled=false;
+    status.textContent=`Recommended: ${reply.defaultMode||'ASSIST'}. Original is always available.`;
+  }
+}
+async function init(){
+  try{
+    const tab=await activeTab();tabId=tab.id;
+    if(!/^https?:/i.test(tab.url||'')) throw new Error('Scarlett runs on normal web pages, not browser-internal pages.');
+    const reply=await ensureRuntime(tabId);
+    render(reply);
+  }catch(error){
+    status.textContent=error?.message||String(error);
+    buttons.forEach(b=>b.disabled=true);
+  }
+}
+buttons.forEach(button=>button.addEventListener('click',async()=>{
+  if(!tabId) return;
+  status.textContent='Applying '+button.dataset.mode.toLowerCase()+'…';
+  try{
+    const reply=await chrome.tabs.sendMessage(tabId,{type:'SCARLETT_MODE',mode:button.dataset.mode});
+    if(!reply?.ok) throw new Error(reply?.error||'Scarlett could not update this page.');
+    setPressed(reply.mode);
+    if(reply.reason==='SENSITIVE_SURFACE_ASSIST_ONLY') status.textContent='Adapt was reduced to Assist on this sensitive surface.';
+    else if(reply.reason==='COMPLEX_APP_MUSCLE_MEMORY') status.textContent='Adapt was reduced to Assist to preserve this application’s native workflow.';
+    else status.textContent=reply.mode==='ORIGINAL'?'Original page restored.':'Scarlett '+reply.mode.toLowerCase()+' is active.';
+  }catch(error){status.textContent=error?.message||String(error);}
+}));
+init();

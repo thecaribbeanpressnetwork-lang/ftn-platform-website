@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Scarlett by FTN",
+  "short_name": "Scarlett",
+  "version": "0.1.0",
+  "description": "A local-first adaptive interface layer that helps you work with the page you are on while preserving the original.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://ftnplatform.org/ibis-ai/*",
+    "https://www.ftnplatform.org/ibis-ai/*",
+    "https://ftnplatform.org/ibis-headspace-preview/*",
+    "https://www.ftnplatform.org/ibis-headspace-preview/*"
+  ],
+  "action": {
+    "default_title": "Scarlett",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://ftnplatform.org/ibis-ai/*",
+        "https://www.ftnplatform.org/ibis-ai/*",
+        "https://ftnplatform.org/ibis-headspace-preview/*",
+        "https://www.ftnplatform.org/ibis-headspace-preview/*"
+      ],
+      "js": [
+        "ibis-handoff.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

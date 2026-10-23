@@ -1,0 +1,24 @@
+name: Scarlett V1 Gate
+
+on:
+  pull_request:
+    paths:
+      - 'apps/ftn-scarlett-browser-extension/**'
+      - 'tests/scarlett-v1-audit.mjs'
+      - 'docs/SCARLETT_V1_AUDIT_AND_BUILD_PLAN_2026-09-19.md'
+      - '.github/workflows/scarlett-v1-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/scarlett-v1-audit.mjs
