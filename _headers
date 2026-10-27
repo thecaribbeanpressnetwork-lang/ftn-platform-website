@@ -15,3 +15,8 @@
 
 /manifest.webmanifest
   Cache-Control: no-cache
+
+# Sherri Moore independent review concept: not an approved public profile.
+/preview/sherri-moore/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store
