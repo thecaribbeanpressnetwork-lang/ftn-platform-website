@@ -280,7 +280,7 @@
   ],
   "current": {
     "year": 2026,
-    "asOf": "2026-11-15",
+    "asOf": "2026-11-16",
     "reported": 120,
     "detected": 13,
     "sourceName": "Trinidad and Tobago Police Service — Comparative Chart",
@@ -694,6 +694,11 @@
     },
     {
       "date": "2026-11-15",
+      "reported": 120,
+      "detected": 13
+    },
+    {
+      "date": "2026-11-16",
       "reported": 120,
       "detected": 13
     }
