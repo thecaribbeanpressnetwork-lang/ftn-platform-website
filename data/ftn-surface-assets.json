@@ -4,6 +4,15 @@
   "policy": "Directory panels and approved composite boards are reference-only. Only explicit approved production assets may render. The founder-locked FTN Index raster master is the authoritative visual source of truth; SVG marks are implementation derivatives and must not redefine, redraw or substitute the locked identity.",
   "surfaces": [
     {
+      "productId": "boss-consulting-share-v3",
+      "productionAsset": "/assets/boss-consulting/boss-consulting-political-strategy-share-v3.jpg",
+      "source": "Winged-lion share card with FTN red highlights, based on the founder-supplied artwork",
+      "license": "FTN site use under the founder’s approval of the source artwork",
+      "dimensions": "1200x630 JPEG",
+      "fileHashSha256": "87eced8920271f24f5cc6b2f33218303db9634e4debd03967d19c34784d34ecf",
+      "approvedForProduction": true
+    },
+    {
       "productId": "boss-consulting-share-v2",
       "productionAsset": "/assets/boss-consulting/boss-consulting-political-strategy-share-v2.jpg",
       "source": "Refined share card based on the founder-supplied Boss Consulting winged-lion artwork",
