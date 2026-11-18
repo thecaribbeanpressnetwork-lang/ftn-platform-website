@@ -266,6 +266,10 @@
 
 .boss-logo {
   mix-blend-mode: screen;
+  mask-image:
+    linear-gradient(to right, transparent, #000 11%, #000 89%, transparent),
+    linear-gradient(to bottom, transparent, #000 4%, #000 87%, transparent);
+  mask-composite: intersect;
 }
 
 .boss-hero {
@@ -647,7 +651,6 @@
 @media (prefers-reduced-motion: no-preference) {
   .boss-crest {
     position: relative;
-    isolation: isolate;
   }
 
   .boss-crest::after {
