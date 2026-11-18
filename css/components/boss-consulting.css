@@ -1,72 +1,39 @@
 .boss-consulting {
-  background: var(--color-black);
-  color: var(--color-white);
+  --boss-ink: #140d0a;
+  --boss-cream: #f5e7d2;
+  --boss-muted: #d1bca3;
+  --boss-brass: #dfb879;
+  --boss-rule: #725738;
+  --boss-serif: Georgia, 'Times New Roman', serif;
+  color: var(--boss-cream);
+  background: radial-gradient(ellipse at 50% 1%, #382116, transparent 48rem), var(--boss-ink);
+}
+
+.boss-consulting a {
+  color: var(--boss-brass);
+  text-underline-offset: .25em;
+}
+
+.boss-consulting a:hover {
+  color: var(--boss-cream);
 }
 
 .boss-consulting a:focus-visible {
-  outline-color: var(--color-red-on-dark);
+  outline: 2px solid var(--boss-brass);
   outline-offset: 5px;
 }
 
 .boss-wrap {
-  width: min(72rem, calc(100% - 2.5rem));
+  width: min(77rem, calc(100% - 2.5rem));
   margin-inline: auto;
-}
-
-.boss-header,
-.boss-footer {
-  padding-block: 1.5rem;
-}
-
-.boss-header a,
-.boss-footer a {
-  color: var(--color-white);
-  text-underline-offset: .25em;
-}
-
-.boss-hero {
-  padding-block: clamp(3.5rem, 10vw, 8rem);
-  border-block-start: 1px solid #414141;
-}
-
-.boss-hero h1 {
-  max-width: 16ch;
-  font-size: clamp(2.15rem, 5.8vw, 5rem);
-  overflow-wrap: anywhere;
-  line-height: 1.02;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 400;
-  letter-spacing: -.04em;
-  margin: 0;
-}
-
-.boss-tagline {
-  margin-block: 1.5rem 2rem;
-  padding-inline-start: .8em;
-  border-inline-start: 3px solid var(--color-red-on-dark);
-  font-size: clamp(1.2rem, 3vw, 1.75rem);
-}
-
-.boss-footer {
-  color: var(--color-silver);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: .75rem;
-}
-
-.boss-consulting {
-  --boss-rule: #414141;
 }
 
 .boss-skip {
   position: absolute;
   z-index: 1;
-  inset-block-start: .5rem;
-  inset-inline-start: .5rem;
-  transform: translateY(-150%);
-  background: var(--color-white);
-  color: var(--color-black);
+  inset: .75rem auto auto .75rem;
+  transform: translateY(-200%);
+  background: var(--boss-ink);
   padding: .65rem 1rem;
 }
 
@@ -76,49 +43,116 @@
 
 .boss-header,
 .boss-header nav,
-.boss-links {
+.boss-links,
+.boss-footer {
   display: flex;
   flex-wrap: wrap;
-  gap: .75rem 1.25rem;
+  align-items: baseline;
+  gap: .7rem 1.5rem;
 }
 
-.boss-header {
-  align-items: baseline;
+.boss-header,
+.boss-footer {
   justify-content: space-between;
+  padding-block: 1.5rem;
+}
+
+.boss-header a {
+  text-decoration: none;
+}
+
+.boss-header nav a:hover {
+  text-decoration: underline;
+}
+
+.boss-header nav,
+.boss-footer {
+  font-size: .87rem;
 }
 
 .boss-brand {
-  font-weight: 800;
+  font-family: var(--boss-serif);
+  font-size: 1.3rem;
+  letter-spacing: .045em;
 }
 
 .boss-hero,
-.boss-founder {
-  display: grid;
-  align-items: center;
-  gap: clamp(2rem, 5vw, 5rem);
+.boss-discretion-inner {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--boss-rule);
+  background:
+    radial-gradient(ellipse at 24% 7%, #96593845, transparent 72%),
+    repeating-linear-gradient(96deg, #0000 0 10px, #0e05042e 14px 16px, #0000 26px 39px),
+    linear-gradient(135deg, #42261b, #1b100c 70%);
+  box-shadow: inset 0 0 5rem #08040377, 0 1.25rem 3rem #0804033d;
 }
 
+.boss-hero::before,
+.boss-discretion-inner::before {
+  position: absolute;
+  z-index: -1;
+  inset: .45rem;
+  border: 1px solid #b786484d;
+  content: '';
+  pointer-events: none;
+}
 
-.boss-kicker,
-.boss-lede,
-.boss-portrait figcaption {
-  color: var(--color-silver);
+.boss-hero {
+  display: grid;
+  align-items: center;
+  gap: clamp(1.6rem, 4vw, 4rem);
+  padding: clamp(1.55rem, 5.5vw, 5.25rem);
+}
+
+.boss-hero h1,
+.boss-section h2,
+.boss-section h3,
+.boss-metrics dt {
+  font-family: var(--boss-serif);
+  font-weight: 400;
+}
+
+.boss-hero h1 {
+  max-width: 16ch;
+  margin: .6rem 0 0;
+  font-size: clamp(2.2rem, 5.05vw, 5rem);
+  line-height: 1.03;
+  letter-spacing: -.04em;
+  overflow-wrap: break-word;
 }
 
 .boss-kicker {
-  font-size: .85rem;
-  letter-spacing: .08em;
+  margin: 0;
+  color: var(--boss-brass);
+  font-size: .75rem;
+  letter-spacing: .13em;
   text-transform: uppercase;
+}
+
+.boss-tagline {
+  margin-block: 1.6rem 1.1rem;
+  padding-inline-start: .9rem;
+  border-inline-start: 2px solid var(--boss-brass);
+  color: var(--boss-brass);
+  font: italic clamp(1.2rem, 2.6vw, 1.65rem)/1.35 var(--boss-serif);
 }
 
 .boss-lede {
   max-width: 64ch;
-  font-size: clamp(1rem, 2.4vw, 1.2rem);
+  color: var(--boss-muted);
+  font-size: clamp(1rem, 2vw, 1.15rem);
 }
 
-.boss-portrait {
-  max-width: 16rem;
-  margin: 0;
+.boss-hero .boss-lede {
+  margin-block-end: 0;
+}
+
+.boss-crest {
+  padding: .3rem;
+  border: 3px double var(--boss-rule);
+  background: #050403;
+  box-shadow: 0 .95rem 2.4rem #0804039e;
 }
 
 .boss-logo,
@@ -128,77 +162,109 @@
   height: auto;
 }
 
-.boss-portrait figcaption {
-  margin-block-start: .6rem;
-  font-size: .85rem;
+.boss-section {
+  padding-block: clamp(2.6rem, 7vw, 5.4rem);
 }
 
-.boss-section {
+.boss-section + .boss-section,
+.boss-footer {
   border-block-start: 1px solid var(--boss-rule);
-  padding-block: clamp(2.5rem, 7vw, 5rem);
 }
 
 .boss-section h2 {
-  max-width: 26ch;
-  font-size: clamp(1.7rem, 4vw, 3rem);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 400;
-  line-height: 1.12;
   margin: 0 0 1rem;
+  font-size: clamp(1.9rem, 4.5vw, 3.6rem);
+  line-height: 1.08;
+  letter-spacing: -.028em;
+}
+
+.boss-section h3 {
+  margin: 0 0 .65rem;
+  color: var(--boss-brass);
+  font-size: clamp(1.25rem, 2.6vw, 1.65rem);
+  line-height: 1.2;
 }
 
 .boss-grid,
 .boss-metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
-  gap: 1rem;
+  gap: .8rem 1.25rem;
   margin-block: 1.5rem 0;
 }
 
 .boss-grid article,
 .boss-metrics div {
+  padding: clamp(1rem, 2.8vw, 2rem);
   border-block-start: 1px solid var(--boss-rule);
-  padding-block: 1rem;
+  background: linear-gradient(155deg, #352018, #1e130e);
 }
 
-.boss-grid h3 {
-  margin-block: 0 .5rem;
+.boss-grid article p,
+.boss-metrics dd,
+.boss-footer,
+.boss-portrait figcaption {
+  color: var(--boss-muted);
 }
 
-.boss-grid p:last-child {
-  margin-bottom: 0;
+.boss-grid article p:last-child {
+  margin-block-end: 0;
+}
+
+.boss-founder {
+  display: grid;
+  align-items: center;
+  gap: 1.6rem 3rem;
+}
+
+.boss-portrait {
+  max-width: 16rem;
+  margin: 0;
+}
+
+.boss-portrait img {
+  border: 3px double var(--boss-rule);
+}
+
+.boss-portrait figcaption {
+  margin-block-start: .6rem;
+  font-size: .83rem;
 }
 
 .boss-metrics {
-  margin-block-end: 1.75rem;
+  margin-block-end: 2rem;
 }
 
 .boss-metrics dt {
-  font-weight: 800;
-  font-size: clamp(1.4rem, 3.5vw, 2.15rem);
+  color: var(--boss-brass);
+  font-size: clamp(1.65rem, 4vw, 2.5rem);
 }
 
 .boss-metrics dd {
-  color: var(--color-silver);
-  margin: .4rem 0 0;
+  margin: .35rem 0 0;
 }
 
-.boss-links a {
-  color: var(--color-white);
-  text-underline-offset: .25em;
+.boss-discretion-inner {
+  padding: clamp(1.5rem, 5vw, 4rem);
+  text-align: center;
 }
 
-.boss-discretion p {
-  max-width: 65ch;
+.boss-discretion-inner p {
+  max-width: 62ch;
+  margin-inline: auto;
+  color: var(--boss-muted);
 }
 
-.boss-footer {
-  border-block-start: 1px solid var(--boss-rule);
+.boss-discretion-inner p:last-child {
+  margin-block-end: 0;
 }
 
-@media (min-width: 48rem) {
-  .boss-hero,
+@media (min-width: 52rem) {
+  .boss-hero {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+
   .boss-founder {
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 16rem;
   }
 }
