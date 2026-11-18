@@ -34,7 +34,9 @@
   font-size: clamp(2.15rem, 5.8vw, 5rem);
   overflow-wrap: anywhere;
   line-height: 1.02;
-  letter-spacing: -.045em;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -.04em;
   margin: 0;
 }
 
@@ -45,29 +47,8 @@
   font-size: clamp(1.2rem, 3vw, 1.75rem);
 }
 
-.boss-button {
-  display: inline-block;
-  padding: .8rem 1.15rem;
-  background: var(--color-white);
-  color: var(--color-black);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.boss-button:hover {
-  text-decoration: underline;
-}
-
-.boss-note,
 .boss-footer {
   color: var(--color-silver);
-}
-
-.boss-note {
-  margin-block: .85rem 0;
-}
-
-.boss-footer {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -160,6 +141,8 @@
 .boss-section h2 {
   max-width: 26ch;
   font-size: clamp(1.7rem, 4vw, 3rem);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
   line-height: 1.12;
   margin: 0 0 1rem;
 }
@@ -174,8 +157,8 @@
 
 .boss-grid article,
 .boss-metrics div {
-  border: 1px solid var(--boss-rule);
-  padding: clamp(1rem, 3vw, 1.75rem);
+  border-block-start: 1px solid var(--boss-rule);
+  padding-block: 1rem;
 }
 
 .boss-grid h3 {
