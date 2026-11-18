@@ -643,3 +643,28 @@
     padding-block-end: .35rem;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .boss-crest {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .boss-crest::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    clip-path: inset(61% 14% 27% 14%);
+    mask: url("/assets/boss-consulting/boss-consulting-political-strategy-share-v9.jpg") center / 100% 100% no-repeat luminance;
+    background: linear-gradient(112deg, transparent 42%, rgb(231 240 255 / 75%) 50%, transparent 58%) -130% 0 / 45% 100% no-repeat;
+    mix-blend-mode: screen;
+    animation: boss-lettering-glint 1.2s ease-out .45s both;
+  }
+
+  @keyframes boss-lettering-glint {
+    from { background-position: -90% 0; opacity: 0; }
+    20%, 80% { opacity: 1; }
+    to { background-position: 190% 0; opacity: 0; }
+  }
+}
