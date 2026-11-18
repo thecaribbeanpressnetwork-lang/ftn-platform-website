@@ -1,0 +1,95 @@
+.boss-consulting {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.boss-consulting a:focus-visible {
+  outline-color: var(--color-red-on-dark);
+  outline-offset: 5px;
+}
+
+.boss-wrap {
+  width: min(72rem, calc(100% - 2.5rem));
+  margin-inline: auto;
+}
+
+.boss-header,
+.boss-footer {
+  padding-block: 1.5rem;
+}
+
+.boss-header a,
+.boss-footer a {
+  color: var(--color-white);
+  text-underline-offset: .25em;
+}
+
+.boss-hero {
+  padding-block: clamp(3.5rem, 10vw, 8rem);
+  border-block-start: 1px solid #414141;
+}
+
+.boss-hero h1 {
+  max-width: 16ch;
+  font-size: clamp(2.15rem, 6.7vw, 5.5rem);
+  line-height: 1.02;
+  letter-spacing: -.045em;
+  margin: 0;
+}
+
+.boss-tagline {
+  margin-block: 1.5rem 2rem;
+  padding-inline-start: .8em;
+  border-inline-start: 3px solid var(--color-red-on-dark);
+  font-size: clamp(1.2rem, 3vw, 1.75rem);
+}
+
+.boss-button {
+  display: inline-block;
+  padding: .8rem 1.15rem;
+  background: var(--color-white);
+  color: var(--color-black);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.boss-button:hover {
+  text-decoration: underline;
+}
+
+.boss-note,
+.boss-services p,
+.boss-footer {
+  color: var(--color-silver);
+}
+
+.boss-note {
+  margin-block: .85rem 0;
+}
+
+.boss-services {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+}
+
+.boss-services article {
+  border: 1px solid #414141;
+  padding: clamp(1rem, 4vw, 2rem);
+}
+
+.boss-services h2 {
+  font-size: 1.35rem;
+  margin: 0 0 .5rem;
+}
+
+.boss-services p {
+  margin: 0;
+}
+
+.boss-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .75rem;
+}
