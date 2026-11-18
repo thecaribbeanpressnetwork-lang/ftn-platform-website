@@ -552,3 +552,47 @@
 #ebr-profile:target {
   border-color: var(--boss-brass);
 }
+
+.boss-header nav a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+}
+
+.boss-consulting summary:focus-visible {
+  outline: 2px solid var(--boss-brass);
+  outline-offset: 3px;
+}
+
+@media (max-width: 36rem) {
+  .boss-wrap {
+    width: calc(100% - 1.5rem);
+  }
+
+  .boss-header {
+    gap: .15rem;
+    padding-block: .75rem;
+  }
+
+  .boss-header nav {
+    gap: 0 1rem;
+    width: 100%;
+  }
+
+  .boss-hero {
+    padding: 1.35rem 1.1rem 1.65rem;
+    gap: .85rem;
+  }
+
+  .boss-crest {
+    width: min(100%, 17rem);
+  }
+
+  .boss-hero h1 {
+    font-size: clamp(1.95rem, 8vw, 2.8rem);
+  }
+
+  .boss-tagline {
+    margin-block: .95rem .75rem;
+  }
+}
