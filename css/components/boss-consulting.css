@@ -1,0 +1,221 @@
+.boss-consulting {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.boss-consulting a:focus-visible {
+  outline-color: var(--color-red-on-dark);
+  outline-offset: 5px;
+}
+
+.boss-wrap {
+  width: min(72rem, calc(100% - 2.5rem));
+  margin-inline: auto;
+}
+
+.boss-header,
+.boss-footer {
+  padding-block: 1.5rem;
+}
+
+.boss-header a,
+.boss-footer a {
+  color: var(--color-white);
+  text-underline-offset: .25em;
+}
+
+.boss-hero {
+  padding-block: clamp(3.5rem, 10vw, 8rem);
+  border-block-start: 1px solid #414141;
+}
+
+.boss-hero h1 {
+  max-width: 16ch;
+  font-size: clamp(2.15rem, 5.8vw, 5rem);
+  overflow-wrap: anywhere;
+  line-height: 1.02;
+  letter-spacing: -.045em;
+  margin: 0;
+}
+
+.boss-tagline {
+  margin-block: 1.5rem 2rem;
+  padding-inline-start: .8em;
+  border-inline-start: 3px solid var(--color-red-on-dark);
+  font-size: clamp(1.2rem, 3vw, 1.75rem);
+}
+
+.boss-button {
+  display: inline-block;
+  padding: .8rem 1.15rem;
+  background: var(--color-white);
+  color: var(--color-black);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.boss-button:hover {
+  text-decoration: underline;
+}
+
+.boss-note,
+.boss-footer {
+  color: var(--color-silver);
+}
+
+.boss-note {
+  margin-block: .85rem 0;
+}
+
+.boss-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.boss-consulting {
+  --boss-rule: #414141;
+}
+
+.boss-skip {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: .5rem;
+  inset-inline-start: .5rem;
+  transform: translateY(-150%);
+  background: var(--color-white);
+  color: var(--color-black);
+  padding: .65rem 1rem;
+}
+
+.boss-skip:focus {
+  transform: translateY(0);
+}
+
+.boss-header,
+.boss-header nav,
+.boss-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1.25rem;
+}
+
+.boss-header {
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.boss-brand {
+  font-weight: 800;
+}
+
+.boss-hero,
+.boss-founder {
+  display: grid;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+}
+
+
+.boss-kicker,
+.boss-lede,
+.boss-portrait figcaption {
+  color: var(--color-silver);
+}
+
+.boss-kicker {
+  font-size: .85rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.boss-lede {
+  max-width: 64ch;
+  font-size: clamp(1rem, 2.4vw, 1.2rem);
+}
+
+.boss-portrait {
+  max-width: 16rem;
+  margin: 0;
+}
+
+.boss-logo,
+.boss-portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.boss-portrait figcaption {
+  margin-block-start: .6rem;
+  font-size: .85rem;
+}
+
+.boss-section {
+  border-block-start: 1px solid var(--boss-rule);
+  padding-block: clamp(2.5rem, 7vw, 5rem);
+}
+
+.boss-section h2 {
+  max-width: 26ch;
+  font-size: clamp(1.7rem, 4vw, 3rem);
+  line-height: 1.12;
+  margin: 0 0 1rem;
+}
+
+.boss-grid,
+.boss-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1rem;
+  margin-block: 1.5rem 0;
+}
+
+.boss-grid article,
+.boss-metrics div {
+  border: 1px solid var(--boss-rule);
+  padding: clamp(1rem, 3vw, 1.75rem);
+}
+
+.boss-grid h3 {
+  margin-block: 0 .5rem;
+}
+
+.boss-grid p:last-child {
+  margin-bottom: 0;
+}
+
+.boss-metrics {
+  margin-block-end: 1.75rem;
+}
+
+.boss-metrics dt {
+  font-weight: 800;
+  font-size: clamp(1.4rem, 3.5vw, 2.15rem);
+}
+
+.boss-metrics dd {
+  color: var(--color-silver);
+  margin: .4rem 0 0;
+}
+
+.boss-links a {
+  color: var(--color-white);
+  text-underline-offset: .25em;
+}
+
+.boss-discretion p {
+  max-width: 65ch;
+}
+
+.boss-footer {
+  border-block-start: 1px solid var(--boss-rule);
+}
+
+@media (min-width: 48rem) {
+  .boss-hero,
+  .boss-founder {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
