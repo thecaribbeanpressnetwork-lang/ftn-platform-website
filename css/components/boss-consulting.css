@@ -463,6 +463,15 @@
   margin: 0;
 }
 
+.boss-political-promise {
+  display: block;
+  margin-top: .48rem;
+  color: var(--boss-brass);
+  font-size: .48em;
+  line-height: 1.12;
+  letter-spacing: -.015em;
+}
+
 .boss-diagnosis {
   border-block: 1px solid var(--boss-rule);
   background: radial-gradient(ellipse at top left, #3c281b, #17100c 74%);
