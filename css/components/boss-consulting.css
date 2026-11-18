@@ -445,3 +445,84 @@
   padding: 0;
   list-style: none;
 }
+
+.boss-approach-intro {
+  display: grid;
+  gap: .5rem 2.5rem;
+  align-items: start;
+  margin-bottom: 1.5rem;
+}
+
+.boss-approach-intro h2,
+.boss-approach-intro p {
+  margin: 0;
+}
+
+.boss-diagnosis {
+  border-block: 1px solid var(--boss-rule);
+  background: radial-gradient(ellipse at top left, #3c281b, #17100c 74%);
+}
+
+.boss-diagnosis summary {
+  display: grid;
+  gap: .5rem;
+  padding: clamp(1rem, 4vw, 2.5rem);
+  list-style: none;
+  cursor: pointer;
+}
+
+.boss-diagnosis summary::-webkit-details-marker {
+  display: none;
+}
+
+.boss-diagnosis summary:focus-visible {
+  outline: 2px solid var(--boss-brass);
+  outline-offset: 3px;
+}
+
+.boss-diagnosis summary strong {
+  font: clamp(1.55rem, 4vw, 2.65rem)/1.12 var(--boss-serif);
+}
+
+.boss-diagnosis-action {
+  color: var(--boss-brass);
+  font-size: .85rem;
+}
+
+.boss-diagnosis-action::before {
+  content: '+';
+  margin-inline-end: .55rem;
+}
+
+.boss-diagnosis[open] .boss-diagnosis-action::before {
+  content: '−';
+}
+
+.boss-diagnosis dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0 clamp(1rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem);
+}
+
+.boss-diagnosis dl > div {
+  padding-top: .8rem;
+  border-top: 1px solid var(--boss-rule);
+}
+
+.boss-diagnosis dt {
+  color: var(--boss-brass);
+  font: 1.2rem/1.25 var(--boss-serif);
+}
+
+.boss-diagnosis dd {
+  margin: .5rem 0 0;
+  color: var(--boss-muted);
+}
+
+@media (min-width: 52rem) {
+  .boss-approach-intro {
+    grid-template-columns: 1fr 1.25fr;
+  }
+}
