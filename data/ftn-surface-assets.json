@@ -4,6 +4,15 @@
   "policy": "Directory panels and approved composite boards are reference-only. Only explicit approved production assets may render. The founder-locked FTN Index raster master is the authoritative visual source of truth; SVG marks are implementation derivatives and must not redefine, redraw or substitute the locked identity.",
   "surfaces": [
     {
+      "productId": "boss-consulting-share-v8",
+      "productionAsset": "/assets/boss-consulting/boss-consulting-political-strategy-share-v8.jpg",
+      "source": "Gunmetal winged-lion card with polished gold lettering and scarlet underlighting",
+      "license": "FTN site use under the founder’s approval of the source artwork",
+      "dimensions": "1200x630 JPEG",
+      "fileHashSha256": "949b6ee03ad2f6b4a9dea8f459bbe7fa7797ffbc035901e41f8567876f58da59",
+      "approvedForProduction": true
+    },
+    {
       "productId": "boss-consulting-share-v7",
       "productionAsset": "/assets/boss-consulting/boss-consulting-political-strategy-share-v7.jpg",
       "source": "Winged-lion card with scarlet up-light from the flag-inlaid rail",
