@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/components/boss-consulting.css?v=8">
+  <script src="/js/boss-debt-clock.js?v=1" defer></script>
 </head>
 <body class="boss-consulting">
   <a class="boss-skip" href="#main">Skip to content</a>
@@ -198,6 +199,11 @@
           </div>
         </dl>
         <p class="boss-clock-note">These figures are from the Central Bank’s June 2026 reporting period, published in its September 2026 DataPack. The readings stay fixed between releases. The adjusted measure excludes debt issued to absorb liquidity.</p>
+        <details class="boss-clock-brief">
+          <summary>Show the ticking estimate</summary>
+          <p><strong>Modelled adjusted debt</strong> <span class="boss-clock-number" id="boss-debt-estimate" aria-live="off">Estimate unavailable</span></p>
+          <p>The model uses the change from TT$148.3759 billion in March 2026 to TT$148.9693 billion in June 2026. It extends that quarter’s average pace forward and rounds to the nearest TT$100. This is an illustration of that pace, not an official reading or a forecast. The estimate expires at the end of December 2026 unless its source figures are refreshed.</p>
+        </details>
         <details class="boss-clock-brief">
           <summary>What this means for a long-term investment</summary>
           <p>For a project that depends on public contracts, start with three questions. Is funding approved for the full term? How long can the project carry delayed payments? What happens to the investment if refinancing costs rise? The debt figures give those questions context. The budget allocation, contract terms and cash-flow model help answer them.</p>
