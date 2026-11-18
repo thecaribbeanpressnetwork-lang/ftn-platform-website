@@ -596,3 +596,50 @@
     margin-block: .95rem .75rem;
   }
 }
+
+.boss-mobile-nav {
+  display: none;
+}
+
+.boss-hero-paths {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 1.25rem;
+  margin-block-start: .65rem;
+}
+
+.boss-hero-paths a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  font-size: .9rem;
+}
+
+@media (max-width: 48rem) {
+  .boss-header .boss-desktop-nav {
+    display: none;
+  }
+
+  .boss-mobile-nav {
+    display: block;
+  }
+
+  .boss-mobile-nav summary {
+    min-block-size: 2.75rem;
+    box-sizing: border-box;
+    padding: .65rem .1rem;
+    color: var(--boss-brass);
+    font-size: .87rem;
+    cursor: pointer;
+  }
+
+  .boss-mobile-nav[open] {
+    flex-basis: 100%;
+  }
+
+  .boss-mobile-nav nav {
+    gap: 0 1rem;
+    padding-block-end: .35rem;
+  }
+}
