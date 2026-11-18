@@ -526,3 +526,29 @@
     grid-template-columns: 1fr 1.25fr;
   }
 }
+
+.boss-hero-method {
+  margin-block-start: .7rem;
+}
+
+.boss-formula-link {
+  display: inline-grid;
+  gap: .3rem;
+  margin-block-start: 1.3rem;
+  padding: .8rem clamp(.6rem, 3vw, 1.5rem);
+  border-block: 1px solid var(--boss-rule);
+  font-size: .85rem;
+}
+
+.boss-formula-symbols {
+  font: clamp(1.08rem, 4vw, 1.65rem)/1.45 var(--boss-serif);
+  text-decoration: none;
+}
+
+#ebr-profile {
+  scroll-margin-block-start: 1.5rem;
+}
+
+#ebr-profile:target {
+  border-color: var(--boss-brass);
+}
