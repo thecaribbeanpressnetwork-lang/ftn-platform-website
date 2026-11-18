@@ -15,7 +15,7 @@
   <link rel="icon" type="image/svg+xml" href="/assets/icons/ftn-shortcut-mark.svg?v=20260811.2">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/components/boss-consulting.css?v=3">
+  <link rel="stylesheet" href="/css/components/boss-consulting.css?v=4">
 </head>
 <body class="boss-consulting">
   <a class="boss-skip" href="#main">Skip to content</a>
@@ -25,19 +25,20 @@
       <a href="#services">Advisory</a>
       <a href="#founder">Founder</a>
       <a href="#research">Research</a>
+      <a href="#work">Selected work</a>
       <a href="#discretion">Discretion</a>
     </nav>
   </header>
   <main class="boss-wrap" id="main">
     <section class="boss-hero" aria-labelledby="boss-title">
+      <div class="boss-crest">
+        <img class="boss-logo" src="/assets/boss-consulting/boss-consulting-winged-lion.webp" width="1200" height="800" alt="Boss Consulting winged-lion logo" fetchpriority="high">
+      </div>
       <div>
         <p class="boss-kicker">Trinidad and Tobago · Caribbean</p>
         <h1 id="boss-title">Boss Business Consulting and Political Strategy</h1>
         <p class="boss-tagline">we do not discuss our clients</p>
         <p class="boss-lede">Led by Ricardo Antoine, founder of FTN Platform. We advise leaders on business and political decisions where timing, judgment and discretion matter.</p>
-      </div>
-      <div class="boss-crest">
-        <img class="boss-logo" src="/assets/boss-consulting/boss-consulting-winged-lion.webp" width="1200" height="800" alt="Boss Consulting winged-lion logo" fetchpriority="high">
       </div>
     </section>
 
@@ -53,6 +54,21 @@
           <p>Understand the policy and institutional landscape before making a public commitment. We advise on stakeholder relationships, public positioning, communications readiness and the consequences of different courses of action.</p>
         </article>
       </div>
+    </section>
+
+    <section class="boss-section" id="decision" aria-labelledby="decision-title">
+      <p class="boss-kicker">Illustrative case · Retail expansion</p>
+      <h2 id="decision-title">Would the new location pay for itself?</h2>
+      <p class="boss-lede">Three reports forecast strong demand. All three draw from the same survey. Before committing to a lease, we’d calculate the sales the location needs and test whether the available evidence supports that volume.</p>
+      <details class="boss-decision">
+        <summary>See how we’d assess it</summary>
+        <div>
+          <p>Business economics uses different models for different questions. Contribution margin shows what each sale adds toward fixed costs. Break-even estimates the sales needed to cover those costs. Discounted cash flow compares costs and returns that arrive at different times.</p>
+          <p class="boss-equation">Q<sub>BE</sub> = F ÷ (P − V)</p>
+          <p>Break-even units equal fixed costs divided by the contribution per unit. With TT$120,000 in monthly fixed costs, a TT$100 selling price and TT$60 in variable costs per sale, the location needs <strong>3,000 sales a month</strong> to break even under those assumptions.</p>
+          <p>Our recommendation in this example would be to test local demand with a short pilot before signing the lease. The break-even threshold gives the pilot a target, and the pilot gives management evidence independent of the original survey.</p>
+        </div>
+      </details>
     </section>
 
     <section class="boss-section" id="founder" aria-labelledby="founder-title">
@@ -71,8 +87,6 @@
         <div><dt>4,300+</dt><dd>Project locations</dd></div>
         <div><dt>16</dt><dd>National accounts managed simultaneously</dd></div>
       </dl>
-      <h3>Explore the public work</h3>
-      <p class="boss-links"><a href="/">FTN Platform</a><a href="/community-connect/">Community Connect</a><a href="/ibis-ai/">FTN ibis</a><a href="/rickboss/#work">RealityArtTV and Rick Boss’s wider portfolio</a></p>
     </section>
 
     <section class="boss-section" id="research" aria-labelledby="research-title">
@@ -81,15 +95,79 @@
       <div class="boss-grid">
         <article>
           <h3>Evidence-Bounded Retrodiction</h3>
-          <p>The published research preprint proposes a protocol for persistent AI agents to reconstruct possible explanations for past outcomes while preserving what was known at the time, what surfaced later, and what remains uncertain.</p>
+          <p>EBR asks how an AI system can reconstruct possible explanations for a past event while keeping three things distinct: what was recorded at the time, what evidence shows a person could access then, and what later evidence helps explain. It preserves contradictions and leaves unresolved questions open.</p>
           <p class="boss-links"><a href="https://doi.org/10.5281/zenodo.22681856">Read the preprint</a><a href="/research/evidence-bounded-retrodiction/">Research overview</a></p>
         </article>
         <article>
-          <h3>Gill Reasoning and the mathematical notes</h3>
-          <p>The companion review note puts the formal definitions, evidence ordering and uncertainty treatment up for examination. In advisory work, those same questions matter. What supports this decision? What assumptions are carrying it? What would change our recommendation?</p>
-          <p class="boss-links"><a href="/research/evidence-bounded-retrodiction/mathematics/">Read the mathematical review note</a></p>
+          <h3>Gill Reasoning</h3>
+          <p>Gill Reasoning applies questions from the research to project decisions. What can we verify? Which assumptions would change the recommendation? What evidence would justify reversing course? In the expansion example, that means tracing the forecasts back to their source and setting a threshold before committing capital.</p>
+          <p class="boss-links"><a href="/rickboss/#research">Explore Gill Reasoning</a></p>
         </article>
       </div>
+      <figure class="boss-formula">
+        <figcaption>
+          <h3>The EBR evidence profile</h3>
+          <p class="boss-equation">Φ(h) = ⟨m(h), n<sub>π</sub>(h), c(h), u(h)⟩</p>
+          <p>For a candidate explanation <i>h</i>, the profile records four dimensions of evidence. Each dimension stays visible so a weakness in one area can be examined on its own.</p>
+        </figcaption>
+        <dl class="boss-formula-key">
+          <div><dt>m(h)</dt><dd>The share of required causal links supported by evidence.</dd></div>
+          <div><dt>n<sub>π</sub>(h)</dt><dd>How many independent sources remain after tracing shared origins.</dd></div>
+          <div><dt>c(h)</dt><dd>The burden of contradictions assessed under the evidence policy.</dd></div>
+          <div><dt>u(h)</dt><dd>How many required causal links remain unresolved.</dd></div>
+        </dl>
+        <a href="/research/evidence-bounded-retrodiction/mathematics/">Read the mathematical review note</a>
+      </figure>
+    </section>
+
+    <section class="boss-section" id="work" aria-labelledby="work-title">
+      <h2 id="work-title">Selected public work</h2>
+      <p class="boss-lede">Examples from Ricardo Antoine’s work in civic technology, applied intelligence, media and music.</p>
+      <div class="boss-work">
+        <article>
+          <img src="/assets/heroes/ftn-invest-in-capital-network.webp" alt="" width="640" height="360" loading="lazy">
+          <div>
+            <h3><a href="/">FTN Platform</a></h3>
+            <p>Founded a Caribbean platform connecting public information, community tools and economic opportunity.</p>
+          </div>
+        </article>
+        <article>
+          <img src="/assets/heroes/community-connect-report.webp" alt="" width="640" height="360" loading="lazy">
+          <div>
+            <h3><a href="/community-connect/">Community Connect</a></h3>
+            <p>An FTN civic tool for documenting local issues, attaching evidence and following community reports.</p>
+          </div>
+        </article>
+        <article>
+          <img src="/assets/rickboss/node-home/ibis-ai.jpg" alt="" width="640" height="360" loading="lazy">
+          <div>
+            <h3><a href="/ibis-ai/">FTN ibis</a></h3>
+            <p>An intelligence workspace for exploring questions, comparing sources and deciding what to investigate next.</p>
+          </div>
+        </article>
+        <article>
+          <img src="/assets/rickboss/exposure-mondays.jpg" alt="" width="640" height="360" loading="lazy">
+          <div>
+            <h3><a href="/rickboss/#work">Exposure Mondays</a></h3>
+            <p>Rick Boss and the team brought 71 artists to the stage across two seasons of the Caribbean talent showcase.</p>
+          </div>
+        </article>
+        <article>
+          <img src="/assets/amari-inniss/album-cover.webp?v=20261004-front" alt="" width="640" height="360" loading="lazy">
+          <div>
+            <h3><a href="/amari-inniss/">Amari Inniss</a></h3>
+            <p>A digital artist project combining music production, character development and visual storytelling.</p>
+          </div>
+        </article>
+        <article>
+          <img src="/assets/rickboss/realityarttv.jpg" alt="" width="640" height="360" loading="lazy">
+          <div>
+            <h3><a href="https://musictt.co.tt/our-music-directory/reality-art-podcasting-and-recording-studio/">RealityArtTV</a></h3>
+            <p>The media production work behind FTN, spanning recording, interviews, podcasts and visual storytelling.</p>
+          </div>
+        </article>
+      </div>
+      <p class="boss-links"><a href="/rickboss/#universe">Explore the wider RickBoss portfolio and FTN demos</a></p>
     </section>
 
     <section class="boss-section boss-discretion" id="discretion" aria-labelledby="discretion-title">

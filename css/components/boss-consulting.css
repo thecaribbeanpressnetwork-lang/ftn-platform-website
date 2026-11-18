@@ -148,13 +148,6 @@
   margin-block-end: 0;
 }
 
-.boss-crest {
-  padding: .3rem;
-  border: 3px double var(--boss-rule);
-  background: #050403;
-  box-shadow: 0 .95rem 2.4rem #0804039e;
-}
-
 .boss-logo,
 .boss-portrait img {
   display: block;
@@ -260,11 +253,103 @@
 }
 
 @media (min-width: 52rem) {
-  .boss-hero {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  }
-
   .boss-founder {
     grid-template-columns: minmax(0, 1fr) 16rem;
   }
+}
+
+.boss-crest {
+  justify-self: center;
+  width: min(100%, 30rem);
+  background: transparent;
+}
+
+.boss-logo {
+  mix-blend-mode: screen;
+}
+
+.boss-hero {
+  grid-template-columns: minmax(0, 1fr);
+  text-align: center;
+}
+
+.boss-hero h1,
+.boss-hero .boss-lede {
+  margin-inline: auto;
+}
+
+.boss-hero h1 {
+  max-width: 22ch;
+}
+
+.boss-tagline {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.boss-decision,
+.boss-formula {
+  margin: 1.5rem 0 0;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border: 1px solid var(--boss-rule);
+  background: #21150f;
+}
+
+.boss-decision summary {
+  color: var(--boss-brass);
+  cursor: pointer;
+}
+
+.boss-decision p,
+.boss-formula p,
+.boss-formula-key dd,
+.boss-work p {
+  color: var(--boss-muted);
+}
+
+.boss-equation,
+.boss-formula .boss-equation {
+  color: var(--boss-brass);
+  font: clamp(1.2rem, 4vw, 2rem)/1.5 var(--boss-serif);
+}
+
+.boss-formula-key,
+.boss-work {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 1rem;
+}
+
+.boss-formula-key dt {
+  color: var(--boss-brass);
+  font-family: var(--boss-serif);
+}
+
+.boss-formula-key dd {
+  margin: .35rem 0 0;
+}
+
+.boss-work {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+}
+
+.boss-work article {
+  background: #21150f;
+  border-block-start: 1px solid var(--boss-rule);
+}
+
+.boss-work img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.boss-work article > div {
+  padding: 1rem;
+}
+
+.boss-work p {
+  margin: 0;
 }
