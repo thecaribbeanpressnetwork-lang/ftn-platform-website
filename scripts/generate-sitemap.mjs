@@ -13,6 +13,7 @@ const UTILITY_PAGES = [
   '/clock/',
   '/resources/',
   '/contact/',
+  '/boss-consulting/',
   '/insights/',
   '/ricardogill',
   '/sitemap/',
