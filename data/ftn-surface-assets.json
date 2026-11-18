@@ -4,6 +4,18 @@
   "policy": "Directory panels and approved composite boards are reference-only. Only explicit approved production assets may render. The founder-locked FTN Index raster master is the authoritative visual source of truth; SVG marks are implementation derivatives and must not redefine, redraw or substitute the locked identity.",
   "surfaces": [
     {
+      "productId": "boss-consulting",
+      "productionAsset": "/assets/boss-consulting/boss-consulting-winged-lion.webp",
+      "source": "Founder-supplied Boss Consulting winged-lion logo",
+      "license": "Approved for public FTN site use by the founder",
+      "dimensions": "1200x800 WEBP",
+      "fileHashSha256": "1aa102fa14a4923e095a23a3c463c756f76a152f2083708446b3eb21cb7ddb93",
+      "desktopFocalPoint": "50% 50%",
+      "mobileFocalPoint": "50% 50%",
+      "safeArea": "Display the full winged-lion artwork and wordmark without cropping.",
+      "approvedForProduction": true
+    },
+    {
       "productId": "platform-home",
       "productionAsset": "/assets/home/ftn-approved-caribbean-ecosystem.png",
       "source": "Founder-approved FTN Caribbean ecosystem visual",

@@ -110,7 +110,8 @@
   font-weight: 800;
 }
 
-.boss-hero {
+.boss-hero,
+.boss-founder {
   display: grid;
   align-items: center;
   gap: clamp(2rem, 5vw, 5rem);
@@ -135,9 +136,11 @@
 }
 
 .boss-portrait {
+  max-width: 16rem;
   margin: 0;
 }
 
+.boss-logo,
 .boss-portrait img {
   display: block;
   width: 100%;
@@ -211,7 +214,8 @@
 }
 
 @media (min-width: 48rem) {
-  .boss-hero {
-    grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  .boss-hero,
+  .boss-founder {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   }
 }

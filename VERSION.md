@@ -1,5 +1,9 @@
 # FTN Platform Website — Version Record
 
+## Boss Consulting flagship — 2026-11-18
+
+Adds the Boss Business Consulting and Political Strategy flagship at /boss-consulting/, using the founder-supplied winged-lion logo. The page connects the advisory practice with the RickBoss profile, public FTN work, the EBR preprint and mathematical review note. Enquiries use the existing FTN contact form.
+
 ## WhatsApp/social preview refresh — 2026-10-18
 
 Replaces the legacy Operating System platform share artwork with a versioned 1200×630 JPEG bearing the current Caribbean Ecosystem tagline. All 40 pages using the generic platform card now reference the new filename, declare JPEG type/secure URL/dimensions and accessible image text. Page titles, descriptions, canonical URLs, product-specific cards, page bodies and application code remain intact; the homepage OG description now matches its existing standard/Twitter description.
