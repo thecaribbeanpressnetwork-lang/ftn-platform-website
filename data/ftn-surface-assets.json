@@ -4,6 +4,15 @@
   "policy": "Directory panels and approved composite boards are reference-only. Only explicit approved production assets may render. The founder-locked FTN Index raster master is the authoritative visual source of truth; SVG marks are implementation derivatives and must not redefine, redraw or substitute the locked identity.",
   "surfaces": [
     {
+      "productId": "boss-consulting-share-v5",
+      "productionAsset": "/assets/boss-consulting/boss-consulting-political-strategy-share-v5.jpg",
+      "source": "Winged-lion card with Trinidad and Tobago inlay between the paws",
+      "license": "FTN site use under the founder’s approval of the source artwork",
+      "dimensions": "1200x630 JPEG",
+      "fileHashSha256": "a8d39e4d111737f9b8d01e56ee483b8dcf98852f4f5a831c45aba830d43ba24b",
+      "approvedForProduction": true
+    },
+    {
       "productId": "boss-consulting-share-v4",
       "productionAsset": "/assets/boss-consulting/boss-consulting-political-strategy-share-v4.jpg",
       "source": "Winged-lion share card with a Trinidad and Tobago flag-inspired inlay",
